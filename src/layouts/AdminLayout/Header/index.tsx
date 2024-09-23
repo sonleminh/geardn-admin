@@ -1,14 +1,11 @@
 import { Box, Button, Menu, MenuItem, Typography } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useState } from 'react';
-// import { useAuthContext } from '../../../contexts/AuthContext';
-// import { useNavigate } from 'react-router-dom';
 import { useLogoutMutate } from '@/services/auth';
-// import { useAuthContext } from '@/contexts/AuthContext';
-// import Cookies from 'js-cookie';
+import { useAuthContext } from '@/contexts/AuthContext';
 const Header = () => {
-  // const auth = useAuthContext();
-  // const navigate = useNavigate();
+  const { user } = useAuthContext();
+  console.log(user);
   const logoutMutation = useLogoutMutate();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -40,7 +37,7 @@ const Header = () => {
         sx={{ mr: 4 }}
         onClick={handleClick}>
         <Typography sx={{ fontWeight: 500, textTransform: 'none' }}>
-          Son Le
+          {user?.name}
         </Typography>
       </Button>
       <Menu

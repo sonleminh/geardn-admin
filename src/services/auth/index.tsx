@@ -4,26 +4,35 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { ILoginPayload } from '@/interfaces/ILogin';
 import { ILoginResponse, IUser } from '@/interfaces/IUser';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import { AxiosError } from 'axios';
 
-const authUrl = '/auth';
+interface ErrorResponse {
+  message: string;
+}
+
+const authUrl = 'auth';
 
 const loginApi = async (payload: ILoginPayload) => {
-  const result = await postRequest(`${authUrl}/login`, payload);
+  const result = await postRequest(`admin/${authUrl}/login`, payload);
   return result.data as ILoginResponse;
 };
 
 export const useLoginMutate = () => {
   const navigate = useNavigate();
   const auth = useAuthContext();
-  // const { showNotification } = useNotificationContext();
+  const { showNotification } = useNotificationContext();
 
   return useMutation({
     mutationKey: ['user'],
     mutationFn: loginApi,
     onSuccess: (data) => {
       auth?.login(data);
-      // showNotification('Đăng nhập thành công', 'success');
+      showNotification('Đăng nhập thành công', 'success');
       navigate('/dashboard');
+    },
+    onError(error: AxiosError<ErrorResponse>) {
+      showNotification(error?.response?.data?.message, 'error');
     },
   });
 };
@@ -36,14 +45,14 @@ const logoutApi = async () => {
 export const useLogoutMutate = () => {
   const navigate = useNavigate();
   const auth = useAuthContext();
-  // const { showNotification } = useNotificationContext();
+  const { showNotification } = useNotificationContext();
 
   return useMutation({
     mutationKey: ['user'],
     mutationFn: logoutApi,
     onSuccess: () => {
       auth?.logout();
-      // showNotification('Đăng nhập thành công', 'success');
+      showNotification('Đăng xuất thành công', 'success');
       navigate('/login');
     },
   });

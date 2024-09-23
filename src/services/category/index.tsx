@@ -1,6 +1,5 @@
 import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { createFormData } from '@/utils/createFormdata';
 import { QueryKeys } from '@/constants/query-key';
 import {
   ICategory,
@@ -10,11 +9,6 @@ import {
 type TCategorysRes = {
   categoryList: ICategory[];
   total: number;
-};
-
-type TInitDataRes = {
-  categories: { value: string; label: string }[];
-  tags: { value: string; label: string }[];
 };
 
 const categoryUrl = '/category';

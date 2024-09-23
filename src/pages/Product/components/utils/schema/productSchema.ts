@@ -11,6 +11,7 @@ export const createSchema = yup.object({
         value: yup.string().required('Value is required'),
         label: yup.string().required('Label is required'),
       })).required('Nội dung này không được để trống!').min(1, 'Nội dung này không được để trống!')
+    , category_id: yup.string().required('Nội dung này không được để trống!')
     , content: yup.string().required('Nội dung này không được để trống!')
     , thumbnail_image: yup.mixed().required('Nội dung này không được để trống!').test('fileFormat', 'Chọn file ảnh hợp lệ jpg/jpeg/png', (value)=> {
         if (value) {
@@ -28,6 +29,7 @@ export const updateSchema = yup.object({
         value: yup.string().required('Value is required'),
         label: yup.string().required('Label is required'),
       })).required('Nội dung này không được để trống!').min(1, 'Nội dung này không được để trống!')
+    , category_id: yup.string().required('Nội dung này không được để trống!')
     , content: yup.string().required('Nội dung này không được để trống!')
     , thumbnail_image: yup.mixed().test('fileFormat', 'Chọn file ảnh hợp lệ jpg/jpeg/png', (value)=> {
         if (value) {

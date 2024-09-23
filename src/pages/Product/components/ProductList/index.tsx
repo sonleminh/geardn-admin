@@ -87,9 +87,10 @@ const ProductList = () => {
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
                 <TableCell align='center'>Tên</TableCell>
+                <TableCell align='center'>Danh mục</TableCell>
                 <TableCell align='center'>Ảnh</TableCell>
                 <TableCell align='center'>Tags</TableCell>
-                <TableCell>Ngày đăng</TableCell>
+                <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
@@ -97,9 +98,18 @@ const ProductList = () => {
               {data?.productList?.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell align='center'>{index + 1}</TableCell>
-                  <TableCell sx={{ width: '30%' }}>
+                  <TableCell sx={{ width: '20%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
                       {item.name}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align='center'>
+                    <Typography sx={{ ...truncateTextByLine(2) }}>
+                      {
+                        data?.categories?.find(
+                          (category) => category?._id === item?.category_id
+                        )?.label
+                      }
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>
@@ -131,7 +141,7 @@ const ProductList = () => {
                       </Box>
                     ))}
                   </TableCell>
-                  <TableCell>
+                  <TableCell align='center'>
                     {moment(item.createdAt).format('DD/MM/YYYY')}
                   </TableCell>
                   <TableCell align='center'>

@@ -14,7 +14,7 @@ import {
   useGetProductById,
   useGetProductInitial,
   useUpdateProduct,
-} from '@/services/Product';
+} from '@/services/product';
 import { useFormik } from 'formik';
 
 import {
@@ -37,6 +37,7 @@ import {
   Typography,
 } from '@mui/material';
 import { ITagOptions } from '@/interfaces/IProduct';
+import { createSchema, updateSchema } from '../utils/schema/productSchema';
 
 const ProductUpsert = () => {
   const { id } = useParams();
@@ -64,7 +65,7 @@ const ProductUpsert = () => {
       thumbnail_image: undefined,
       thumbnail_image_edit: undefined,
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       console.log(values);
@@ -213,6 +214,11 @@ const ProductUpsert = () => {
               </MenuItem>
             ))}
           </Select>
+          <FormHelperText>
+            <Box component={'span'} sx={helperTextStyle}>
+              {formik.errors?.category_id}
+            </Box>
+          </FormHelperText>
         </FormControl>
         <FormControl>
           <Autocomplete
