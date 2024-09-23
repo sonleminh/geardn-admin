@@ -7,6 +7,7 @@ import PrivateRoute from './PrivateRoute';
 import { Navigate } from 'react-router-dom';
 import Dashboard from '@/pages/Dashboard';
 import Product from '@/pages/Product';
+import Category from '@/pages/Category';
 
 const Loader =
   <P extends object>(Component: React.ComponentType<P>): React.FC<P> =>
@@ -55,10 +56,10 @@ const routes = [
             path: 'product/*',
             element: <Product />,
           },
-          //   {
-          //     path: 'tag/*',
-          //     element: <Tag />,
-          //   },
+          {
+            path: 'category/*',
+            element: <Category />,
+          },
         ],
       },
     ],

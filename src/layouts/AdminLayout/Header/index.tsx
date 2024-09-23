@@ -2,13 +2,13 @@ import { Box, Button, Menu, MenuItem, Typography } from '@mui/material';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useState } from 'react';
 // import { useAuthContext } from '../../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { useLogoutMutate } from '@/services/auth';
-import { useAuthContext } from '@/contexts/AuthContext';
+// import { useAuthContext } from '@/contexts/AuthContext';
 // import Cookies from 'js-cookie';
 const Header = () => {
-  const auth = useAuthContext();
-  const navigate = useNavigate();
+  // const auth = useAuthContext();
+  // const navigate = useNavigate();
   const logoutMutation = useLogoutMutate();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);

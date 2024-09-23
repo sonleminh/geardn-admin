@@ -1,4 +1,3 @@
-import Footer from '@/components/sharing/Footer';
 import {
   Box,
   Card,

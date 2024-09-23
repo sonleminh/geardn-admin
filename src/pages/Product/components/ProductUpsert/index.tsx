@@ -29,7 +29,6 @@ import {
   FormHelperText,
   InputLabel,
   MenuItem,
-  OutlinedInputProps,
   Select,
   SelectChangeEvent,
   SxProps,
@@ -37,7 +36,7 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { ICategoryOptions, ITagOptions } from '@/interfaces/IProduct';
+import { ITagOptions } from '@/interfaces/IProduct';
 
 const ProductUpsert = () => {
   const { id } = useParams();
@@ -77,16 +76,16 @@ const ProductUpsert = () => {
         content: values.content,
       };
       if (isEdit) {
-        // updateProductMutate(
-        //   { _id: id, ...payload },
-        //   {
-        //     onSuccess() {
-        //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-        //       showNotification('Cập nhật bài viết thành công', 'success');
-        //       navigate('/Product');
-        //     },
-        //   }
-        // );
+        updateProductMutate(
+          { _id: id, ...payload },
+          {
+            onSuccess() {
+              queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+              showNotification('Cập nhật sản phẩm thành công', 'success');
+              navigate('/product');
+            },
+          }
+        );
       } else {
         createProductMutate(payload, {
           onSuccess() {
@@ -99,18 +98,20 @@ const ProductUpsert = () => {
     },
   });
 
-  // useEffect(() => {
-  //   if (ProductData) {
-  //     formik.setFieldValue('title', ProductData?.name);
-  //     formik.setFieldValue('tags', ProductData?.tags);
-  //     formik.setFieldValue('content', ProductData?.content);
-  //     formik.setFieldValue(
-  //       'thumbnail_image_edit',
-  //       ProductData?.thumbnail_image
-  //     );
-  //     setTags(ProductData?.tags);
-  //   }
-  // }, [ProductData, initData]);
+  useEffect(() => {
+    if (productData) {
+      formik.setFieldValue('name', productData?.name);
+      formik.setFieldValue('category_id', productData?.category_id);
+      formik.setFieldValue('tags', productData?.tags);
+      formik.setFieldValue('content', productData?.content);
+      formik.setFieldValue(
+        'thumbnail_image_edit',
+        productData?.thumbnail_image
+      );
+      setCategoryId(productData?.category_id);
+      setTags(productData?.tags);
+    }
+  }, [productData, initData]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -199,7 +200,7 @@ const ProductUpsert = () => {
               color: 'red',
             },
           }}>
-          <InputLabel id='demo-simple-select-label'>Age</InputLabel>
+          <InputLabel id='demo-simple-select-label'>Danh mục</InputLabel>
           <Select
             disableUnderline
             size='small'
@@ -262,7 +263,7 @@ const ProductUpsert = () => {
         </FormControl>
 
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate('/Product')} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate('/product')} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>

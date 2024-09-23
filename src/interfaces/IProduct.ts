@@ -11,6 +11,8 @@ export interface ITagOptions {
 export interface IProduct {
     _id: string;
     name: string;
+    category_id: string;
+    tags: ITagOptions[];
     content: string;
     thumbnail_image: string;
     createdAt: string;
@@ -27,7 +29,8 @@ export interface IUpdateProductPayload {
     _id: string;
     name: string;
     category_id: string;
-    thumbnail_image: string;
+    tags: ITagOptions[];
+    thumbnail_image?: File;
     content: string;
 }
   

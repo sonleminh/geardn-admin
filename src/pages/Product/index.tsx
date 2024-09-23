@@ -15,10 +15,10 @@ const Product = () => {
           element: <ProductList />,
           index: true,
         },
-        // {
-        //   path: '/update/:id',
-        //   element: <ProductUpsert />,
-        // },
+        {
+          path: '/update/:id',
+          element: <ProductUpsert />,
+        },
         {
           path: '/create',
           element: <ProductUpsert />,
