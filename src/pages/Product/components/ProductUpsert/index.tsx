@@ -58,10 +58,16 @@ const ProductUpsert = () => {
     useUpdateProduct();
   const formik = useFormik({
     initialValues: {
-      name: '',
-      tags: '',
-      category_id: '',
-      content: '',
+      name: undefined,
+      price: undefined,
+      discount: {
+        discountPrice: undefined,
+        startDate: undefined,
+        endDate: undefined,
+      },
+      tags: undefined,
+      category_id: undefined,
+      content: undefined,
       thumbnail_image: undefined,
       thumbnail_image_edit: undefined,
     },
@@ -70,11 +76,10 @@ const ProductUpsert = () => {
     onSubmit(values) {
       console.log(values);
       const payload = {
-        name: values.name,
+        ...values,
+        price: Number(values.price),
         category_id: categoryId,
         tags: tags,
-        thumbnail_image: values.thumbnail_image,
-        content: values.content,
       };
       if (isEdit) {
         updateProductMutate(
@@ -83,7 +88,7 @@ const ProductUpsert = () => {
             onSuccess() {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
               showNotification('Cập nhật sản phẩm thành công', 'success');
-              navigate('/product');
+              // navigate('/product');
             },
           }
         );
@@ -116,7 +121,14 @@ const ProductUpsert = () => {
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    formik.setFieldValue(name, value);
+    if (
+      e.target.name === 'discount.startDate' ||
+      e.target.name === 'discount.endDate'
+    ) {
+      formik.setFieldValue(name, new Date(value).toISOString());
+    } else {
+      formik.setFieldValue(name, value);
+    }
   };
 
   const handleTagChange = (
@@ -160,7 +172,6 @@ const ProductUpsert = () => {
             onChange={handleChangeValue}
           />
         </FormControl>
-
         <FormControl>
           <Upload
             title={'Ảnh'}
@@ -179,6 +190,61 @@ const ProductUpsert = () => {
             }}
           />
         </FormControl>
+        <FormControl
+          sx={{
+            display: 'flex',
+            flexDirection: 'unset',
+            justifyContent: 'space-between',
+          }}>
+          <Input
+            id='price'
+            label='Giá'
+            name='price'
+            variant='filled'
+            type='number'
+            required
+            helperText={
+              <Box component={'span'} sx={helperTextStyle}>
+                {formik.errors.price}
+              </Box>
+            }
+            value={formik?.values.price}
+            onChange={handleChangeValue}
+            size='small'
+            sx={{ width: '22%' }}
+          />
+          <Input
+            label='Giá giảm'
+            name='discount.discountPrice'
+            variant='filled'
+            type='number'
+            required
+            helperText={
+              <Box component={'span'} sx={helperTextStyle}>
+                {formik?.errors?.discount?.discountPrice}
+              </Box>
+            }
+            value={formik?.values.discount.discountPrice}
+            onChange={handleChangeValue}
+            size='small'
+            sx={{ width: '22%' }}
+          />
+          <Input
+            name='discount.startDate'
+            type='date'
+            onChange={handleChangeValue}
+            size='small'
+            sx={{ width: '22%' }}
+          />
+          <Input
+            name='discount.endDate'
+            type='date'
+            onChange={handleChangeValue}
+            size='small'
+            sx={{ width: '22%' }}
+          />
+        </FormControl>
+
         <FormControl
           variant='filled'
           fullWidth

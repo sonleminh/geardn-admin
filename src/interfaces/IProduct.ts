@@ -8,9 +8,17 @@ export interface ITagOptions {
     label: string;
 }
 
+interface IDiscount {
+    discountPrice?: number;
+    startDate?: string;
+    endDate?: string;
+}
+
 export interface IProduct {
     _id: string;
     name: string;
+    price: number;
+    discount: IDiscount;
     category_id: string;
     tags: ITagOptions[];
     content: string;
@@ -19,18 +27,22 @@ export interface IProduct {
 }
 
 export interface ICreateProduct extends Record<string, unknown>  {
-    name: string;
+    name?: string;
+    price?: number;
+    discount?: IDiscount;
     category_id: string;
     tags: ITagOptions[];
-    content: string;
+    content?: string;
 }
 
 export interface IUpdateProductPayload {
     _id: string;
-    name: string;
+    name?: string;
+    price?: number;
+    discount?: IDiscount;
     category_id: string;
     tags: ITagOptions[];
     thumbnail_image?: File;
-    content: string;
+    content?: string;
 }
   

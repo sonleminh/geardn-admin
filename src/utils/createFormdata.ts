@@ -1,4 +1,4 @@
-export const createFormData = (payload: Record<string, unknown>) => {
+export const createFormData = (payload: any) => {
     const formData = new FormData();
   
     for (const key in payload) {
@@ -10,6 +10,15 @@ export const createFormData = (payload: Record<string, unknown>) => {
         if(key === 'tags') {
           formData.append('tags', JSON.stringify(value));
         }
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          Object.keys(value).forEach((subKey) => {
+            const fieldName = `${key}[${subKey}]`;
+            if (value[subKey] === undefined || value[subKey].length === 0) {
+              return;
+            }
+          formData.append(fieldName, value[subKey]);
+          })
+        }
         else {
           if (value !== undefined) formData.append(key, String(value));
         }
@@ -17,4 +26,3 @@ export const createFormData = (payload: Record<string, unknown>) => {
     }
     return formData;
   };
-  

@@ -5,7 +5,6 @@ import { useLogoutMutate } from '@/services/auth';
 import { useAuthContext } from '@/contexts/AuthContext';
 const Header = () => {
   const { user } = useAuthContext();
-  console.log(user);
   const logoutMutation = useLogoutMutate();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
