@@ -7,8 +7,9 @@ export const createFormData = (payload: any) => {
         if (value instanceof File) {
           formData.append(key, value);
         }
-        if(key === 'tags') {
+        if(key === 'tags' && Array.isArray(value)) {
           formData.append('tags', JSON.stringify(value));
+          continue;
         }
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
           Object.keys(value).forEach((subKey) => {
@@ -20,8 +21,9 @@ export const createFormData = (payload: any) => {
           })
         }
         else {
-          if (value !== undefined) formData.append(key, String(value));
+          if (value !== undefined && value !== '') formData.append(key, String(value));
         }
+        
       }
     }
     return formData;

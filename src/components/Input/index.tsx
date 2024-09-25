@@ -8,7 +8,7 @@ import {
 const Input = styled((props: TextFieldProps) => (
   <TextField
     slotProps={{
-      input: { disableUnderline: true } as Partial<OutlinedInputProps>,
+      input: { disableunderline: 'true' } as Partial<OutlinedInputProps>,
     }}
     {...props}
   />

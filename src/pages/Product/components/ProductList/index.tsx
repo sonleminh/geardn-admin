@@ -127,6 +127,7 @@ const ProductList = () => {
                   <TableCell>
                     {item?.tags?.map((tag: ITagOptions) => (
                       <Box
+                        key={tag.value}
                         sx={{
                           padding: '4px 2px',
                           my: 1,

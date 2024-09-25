@@ -38,6 +38,7 @@ import {
 } from '@mui/material';
 import { ITagOptions } from '@/interfaces/IProduct';
 import { createSchema, updateSchema } from '../utils/schema/productSchema';
+import { formatDateToIOS, formatDateToNormal } from '@/utils/formatDate';
 
 const ProductUpsert = () => {
   const { id } = useParams();
@@ -58,16 +59,16 @@ const ProductUpsert = () => {
     useUpdateProduct();
   const formik = useFormik({
     initialValues: {
-      name: undefined,
-      price: undefined,
+      name: '',
+      price: '',
       discount: {
-        discountPrice: undefined,
-        startDate: undefined,
-        endDate: undefined,
+        discountPrice: '',
+        startDate: '',
+        endDate: '',
       },
-      tags: undefined,
-      category_id: undefined,
-      content: undefined,
+      tags: [],
+      category_id: '',
+      content: '',
       thumbnail_image: undefined,
       thumbnail_image_edit: undefined,
     },
@@ -77,6 +78,11 @@ const ProductUpsert = () => {
       console.log(values);
       const payload = {
         ...values,
+        discount: {
+          discountPrice: Number(values.discount.discountPrice),
+          startDate: formatDateToIOS(values.discount.startDate),
+          endDate: formatDateToIOS(values.discount.endDate),
+        },
         price: Number(values.price),
         category_id: categoryId,
         tags: tags,
@@ -107,6 +113,20 @@ const ProductUpsert = () => {
   useEffect(() => {
     if (productData) {
       formik.setFieldValue('name', productData?.name);
+      formik.setFieldValue('price', productData?.price);
+      formik.setFieldValue(
+        'discount.discountPrice',
+        productData?.discount.discountPrice
+      );
+      formik.setFieldValue(
+        'discount.startDate',
+        formatDateToNormal(productData?.discount?.startDate)
+      );
+      formik.setFieldValue(
+        'discount.endDate',
+        formatDateToNormal(productData?.discount.endDate)
+      );
+      formik.setFieldValue('name', productData?.name);
       formik.setFieldValue('category_id', productData?.category_id);
       formik.setFieldValue('tags', productData?.tags);
       formik.setFieldValue('content', productData?.content);
@@ -121,14 +141,7 @@ const ProductUpsert = () => {
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    if (
-      e.target.name === 'discount.startDate' ||
-      e.target.name === 'discount.endDate'
-    ) {
-      formik.setFieldValue(name, new Date(value).toISOString());
-    } else {
-      formik.setFieldValue(name, value);
-    }
+    formik.setFieldValue(name, value);
   };
 
   const handleTagChange = (
@@ -208,8 +221,8 @@ const ProductUpsert = () => {
                 {formik.errors.price}
               </Box>
             }
-            value={formik?.values.price}
             onChange={handleChangeValue}
+            value={formik?.values.price}
             size='small'
             sx={{ width: '22%' }}
           />
@@ -224,8 +237,8 @@ const ProductUpsert = () => {
                 {formik?.errors?.discount?.discountPrice}
               </Box>
             }
-            value={formik?.values.discount.discountPrice}
             onChange={handleChangeValue}
+            value={formik?.values.discount.discountPrice}
             size='small'
             sx={{ width: '22%' }}
           />
@@ -233,6 +246,7 @@ const ProductUpsert = () => {
             name='discount.startDate'
             type='date'
             onChange={handleChangeValue}
+            value={formik?.values?.discount.startDate ?? ''}
             size='small'
             sx={{ width: '22%' }}
           />
@@ -240,11 +254,11 @@ const ProductUpsert = () => {
             name='discount.endDate'
             type='date'
             onChange={handleChangeValue}
+            value={formik?.values?.discount.endDate ?? ''}
             size='small'
             sx={{ width: '22%' }}
           />
         </FormControl>
-
         <FormControl
           variant='filled'
           fullWidth
