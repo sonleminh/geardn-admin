@@ -9,7 +9,7 @@ export interface ITagOptions {
 }
 
 interface IDiscount {
-    discountPrice?: number;
+    discountPrice?: number | string;
     startDate?: string;
     endDate?: string;
 }

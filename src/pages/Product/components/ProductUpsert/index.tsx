@@ -87,6 +87,7 @@ const ProductUpsert = () => {
         category_id: categoryId,
         tags: tags,
       };
+      console.log('pl:', payload);
       if (isEdit) {
         updateProductMutate(
           { _id: id, ...payload },

@@ -5,7 +5,8 @@ interface FileWithMimeType {
 }
 
 export const createSchema = yup.object({
-    name: yup.string().required('Nội dung này không được để trống!').max(490, 'Không được vượt quá 490 ký tự!')
+    name: yup.string().required('Nội dung này không được để trống!').max(490, 'Không được vượt quá 490 ký tự!'),
+    price: yup.number().required('Giá tiền không được để trống!').min(1000, 'Giá tiền không được nhỏ hơn 1.000 VNĐ!')
     , tags: yup.array().of(
         yup.object().shape({
         value: yup.string().required('Value is required'),

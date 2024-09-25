@@ -33,6 +33,12 @@ const Input = styled((props: TextFieldProps) => (
       border: '2px solid',
       borderColor: theme.palette.primary.main,
     },
+    '&:before': {
+      borderBottom: 'none !important',
+    },
+    '&:after': {
+      borderBottom: 'none',
+    },
   },
   '& .MuiInputLabel-asterisk': {
     color: 'red',

@@ -57,7 +57,7 @@ const ProductList = () => {
     deleteProductMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-        showNotification('Xóa bài viết thành công', 'success');
+        showNotification('Xóa sản phẩm thành công', 'success');
       },
     });
   };
@@ -162,7 +162,7 @@ const ProductList = () => {
                           color='error'
                           onClick={() => {
                             showConfirmModal({
-                              title: 'Bạn có muốn xóa bài viết này không?',
+                              title: 'Bạn có muốn xóa sản phẩm này không?',
                               cancelText: 'Hủy',
                               onOk: () => handleDeleteProduct(item?._id),
                               okText: 'Xóa',

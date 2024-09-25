@@ -11,10 +11,11 @@ export const createFormData = (payload: any) => {
           formData.append('tags', JSON.stringify(value));
           continue;
         }
+        
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
           Object.keys(value).forEach((subKey) => {
             const fieldName = `${key}[${subKey}]`;
-            if (value[subKey] === undefined || value[subKey].length === 0) {
+            if (value[subKey] === undefined || value[subKey].length === 0 || value[subKey] === 0) {
               return;
             }
           formData.append(fieldName, value[subKey]);
