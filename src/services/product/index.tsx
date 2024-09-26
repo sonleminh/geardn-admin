@@ -58,7 +58,11 @@ export const useGetProductById = (id: string) => {
 };
 
 const createProduct = async (payload: ICreateProduct) => {
+  // console.log('payload:', payload);
   const formData = createFormData(payload);
+  // formData.forEach((value, key) => {
+  //   console.log(`${key}: ${value}`);
+  // });
   const result = await postRequest(`${productUrl}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',

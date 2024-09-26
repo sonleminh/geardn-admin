@@ -39,6 +39,7 @@ import {
 import { ITagOptions } from '@/interfaces/IProduct';
 import { createSchema, updateSchema } from '../utils/schema/productSchema';
 import { formatDateToIOS, formatDateToNormal } from '@/utils/formatDate';
+import MultipleFileUpload from '@/components/MultipleFileUpload';
 
 const ProductUpsert = () => {
   const { id } = useParams();
@@ -69,10 +70,10 @@ const ProductUpsert = () => {
       tags: [],
       category_id: '',
       content: '',
-      thumbnail_image: undefined,
-      thumbnail_image_edit: undefined,
+      images: undefined,
+      images_edit: undefined,
     },
-    validationSchema: isEdit ? updateSchema : createSchema,
+    // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       console.log(values);
@@ -87,7 +88,6 @@ const ProductUpsert = () => {
         category_id: categoryId,
         tags: tags,
       };
-      console.log('pl:', payload);
       if (isEdit) {
         updateProductMutate(
           { _id: id, ...payload },
@@ -104,7 +104,7 @@ const ProductUpsert = () => {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
             showNotification('Tạo sản phẩm thành công', 'success');
-            navigate('/product');
+            // navigate('/product');
           },
         });
       }
@@ -117,7 +117,7 @@ const ProductUpsert = () => {
       formik.setFieldValue('price', productData?.price);
       formik.setFieldValue(
         'discount.discountPrice',
-        productData?.discount.discountPrice
+        productData?.discount?.discountPrice
       );
       formik.setFieldValue(
         'discount.startDate',
@@ -125,16 +125,13 @@ const ProductUpsert = () => {
       );
       formik.setFieldValue(
         'discount.endDate',
-        formatDateToNormal(productData?.discount.endDate)
+        formatDateToNormal(productData?.discount?.endDate)
       );
       formik.setFieldValue('name', productData?.name);
       formik.setFieldValue('category_id', productData?.category_id);
       formik.setFieldValue('tags', productData?.tags);
       formik.setFieldValue('content', productData?.content);
-      formik.setFieldValue(
-        'thumbnail_image_edit',
-        productData?.thumbnail_image
-      );
+      formik.setFieldValue('images_edit', productData?.images[0]);
       setCategoryId(productData?.category_id);
       setTags(productData?.tags);
     }
@@ -187,20 +184,17 @@ const ProductUpsert = () => {
           />
         </FormControl>
         <FormControl>
-          <Upload
+          <MultipleFileUpload
             title={'Ảnh'}
             required
             helperText={
               <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.thumbnail_image}
+                {formik.errors.images}
               </Box>
             }
-            value={
-              formik?.values.thumbnail_image ??
-              formik.values.thumbnail_image_edit
-            }
+            value={formik?.values.images ?? formik.values.images_edit}
             onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              formik.setFieldValue('thumbnail_image', e.target.files?.[0]);
+              formik.setFieldValue('images', e.target.files);
             }}
           />
         </FormControl>

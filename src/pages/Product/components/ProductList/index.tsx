@@ -121,7 +121,7 @@ const ProductList = () => {
                           objectFit: 'contain',
                         },
                       }}>
-                      <img src={item.thumbnail_image} className='thumbnail' />
+                      <img src={item?.images[0]} className='thumbnail' />
                     </Box>
                   </TableCell>
                   <TableCell>

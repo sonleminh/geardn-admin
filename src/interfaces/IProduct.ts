@@ -22,7 +22,7 @@ export interface IProduct {
     category_id: string;
     tags: ITagOptions[];
     content: string;
-    thumbnail_image: string;
+    images: string;
     createdAt: string;
 }
 
@@ -42,7 +42,7 @@ export interface IUpdateProductPayload {
     discount?: IDiscount;
     category_id: string;
     tags: ITagOptions[];
-    thumbnail_image?: File;
+    images?: File;
     content?: string;
 }
   
