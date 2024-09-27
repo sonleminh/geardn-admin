@@ -1,15 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { getRequest, postRequest } from '../axios';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { ILoginPayload } from '@/interfaces/ILogin';
-import { ILoginResponse, IUser } from '@/interfaces/IUser';
-import { useAuthContext } from '@/contexts/AuthContext';
 import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { getRequest, postRequest } from '../axios';
 import { AxiosError } from 'axios';
 
-interface ErrorResponse {
-  message: string;
-}
+import { ILoginResponse, IUser } from '@/interfaces/IUser';
+import { ILoginPayload } from '@/interfaces/ILogin';
+import { ErrorResponse } from '@/interfaces/IError';
 
 const authUrl = 'auth';
 

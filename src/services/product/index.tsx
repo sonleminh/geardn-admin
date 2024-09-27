@@ -1,14 +1,17 @@
 import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { createFormData } from '@/utils/createFormdata';
+import { AxiosError } from 'axios';
 import { QueryKeys } from '@/constants/query-key';
-import { IQuery } from '@/interfaces/IQuery';
-import queryString from 'query-string';
+
+import { useNotificationContext } from '@/contexts/NotificationContext';
 import {
-  IProduct,
   ICreateProduct,
+  IProduct,
   IUpdateProductPayload,
 } from '@/interfaces/IProduct';
+import { ErrorResponse } from '@/interfaces/IError';
+import { IQuery } from '@/interfaces/IQuery';
+import queryString from 'query-string';
 
 type TProductsRes = {
   productList: IProduct[];
@@ -107,7 +110,10 @@ export const useDeleteProduct = () => {
   });
 };
 
-const uploadImage = async (files: FileList) => {
+const uploadImage = async (
+  files: FileList,
+  onProgress: (progress: number) => void
+) => {
   const formData = new FormData();
   for (let i = 0; i < files.length; i++) {
     formData.append('images', files[i]);
@@ -116,12 +122,33 @@ const uploadImage = async (files: FileList) => {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    onUploadProgress: (event) => {
+      if (event.total) {
+        const progress = Math.round((event.loaded * 100) / event.total);
+        onProgress(progress);
+      } else {
+        onProgress(100);
+      }
+    },
   });
   return result.data as { images: string[] };
 };
 
 export const useUploadImage = () => {
+  const { showNotification } = useNotificationContext();
   return useMutation({
-    mutationFn: uploadImage,
+    mutationFn: ({
+      files,
+      onProgress,
+    }: {
+      files: FileList;
+      onProgress: (progress: number) => void;
+    }) => uploadImage(files, onProgress),
+    onError(error: AxiosError<ErrorResponse>) {
+      showNotification(
+        error?.response?.data?.message || 'Upload failed',
+        'error'
+      );
+    },
   });
 };

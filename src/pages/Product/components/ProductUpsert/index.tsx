@@ -1,20 +1,22 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import MultipleFileUpload from '@/components/MultipleFileUpload';
 import SuspenseLoader from '@/components/SuspenseLoader';
 import CKEditor from '@/components/CKEditor';
-import Upload from '@/components/Upload';
 import Input from '@/components/Input';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import { useQueryClient } from '@tanstack/react-query';
-import { QueryKeys } from '@/constants/query-key';
 import {
   useCreateProduct,
   useGetProductById,
   useGetProductInitial,
   useUpdateProduct,
 } from '@/services/product';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import { formatDateToIOS, formatDateToNormal } from '@/utils/formatDate';
+import { useQueryClient } from '@tanstack/react-query';
+import { ITagOptions } from '@/interfaces/IProduct';
+import { QueryKeys } from '@/constants/query-key';
 import { useFormik } from 'formik';
 
 import {
@@ -36,10 +38,7 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { ITagOptions } from '@/interfaces/IProduct';
 import { createSchema, updateSchema } from '../utils/schema/productSchema';
-import { formatDateToIOS, formatDateToNormal } from '@/utils/formatDate';
-import MultipleFileUpload from '@/components/MultipleFileUpload';
 
 const ProductUpsert = () => {
   const { id } = useParams();
@@ -72,7 +71,6 @@ const ProductUpsert = () => {
       category_id: '',
       content: '',
       images: [],
-      images_edit: undefined,
     },
     validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -208,7 +206,6 @@ const ProductUpsert = () => {
               </Box>
             }
             value={formik?.values?.images}
-            // value={formik?.values.images ?? formik.values.images_edit}
             onUploadChange={handleUploadResult}
           />
         </FormControl>
@@ -240,7 +237,6 @@ const ProductUpsert = () => {
             name='discount.discountPrice'
             variant='filled'
             type='number'
-            required
             helperText={
               <Box component={'span'} sx={helperTextStyle}>
                 {formik?.errors?.discount?.discountPrice}

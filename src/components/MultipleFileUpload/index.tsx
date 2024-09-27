@@ -1,8 +1,10 @@
 import { ChangeEvent, ReactNode, useEffect, useRef, useState } from 'react';
+import CircularProgressWithLabel from '../CircularProgress';
+import { useUploadImage } from '@/services/product';
+
 import { Box, Button, TextFieldProps, Typography } from '@mui/material';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import ClearIcon from '@mui/icons-material/Clear';
-import { useUploadImage } from '@/services/product';
 
 type TUploadProps = {
   title?: ReactNode;
@@ -21,16 +23,22 @@ const MultipleFileUpload = ({
   helperText,
 }: TUploadProps) => {
   const [images, setImages] = useState<string[]>([]);
+  const [progress, setProgress] = useState<number | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const { mutate: uploadMutate } = useUploadImage();
   const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e?.target?.files;
     if (files) {
-      uploadMutate(files, {
-        onSuccess(data) {
-          setImages((prev) => [...prev, ...data.images]);
-        },
-      });
+      setProgress(0);
+      uploadMutate(
+        { files, onProgress: setProgress },
+        {
+          onSuccess(data) {
+            setImages((prev) => [...prev, ...data.images]);
+            setProgress(null);
+          },
+        }
+      );
     }
   };
 
@@ -80,54 +88,42 @@ const MultipleFileUpload = ({
           </Button>
           {images?.length > 0 &&
             images?.map((item: string, index: number) => (
-              <Box
-                sx={{
-                  position: 'relative',
-                  mr: 1.5,
-                  '.thumbnail': {
-                    maxWidth: 120,
-                    maxHeight: 120,
-                    mr: 1,
-                    border: '1px solid #aaaaaa',
-                  },
-                }}>
-                <img src={item} className='thumbnail' />
-                <ClearIcon
-                  onClick={() => {
-                    const newImages = images.filter((_, i) => i !== index);
-                    setImages(newImages);
-                  }}
+              <>
+                <Box
                   sx={{
-                    position: 'absolute',
-                    top: '-6px',
-                    right: '0px',
-                    bgcolor: 'white',
-                    fontSize: 16,
-                    border: '1px solid #696969',
-                    borderRadius: '2px',
-                    cursor: 'pointer',
-                    ':hover': {
-                      bgcolor: '#eaeaea',
+                    position: 'relative',
+                    mr: 1.5,
+                    '.thumbnail': {
+                      maxWidth: 120,
+                      maxHeight: 120,
+                      mr: 1,
+                      border: '1px solid #aaaaaa',
                     },
-                  }}
-                />
-              </Box>
+                  }}>
+                  <img src={item} className='thumbnail' />
+                  <ClearIcon
+                    onClick={() => {
+                      const newImages = images.filter((_, i) => i !== index);
+                      setImages(newImages);
+                    }}
+                    sx={{
+                      position: 'absolute',
+                      top: '-6px',
+                      right: '0px',
+                      bgcolor: 'white',
+                      fontSize: 16,
+                      border: '1px solid #696969',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      ':hover': {
+                        bgcolor: '#eaeaea',
+                      },
+                    }}
+                  />
+                </Box>
+              </>
             ))}
-          {/* {(value as string)?.length > 0 && (
-            <>
-              <Box
-                sx={{
-                  '.thumbnail': {
-                    width: '100%',
-                    maxHeight: 120,
-                    mr: 1,
-                    border: '1px solid #aaaaaa',
-                  },
-                }}>
-                <img src={value as string} className='thumbnail' />
-              </Box>
-            </>
-          )} */}
+          {progress !== null && <CircularProgressWithLabel value={progress} />}
         </Box>
         {helperText && (
           <Typography
