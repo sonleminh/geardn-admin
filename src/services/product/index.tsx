@@ -58,16 +58,7 @@ export const useGetProductById = (id: string) => {
 };
 
 const createProduct = async (payload: ICreateProduct) => {
-  // console.log('payload:', payload);
-  const formData = createFormData(payload);
-  // formData.forEach((value, key) => {
-  //   console.log(`${key}: ${value}`);
-  // });
-  const result = await postRequest(`${productUrl}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const result = await postRequest(`${productUrl}`, payload);
   return result.data as IProduct;
 };
 
@@ -95,12 +86,7 @@ export const useGetProductInitial = () => {
 
 const updateProduct = async (payload: IUpdateProductPayload) => {
   const { _id, ...rest } = payload;
-  const formData = createFormData(rest);
-  const result = await patchRequest(`${productUrl}/${_id}`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const result = await patchRequest(`${productUrl}/${_id}`, rest);
   return result.data as IProduct;
 };
 
@@ -118,5 +104,24 @@ const deleteProduct = async (id: string) => {
 export const useDeleteProduct = () => {
   return useMutation({
     mutationFn: deleteProduct,
+  });
+};
+
+const uploadImage = async (files: FileList) => {
+  const formData = new FormData();
+  for (let i = 0; i < files.length; i++) {
+    formData.append('images', files[i]);
+  }
+  const result = await postRequest(`upload`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return result.data as { images: string[] };
+};
+
+export const useUploadImage = () => {
+  return useMutation({
+    mutationFn: uploadImage,
   });
 };

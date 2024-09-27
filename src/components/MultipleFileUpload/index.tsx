@@ -1,12 +1,15 @@
-import { ChangeEvent, ReactNode, useRef, useState } from 'react';
+import { ChangeEvent, ReactNode, useEffect, useRef, useState } from 'react';
 import { Box, Button, TextFieldProps, Typography } from '@mui/material';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import ClearIcon from '@mui/icons-material/Clear';
+import { useUploadImage } from '@/services/product';
 
 type TUploadProps = {
   title?: ReactNode;
   required?: boolean;
   onClearValue?: () => void;
+  onUploadChange: (images: string[]) => void;
+  value: string[];
 } & TextFieldProps;
 
 const MultipleFileUpload = ({
@@ -14,33 +17,33 @@ const MultipleFileUpload = ({
   required,
   disabled,
   value,
-  onChange,
+  onUploadChange,
   helperText,
 }: TUploadProps) => {
-  // const [previewSource, setPreviewSource] = useState<string>();
-  const [previewSource, setPreviewSource] = useState<any[]>([]);
+  const [images, setImages] = useState<string[]>([]);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const { mutate: uploadMutate } = useUploadImage();
   const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    onChange?.(e);
-    const files = e.target.files;
-    // const file = e.target.files ? e.target.files[0] : null;
+    const files = e?.target?.files;
     if (files) {
-      previewFile(files);
+      uploadMutate(files, {
+        onSuccess(data) {
+          setImages((prev) => [...prev, ...data.images]);
+        },
+      });
     }
   };
-  console.log(previewSource);
 
-  const previewFile = (files: FileList) => {
-    const fileArray = Array.from(files);
+  useEffect(() => {
+    if (JSON.stringify(value) !== JSON.stringify(images)) {
+      setImages(value);
+    }
+  }, [value]);
 
-    fileArray.forEach((file) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = () => {
-        setPreviewSource((preState) => [...preState, reader.result]);
-      };
-    });
-  };
+  useEffect(() => {
+    onUploadChange(images);
+  }, [images]);
+
   return (
     <Box>
       {title && (
@@ -58,6 +61,7 @@ const MultipleFileUpload = ({
           <input
             type='file'
             multiple
+            accept='image/*'
             ref={uploadInputRef}
             onChange={handleFileInputChange}
             style={{ display: 'none' }}
@@ -74,8 +78,8 @@ const MultipleFileUpload = ({
             <FileUploadIcon sx={{ mr: 1 }} />
             Upload
           </Button>
-          {previewSource?.length > 0 &&
-            previewSource?.map((item: string, index: number) => (
+          {images?.length > 0 &&
+            images?.map((item: string, index: number) => (
               <Box
                 sx={{
                   position: 'relative',
@@ -90,10 +94,8 @@ const MultipleFileUpload = ({
                 <img src={item} className='thumbnail' />
                 <ClearIcon
                   onClick={() => {
-                    const newPreviewSource = previewSource.filter(
-                      (_, i) => i !== index
-                    );
-                    setPreviewSource(newPreviewSource);
+                    const newImages = images.filter((_, i) => i !== index);
+                    setImages(newImages);
                   }}
                   sx={{
                     position: 'absolute',

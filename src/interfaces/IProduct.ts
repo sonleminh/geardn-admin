@@ -32,6 +32,7 @@ export interface ICreateProduct extends Record<string, unknown>  {
     discount?: IDiscount;
     category_id: string;
     tags: ITagOptions[];
+    images?: string[];
     content?: string;
 }
 
@@ -42,7 +43,7 @@ export interface IUpdateProductPayload {
     discount?: IDiscount;
     category_id: string;
     tags: ITagOptions[];
-    images?: File;
+    images?: string[];
     content?: string;
 }
   

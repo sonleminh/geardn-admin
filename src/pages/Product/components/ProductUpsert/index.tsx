@@ -58,6 +58,7 @@ const ProductUpsert = () => {
     useCreateProduct();
   const { mutate: updateProductMutate, isPending: isUpdatePending } =
     useUpdateProduct();
+
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -70,24 +71,34 @@ const ProductUpsert = () => {
       tags: [],
       category_id: '',
       content: '',
-      images: undefined,
+      images: [],
       images_edit: undefined,
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      console.log(values);
+      console.log('values', values);
+      const hasDiscount =
+        values.discount.discountPrice !== '' ||
+        values.discount.startDate !== '' ||
+        values.discount.endDate !== '';
       const payload = {
         ...values,
-        discount: {
-          discountPrice: Number(values.discount.discountPrice),
-          startDate: formatDateToIOS(values.discount.startDate),
-          endDate: formatDateToIOS(values.discount.endDate),
-        },
         price: Number(values.price),
         category_id: categoryId,
         tags: tags,
+        discount: hasDiscount
+          ? {
+              discountPrice: Number(values.discount.discountPrice),
+              startDate: formatDateToIOS(values.discount.startDate),
+              endDate: formatDateToIOS(values.discount.endDate),
+            }
+          : undefined,
       };
+      if (!hasDiscount) {
+        delete payload.discount;
+      }
+
       if (isEdit) {
         updateProductMutate(
           { _id: id, ...payload },
@@ -110,7 +121,6 @@ const ProductUpsert = () => {
       }
     },
   });
-
   useEffect(() => {
     if (productData) {
       formik.setFieldValue('name', productData?.name);
@@ -131,7 +141,8 @@ const ProductUpsert = () => {
       formik.setFieldValue('category_id', productData?.category_id);
       formik.setFieldValue('tags', productData?.tags);
       formik.setFieldValue('content', productData?.content);
-      formik.setFieldValue('images_edit', productData?.images[0]);
+      formik.setFieldValue('images', productData?.images);
+      // formik.setFieldValue('images_edit', productData?.images);
       setCategoryId(productData?.category_id);
       setTags(productData?.tags);
     }
@@ -153,6 +164,10 @@ const ProductUpsert = () => {
   const handleCategoryChange = (e: SelectChangeEvent<unknown>) => {
     setCategoryId(e.target.value as string);
     formik.setFieldValue('category_id', e.target.value as string);
+  };
+
+  const handleUploadResult = (result: string[]) => {
+    formik.setFieldValue('images', result);
   };
 
   return (
@@ -192,10 +207,9 @@ const ProductUpsert = () => {
                 {formik.errors.images}
               </Box>
             }
-            value={formik?.values.images ?? formik.values.images_edit}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              formik.setFieldValue('images', e.target.files);
-            }}
+            value={formik?.values?.images}
+            // value={formik?.values.images ?? formik.values.images_edit}
+            onUploadChange={handleUploadResult}
           />
         </FormControl>
         <FormControl
@@ -233,7 +247,11 @@ const ProductUpsert = () => {
               </Box>
             }
             onChange={handleChangeValue}
-            value={formik?.values.discount.discountPrice}
+            value={
+              +formik?.values?.discount?.discountPrice > 0
+                ? formik?.values?.discount?.discountPrice
+                : ''
+            }
             size='small'
             sx={{ width: '22%' }}
           />

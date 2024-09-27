@@ -7,17 +7,16 @@ export const createFormData = (payload: any) => {
         if (value instanceof File) {
           formData.append(key, value);
         }
-        if(key === 'tags' && Array.isArray(value)) {
-          formData.append('tags', JSON.stringify(value));
+        if(Array.isArray(value)) {
+          formData.append(key, JSON.stringify(value));
           continue;
         }
-        if(key === 'images') {
-          for (let i = 0; i < value.length; i++) {
-            formData.append('images', value[i]);
-          }
-          continue;
-        }
-        
+        // if(key === 'images') {
+        //   for (let i = 0; i < value.length; i++) {
+        //     formData.append('images', value[i]);
+        //   }
+        //   continue;
+        // }
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
           console.log(value)
           Object.keys(value).forEach((subKey) => {

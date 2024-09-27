@@ -14,13 +14,7 @@ export const createSchema = yup.object({
       })).required('Nội dung này không được để trống!').min(1, 'Nội dung này không được để trống!')
     , category_id: yup.string().required('Nội dung này không được để trống!')
     , content: yup.string().required('Nội dung này không được để trống!')
-    , images: yup.mixed().required('Nội dung này không được để trống!').test('fileFormat', 'Chọn file ảnh hợp lệ jpg/jpeg/png', (value)=> {
-        if (value) {
-            const file = value as FileWithMimeType;
-            return ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'].includes(file.type);
-        }
-        return true;
-    })
+    , images: yup.array().min(1,'Nội dung này không được để trống!').max(3, 'Sản phẩm yêu cầu tối đa 3 ảnh!')
 })
 
 export const updateSchema = yup.object({
