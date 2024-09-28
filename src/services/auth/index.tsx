@@ -5,14 +5,18 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { getRequest, postRequest } from '../axios';
 import { AxiosError } from 'axios';
 
-import { ILoginResponse, IUser } from '@/interfaces/IUser';
-import { ILoginPayload } from '@/interfaces/ILogin';
+import { IUser } from '@/interfaces/IUser';
 import { ErrorResponse } from '@/interfaces/IError';
+import {
+  ILoginPayload,
+  ILoginResponse,
+  IRefreshTokenResponse,
+} from '@/interfaces/IAuth';
 
-const authUrl = 'auth';
+const authUrl = 'admin/auth';
 
 const loginApi = async (payload: ILoginPayload) => {
-  const result = await postRequest(`admin/${authUrl}/login`, payload);
+  const result = await postRequest(`${authUrl}/login`, payload);
   return result.data as ILoginResponse;
 };
 
@@ -66,10 +70,23 @@ export const useWhoAmI = () => {
     queryKey: ['user'],
     queryFn: whoAmI,
     refetchOnWindowFocus: false,
-    // refetchOnMount: false,
-    // refetchInterval: false,
     retry: 0,
     gcTime: 0,
-    // throwOnError: ,
+  });
+};
+
+export const refreshToken = async () => {
+  const result = await getRequest(`${authUrl}/refresh-token`);
+  return result.data as IRefreshTokenResponse;
+};
+
+export const useRefreshToken = () => {
+  return useQuery({
+    queryKey: ['refreshToken'],
+    queryFn: refreshToken,
+    enabled: false,
+    refetchOnWindowFocus: false,
+    retry: 0,
+    gcTime: 0,
   });
 };

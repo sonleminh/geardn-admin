@@ -19,6 +19,7 @@ const Header = () => {
   const handleLogout = () => {
     logoutMutation.mutate();
   };
+
   return (
     <Box
       sx={{
