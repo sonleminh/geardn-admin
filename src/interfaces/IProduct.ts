@@ -1,5 +1,6 @@
 export interface ICategoryOptions {
     _id: string;
+    value: string
     label: string;
 }
 
@@ -19,7 +20,7 @@ export interface IProduct {
     name: string;
     price: number;
     discount: IDiscount;
-    category_id: string;
+    category: ICategoryOptions;
     tags: ITagOptions[];
     content: string;
     images: string;
@@ -30,7 +31,7 @@ export interface ICreateProduct extends Record<string, unknown>  {
     name?: string;
     price?: number;
     discount?: IDiscount;
-    category_id: string;
+    category?: ICategoryOptions;
     tags: ITagOptions[];
     images?: string[];
     content?: string;
@@ -41,7 +42,7 @@ export interface IUpdateProductPayload {
     name?: string;
     price?: number;
     discount?: IDiscount;
-    category_id: string;
+    category?: ICategoryOptions;
     tags: ITagOptions[];
     images?: string[];
     content?: string;

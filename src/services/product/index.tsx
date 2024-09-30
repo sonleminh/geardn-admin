@@ -23,7 +23,7 @@ type TProductsRes = {
 };
 
 type TInitDataRes = {
-  categories: { value: string; label: string }[];
+  categories: { _id: string; value: string; label: string }[];
   tags: { value: string; label: string }[];
 };
 

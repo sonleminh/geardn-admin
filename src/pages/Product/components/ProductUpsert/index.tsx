@@ -15,7 +15,7 @@ import {
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { formatDateToIOS, formatDateToNormal } from '@/utils/formatDate';
 import { useQueryClient } from '@tanstack/react-query';
-import { ITagOptions } from '@/interfaces/IProduct';
+import { ICategoryOptions, ITagOptions } from '@/interfaces/IProduct';
 import { QueryKeys } from '@/constants/query-key';
 import { useFormik } from 'formik';
 
@@ -29,6 +29,7 @@ import {
   Divider,
   FormControl,
   FormHelperText,
+  Grid2,
   InputLabel,
   MenuItem,
   Select,
@@ -39,6 +40,10 @@ import {
   Typography,
 } from '@mui/material';
 import { createSchema, updateSchema } from '../utils/schema/productSchema';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+
+type TypeCount = { name: string; type: string; price: string };
 
 const ProductUpsert = () => {
   const { id } = useParams();
@@ -47,6 +52,7 @@ const ProductUpsert = () => {
   const { showNotification } = useNotificationContext();
   const [categoryId, setCategoryId] = useState<string>('');
   const [tags, setTags] = useState<ITagOptions[]>([]);
+  const [typeCount, setTypeCount] = useState<TypeCount[]>([]);
 
   const isEdit = !!id;
 
@@ -58,6 +64,25 @@ const ProductUpsert = () => {
   const { mutate: updateProductMutate, isPending: isUpdatePending } =
     useUpdateProduct();
 
+  const handleTypeChangeValue = (
+    index: number,
+    field: keyof TypeCount,
+    value: string
+  ) => {
+    // Update specific field in the typeCount array
+    const updatedTypeCount = [...typeCount];
+    updatedTypeCount[index][field] = value;
+    setTypeCount(updatedTypeCount);
+  };
+
+  const handleTypeDelete = (index: number) => {
+    // Remove the item at the specific index
+    const updatedTypeCount = typeCount.filter((_, i) => i !== index);
+    setTypeCount(updatedTypeCount);
+  };
+
+  console.log(typeCount);
+
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -68,14 +93,13 @@ const ProductUpsert = () => {
         endDate: '',
       },
       tags: [],
-      category_id: '',
+      category: '',
       content: '',
       images: [],
     },
-    validationSchema: isEdit ? updateSchema : createSchema,
+    // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      console.log('values', values);
       const hasDiscount =
         values.discount.discountPrice !== '' ||
         values.discount.startDate !== '' ||
@@ -83,7 +107,7 @@ const ProductUpsert = () => {
       const payload = {
         ...values,
         price: Number(values.price),
-        category_id: categoryId,
+        category: initData?.categories.find((c) => c._id === categoryId),
         tags: tags,
         discount: hasDiscount
           ? {
@@ -93,30 +117,32 @@ const ProductUpsert = () => {
             }
           : undefined,
       };
-      if (!hasDiscount) {
-        delete payload.discount;
-      }
+      console.log(payload);
 
-      if (isEdit) {
-        updateProductMutate(
-          { _id: id, ...payload },
-          {
-            onSuccess() {
-              queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-              showNotification('Cập nhật sản phẩm thành công', 'success');
-              // navigate('/product');
-            },
-          }
-        );
-      } else {
-        createProductMutate(payload, {
-          onSuccess() {
-            queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-            showNotification('Tạo sản phẩm thành công', 'success');
-            // navigate('/product');
-          },
-        });
-      }
+      // if (!hasDiscount) {
+      //   delete payload.discount;
+      // }
+
+      // if (isEdit) {
+      //   updateProductMutate(
+      //     { _id: id, ...payload },
+      //     {
+      //       onSuccess() {
+      //         queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+      //         showNotification('Cập nhật sản phẩm thành công', 'success');
+      //         // navigate('/product');
+      //       },
+      //     }
+      //   );
+      // } else {
+      //   createProductMutate(payload, {
+      //     onSuccess() {
+      //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+      //       showNotification('Tạo sản phẩm thành công', 'success');
+      //       // navigate('/product');
+      //     },
+      //   });
+      // }
     },
   });
   useEffect(() => {
@@ -136,12 +162,12 @@ const ProductUpsert = () => {
         formatDateToNormal(productData?.discount?.endDate)
       );
       formik.setFieldValue('name', productData?.name);
-      formik.setFieldValue('category_id', productData?.category_id);
+      formik.setFieldValue('category', productData?.category?._id);
       formik.setFieldValue('tags', productData?.tags);
       formik.setFieldValue('content', productData?.content);
       formik.setFieldValue('images', productData?.images);
       // formik.setFieldValue('images_edit', productData?.images);
-      setCategoryId(productData?.category_id);
+      setCategoryId(productData?.category?._id);
       setTags(productData?.tags);
     }
   }, [productData, initData]);
@@ -161,7 +187,7 @@ const ProductUpsert = () => {
 
   const handleCategoryChange = (e: SelectChangeEvent<unknown>) => {
     setCategoryId(e.target.value as string);
-    formik.setFieldValue('category_id', e.target.value as string);
+    formik.setFieldValue('category', e.target.value as string);
   };
 
   const handleUploadResult = (result: string[]) => {
@@ -210,63 +236,75 @@ const ProductUpsert = () => {
           />
         </FormControl>
         <FormControl
+          component={Grid2}
+          container
+          spacing={3}
           sx={{
-            display: 'flex',
             flexDirection: 'unset',
-            justifyContent: 'space-between',
+            '.MuiFormControl-root': {
+              width: '100%',
+            },
           }}>
-          <Input
-            id='price'
-            label='Giá'
-            name='price'
-            variant='filled'
-            type='number'
-            required
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.price}
-              </Box>
-            }
-            onChange={handleChangeValue}
-            value={formik?.values.price}
-            size='small'
-            sx={{ width: '22%' }}
-          />
-          <Input
-            label='Giá giảm'
-            name='discount.discountPrice'
-            variant='filled'
-            type='number'
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik?.errors?.discount?.discountPrice}
-              </Box>
-            }
-            onChange={handleChangeValue}
-            value={
-              +formik?.values?.discount?.discountPrice > 0
-                ? formik?.values?.discount?.discountPrice
-                : ''
-            }
-            size='small'
-            sx={{ width: '22%' }}
-          />
-          <Input
-            name='discount.startDate'
-            type='date'
-            onChange={handleChangeValue}
-            value={formik?.values?.discount.startDate ?? ''}
-            size='small'
-            sx={{ width: '22%' }}
-          />
-          <Input
-            name='discount.endDate'
-            type='date'
-            onChange={handleChangeValue}
-            value={formik?.values?.discount.endDate ?? ''}
-            size='small'
-            sx={{ width: '22%' }}
-          />
+          <Grid2 size={3}>
+            <Input
+              id='price'
+              label='Giá'
+              name='price'
+              variant='filled'
+              type='number'
+              required
+              helperText={
+                <Box component={'span'} sx={helperTextStyle}>
+                  {formik.errors.price}
+                </Box>
+              }
+              onChange={handleChangeValue}
+              value={formik?.values.price}
+              size='small'
+              sx={{ width: '22%' }}
+            />
+          </Grid2>
+          <Grid2 size={3}>
+            <Input
+              label='Giá giảm'
+              name='discount.discountPrice'
+              variant='filled'
+              type='number'
+              helperText={
+                <Box component={'span'} sx={helperTextStyle}>
+                  {formik?.errors?.discount?.discountPrice}
+                </Box>
+              }
+              onChange={handleChangeValue}
+              value={
+                +formik?.values?.discount?.discountPrice > 0
+                  ? formik?.values?.discount?.discountPrice
+                  : ''
+              }
+              size='small'
+              sx={{ width: '22%' }}
+            />
+          </Grid2>
+          <Grid2 size={3}>
+            <Input
+              name='discount.startDate'
+              type='date'
+              onChange={handleChangeValue}
+              value={formik?.values?.discount.startDate ?? ''}
+              size='small'
+              sx={{ width: '22%' }}
+            />
+          </Grid2>
+          <Grid2 size={3}>
+            <Input
+              name='discount.endDate'
+              type='date'
+              onChange={handleChangeValue}
+              value={formik?.values?.discount.endDate ?? ''}
+              size='small'
+              sx={{ width: '22%' }}
+            />
+          </Grid2>
         </FormControl>
         <FormControl
           variant='filled'
@@ -294,18 +332,18 @@ const ProductUpsert = () => {
           <Select
             disableUnderline
             size='small'
-            name='category_id'
+            name='category'
             onChange={handleCategoryChange}
-            value={formik?.values?.category_id}>
+            value={formik?.values?.category}>
             {initData?.categories?.map((item: any) => (
-              <MenuItem key={item.label} value={item?._id}>
+              <MenuItem key={item._id} value={item?._id}>
                 {item.label}
               </MenuItem>
             ))}
           </Select>
           <FormHelperText>
             <Box component={'span'} sx={helperTextStyle}>
-              {formik.errors?.category_id}
+              {formik.errors?.category}
             </Box>
           </FormHelperText>
         </FormControl>
@@ -343,6 +381,108 @@ const ProductUpsert = () => {
             </Box>
           </FormHelperText>
         </FormControl>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Typography sx={{ mr: 2 }}>Phân loại:</Typography>
+          <Button variant='contained' size='small'>
+            <AddIcon
+              onClick={() => {
+                setTypeCount(typeCount + 1);
+              }}
+            />
+          </Button>
+        </Box>
+        {typeCount?.map((_, index: number) => (
+          <FormControl key={index}>
+            <Grid2
+              container
+              spacing={3}
+              sx={{
+                display: 'flex',
+                '.MuiFormControl-root': {
+                  width: '100%',
+                },
+              }}>
+              <Grid2 size={3}>
+                <Input
+                  label='
+                Tên phân loại'
+                  // name='discount.discountPrice'
+                  variant='filled'
+                  helperText={
+                    <Box component={'span'} sx={helperTextStyle}>
+                      {formik?.errors?.discount?.discountPrice}
+                    </Box>
+                  }
+                  onChange={(e) =>
+                    handleTypeChangeValue(index, 'name', e.target.value)
+                  }
+                  // value={
+                  //   +formik?.values?.discount?.discountPrice > 0
+                  //     ? formik?.values?.discount?.discountPrice
+                  //     : ''
+                  // }
+                  size='small'
+                  sx={{ width: '22%' }}
+                />
+              </Grid2>
+              <Grid2 size={3}>
+                <Input
+                  label='
+                Loại'
+                  // name='discount.discountPrice'
+                  variant='filled'
+                  helperText={
+                    <Box component={'span'} sx={helperTextStyle}>
+                      {formik?.errors?.discount?.discountPrice}
+                    </Box>
+                  }
+                  onChange={(e) =>
+                    handleTypeChangeValue(index, 'type', e.target.value)
+                  }
+                  // value={
+                  //   +formik?.values?.discount?.discountPrice > 0
+                  //     ? formik?.values?.discount?.discountPrice
+                  //     : ''
+                  // }
+                  size='small'
+                  sx={{ width: '22%' }}
+                />
+              </Grid2>
+              <Grid2 size={3}>
+                <Input
+                  label='
+                Giá'
+                  // name='discount.discountPrice'
+                  variant='filled'
+                  helperText={
+                    <Box component={'span'} sx={helperTextStyle}>
+                      {formik?.errors?.discount?.discountPrice}
+                    </Box>
+                  }
+                  onChange={(e) =>
+                    handleTypeChangeValue(index, 'price', e.target.value)
+                  }
+                  // value={
+                  //   +formik?.values?.discount?.discountPrice > 0
+                  //     ? formik?.values?.discount?.discountPrice
+                  //     : ''
+                  // }
+                  size='small'
+                  sx={{ width: '22%' }}
+                />
+              </Grid2>
+              <Grid2 size={3}>
+                <Button variant='outlined' size='small'>
+                  <DeleteOutlineOutlinedIcon
+                    onClick={() => {
+                      handleTypeDelete(index);
+                    }}
+                  />
+                </Button>
+              </Grid2>
+            </Grid2>
+          </FormControl>
+        ))}
         <FormControl>
           <Typography mb={1}>
             Nội dung {''}

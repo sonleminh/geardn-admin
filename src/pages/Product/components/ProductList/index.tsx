@@ -105,11 +105,7 @@ const ProductList = () => {
                   </TableCell>
                   <TableCell align='center'>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {
-                        data?.categories?.find(
-                          (category) => category?._id === item?.category_id
-                        )?.label
-                      }
+                      {item?.category?.label}
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>
@@ -121,7 +117,10 @@ const ProductList = () => {
                           objectFit: 'contain',
                         },
                       }}>
-                      <img src={item?.images[0]} className='thumbnail' />
+                      <img
+                        src={item?.images?.[0] ?? ''}
+                        className='thumbnail'
+                      />
                     </Box>
                   </TableCell>
                   <TableCell>

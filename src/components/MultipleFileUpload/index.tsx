@@ -88,40 +88,39 @@ const MultipleFileUpload = ({
           </Button>
           {images?.length > 0 &&
             images?.map((item: string, index: number) => (
-              <>
-                <Box
+              <Box
+                key={item}
+                sx={{
+                  position: 'relative',
+                  mr: 1.5,
+                  '.thumbnail': {
+                    maxWidth: 120,
+                    maxHeight: 120,
+                    mr: 1,
+                    border: '1px solid #aaaaaa',
+                  },
+                }}>
+                <img src={item} className='thumbnail' />
+                <ClearIcon
+                  onClick={() => {
+                    const newImages = images.filter((_, i) => i !== index);
+                    setImages(newImages);
+                  }}
                   sx={{
-                    position: 'relative',
-                    mr: 1.5,
-                    '.thumbnail': {
-                      maxWidth: 120,
-                      maxHeight: 120,
-                      mr: 1,
-                      border: '1px solid #aaaaaa',
+                    position: 'absolute',
+                    top: '-6px',
+                    right: '0px',
+                    bgcolor: 'white',
+                    fontSize: 16,
+                    border: '1px solid #696969',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    ':hover': {
+                      bgcolor: '#eaeaea',
                     },
-                  }}>
-                  <img src={item} className='thumbnail' />
-                  <ClearIcon
-                    onClick={() => {
-                      const newImages = images.filter((_, i) => i !== index);
-                      setImages(newImages);
-                    }}
-                    sx={{
-                      position: 'absolute',
-                      top: '-6px',
-                      right: '0px',
-                      bgcolor: 'white',
-                      fontSize: 16,
-                      border: '1px solid #696969',
-                      borderRadius: '2px',
-                      cursor: 'pointer',
-                      ':hover': {
-                        bgcolor: '#eaeaea',
-                      },
-                    }}
-                  />
-                </Box>
-              </>
+                  }}
+                />
+              </Box>
             ))}
           {progress !== null && <CircularProgressWithLabel value={progress} />}
         </Box>

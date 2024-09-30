@@ -24,6 +24,8 @@ const PrivateRoute = () => {
           Cookies.set('at', rt?.accessToken, { path: '/' });
           console.log(3);
           whoAmIRefetch();
+        } else {
+          navigate('/login');
         }
       } else {
         showNotification('Vui lòng đăng nhập!', 'info');
