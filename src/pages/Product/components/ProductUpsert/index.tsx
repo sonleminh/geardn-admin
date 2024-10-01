@@ -42,8 +42,9 @@ import {
 import { createSchema, updateSchema } from '../utils/schema/productSchema';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import RemoveCircleOutlineOutlinedIcon from '@mui/icons-material/RemoveCircleOutlineOutlined';
 
-type TypeCount = { name: string; type: string; price: string };
+type TVariant = { option: object; price: string };
 
 const ProductUpsert = () => {
   const { id } = useParams();
@@ -52,7 +53,7 @@ const ProductUpsert = () => {
   const { showNotification } = useNotificationContext();
   const [categoryId, setCategoryId] = useState<string>('');
   const [tags, setTags] = useState<ITagOptions[]>([]);
-  const [typeCount, setTypeCount] = useState<TypeCount[]>([]);
+  const [variant, setVariant] = useState<TVariant[]>([]);
 
   const isEdit = !!id;
 
@@ -64,24 +65,36 @@ const ProductUpsert = () => {
   const { mutate: updateProductMutate, isPending: isUpdatePending } =
     useUpdateProduct();
 
-  const handleTypeChangeValue = (
+  const handleVariantChangeValue = (
     index: number,
-    field: keyof TypeCount,
+    field: keyof TVariant,
     value: string
   ) => {
-    // Update specific field in the typeCount array
-    const updatedTypeCount = [...typeCount];
-    updatedTypeCount[index][field] = value;
-    setTypeCount(updatedTypeCount);
+    const updatedVariant = [...variant];
+    // updatedVariant[index][field] = value;
+    setVariant(updatedVariant);
   };
 
-  const handleTypeDelete = (index: number) => {
-    // Remove the item at the specific index
-    const updatedTypeCount = typeCount.filter((_, i) => i !== index);
-    setTypeCount(updatedTypeCount);
+  const handleOptionChangeValue = (
+    index: number,
+    field: keyof TVariant,
+    value: string
+  ) => {
+    const updatedVariant = [...variant];
+    // updatedVariant[index][field] = value;
+    setVariant(updatedVariant);
   };
 
-  console.log(typeCount);
+  const handleAddVariant = () => {
+    setVariant([...variant, { option: { '': '' }, price: '' }]);
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    const updatedTypeCount = variant.filter((_, i) => i !== index);
+    setVariant(updatedTypeCount);
+  };
+
+  console.log(variant);
 
   const formik = useFormik({
     initialValues: {
@@ -381,17 +394,101 @@ const ProductUpsert = () => {
             </Box>
           </FormHelperText>
         </FormControl>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Typography sx={{ mr: 2 }}>Phân loại:</Typography>
           <Button variant='contained' size='small'>
-            <AddIcon
-              onClick={() => {
-                setTypeCount(typeCount + 1);
-              }}
-            />
+            <AddIcon onClick={handleAddVariant} />
           </Button>
         </Box>
-        {typeCount?.map((_, index: number) => (
+        <Grid2 container sx={{ ml: 10 }}>
+          <Grid2 size={1}>
+            <Typography>Option:</Typography>
+          </Grid2>
+          <Grid2 size={6}>
+            <Grid2 container spacing={3}>
+              <Grid2 size={6}>
+                <Input label='Tên phân loại' size='small' />
+              </Grid2>
+              <Grid2 size={6}>
+                <Input label='Loại' size='small' />
+              </Grid2>
+              <Grid2 size={6}>
+                <Input label='Tên phân loại' size='small' />
+              </Grid2>
+              <Grid2 size={6}>
+                <Input label='Loại' size='small' />
+              </Grid2>
+            </Grid2>
+          </Grid2>
+          <Grid2 size={1}>
+            <Typography>Giá:</Typography>
+          </Grid2>
+          <Grid2 size={2}>
+            <Input label='Giá' size='small' />
+            <Button variant='contained' size='medium' sx={{ mt: 4 }}>
+              Save
+            </Button>
+          </Grid2>
+
+          {/* <Grid2 container sx={{ display: 'flex' }}>
+            <Grid2 size={1}>
+              <Typography>Option:</Typography>
+            </Grid2>
+            <Grid2 size={10}>
+              <Grid2 container spacing={3} mb={2}>
+                <Grid2 size={4}>
+                  <Input label='Tên phân loại' size='small' />
+                </Grid2>
+                <Grid2 size={4}>
+                  <Input label='Loại' size='small' />
+                </Grid2>
+              </Grid2>
+              <Grid2 container spacing={3} mb={2}>
+                <Grid2 size={4}>
+                  <Input label='Tên phân loại' size='small' />
+                </Grid2>
+                <Grid2 size={4}>
+                  <Input label='Loại' size='small' />
+                </Grid2>
+              </Grid2>
+              <Grid2 container spacing={3} mb={2}>
+                <Grid2 size={2}>
+                  <Typography>Giá:</Typography>
+                </Grid2>
+                <Grid2 size={10}>
+                  <Grid2 container spacing={3}>
+                    <Grid2 size={5}>
+                      <Input label='Giá' size='small' />
+                    </Grid2>
+                    <Grid2 size={5}>
+                      <Button variant='contained' size='small'>
+                        Save
+                      </Button>
+                    </Grid2>
+                  </Grid2>
+                </Grid2>
+              </Grid2>
+            </Grid2>
+          </Grid2> */}
+          {/* <Grid2 container sx={{ display: 'flex' }}>
+            <Grid2 size={2}>
+              <Typography>Giá:</Typography>
+            </Grid2>
+            <Grid2 size={10}>
+              <Grid2 container spacing={3}>
+                <Grid2 size={5}>
+                  <Input label='Giá' size='small' />
+                </Grid2>
+                <Grid2 size={5}>
+                  <Button variant='contained' size='small'>
+                    Save
+                  </Button>
+                </Grid2>
+              </Grid2>
+            </Grid2>
+          </Grid2> */}
+        </Grid2>
+        {/* {typeCount?.map((_, index: number) => (
           <FormControl key={index}>
             <Grid2
               container
@@ -402,7 +499,8 @@ const ProductUpsert = () => {
                   width: '100%',
                 },
               }}>
-              <Grid2 size={3}>
+              <Typography>- Option:</Typography>
+              <Grid2 size={2}>
                 <Input
                   label='
                 Tên phân loại'
@@ -425,7 +523,7 @@ const ProductUpsert = () => {
                   sx={{ width: '22%' }}
                 />
               </Grid2>
-              <Grid2 size={3}>
+              <Grid2 size={2}>
                 <Input
                   label='
                 Loại'
@@ -448,6 +546,7 @@ const ProductUpsert = () => {
                   sx={{ width: '22%' }}
                 />
               </Grid2>
+
               <Grid2 size={3}>
                 <Input
                   label='
@@ -482,7 +581,7 @@ const ProductUpsert = () => {
               </Grid2>
             </Grid2>
           </FormControl>
-        ))}
+        ))} */}
         <FormControl>
           <Typography mb={1}>
             Nội dung {''}
