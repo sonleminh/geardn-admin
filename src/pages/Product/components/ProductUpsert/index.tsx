@@ -53,7 +53,7 @@ const ProductUpsert = () => {
   const { showNotification } = useNotificationContext();
   const [categoryId, setCategoryId] = useState<string>('');
   const [tags, setTags] = useState<ITagOptions[]>([]);
-  const [variant, setVariant] = useState<TVariant[]>([]);
+  const [variants, setVariants] = useState<TVariant[]>([]);
 
   const isEdit = !!id;
 
@@ -67,34 +67,56 @@ const ProductUpsert = () => {
 
   const handleVariantChangeValue = (
     index: number,
-    field: keyof TVariant,
+    nameField: string,
     value: string
   ) => {
-    const updatedVariant = [...variant];
-    // updatedVariant[index][field] = value;
-    setVariant(updatedVariant);
+    const updatedVariants = [...variants];
+    console.log('udatedVariants', updatedVariants);
+    updatedVariants[index] = {
+      ...variants[index],
+      option: {
+        ...variants[index].option,
+        [nameField]: value,
+      },
+    };
+    setVariants(updatedVariants);
   };
 
+  // const handleVariantChangeValue = (
+  //   // index: number,
+  //   nameField: string,
+  //   value: string
+  // ) => {
+  //   // const updatedVariant = [...variant];
+  //   const newVariant = {
+  //     ,
+  //     [field]: value,
+  //   };
+  //   setVariant((prev) => [...prev, newVariant]);
+  // };
+
   const handleOptionChangeValue = (
-    index: number,
-    field: keyof TVariant,
+    // index: number,
+    nameField: keyof TVariant,
     value: string
   ) => {
-    const updatedVariant = [...variant];
+    const updatedVariant = [...variants];
     // updatedVariant[index][field] = value;
-    setVariant(updatedVariant);
+    setVariants(updatedVariant);
   };
 
   const handleAddVariant = () => {
-    setVariant([...variant, { option: { '': '' }, price: '' }]);
+    setVariants([...variants, { option: {}, price: '' }]);
   };
 
-  const handleRemoveVariant = (index: number) => {
-    const updatedTypeCount = variant.filter((_, i) => i !== index);
-    setVariant(updatedTypeCount);
-  };
+  // const handleRemoveVariant = (index: number) => {
+  //   const updatedTypeCount = variant.filter((_, i) => i !== index);
+  //   setVariant(updatedTypeCount);
+  // };
 
-  console.log(variant);
+  const handleVariantInputChange = (index: number, value: string) => {};
+
+  console.log(variants);
 
   const formik = useFormik({
     initialValues: {
@@ -400,188 +422,63 @@ const ProductUpsert = () => {
             <AddIcon onClick={handleAddVariant} />
           </Button>
         </Box>
-        <Grid2 container sx={{ ml: 10 }}>
-          <Grid2 size={1}>
-            <Typography>Option:</Typography>
-          </Grid2>
-          <Grid2 size={6}>
-            <Grid2 container spacing={3}>
-              <Grid2 size={6}>
-                <Input label='Tên phân loại' size='small' />
-              </Grid2>
-              <Grid2 size={6}>
-                <Input label='Loại' size='small' />
-              </Grid2>
-              <Grid2 size={6}>
-                <Input label='Tên phân loại' size='small' />
-              </Grid2>
-              <Grid2 size={6}>
-                <Input label='Loại' size='small' />
-              </Grid2>
-            </Grid2>
-          </Grid2>
-          <Grid2 size={1}>
-            <Typography>Giá:</Typography>
-          </Grid2>
-          <Grid2 size={2}>
-            <Input label='Giá' size='small' />
-            <Button variant='contained' size='medium' sx={{ mt: 4 }}>
-              Save
-            </Button>
-          </Grid2>
-
-          {/* <Grid2 container sx={{ display: 'flex' }}>
+        {variants?.map((v: any, index: number) => (
+          <Grid2 key={index} container sx={{ ml: 10 }}>
             <Grid2 size={1}>
               <Typography>Option:</Typography>
             </Grid2>
-            <Grid2 size={10}>
-              <Grid2 container spacing={3} mb={2}>
-                <Grid2 size={4}>
-                  <Input label='Tên phân loại' size='small' />
+            <Grid2 size={6}>
+              <Grid2 container spacing={3}>
+                <Grid2 size={6}>
+                  <Input
+                    label='Tên phân loại'
+                    name={`nameType-${index}`}
+                    size='small'
+                    onChange={(e) =>
+                      handleVariantChangeValue(
+                        index,
+                        'nameType',
+                        e?.target?.value
+                      )
+                    }
+                  />
                 </Grid2>
-                <Grid2 size={4}>
-                  <Input label='Loại' size='small' />
-                </Grid2>
-              </Grid2>
-              <Grid2 container spacing={3} mb={2}>
-                <Grid2 size={4}>
-                  <Input label='Tên phân loại' size='small' />
-                </Grid2>
-                <Grid2 size={4}>
-                  <Input label='Loại' size='small' />
-                </Grid2>
-              </Grid2>
-              <Grid2 container spacing={3} mb={2}>
-                <Grid2 size={2}>
-                  <Typography>Giá:</Typography>
-                </Grid2>
-                <Grid2 size={10}>
-                  <Grid2 container spacing={3}>
-                    <Grid2 size={5}>
-                      <Input label='Giá' size='small' />
-                    </Grid2>
-                    <Grid2 size={5}>
-                      <Button variant='contained' size='small'>
-                        Save
-                      </Button>
-                    </Grid2>
-                  </Grid2>
+                <Grid2 size={6}>
+                  <Input
+                    label='Loại'
+                    name={`valueType-${index}`}
+                    size='small'
+                    onChange={(e) =>
+                      handleVariantChangeValue(
+                        index,
+                        'valueType',
+                        e?.target?.value
+                      )
+                    }
+                  />
                 </Grid2>
               </Grid2>
             </Grid2>
-          </Grid2> */}
-          {/* <Grid2 container sx={{ display: 'flex' }}>
-            <Grid2 size={2}>
+            <Grid2 size={1}>
               <Typography>Giá:</Typography>
             </Grid2>
-            <Grid2 size={10}>
-              <Grid2 container spacing={3}>
-                <Grid2 size={5}>
-                  <Input label='Giá' size='small' />
-                </Grid2>
-                <Grid2 size={5}>
-                  <Button variant='contained' size='small'>
-                    Save
-                  </Button>
-                </Grid2>
-              </Grid2>
+            <Grid2 size={3}>
+              <Input
+                label='20000'
+                name={`priceType-${index}`}
+                size='small'
+                onChange={(e) =>
+                  handleVariantChangeValue(index, 'valueType', e?.target?.value)
+                }
+              />
             </Grid2>
-          </Grid2> */}
-        </Grid2>
-        {/* {typeCount?.map((_, index: number) => (
-          <FormControl key={index}>
-            <Grid2
-              container
-              spacing={3}
-              sx={{
-                display: 'flex',
-                '.MuiFormControl-root': {
-                  width: '100%',
-                },
-              }}>
-              <Typography>- Option:</Typography>
-              <Grid2 size={2}>
-                <Input
-                  label='
-                Tên phân loại'
-                  // name='discount.discountPrice'
-                  variant='filled'
-                  helperText={
-                    <Box component={'span'} sx={helperTextStyle}>
-                      {formik?.errors?.discount?.discountPrice}
-                    </Box>
-                  }
-                  onChange={(e) =>
-                    handleTypeChangeValue(index, 'name', e.target.value)
-                  }
-                  // value={
-                  //   +formik?.values?.discount?.discountPrice > 0
-                  //     ? formik?.values?.discount?.discountPrice
-                  //     : ''
-                  // }
-                  size='small'
-                  sx={{ width: '22%' }}
-                />
-              </Grid2>
-              <Grid2 size={2}>
-                <Input
-                  label='
-                Loại'
-                  // name='discount.discountPrice'
-                  variant='filled'
-                  helperText={
-                    <Box component={'span'} sx={helperTextStyle}>
-                      {formik?.errors?.discount?.discountPrice}
-                    </Box>
-                  }
-                  onChange={(e) =>
-                    handleTypeChangeValue(index, 'type', e.target.value)
-                  }
-                  // value={
-                  //   +formik?.values?.discount?.discountPrice > 0
-                  //     ? formik?.values?.discount?.discountPrice
-                  //     : ''
-                  // }
-                  size='small'
-                  sx={{ width: '22%' }}
-                />
-              </Grid2>
-
-              <Grid2 size={3}>
-                <Input
-                  label='
-                Giá'
-                  // name='discount.discountPrice'
-                  variant='filled'
-                  helperText={
-                    <Box component={'span'} sx={helperTextStyle}>
-                      {formik?.errors?.discount?.discountPrice}
-                    </Box>
-                  }
-                  onChange={(e) =>
-                    handleTypeChangeValue(index, 'price', e.target.value)
-                  }
-                  // value={
-                  //   +formik?.values?.discount?.discountPrice > 0
-                  //     ? formik?.values?.discount?.discountPrice
-                  //     : ''
-                  // }
-                  size='small'
-                  sx={{ width: '22%' }}
-                />
-              </Grid2>
-              <Grid2 size={3}>
-                <Button variant='outlined' size='small'>
-                  <DeleteOutlineOutlinedIcon
-                    onClick={() => {
-                      handleTypeDelete(index);
-                    }}
-                  />
-                </Button>
-              </Grid2>
+            <Grid2 size={1}>
+              <Button variant='contained' size='medium'>
+                Save
+              </Button>
             </Grid2>
-          </FormControl>
-        ))} */}
+          </Grid2>
+        ))}
         <FormControl>
           <Typography mb={1}>
             Nội dung {''}

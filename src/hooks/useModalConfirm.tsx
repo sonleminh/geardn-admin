@@ -53,7 +53,7 @@ const useConfirmModal = () => {
 
   const confirmModal = () => {
     return (
-      <Modal open={isOpen}>
+      <Modal open={isOpen} disableScrollLock={true}>
         <Box
           sx={{
             position: 'absolute',

@@ -47,7 +47,8 @@ const Header = () => {
         onClose={handleClose}
         MenuListProps={{
           'aria-labelledby': 'basic-button',
-        }}>
+        }}
+        disableScrollLock={true}>
         {/* <MenuItem>{auth?.user?.name}</MenuItem> */}
 
         <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
