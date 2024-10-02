@@ -1,24 +1,26 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import MultipleFileUpload from '@/components/MultipleFileUpload';
-import SuspenseLoader from '@/components/SuspenseLoader';
 import CKEditor from '@/components/CKEditor';
 import Input from '@/components/Input';
+import MultipleFileUpload from '@/components/MultipleFileUpload';
+import SuspenseLoader from '@/components/SuspenseLoader';
 
+import { QueryKeys } from '@/constants/query-key';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import { ITagOptions } from '@/interfaces/IProduct';
 import {
   useCreateProduct,
   useGetProductById,
   useGetProductInitial,
   useUpdateProduct,
 } from '@/services/product';
-import { useNotificationContext } from '@/contexts/NotificationContext';
 import { formatDateToIOS, formatDateToNormal } from '@/utils/formatDate';
 import { useQueryClient } from '@tanstack/react-query';
-import { ICategoryOptions, ITagOptions } from '@/interfaces/IProduct';
-import { QueryKeys } from '@/constants/query-key';
 import { useFormik } from 'formik';
 
+import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import {
   Autocomplete,
   Box,
@@ -39,12 +41,8 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { createSchema, updateSchema } from '../utils/schema/productSchema';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import RemoveCircleOutlineOutlinedIcon from '@mui/icons-material/RemoveCircleOutlineOutlined';
 
-type TVariant = { option: object; price: string };
+type TVariant = { option: object; price: number };
 
 const ProductUpsert = () => {
   const { id } = useParams();
@@ -54,6 +52,9 @@ const ProductUpsert = () => {
   const [categoryId, setCategoryId] = useState<string>('');
   const [tags, setTags] = useState<ITagOptions[]>([]);
   const [variants, setVariants] = useState<TVariant[]>([]);
+  const [errors, setErrors] = useState<{ [key: number]: { price?: string } }>(
+    {}
+  );
 
   const isEdit = !!id;
 
@@ -72,51 +73,49 @@ const ProductUpsert = () => {
   ) => {
     const updatedVariants = [...variants];
     console.log('udatedVariants', updatedVariants);
-    updatedVariants[index] = {
-      ...variants[index],
-      option: {
-        ...variants[index].option,
-        [nameField]: value,
-      },
-    };
+    if (nameField !== 'priceType') {
+      updatedVariants[index] = {
+        ...variants[index],
+        option: {
+          ...variants[index].option,
+          [nameField]: value,
+        },
+      };
+    } else {
+      if (Object.keys(variants[index]?.option).length !== 0) {
+        updatedVariants[index] = {
+          ...variants[index],
+          price: +value,
+        };
+      }
+    }
     setVariants(updatedVariants);
   };
 
-  // const handleVariantChangeValue = (
-  //   // index: number,
-  //   nameField: string,
-  //   value: string
-  // ) => {
-  //   // const updatedVariant = [...variant];
-  //   const newVariant = {
-  //     ,
-  //     [field]: value,
-  //   };
-  //   setVariant((prev) => [...prev, newVariant]);
-  // };
+  const validateForm = () => {
+    const newErrors: { [key: number]: { price?: string } } = {};
+    let isValid = true;
 
-  const handleOptionChangeValue = (
-    // index: number,
-    nameField: keyof TVariant,
-    value: string
-  ) => {
-    const updatedVariant = [...variants];
-    // updatedVariant[index][field] = value;
-    setVariants(updatedVariant);
+    variants.forEach((item, index) => {
+      if (item.price === 0) {
+        newErrors[index] = { price: 'Price cannot be 0 or empty' };
+        isValid = false;
+      }
+    });
+
+    setErrors(newErrors);
+    return isValid;
   };
-
-  const handleAddVariant = () => {
-    setVariants([...variants, { option: {}, price: '' }]);
-  };
-
-  // const handleRemoveVariant = (index: number) => {
-  //   const updatedTypeCount = variant.filter((_, i) => i !== index);
-  //   setVariant(updatedTypeCount);
-  // };
-
-  const handleVariantInputChange = (index: number, value: string) => {};
 
   console.log(variants);
+  const handleAddVariant = () => {
+    setVariants([...variants, { option: {}, price: 0 }]);
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    const updatedVariants = variants.filter((_, i) => i !== index);
+    setVariants(updatedVariants);
+  };
 
   const formik = useFormik({
     initialValues: {
@@ -129,8 +128,9 @@ const ProductUpsert = () => {
       },
       tags: [],
       category: '',
-      content: '',
       images: [],
+      variants: '',
+      content: '',
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -151,13 +151,15 @@ const ProductUpsert = () => {
               endDate: formatDateToIOS(values.discount.endDate),
             }
           : undefined,
+        variants: variants?.filter((item) => item?.price !== 0),
       };
       console.log(payload);
 
-      // if (!hasDiscount) {
-      //   delete payload.discount;
-      // }
-
+      if (!hasDiscount) {
+        delete payload.discount;
+      }
+      const isValid = validateForm();
+      console.log(isValid);
       // if (isEdit) {
       //   updateProductMutate(
       //     { _id: id, ...payload },
@@ -201,7 +203,6 @@ const ProductUpsert = () => {
       formik.setFieldValue('tags', productData?.tags);
       formik.setFieldValue('content', productData?.content);
       formik.setFieldValue('images', productData?.images);
-      // formik.setFieldValue('images_edit', productData?.images);
       setCategoryId(productData?.category?._id);
       setTags(productData?.tags);
     }
@@ -418,8 +419,8 @@ const ProductUpsert = () => {
         </FormControl>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
           <Typography sx={{ mr: 2 }}>Phân loại:</Typography>
-          <Button variant='contained' size='small'>
-            <AddIcon onClick={handleAddVariant} />
+          <Button variant='contained' size='small' onClick={handleAddVariant}>
+            <AddIcon />
           </Button>
         </Box>
         {variants?.map((v: any, index: number) => (
@@ -465,17 +466,23 @@ const ProductUpsert = () => {
             <Grid2 size={3}>
               <Input
                 label='20000'
+                type='number'
                 name={`priceType-${index}`}
                 size='small'
                 onChange={(e) =>
-                  handleVariantChangeValue(index, 'valueType', e?.target?.value)
+                  handleVariantChangeValue(index, 'priceType', e?.target?.value)
                 }
               />
+              {errors[index]?.price && (
+                <FormHelperText error>{errors[index].price}</FormHelperText>
+              )}
             </Grid2>
             <Grid2 size={1}>
-              <Button variant='contained' size='medium'>
-                Save
-              </Button>
+              <DeleteOutlineOutlinedIcon
+                onClick={() => {
+                  handleRemoveVariant(index);
+                }}
+              />
             </Grid2>
           </Grid2>
         ))}
