@@ -93,12 +93,38 @@ const ProductUpsert = () => {
   };
 
   const validateForm = () => {
-    const newErrors: { [key: number]: { price?: string } } = {};
+    const newErrors: {
+      [key: number]: { name?: string; type?: string; price?: string };
+    } = {};
     let isValid = true;
 
     variants.forEach((item, index) => {
-      if (item.price === 0) {
-        newErrors[index] = { price: 'Price cannot be 0 or empty' };
+      const { name, type, price } = item;
+      const isEmpty = (field: string) => !field || field.trim() === '';
+
+      // If any field is filled but others are empty, mark them as errors
+      if (
+        (!isEmpty(name) || !isEmpty(type) || !isEmpty(price)) &&
+        (isEmpty(name) || isEmpty(type) || isEmpty(price))
+      ) {
+        if (isEmpty(name)) {
+          newErrors[index] = {
+            ...newErrors[index],
+            name: 'Name is required if other fields are filled',
+          };
+        }
+        if (isEmpty(type)) {
+          newErrors[index] = {
+            ...newErrors[index],
+            type: 'Type is required if other fields are filled',
+          };
+        }
+        if (isEmpty(price)) {
+          newErrors[index] = {
+            ...newErrors[index],
+            price: 'Price is required if other fields are filled',
+          };
+        }
         isValid = false;
       }
     });
@@ -364,7 +390,7 @@ const ProductUpsert = () => {
               color: 'red',
             },
           }}>
-          <InputLabel id='demo-simple-select-label'>Danh mục</InputLabel>
+          <InputLabel>Danh mục</InputLabel>
           <Select
             disableUnderline
             size='small'

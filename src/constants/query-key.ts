@@ -1,4 +1,5 @@
 export const QueryKeys = {
     Product: 'PRODUCT',
-    Category: 'CATEGORY'
+    Category: 'CATEGORY',
+    Attribute: 'ATTRIBUTE'
 }

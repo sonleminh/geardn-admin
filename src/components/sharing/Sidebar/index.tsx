@@ -5,6 +5,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import { NavLink } from 'react-router-dom';
 import MonitorIcon from '@mui/icons-material/Monitor';
 import LOGO from '@/assets/geardn-logo.png';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 
 const Sidebar = () => {
   const menuList = [
@@ -22,6 +23,11 @@ const Sidebar = () => {
       link: '/category',
       label: 'Danh mục',
       icon: <ListAltIcon />,
+    },
+    {
+      link: '/attribute',
+      label: 'Phân loại',
+      icon: <FilterAltOutlinedIcon />,
     },
   ];
   return (

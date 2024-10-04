@@ -43,19 +43,14 @@ const CategoryUpsert = () => {
     useUpdateCategory();
   const formik = useFormik({
     initialValues: {
-      value: '',
-      label: '',
+      name: '',
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      const payload = {
-        value: values.value,
-        label: values.label,
-      };
       if (isEdit) {
         updateCategoryMutate(
-          { _id: id, ...payload },
+          { _id: id, ...values },
           {
             onSuccess() {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
@@ -65,7 +60,7 @@ const CategoryUpsert = () => {
           }
         );
       } else {
-        createCategoryMutate(payload, {
+        createCategoryMutate(values, {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
             showNotification('Tạo danh mục thành công', 'success');
@@ -78,8 +73,7 @@ const CategoryUpsert = () => {
 
   useEffect(() => {
     if (categoryData) {
-      formik.setFieldValue('value', categoryData?.value);
-      formik.setFieldValue('label', categoryData?.label);
+      formik.setFieldValue('name', categoryData?.name);
     }
   }, [categoryData]);
 
@@ -102,37 +96,20 @@ const CategoryUpsert = () => {
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <FormControl>
           <Input
-            id='value'
+            id='name'
             label='Giá trị'
-            name='value'
+            name='name'
             variant='filled'
             required
             helperText={
               <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.value}
+                {formik.errors.name}
               </Box>
             }
-            value={formik?.values.value}
+            value={formik?.values.name}
             onChange={handleChangeValue}
           />
         </FormControl>
-        <FormControl>
-          <Input
-            id='label'
-            label='Tên'
-            name='label'
-            variant='filled'
-            required
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.label}
-              </Box>
-            }
-            value={formik?.values.label}
-            onChange={handleChangeValue}
-          />
-        </FormControl>
-
         <Box sx={{ textAlign: 'end' }}>
           <Button onClick={() => navigate('/category')} sx={{ mr: 2 }}>
             Trở lại

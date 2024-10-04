@@ -26,10 +26,11 @@ import moment from 'moment';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ActionButton from '@/components/ActionButton';
-import { useDeleteCategory, useGetCategoryList } from '@/services/category';
+// import { useDeleteAttribute, useGetAttributeList } from '@/services/attribute';
 import { IQuery } from '@/interfaces/IQuery';
+import { useDeleteAttribute, useGetAttributeList } from '@/services/attribute';
 
-const CategoryList = () => {
+const AttributeList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [query, setQuery] = useState<IQuery>({
@@ -37,20 +38,20 @@ const CategoryList = () => {
     page: 1,
   });
 
-  const { data } = useGetCategoryList();
+  const { data } = useGetAttributeList();
 
   const { showNotification } = useNotificationContext();
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
-  const { mutate: deleteProductMutate } = useDeleteCategory();
+  const { mutate: deleteAttributeMutate } = useDeleteAttribute();
 
-  const handleDeleteProduct = (id: string) => {
+  const handleDeleteAttribute = (id: string) => {
     showNotification('Ok', 'error');
-    deleteProductMutate(id, {
+    deleteAttributeMutate(id, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
-        showNotification('Xóa danh mục thành công', 'success');
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Attribute] });
+        showNotification('Xóa phân loại thành công', 'success');
       },
     });
   };
@@ -73,7 +74,7 @@ const CategoryList = () => {
           }
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Danh sách danh mục
+              Danh sách phân loại
             </Typography>
           }
         />
@@ -83,18 +84,24 @@ const CategoryList = () => {
             <TableHead>
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
-                <TableCell>Tên</TableCell>
+                <TableCell>Tên loại</TableCell>
+                <TableCell>Loại</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data?.categoryList?.map((item, index) => (
+              {data?.attributeList?.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.name}
+                      {item.type}
+                    </Typography>
+                  </TableCell>
+                  <TableCell sx={{ width: '30%' }}>
+                    <Typography sx={{ ...truncateTextByLine(2) }}>
+                      {item.value}
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>
@@ -117,9 +124,9 @@ const CategoryList = () => {
                           color='error'
                           onClick={() => {
                             showConfirmModal({
-                              title: 'Bạn có muốn xóa bài viết này không?',
+                              title: 'Bạn có muốn xóa phân loại này không?',
                               cancelText: 'Hủy',
-                              onOk: () => handleDeleteProduct(item?._id),
+                              onOk: () => handleDeleteAttribute(item?._id),
                               okText: 'Xóa',
                             });
                           }}
@@ -163,4 +170,4 @@ const CategoryList = () => {
   );
 };
 
-export default CategoryList;
+export default AttributeList;

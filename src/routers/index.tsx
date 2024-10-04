@@ -8,6 +8,7 @@ import { Navigate } from 'react-router-dom';
 import Dashboard from '@/pages/Dashboard';
 import Product from '@/pages/Product';
 import Category from '@/pages/Category';
+import Attribute from '@/pages/Attribute';
 
 const Loader =
   <P extends object>(Component: React.ComponentType<P>): React.FC<P> =>
@@ -59,6 +60,10 @@ const routes = [
           {
             path: 'category/*',
             element: <Category />,
+          },
+          {
+            path: 'attribute/*',
+            element: <Attribute />,
           },
         ],
       },
