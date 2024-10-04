@@ -9,6 +9,7 @@ import Dashboard from '@/pages/Dashboard';
 import Product from '@/pages/Product';
 import Category from '@/pages/Category';
 import Attribute from '@/pages/Attribute';
+import ProductSku from '@/pages/ProductSku';
 
 const Loader =
   <P extends object>(Component: React.ComponentType<P>): React.FC<P> =>
@@ -64,6 +65,10 @@ const routes = [
           {
             path: 'attribute/*',
             element: <Attribute />,
+          },
+          {
+            path: 'product-sku/*',
+            element: <ProductSku />,
           },
         ],
       },

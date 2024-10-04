@@ -6,6 +6,7 @@ import { NavLink } from 'react-router-dom';
 import MonitorIcon from '@mui/icons-material/Monitor';
 import LOGO from '@/assets/geardn-logo.png';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import StyleIcon from '@mui/icons-material/Style';
 
 const Sidebar = () => {
   const menuList = [
@@ -28,6 +29,11 @@ const Sidebar = () => {
       link: '/attribute',
       label: 'Phân loại',
       icon: <FilterAltOutlinedIcon />,
+    },
+    {
+      link: '/product-sku',
+      label: 'Mã hàng',
+      icon: <StyleIcon />,
     },
   ];
   return (
