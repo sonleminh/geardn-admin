@@ -105,7 +105,7 @@ const ProductList = () => {
                   </TableCell>
                   <TableCell align='center'>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item?.category?.label}
+                      {item?.category?.name}
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>

@@ -30,12 +30,11 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { TYPE_ProductSku } from '@/constants/type-ProductSku';
 import {
-  useCreateProductSku,
-  useGetProductSkuById,
+  useCreateproductSku,
+  useGetproductSkuById,
   useUpdateProductSku,
-} from '@/services/ProductSku';
+} from '@/services/product-sku';
 
 const ProductSkuUpsert = () => {
   const { id } = useParams();
@@ -45,10 +44,10 @@ const ProductSkuUpsert = () => {
 
   const isEdit = !!id;
 
-  const { data: ProductSkuData } = useGetProductSkuById(id as string);
+  const { data: ProductSkuData } = useGetproductSkuById(id as string);
 
   const { mutate: createProductSkuMutate, isPending: isCreatePending } =
-    useCreateProductSku();
+    useCreateproductSku();
   const { mutate: updateProductSkuMutate, isPending: isUpdatePending } =
     useUpdateProductSku();
   const formik = useFormik({
@@ -137,7 +136,7 @@ const ProductSkuUpsert = () => {
             },
           }}>
           <InputLabel>Danh mục</InputLabel>
-          <Select
+          {/* <Select
             disableUnderline
             size='small'
             name='type'
@@ -148,7 +147,7 @@ const ProductSkuUpsert = () => {
                 {item}
               </MenuItem>
             ))}
-          </Select>
+          </Select> */}
           <FormHelperText>
             <Box component={'span'} sx={helperTextStyle}>
               {formik.errors?.type}
@@ -173,7 +172,7 @@ const ProductSkuUpsert = () => {
         </FormControl>
 
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate('/ProductSku')} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate('/product-sku')} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>

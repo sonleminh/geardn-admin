@@ -54,7 +54,7 @@ const ProductSkuList = () => {
     deleteProductSkuMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductSku] });
-        showNotification('Xóa phân loại thành công', 'success');
+        showNotification('Xóa mã hàng thành công', 'success');
       },
     });
   };
@@ -94,7 +94,7 @@ const ProductSkuList = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {data?.productSkuList?.map((item, index) => (
+              {/* {data?.productSkuList?.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
@@ -142,7 +142,7 @@ const ProductSkuList = () => {
                     </ActionButton>
                   </TableCell>
                 </TableRow>
-              ))}
+              ))} */}
             </TableBody>
           </Table>
         </TableContainer>

@@ -23,7 +23,7 @@ type TProductsRes = {
 };
 
 type TInitDataRes = {
-  categories: { _id: string; value: string; label: string }[];
+  categories: { _id: string; name: string }[];
   tags: { value: string; label: string }[];
 };
 
@@ -60,7 +60,7 @@ export const useGetProductById = (id: string) => {
   });
 };
 
-const createProduct = async (payload: ICreateProduct) => {
+const createProduct = async (payload: any) => {
   const result = await postRequest(`${productUrl}`, payload);
   return result.data as IProduct;
 };
@@ -72,7 +72,7 @@ export const useCreateProduct = () => {
 };
 
 const getProductInitial = async () => {
-  const result = await getRequest(`${productUrl}/get-product-initial`);
+  const result = await getRequest(`${productUrl}/initial-to-create`);
   return result.data as TInitDataRes;
 };
 

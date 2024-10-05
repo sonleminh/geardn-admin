@@ -13,7 +13,7 @@ type TproductSkusRes = {
   total: number;
 };
 
-const productSkuUrl = '/productSku';
+const productSkuUrl = '/product-sku';
 
 const getproductSkuList = async () => {
   const result = await getRequest(`${productSkuUrl}`);
