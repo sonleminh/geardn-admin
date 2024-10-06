@@ -53,7 +53,7 @@ const AttributeUpsert = () => {
     useUpdateAttribute();
   const formik = useFormik({
     initialValues: {
-      type: '',
+      name: '',
       value: '',
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
@@ -140,9 +140,9 @@ const AttributeUpsert = () => {
           <Select
             disableUnderline
             size='small'
-            name='type'
+            name='name'
             onChange={handleSelectChange}
-            value={formik?.values?.type}>
+            value={formik?.values?.name}>
             {Object.values(TYPE_ATTRIBUTE)?.map((item: string) => (
               <MenuItem key={item} value={item}>
                 {item}
@@ -151,7 +151,7 @@ const AttributeUpsert = () => {
           </Select>
           <FormHelperText>
             <Box component={'span'} sx={helperTextStyle}>
-              {formik.errors?.type}
+              {formik.errors?.name}
             </Box>
           </FormHelperText>
         </FormControl>

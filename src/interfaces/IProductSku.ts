@@ -1,7 +1,9 @@
+import { IAttribute } from "./IAttribute";
+
 export interface IProductSku {
     _id: string;
     product_id: string;
-    attribute_id: string;
+    attributes: IAttribute[];
     sku: string;
     price: number;
     quantity: number;
@@ -9,7 +11,7 @@ export interface IProductSku {
 
 export interface ICreateProductSku extends Record<string, unknown>  {
     product_id: string;
-    attribute_id: string;
+    attributes: IAttribute[];
     sku: string;
     price: number;
     quantity: number;
@@ -17,7 +19,7 @@ export interface ICreateProductSku extends Record<string, unknown>  {
 export interface IUpdateProductSkuPayload {
     _id: string;
     product_id: string;
-    attribute_id: string;
+    attributes: IAttribute[];
     sku: string;
     price: number;
     quantity: number;

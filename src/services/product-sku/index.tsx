@@ -7,17 +7,25 @@ import {
   IProductSku,
   IUpdateProductSkuPayload,
 } from '@/interfaces/IProductSku';
+import { ICategory } from '@/interfaces/ICategory';
+import { IAttribute } from '@/interfaces/IAttribute';
 
-type TproductSkusRes = {
+type TProductSkusRes = {
   productSkuList: IProductSku[];
   total: number;
+};
+
+type TInitRes = {
+  categoryList: ICategory[];
+  productList: { _id: string; name: string; category: ICategory }[];
+  attributeList: IAttribute[];
 };
 
 const productSkuUrl = '/product-sku';
 
 const getproductSkuList = async () => {
   const result = await getRequest(`${productSkuUrl}`);
-  return result.data as TproductSkusRes;
+  return result.data as TProductSkusRes;
 };
 
 export const useGetproductSkuList = () => {
@@ -41,6 +49,20 @@ export const useGetproductSkuById = (id: string) => {
     refetchOnWindowFocus: false,
     refetchInterval: false,
     enabled: !!id,
+  });
+};
+
+const getInitialForCreate = async () => {
+  const result = await getRequest(`${productSkuUrl}/initial-for-create`);
+  return result.data as TInitRes;
+};
+
+export const useGetInitialForCreate = () => {
+  return useQuery({
+    queryKey: [QueryKeys.ProductSku],
+    queryFn: () => getInitialForCreate(),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 };
 

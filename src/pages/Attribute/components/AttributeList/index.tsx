@@ -96,7 +96,7 @@ const AttributeList = () => {
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.type}
+                      {item.name}
                     </Typography>
                   </TableCell>
                   <TableCell sx={{ width: '30%' }}>
@@ -105,7 +105,7 @@ const AttributeList = () => {
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>
-                    {moment(item.createdAt).format('DD/MM/YYYY')}
+                    {moment(item?.createdAt).format('DD/MM/YYYY')}
                   </TableCell>
                   <TableCell align='center'>
                     <ActionButton>

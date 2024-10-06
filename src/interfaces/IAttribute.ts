@@ -1,18 +1,18 @@
 export interface IAttribute {
     _id: string;
-    type: string;
+    name: string;
     value: string;
-    createdAt: string;
+    createdAt: Date;
 }
 
 export interface ICreateAttribute extends Record<string, unknown>  {
-    type: string;
+    name: string;
     value: string;
 }
 
 export interface IUpdateAttributePayload {
     _id: string;
-    type: string;
+    name: string;
     value: string;
 }
   
