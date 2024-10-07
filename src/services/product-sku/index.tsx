@@ -1,6 +1,6 @@
 import { QueryKeys } from '@/constants/query-key';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 import {
   ICreateProductSku,
@@ -23,15 +23,15 @@ type TInitRes = {
 
 const productSkuUrl = '/product-sku';
 
-const getproductSkuList = async () => {
+const getProductSkuList = async () => {
   const result = await getRequest(`${productSkuUrl}`);
   return result.data as TProductSkusRes;
 };
 
-export const useGetproductSkuList = () => {
+export const useGetProductSkuList = () => {
   return useQuery({
     queryKey: [QueryKeys.ProductSku],
-    queryFn: () => getproductSkuList(),
+    queryFn: () => getProductSkuList(),
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
@@ -66,7 +66,7 @@ export const useGetInitialForCreate = () => {
   });
 };
 
-const createproductSku = async (payload: ICreateProductSku) => {
+const createproductSku = async (payload: any) => {
   const result = await postRequest(`${productSkuUrl}`, payload);
   return result.data as IProductSku;
 };
@@ -79,13 +79,14 @@ export const useCreateproductSku = () => {
 
 // Update
 
-const updateProductSku = async (payload: IUpdateProductSkuPayload) => {
+const updateProductSku = async (payload: any) => {
   const { _id, ...rest } = payload;
   const result = await patchRequest(`${productSkuUrl}/${_id}`, rest);
   return result.data as IProductSku;
 };
 
 export const useUpdateProductSku = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateProductSku,
   });

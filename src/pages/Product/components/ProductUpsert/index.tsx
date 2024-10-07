@@ -39,6 +39,7 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
+import { TYPE_ATTRIBUTE } from '@/constants/type-attribute';
 
 const ProductUpsert = () => {
   const { id } = useParams();
@@ -47,6 +48,7 @@ const ProductUpsert = () => {
   const { showNotification } = useNotificationContext();
   const [categoryId, setCategoryId] = useState<string>('');
   const [tags, setTags] = useState<ITagOptions[]>([]);
+  const [attributes, setAttributes] = useState<string[]>([]);
 
   const isEdit = !!id;
 
@@ -70,6 +72,7 @@ const ProductUpsert = () => {
       category: '',
       images: [],
       content: '',
+      attributes: [],
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -102,7 +105,7 @@ const ProductUpsert = () => {
             onSuccess() {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
               showNotification('Cập nhật sản phẩm thành công', 'success');
-              // navigate('/product');
+              navigate('/product');
             },
           }
         );
@@ -111,7 +114,7 @@ const ProductUpsert = () => {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
             showNotification('Tạo sản phẩm thành công', 'success');
-            // navigate('/product');
+            navigate('/product');
           },
         });
       }
@@ -135,10 +138,12 @@ const ProductUpsert = () => {
       formik.setFieldValue('name', productData?.name);
       formik.setFieldValue('category', productData?.category?._id);
       formik.setFieldValue('tags', productData?.tags);
-      formik.setFieldValue('content', productData?.content);
       formik.setFieldValue('images', productData?.images);
+      formik.setFieldValue('content', productData?.content);
+      formik.setFieldValue('attributes', productData?.attributes);
       setCategoryId(productData?.category?._id);
       setTags(productData?.tags);
+      setAttributes(productData?.attributes);
     }
   }, [productData, initData]);
 
@@ -153,6 +158,14 @@ const ProductUpsert = () => {
   ) => {
     setTags(val);
     formik.setFieldValue('tags', val);
+  };
+
+  const handleAttributeChange = (
+    _: React.ChangeEvent<unknown>,
+    val: string[]
+  ) => {
+    setAttributes(val);
+    formik.setFieldValue('attributes', val);
   };
 
   const handleCategoryChange = (e: SelectChangeEvent<unknown>) => {
@@ -302,7 +315,6 @@ const ProductUpsert = () => {
           <Autocomplete
             multiple
             fullWidth
-            id='checkboxes-tags-demo'
             options={initData?.tags ?? []}
             disableCloseOnSelect
             value={tags}
@@ -345,7 +357,36 @@ const ProductUpsert = () => {
             helperText={formik?.errors?.content}
           />
         </FormControl>
-
+        <FormControl>
+          <Autocomplete
+            multiple
+            fullWidth
+            options={TYPE_ATTRIBUTE ?? []}
+            disableCloseOnSelect
+            value={attributes}
+            onChange={(e, val) => handleAttributeChange(e, val)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder='Phân loại ...'
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                sx={{
+                  bgcolor: '#fff',
+                  color: 'red',
+                  borderRadius: '10px',
+                }}
+              />
+            )}
+            size='small'
+          />
+          <FormHelperText>
+            <Box component={'span'} sx={helperTextStyle}>
+              {formik.errors?.tags}
+            </Box>
+          </FormHelperText>
+        </FormControl>
         <Box sx={{ textAlign: 'end' }}>
           <Button onClick={() => navigate('/product')} sx={{ mr: 2 }}>
             Trở lại

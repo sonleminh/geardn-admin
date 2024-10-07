@@ -45,6 +45,21 @@ export const useGetProductList = (query: IQuery) => {
   });
 };
 
+const getProductByCategory = async (id: string) => {
+  const result = await getRequest(`${productUrl}/category/${id}`);
+  return result.data as IProduct[];
+};
+
+export const useGetProductByCategory = (id: string) => {
+  return useQuery({
+    queryKey: [QueryKeys.Product, id],
+    queryFn: () => getProductByCategory(id),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    enabled: !!id,
+  });
+};
+
 const getProductById = async (id: string) => {
   const result = await getRequest(`${productUrl}/${id}`);
   return result.data as IProduct;

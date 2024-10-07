@@ -37,26 +37,21 @@ import {
   useUpdateProductSku,
 } from '@/services/product-sku';
 import { ICategory } from '@/interfaces/ICategory';
-import { TYPE_ATTRIBUTE } from '@/constants/type-attribute';
 import { IAttribute } from '@/interfaces/IAttribute';
+import { useGetProductByCategory } from '@/services/product';
 
 const ProductSkuUpsert = () => {
   const { id } = useParams();
+  const isEdit = !!id;
+
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
   const [categoryId, setCategoryId] = useState<string>('');
-  const [attribute, setAttribute] = useState<string>('');
-  const [variant, setVariant] = useState<string>();
-  // const [variantList, setVariantList] = useState<IAttribute[]>([]);
+  const [attributes, setAttributes] = useState<string[]>([]);
 
-  const [variantList, setVariantList] = useState<IAttribute[]>([]);
-
-  console.log('vl:', variantList);
-  const isEdit = !!id;
-
+  const { data: productsByCategory } = useGetProductByCategory(categoryId);
   const { data: productSkuData } = useGetproductSkuById(id as string);
-
   const { data: initData } = useGetInitialForCreate();
 
   const { mutate: createProductSkuMutate, isPending: isCreatePending } =
@@ -66,41 +61,52 @@ const ProductSkuUpsert = () => {
   const formik = useFormik({
     initialValues: {
       productId: '',
-      // variant: '',
+      attributes: '',
       price: '',
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      console.log(values);
-      // if (isEdit) {
-      //   updateProductSkuMutate(
-      //     { _id: id, ...values },
-      //     {
-      //       onSuccess() {
-      //         queryClient.invalidateQueries({
-      //           queryKey: [QueryKeys.ProductSku],
-      //         });
-      //         showNotification('Cập nhật danh mục thành công', 'success');
-      //         navigate('/ProductSku');
-      //       },
-      //     }
-      //   );
-      // } else {
-      //   createProductSkuMutate(values, {
-      //     onSuccess() {
-      //       queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductSku] });
-      //       showNotification('Tạo danh mục thành công', 'success');
-      //       navigate('/ProductSku');
-      //     },
-      //   });
-      // }
+      const payload = {
+        ...values,
+        productName: productsByCategory?.find(
+          (item) => item._id === values.productId
+        )?.name,
+        attributes: attributes?.map((item) =>
+          initData?.attributeList.find((i) => i._id === item)
+        ),
+      };
+      console.log('pl:', payload);
+      if (isEdit) {
+        updateProductSkuMutate(
+          { _id: id, ...payload },
+          {
+            onSuccess() {
+              queryClient.invalidateQueries({
+                queryKey: [QueryKeys.ProductSku],
+              });
+              showNotification('Cập nhật SKU thành công', 'success');
+              navigate('/product-sku');
+            },
+          }
+        );
+      } else {
+        createProductSkuMutate(payload, {
+          onSuccess() {
+            queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductSku] });
+            showNotification('Tạo SKU thành công', 'success');
+            navigate('/product-sku');
+          },
+        });
+      }
     },
   });
 
   useEffect(() => {
     if (productSkuData) {
-      setVariantList(productSkuData?.attributes);
+      formik.setFieldValue('productId', productSkuData?.productId);
+      formik.setFieldValue('price', productSkuData?.price);
+      setAttributes(productSkuData?.attributes?.map((v) => v?._id));
     }
   }, [productSkuData]);
 
@@ -114,31 +120,13 @@ const ProductSkuUpsert = () => {
     formik.setFieldValue(name, value);
   };
 
-  const handleVariantChange = (
-    event: SelectChangeEvent<any>,
+  const handleAttributeChange = (
+    e: SelectChangeEvent<string>,
     index: number
   ) => {
-    const updatedVariantList = [...variantList];
-
-    updatedVariantList[index] = {
-      ...variantList[index],
-      name: event.target.value,
-    };
-    setVariantList(updatedVariantList);
-  };
-
-  console.log('vl:', variantList);
-  console.log(
-    'T:',
-    initData?.attributeList?.filter((v) => v?.name === 'Switch')
-  );
-
-  const handleAddVariant = () => {
-    const newVariant = initData?.attributeList?.find((v) => v?._id === variant);
-    if (newVariant) {
-      setVariantList([...variantList, newVariant]);
-      setAttribute('');
-    }
+    const updatedAtributeList = [...attributes];
+    updatedAtributeList[index] = e?.target?.value;
+    setAttributes(updatedAtributeList);
   };
 
   return (
@@ -153,89 +141,10 @@ const ProductSkuUpsert = () => {
       <Divider />
 
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <FormControl
-          variant='filled'
-          fullWidth
-          sx={{
-            '& .MuiFilledInput-root': {
-              overflow: 'hidden',
-              borderRadius: 1,
-              backgroundColor: '#fff !important',
-              border: '1px solid',
-              borderColor: 'rgba(0,0,0,0.23)',
-              '&:hover': {
-                backgroundColor: 'transparent',
-              },
-              '&.Mui-focused': {
-                backgroundColor: 'transparent',
-                border: '2px solid',
-              },
-            },
-            '& .MuiInputLabel-asterisk': {
-              color: 'red',
-            },
-          }}>
-          <InputLabel>Danh mục</InputLabel>
-          <Select
-            disableUnderline
-            size='small'
-            onChange={(e) => {
-              setCategoryId(e?.target?.value);
-            }}
-            value={categoryId}>
-            {initData?.categoryList?.map((item: ICategory) => (
-              <MenuItem key={item?._id} value={item?._id}>
-                {item?.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl
-          variant='filled'
-          fullWidth
-          sx={{
-            '& .MuiFilledInput-root': {
-              overflow: 'hidden',
-              borderRadius: 1,
-              backgroundColor: '#fff !important',
-              border: '1px solid',
-              borderColor: 'rgba(0,0,0,0.23)',
-              '&:hover': {
-                backgroundColor: 'transparent',
-              },
-              '&.Mui-focused': {
-                backgroundColor: 'transparent',
-                border: '2px solid',
-              },
-            },
-            '& .MuiInputLabel-asterisk': {
-              color: 'red',
-            },
-          }}>
-          <InputLabel>Sản phẩm</InputLabel>
-          <Select
-            disableUnderline
-            size='small'
-            name='productId'
-            onChange={handleSelectChange}
-            value={formik?.values?.productId}>
-            {initData?.productList
-              ?.filter((item) => item?.category?._id === categoryId)
-              ?.map((item) => (
-                <MenuItem key={item?._id} value={item?._id}>
-                  {item?.name}
-                </MenuItem>
-              ))}
-          </Select>
-          <FormHelperText>
-            <Box component={'span'} sx={helperTextStyle}>
-              {formik.errors?.productId}
-            </Box>
-          </FormHelperText>
-        </FormControl>
-        <Typography>Phân loại:</Typography>
-        {variantList?.map((item: IAttribute, index: number) => (
-          <Box key={item?._id} sx={{ display: 'flex' }}>
+        {isEdit ? (
+          <Typography>Tên sản phẩm: {productSkuData?.productName}</Typography>
+        ) : (
+          <>
             <FormControl
               variant='filled'
               fullWidth
@@ -258,21 +167,114 @@ const ProductSkuUpsert = () => {
                   color: 'red',
                 },
               }}>
-              <InputLabel>Loại</InputLabel>
+              <InputLabel>Danh mục</InputLabel>
               <Select
                 disableUnderline
                 size='small'
                 onChange={(e) => {
-                  handleVariantChange(e, index);
+                  setCategoryId(e?.target?.value);
                 }}
-                value={item?.name}>
-                {Object.values(TYPE_ATTRIBUTE)?.map((item: string) => (
-                  <MenuItem key={item} value={item}>
-                    {item}
+                value={categoryId}>
+                {initData?.categoryList?.map((item: ICategory) => (
+                  <MenuItem key={item?._id} value={item?._id}>
+                    {item?.name}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
+            <FormControl
+              variant='filled'
+              fullWidth
+              sx={{
+                '& .MuiFilledInput-root': {
+                  overflow: 'hidden',
+                  borderRadius: 1,
+                  backgroundColor: '#fff !important',
+                  border: '1px solid',
+                  borderColor: 'rgba(0,0,0,0.23)',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                  },
+                  '&.Mui-focused': {
+                    backgroundColor: 'transparent',
+                    border: '2px solid',
+                  },
+                },
+                '& .MuiInputLabel-asterisk': {
+                  color: 'red',
+                },
+              }}>
+              <InputLabel>Sản phẩm</InputLabel>
+              <Select
+                disableUnderline
+                size='small'
+                name='productId'
+                onChange={handleSelectChange}
+                value={formik?.values?.productId}>
+                {productsByCategory?.map((item) => (
+                  <MenuItem key={item?._id} value={item?._id}>
+                    {item?.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              <FormHelperText>
+                <Box component={'span'} sx={helperTextStyle}>
+                  {formik.errors?.productId}
+                </Box>
+              </FormHelperText>
+            </FormControl>
+          </>
+        )}
+        <Typography>Phân loại:</Typography>
+        {productsByCategory
+          ?.find((item) => item?._id === formik?.values?.productId)
+          ?.attributes?.map((item: string, index: number) => (
+            <Box key={item} sx={{ display: 'flex' }}>
+              <Typography>{item}:</Typography>
+              <FormControl
+                variant='filled'
+                fullWidth
+                sx={{
+                  '& .MuiFilledInput-root': {
+                    overflow: 'hidden',
+                    borderRadius: 1,
+                    backgroundColor: '#fff !important',
+                    border: '1px solid',
+                    borderColor: 'rgba(0,0,0,0.23)',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'transparent',
+                      border: '2px solid',
+                    },
+                  },
+                  '& .MuiInputLabel-asterisk': {
+                    color: 'red',
+                  },
+                }}>
+                <InputLabel>Giá trị</InputLabel>
+                <Select
+                  disableUnderline
+                  size='small'
+                  onChange={(e) => {
+                    handleAttributeChange(e, index);
+                  }}
+                  value={attributes[index]}>
+                  {initData?.attributeList
+                    ?.filter((a) => a?.name === item)
+                    ?.map((item: IAttribute) => (
+                      <MenuItem key={item?._id} value={item?._id}>
+                        {item?.value}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Box>
+          ))}
+        {productSkuData?.attributes?.map((item: IAttribute, index: number) => (
+          <Box key={item?._id} sx={{ display: 'flex' }}>
+            <Typography>{item?.name}:</Typography>
             <FormControl
               variant='filled'
               fullWidth
@@ -299,8 +301,10 @@ const ProductSkuUpsert = () => {
               <Select
                 disableUnderline
                 size='small'
-                // onChange={handleVariantChange}
-                value={item?._id}>
+                onChange={(e) => {
+                  handleAttributeChange(e, index);
+                }}
+                value={attributes[index] ?? ''}>
                 {initData?.attributeList
                   ?.filter((a) => a?.name === item?.name)
                   ?.map((item: IAttribute) => (
@@ -312,97 +316,6 @@ const ProductSkuUpsert = () => {
             </FormControl>
           </Box>
         ))}
-
-        {/* <Box sx={{ display: 'flex' }}>
-          <FormControl
-            variant='filled'
-            fullWidth
-            sx={{
-              '& .MuiFilledInput-root': {
-                overflow: 'hidden',
-                borderRadius: 1,
-                backgroundColor: '#fff !important',
-                border: '1px solid',
-                borderColor: 'rgba(0,0,0,0.23)',
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                },
-                '&.Mui-focused': {
-                  backgroundColor: 'transparent',
-                  border: '2px solid',
-                },
-              },
-              '& .MuiInputLabel-asterisk': {
-                color: 'red',
-              },
-            }}>
-            <InputLabel>Loại</InputLabel>
-            <Select
-              disableUnderline
-              size='small'
-              name='productId'
-              onChange={(e) => {
-                setAttribute(e?.target?.value);
-              }}
-              value={attribute}>
-              {Object.values(TYPE_ATTRIBUTE)?.map((item: string) => (
-                <MenuItem key={item} value={item}>
-                  {item}
-                </MenuItem>
-              ))}
-            </Select>
-            <FormHelperText>
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors?.productId}
-              </Box>
-            </FormHelperText>
-          </FormControl>
-          <FormControl
-            variant='filled'
-            fullWidth
-            sx={{
-              '& .MuiFilledInput-root': {
-                overflow: 'hidden',
-                borderRadius: 1,
-                backgroundColor: '#fff !important',
-                border: '1px solid',
-                borderColor: 'rgba(0,0,0,0.23)',
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                },
-                '&.Mui-focused': {
-                  backgroundColor: 'transparent',
-                  border: '2px solid',
-                },
-              },
-              '& .MuiInputLabel-asterisk': {
-                color: 'red',
-              },
-            }}>
-            <InputLabel>Giá trị</InputLabel>
-            <Select
-              disableUnderline
-              size='small'
-              onChange={handleVariantChange}
-              value={variant}>
-              {initData?.attributeList
-                ?.filter((item) => item?.name === attribute)
-                ?.map((item: IAttribute) => (
-                  <MenuItem key={item?._id} value={item?._id}>
-                    {item?.value}
-                  </MenuItem>
-                ))}
-            </Select>
-            <FormHelperText>
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors?.productId}
-              </Box>
-            </FormHelperText>
-          </FormControl>
-          <Button variant='outlined' size='small' onClick={handleAddVariant}>
-            Thêm
-          </Button>
-        </Box> */}
         <FormControl>
           <Input
             id='price'

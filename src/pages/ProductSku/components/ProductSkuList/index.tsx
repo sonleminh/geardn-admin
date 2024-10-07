@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -30,7 +30,7 @@ import ActionButton from '@/components/ActionButton';
 import { IQuery } from '@/interfaces/IQuery';
 import {
   useDeleteproductSku,
-  useGetproductSkuList,
+  useGetProductSkuList,
 } from '@/services/product-sku';
 
 const ProductSkuList = () => {
@@ -41,13 +41,17 @@ const ProductSkuList = () => {
     page: 1,
   });
 
-  const { data } = useGetproductSkuList();
+  const { data } = useGetProductSkuList();
 
   const { showNotification } = useNotificationContext();
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { mutate: deleteProductSkuMutate } = useDeleteproductSku();
+
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductSku] });
+  }, []);
 
   const handleDeleteProductSku = (id: string) => {
     showNotification('Ok', 'error');
@@ -88,24 +92,20 @@ const ProductSkuList = () => {
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
                 <TableCell>Tên loại</TableCell>
-                <TableCell>Loại</TableCell>
+                <TableCell>Giá</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {/* {data?.productSkuList?.map((item, index) => (
+              {data?.productSkuList?.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
-                    <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.type}
-                    </Typography>
+                    <Typography>{item.productName}</Typography>
                   </TableCell>
                   <TableCell sx={{ width: '30%' }}>
-                    <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.value}
-                    </Typography>
+                    <Typography>{item.price}</Typography>
                   </TableCell>
                   <TableCell align='center'>
                     {moment(item.createdAt).format('DD/MM/YYYY')}
@@ -142,7 +142,7 @@ const ProductSkuList = () => {
                     </ActionButton>
                   </TableCell>
                 </TableRow>
-              ))} */}
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
