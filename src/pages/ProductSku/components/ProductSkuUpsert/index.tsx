@@ -48,8 +48,11 @@ const ProductSkuUpsert = () => {
   const [categoryId, setCategoryId] = useState<string>('');
   const [attribute, setAttribute] = useState<string>('');
   const [variant, setVariant] = useState<string>();
+  // const [variantList, setVariantList] = useState<IAttribute[]>([]);
+
   const [variantList, setVariantList] = useState<IAttribute[]>([]);
 
+  console.log('vl:', variantList);
   const isEdit = !!id;
 
   const { data: productSkuData } = useGetproductSkuById(id as string);
@@ -95,12 +98,11 @@ const ProductSkuUpsert = () => {
     },
   });
 
-  // useEffect(() => {
-  //   if (ProductSkuData) {
-  //     formik.setFieldValue('type', ProductSkuData?.type);
-  //     formik.setFieldValue('value', ProductSkuData?.value);
-  //   }
-  // }, [ProductSkuData]);
+  useEffect(() => {
+    if (productSkuData) {
+      setVariantList(productSkuData?.attributes);
+    }
+  }, [productSkuData]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -112,9 +114,24 @@ const ProductSkuUpsert = () => {
     formik.setFieldValue(name, value);
   };
 
-  const handleVariantChange = (event: SelectChangeEvent<string>) => {
-    setVariant(event?.target?.value);
+  const handleVariantChange = (
+    event: SelectChangeEvent<any>,
+    index: number
+  ) => {
+    const updatedVariantList = [...variantList];
+
+    updatedVariantList[index] = {
+      ...variantList[index],
+      name: event.target.value,
+    };
+    setVariantList(updatedVariantList);
   };
+
+  console.log('vl:', variantList);
+  console.log(
+    'T:',
+    initData?.attributeList?.filter((v) => v?.name === 'Switch')
+  );
 
   const handleAddVariant = () => {
     const newVariant = initData?.attributeList?.find((v) => v?._id === variant);
@@ -123,8 +140,6 @@ const ProductSkuUpsert = () => {
       setAttribute('');
     }
   };
-  console.log(variant);
-  console.log(variantList);
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -219,8 +234,8 @@ const ProductSkuUpsert = () => {
           </FormHelperText>
         </FormControl>
         <Typography>Phân loại:</Typography>
-        {productSkuData?.attributes?.map((item: IAttribute) => (
-          <Box sx={{ display: 'flex' }}>
+        {variantList?.map((item: IAttribute, index: number) => (
+          <Box key={item?._id} sx={{ display: 'flex' }}>
             <FormControl
               variant='filled'
               fullWidth
@@ -247,9 +262,9 @@ const ProductSkuUpsert = () => {
               <Select
                 disableUnderline
                 size='small'
-                // onChange={(e) => {
-                //   setAttribute(e?.target?.value);
-                // }}
+                onChange={(e) => {
+                  handleVariantChange(e, index);
+                }}
                 value={item?.name}>
                 {Object.values(TYPE_ATTRIBUTE)?.map((item: string) => (
                   <MenuItem key={item} value={item}>
@@ -257,11 +272,6 @@ const ProductSkuUpsert = () => {
                   </MenuItem>
                 ))}
               </Select>
-              <FormHelperText>
-                <Box component={'span'} sx={helperTextStyle}>
-                  {formik.errors?.productId}
-                </Box>
-              </FormHelperText>
             </FormControl>
             <FormControl
               variant='filled'
@@ -289,23 +299,16 @@ const ProductSkuUpsert = () => {
               <Select
                 disableUnderline
                 size='small'
-                // onChange={(e) => {
-                //   setAttribute(e?.target?.value);
-                // }}
-                value={item?.value}>
-                {/* {initData?.attributeList
-                  ?.filter((item) => item?.name === item?.name)
+                // onChange={handleVariantChange}
+                value={item?._id}>
+                {initData?.attributeList
+                  ?.filter((a) => a?.name === item?.name)
                   ?.map((item: IAttribute) => (
                     <MenuItem key={item?._id} value={item?._id}>
                       {item?.value}
                     </MenuItem>
-                  ))} */}
+                  ))}
               </Select>
-              <FormHelperText>
-                <Box component={'span'} sx={helperTextStyle}>
-                  {formik.errors?.productId}
-                </Box>
-              </FormHelperText>
             </FormControl>
           </Box>
         ))}
