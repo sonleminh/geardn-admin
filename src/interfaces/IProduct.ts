@@ -22,9 +22,10 @@ export interface IProduct {
     discount: IDiscount;
     category: ICategoryOptions;
     tags: ITagOptions[];
-    content: string;
     images: string;
     attributes: string[];
+    brand: string;
+    content: string;
     createdAt: string;
 }
 
@@ -34,6 +35,7 @@ export interface ICreateProduct extends Record<string, unknown>  {
     category?: ICategoryOptions;
     tags: ITagOptions[];
     images?: string[];
+    brand: string;
     content?: string;
     attributes: string[];
 }
@@ -45,7 +47,22 @@ export interface IUpdateProductPayload {
     category?: ICategoryOptions;
     tags: ITagOptions[];
     images?: string[];
+    brand: string;
     content?: string;
     attributes: string[];
 }
-  
+
+export interface IProductPayload {
+    name: string;
+    discount?: {
+      discountPrice: number;
+      startDate: string;
+      endDate: string;
+    };
+    tags: ITagOptions[];
+    category?: ICategoryOptions;
+    images: string[];
+    brand: string;
+    content: string;
+    attributes?: string[];  // Make 'attributes' optional
+  }

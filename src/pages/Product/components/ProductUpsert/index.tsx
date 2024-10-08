@@ -8,7 +8,7 @@ import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { QueryKeys } from '@/constants/query-key';
 import { useNotificationContext } from '@/contexts/NotificationContext';
-import { ITagOptions } from '@/interfaces/IProduct';
+import { IProductPayload, ITagOptions } from '@/interfaces/IProduct';
 import {
   useCreateProduct,
   useGetProductById,
@@ -71,9 +71,9 @@ const ProductUpsert = () => {
       tags: [],
       category: '',
       images: [],
+      brand: '',
       content: '',
       attributes: [],
-      quantity: '',
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -82,7 +82,7 @@ const ProductUpsert = () => {
         values.discount.discountPrice !== '' ||
         values.discount.startDate !== '' ||
         values.discount.endDate !== '';
-      const payload = {
+      const payload: IProductPayload = {
         ...values,
         category: initData?.categories.find((c) => c._id === categoryId),
         tags: tags,
@@ -94,11 +94,13 @@ const ProductUpsert = () => {
             }
           : undefined,
       };
-      console.log(payload);
-
       if (!hasDiscount) {
         delete payload.discount;
       }
+      if (!payload.attributes || payload?.attributes?.length === 0) {
+        delete payload.attributes;
+      }
+      console.log(payload);
       if (isEdit) {
         updateProductMutate(
           { _id: id, ...payload },
@@ -140,6 +142,7 @@ const ProductUpsert = () => {
       formik.setFieldValue('category', productData?.category?._id);
       formik.setFieldValue('tags', productData?.tags);
       formik.setFieldValue('images', productData?.images);
+      formik.setFieldValue('brand', productData?.brand);
       formik.setFieldValue('content', productData?.content);
       formik.setFieldValue('attributes', productData?.attributes);
       setCategoryId(productData?.category?._id);
@@ -346,6 +349,21 @@ const ProductUpsert = () => {
           </FormHelperText>
         </FormControl>
         <FormControl>
+          <Input
+            id='brand'
+            label='Hãng'
+            name='brand'
+            variant='filled'
+            helperText={
+              <Box component={'span'} sx={helperTextStyle}>
+                {formik.errors.brand}
+              </Box>
+            }
+            value={formik?.values.brand}
+            onChange={handleChangeValue}
+          />
+        </FormControl>
+        <FormControl>
           <Typography mb={1}>
             Nội dung {''}
             <Typography component={'span'} color='red'>
@@ -358,53 +376,33 @@ const ProductUpsert = () => {
             helperText={formik?.errors?.content}
           />
         </FormControl>
-        <FormControl>
-          <Autocomplete
-            multiple
-            fullWidth
-            options={TYPE_ATTRIBUTE ?? []}
-            disableCloseOnSelect
-            value={attributes}
-            onChange={(e, val) => handleAttributeChange(e, val)}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder='Phân loại ...'
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                sx={{
-                  bgcolor: '#fff',
-                  color: 'red',
-                  borderRadius: '10px',
-                }}
-              />
-            )}
-            size='small'
-          />
-          <FormHelperText>
-            <Box component={'span'} sx={helperTextStyle}>
-              {formik.errors?.tags}
-            </Box>
-          </FormHelperText>
-        </FormControl>
-        <FormControl>
-          <Input
-            id='quantity'
-            label='Số lượng'
-            name='quantity'
-            variant='filled'
-            required
-            disabled={attributes?.length === 0 ? false : true}
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.quantity}
-              </Box>
-            }
-            value={formik?.values.quantity}
-            onChange={handleChangeValue}
-          />
-        </FormControl>
+        {attributes && (
+          <FormControl>
+            <Autocomplete
+              multiple
+              fullWidth
+              options={TYPE_ATTRIBUTE ?? []}
+              disableCloseOnSelect
+              value={attributes}
+              onChange={(e, val) => handleAttributeChange(e, val)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder='Phân loại ...'
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  sx={{
+                    bgcolor: '#fff',
+                    color: 'red',
+                    borderRadius: '10px',
+                  }}
+                />
+              )}
+              size='small'
+            />
+          </FormControl>
+        )}
         <Box sx={{ textAlign: 'end' }}>
           <Button onClick={() => navigate('/product')} sx={{ mr: 2 }}>
             Trở lại
