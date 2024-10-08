@@ -73,6 +73,7 @@ const ProductUpsert = () => {
       images: [],
       content: '',
       attributes: [],
+      quantity: '',
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -386,6 +387,23 @@ const ProductUpsert = () => {
               {formik.errors?.tags}
             </Box>
           </FormHelperText>
+        </FormControl>
+        <FormControl>
+          <Input
+            id='quantity'
+            label='Số lượng'
+            name='quantity'
+            variant='filled'
+            required
+            disabled={attributes?.length === 0 ? false : true}
+            helperText={
+              <Box component={'span'} sx={helperTextStyle}>
+                {formik.errors.quantity}
+              </Box>
+            }
+            value={formik?.values.quantity}
+            onChange={handleChangeValue}
+          />
         </FormControl>
         <Box sx={{ textAlign: 'end' }}>
           <Button onClick={() => navigate('/product')} sx={{ mr: 2 }}>

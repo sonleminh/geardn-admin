@@ -3,4 +3,5 @@ export const QueryKeys = {
     Category: 'CATEGORY',
     Attribute: 'ATTRIBUTE',
     ProductSku: 'PRODUCTSKU',
+    Inventory: 'INVENTORY',
 }
