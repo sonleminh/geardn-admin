@@ -1,5 +1,3 @@
-import { TYPE_ATTRIBUTE } from "@/constants/type-attribute";
-
 export interface ICategoryOptions {
     _id: string;
     name: string
@@ -30,6 +28,7 @@ export interface IProduct {
     tags: ITagOptions[];
     images: string;
     attributes: string[];
+    sku_name: string;
     brand: string;
     details: IDetails;
     description: string;
@@ -43,9 +42,10 @@ export interface ICreateProduct extends Record<string, unknown>  {
     tags: ITagOptions[];
     images?: string[];
     brand: string;
+    attributes: string[];
+    sku_name: string;
     details: IDetails;
     description?: string;
-    attributes: string[];
 }
 
 export interface IUpdateProductPayload {
@@ -55,10 +55,11 @@ export interface IUpdateProductPayload {
     category?: ICategoryOptions;
     tags: ITagOptions[];
     images?: string[];
+    attributes?: string[];
+    sku_name: string;
     brand: string;
     details: IDetails;
     description?: string;
-    attributes?: string[];
 }
 
 export interface IProductPayload {
@@ -72,7 +73,8 @@ export interface IProductPayload {
     category?: ICategoryOptions;
     images: string[];
     brand: string;
+    attributes?: string[];  
+    sku_name: string;
     details: IDetails;
     description: string;
-    attributes?: string[];  // Make 'attributes' optional
   }

@@ -2,8 +2,8 @@ import { IAttribute } from "./IAttribute";
 
 export interface IProductSku {
     _id: string;
-    productId: string;
-    productName: string;
+    product_id: string;
+    product_name: string;
     attributes: IAttribute[];
     sku: string;
     price: number;
@@ -12,8 +12,8 @@ export interface IProductSku {
 }
 
 export interface ICreateProductSku extends Record<string, unknown>  {
-    productId: string;
-    productName: string;
+    product_id: string;
+    product_name: string;
     attributes: IAttribute[];
     sku: string;
     price: number;
@@ -21,8 +21,8 @@ export interface ICreateProductSku extends Record<string, unknown>  {
 }
 export interface IUpdateProductSkuPayload {
     _id: string;
-    productId: string;
-    productName: string;
+    product_id: string;
+    product_name: string;
     attributes: IAttribute[];
     sku: string;
     price: number;

@@ -32,6 +32,7 @@ import {
   useDeleteproductSku,
   useGetProductSkuList,
 } from '@/services/product-sku';
+import { formatPrice } from '@/utils/format-price';
 
 const ProductSkuList = () => {
   const queryClient = useQueryClient();
@@ -102,10 +103,10 @@ const ProductSkuList = () => {
                 <TableRow key={index}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
-                    <Typography>{item.productName}</Typography>
+                    <Typography>{item.product_name}</Typography>
                   </TableCell>
                   <TableCell sx={{ width: '30%' }}>
-                    <Typography>{item.price}</Typography>
+                    <Typography>{formatPrice(item.price)}</Typography>
                   </TableCell>
                   <TableCell align='center'>
                     {moment(item.createdAt).format('DD/MM/YYYY')}

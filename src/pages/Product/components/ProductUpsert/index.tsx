@@ -74,9 +74,10 @@ const ProductUpsert = () => {
         startDate: '',
         endDate: '',
       },
+      category: '',
       tags: [],
       attributes: [],
-      category: '',
+      sku_name: '',
       images: [],
       brand: '',
       details: {
@@ -164,6 +165,7 @@ const ProductUpsert = () => {
       formik.setFieldValue('brand', productData?.brand);
       formik.setFieldValue('description', productData?.description);
       formik.setFieldValue('attributes', productData?.attributes);
+      formik.setFieldValue('sku_name', productData?.sku_name);
       setCategoryId(productData?.category?._id);
       setTags(productData?.tags);
       setAttributes(productData?.attributes);
@@ -326,33 +328,49 @@ const ProductUpsert = () => {
           </Grid2>
 
           <Grid2 size={6}>
-            {attributes && (
-              <FormControl fullWidth>
-                <Autocomplete
-                  multiple
-                  fullWidth
-                  options={TYPE_ATTRIBUTE ?? []}
-                  disableCloseOnSelect
-                  value={attributes}
-                  onChange={(e, val) => handleAttributeChange(e, val)}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      placeholder='Phân loại ...'
-                      InputLabelProps={{
-                        shrink: true,
-                      }}
-                      sx={{
-                        bgcolor: '#fff',
-                        color: 'red',
-                        borderRadius: '10px',
-                      }}
-                    />
-                  )}
-                  size='small'
-                />
-              </FormControl>
-            )}
+            <FormControl fullWidth>
+              <Autocomplete
+                multiple
+                fullWidth
+                options={TYPE_ATTRIBUTE ?? []}
+                disableCloseOnSelect
+                value={attributes ?? []}
+                onChange={(e, val) => handleAttributeChange(e, val)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    placeholder='Phân loại ...'
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    sx={{
+                      bgcolor: '#fff',
+                      color: 'red',
+                      borderRadius: '10px',
+                    }}
+                  />
+                )}
+                size='small'
+              />
+            </FormControl>
+          </Grid2>
+          <Grid2 size={6}>
+            <FormControl fullWidth>
+              <Input
+                label='Mã sản phẩm'
+                name='sku_name'
+                variant='filled'
+                size='small'
+                required
+                helperText={
+                  <Box component={'span'} sx={helperTextStyle}>
+                    {formik.errors.sku_name}
+                  </Box>
+                }
+                value={formik?.values.sku_name}
+                onChange={handleChangeValue}
+              />
+            </FormControl>
           </Grid2>
           <Grid2 size={6}>
             <FormControl fullWidth>

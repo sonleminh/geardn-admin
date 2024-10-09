@@ -58,25 +58,32 @@ const ProductSkuUpsert = () => {
     useCreateproductSku();
   const { mutate: updateProductSkuMutate, isPending: isUpdatePending } =
     useUpdateProductSku();
+
+  console.log(attributes);
   const formik = useFormik({
     initialValues: {
-      productId: '',
+      product_id: '',
       attributes: '',
       price: '',
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
+      const attributeList = attributes?.map((item) =>
+        initData?.attributeList.find((i) => i._id === item)
+      );
+      const product = productsByCategory?.find(
+        (item) => item._id === values.product_id
+      );
+      console.log(attributeList);
       const payload = {
         ...values,
-        productName: productsByCategory?.find(
-          (item) => item._id === values.productId
-        )?.name,
-        attributes: attributes?.map((item) =>
-          initData?.attributeList.find((i) => i._id === item)
-        ),
+        product_name: product?.name,
+        attributes: attributeList,
+        sku: `${product?.sku_name}-${attributeList
+          ?.map((item) => item?.atb_sku)
+          .join('')}`,
       };
-      console.log('pl:', payload);
       if (isEdit) {
         updateProductSkuMutate(
           { _id: id, ...payload },
@@ -104,7 +111,7 @@ const ProductSkuUpsert = () => {
 
   useEffect(() => {
     if (productSkuData) {
-      formik.setFieldValue('productId', productSkuData?.productId);
+      formik.setFieldValue('product_id', productSkuData?.product_id);
       formik.setFieldValue('price', productSkuData?.price);
       setAttributes(productSkuData?.attributes?.map((v) => v?._id));
     }
@@ -142,7 +149,7 @@ const ProductSkuUpsert = () => {
 
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {isEdit ? (
-          <Typography>Tên sản phẩm: {productSkuData?.productName}</Typography>
+          <Typography>Tên sản phẩm: {productSkuData?.product_name}</Typography>
         ) : (
           <>
             <FormControl
@@ -208,9 +215,9 @@ const ProductSkuUpsert = () => {
               <Select
                 disableUnderline
                 size='small'
-                name='productId'
+                name='product_id'
                 onChange={handleSelectChange}
-                value={formik?.values?.productId}>
+                value={formik?.values?.product_id}>
                 {productsByCategory?.map((item) => (
                   <MenuItem key={item?._id} value={item?._id}>
                     {item?.name}
@@ -219,7 +226,7 @@ const ProductSkuUpsert = () => {
               </Select>
               <FormHelperText>
                 <Box component={'span'} sx={helperTextStyle}>
-                  {formik.errors?.productId}
+                  {formik.errors?.product_id}
                 </Box>
               </FormHelperText>
             </FormControl>
@@ -227,7 +234,7 @@ const ProductSkuUpsert = () => {
         )}
         <Typography>Phân loại:</Typography>
         {productsByCategory
-          ?.find((item) => item?._id === formik?.values?.productId)
+          ?.find((item) => item?._id === formik?.values?.product_id)
           ?.attributes?.map((item: string, index: number) => (
             <Box key={item} sx={{ display: 'flex' }}>
               <Typography>{item}:</Typography>

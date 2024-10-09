@@ -55,6 +55,7 @@ const AttributeUpsert = () => {
     initialValues: {
       name: '',
       value: '',
+      atb_sku: '',
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -87,8 +88,9 @@ const AttributeUpsert = () => {
 
   useEffect(() => {
     if (attributeData) {
-      formik.setFieldValue('type', attributeData?.type);
+      formik.setFieldValue('name', attributeData?.name);
       formik.setFieldValue('value', attributeData?.value);
+      formik.setFieldValue('atb_sku', attributeData?.atb_sku);
     }
   }, [attributeData]);
 
@@ -142,7 +144,7 @@ const AttributeUpsert = () => {
             size='small'
             name='name'
             onChange={handleSelectChange}
-            value={formik?.values?.name}>
+            value={formik?.values?.name ?? ''}>
             {Object.values(TYPE_ATTRIBUTE)?.map((item: string) => (
               <MenuItem key={item} value={item}>
                 {item}
@@ -157,7 +159,6 @@ const AttributeUpsert = () => {
         </FormControl>
         <FormControl>
           <Input
-            id='value'
             label='Giá trị'
             name='value'
             variant='filled'
@@ -171,7 +172,21 @@ const AttributeUpsert = () => {
             onChange={handleChangeValue}
           />
         </FormControl>
-
+        <FormControl>
+          <Input
+            label='Mã thuộc tính'
+            name='atb_sku'
+            variant='filled'
+            required
+            helperText={
+              <Box component={'span'} sx={helperTextStyle}>
+                {formik.errors.atb_sku}
+              </Box>
+            }
+            value={formik?.values.atb_sku}
+            onChange={handleChangeValue}
+          />
+        </FormControl>
         <Box sx={{ textAlign: 'end' }}>
           <Button onClick={() => navigate('/Attribute')} sx={{ mr: 2 }}>
             Trở lại

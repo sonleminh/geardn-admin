@@ -86,6 +86,7 @@ const AttributeList = () => {
                 <TableCell align='center'>STT</TableCell>
                 <TableCell>Tên loại</TableCell>
                 <TableCell>Loại</TableCell>
+                <TableCell>Mã</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
@@ -102,6 +103,11 @@ const AttributeList = () => {
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
                       {item.value}
+                    </Typography>
+                  </TableCell>
+                  <TableCell sx={{ width: '30%' }}>
+                    <Typography sx={{ ...truncateTextByLine(2) }}>
+                      {item.atb_sku}
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>
