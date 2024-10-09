@@ -16,6 +16,12 @@ interface IDiscount {
     endDate?: string;
 }
 
+interface IDetails {
+    guarantee?: number | string;
+    weight?: string;
+    material?: string;
+}
+
 export interface IProduct {
     _id: string;
     name: string;
@@ -25,7 +31,8 @@ export interface IProduct {
     images: string;
     attributes: string[];
     brand: string;
-    content: string;
+    details: IDetails;
+    description: string;
     createdAt: string;
 }
 
@@ -36,7 +43,8 @@ export interface ICreateProduct extends Record<string, unknown>  {
     tags: ITagOptions[];
     images?: string[];
     brand: string;
-    content?: string;
+    details: IDetails;
+    description?: string;
     attributes: string[];
 }
 
@@ -48,8 +56,9 @@ export interface IUpdateProductPayload {
     tags: ITagOptions[];
     images?: string[];
     brand: string;
-    content?: string;
-    attributes: string[];
+    details: IDetails;
+    description?: string;
+    attributes?: string[];
 }
 
 export interface IProductPayload {
@@ -63,6 +72,7 @@ export interface IProductPayload {
     category?: ICategoryOptions;
     images: string[];
     brand: string;
-    content: string;
+    details: IDetails;
+    description: string;
     attributes?: string[];  // Make 'attributes' optional
   }

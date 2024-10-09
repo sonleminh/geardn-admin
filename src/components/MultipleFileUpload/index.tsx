@@ -53,19 +53,19 @@ const MultipleFileUpload = ({
   }, [images]);
 
   return (
-    <Box>
-      {title && (
-        <Typography mb={1}>
-          {title}{' '}
-          {required && (
-            <Typography component={'span'} color='red'>
-              *
+    <Box display={'flex'}>
+      <Box mr={2}>
+        <Box display={'flex'}>
+          {title && (
+            <Typography mr={2} mb={1.5}>
+              {title}{' '}
+              {required && (
+                <Typography component={'span'} color='red'>
+                  *
+                </Typography>
+              )}
             </Typography>
           )}
-        </Typography>
-      )}
-      <Box>
-        <Box display={'flex'} mb={1}>
           <input
             type='file'
             multiple
@@ -75,7 +75,7 @@ const MultipleFileUpload = ({
             style={{ display: 'none' }}
           />
           <Button
-            sx={{ width: '150px', height: '30px', mr: 5 }}
+            sx={{ width: '120px', height: '30px', mr: 2 }}
             variant='contained'
             disabled={disabled}
             onClick={() => {
@@ -84,8 +84,20 @@ const MultipleFileUpload = ({
               }
             }}>
             <FileUploadIcon sx={{ mr: 1 }} />
-            Upload
+            {/* Upload */}
           </Button>
+        </Box>
+        {helperText && (
+          <Typography
+            component={'span'}
+            sx={{ color: 'red', ml: 1.7, fontSize: 12 }}
+            className='MuiFormHelperText-root'>
+            {helperText}
+          </Typography>
+        )}
+      </Box>
+      <Box>
+        <Box display={'flex'}>
           {images?.length > 0 &&
             images?.map((item: string, index: number) => (
               <Box
@@ -94,8 +106,8 @@ const MultipleFileUpload = ({
                   position: 'relative',
                   mr: 1.5,
                   '.thumbnail': {
-                    maxWidth: 120,
-                    maxHeight: 120,
+                    maxWidth: 60,
+                    maxHeight: 60,
                     mr: 1,
                     border: '1px solid #aaaaaa',
                   },
@@ -124,14 +136,6 @@ const MultipleFileUpload = ({
             ))}
           {progress !== null && <CircularProgressWithLabel value={progress} />}
         </Box>
-        {helperText && (
-          <Typography
-            component={'span'}
-            sx={{ color: 'red', ml: 1.7, fontSize: 12 }}
-            className='MuiFormHelperText-root'>
-            {helperText}
-          </Typography>
-        )}
       </Box>
     </Box>
   );
