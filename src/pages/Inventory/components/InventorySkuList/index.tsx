@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from '@/constants/query-key';
@@ -30,8 +30,10 @@ import ActionButton from '@/components/ActionButton';
 import { useDeleteCategory, useGetCategoryList } from '@/services/category';
 import { IQuery } from '@/interfaces/IQuery';
 import EastOutlinedIcon from '@mui/icons-material/EastOutlined';
+import { useGetSkuByByProductId } from '@/services/product-sku';
 
-const InventoryList = () => {
+const InventorySkuList = () => {
+  const { id } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [query, setQuery] = useState<IQuery>({
@@ -39,7 +41,9 @@ const InventoryList = () => {
     page: 1,
   });
 
-  const { data } = useGetCategoryList();
+  const { data: skuList } = useGetSkuByByProductId(id ?? '');
+
+  console.log(skuList);
 
   const { showNotification } = useNotificationContext();
 
@@ -67,7 +71,7 @@ const InventoryList = () => {
         <CardHeader
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Danh sách danh mục kho hàng
+              Kho hàng sản phẩm{skuList && ': ' + skuList[0]?.product_name}
             </Typography>
           }
         />
@@ -77,23 +81,30 @@ const InventoryList = () => {
             <TableHead>
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
-                <TableCell>Tên</TableCell>
+                <TableCell>Mã loại</TableCell>
+                <TableCell>Giá</TableCell>
+                <TableCell>Số lượng</TableCell>
+                <TableCell align='center'>Trạng thái</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data?.categoryList?.map((item, index) => (
+              {skuList?.map((item, index) => (
                 <TableRow
                   key={index}
-                  sx={{ ':hover': { bgcolor: '#F1F1F1', cursor: 'pointer' } }}
-                  onClick={() => navigate(`/inventory/category/${item._id}`)}>
+                  sx={{
+                    ':hover': { bgcolor: '#F1F1F1', cursor: 'pointer' },
+                  }}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.name}
+                      {item.sku}
                     </Typography>
                   </TableCell>
+                  <TableCell align='center'>{item.price}</TableCell>
+                  <TableCell align='center'>{item.quantity}</TableCell>
+                  <TableCell align='center'>{item.status}</TableCell>
                   <TableCell align='center'>
                     {moment(item.createdAt).format('DD/MM/YYYY')}
                   </TableCell>
@@ -106,9 +117,14 @@ const InventoryList = () => {
               ))}
             </TableBody>
           </Table>
+          {skuList?.length === 0 && (
+            <Box sx={{ my: 2, textAlign: 'center', color: '#696969' }}>
+              Empty
+            </Box>
+          )}
         </TableContainer>
         <Divider />
-        <Box
+        {/* <Box
           p={2}
           sx={{
             ['.MuiPagination-ul']: {
@@ -127,11 +143,11 @@ const InventoryList = () => {
             showFirstButton
             showLastButton
           />
-        </Box>
+        </Box> */}
       </Card>
       {confirmModal()}
     </Card>
   );
 };
 
-export default InventoryList;
+export default InventorySkuList;

@@ -33,7 +33,7 @@ import {
 import {
   useCreateproductSku,
   useGetInitialForCreate,
-  useGetproductSkuById,
+  useGetProductSkuById,
   useUpdateProductSku,
 } from '@/services/product-sku';
 import { ICategory } from '@/interfaces/ICategory';
@@ -51,7 +51,7 @@ const ProductSkuUpsert = () => {
   const [attributes, setAttributes] = useState<string[]>([]);
 
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
-  const { data: productSkuData } = useGetproductSkuById(id as string);
+  const { data: productSkuData } = useGetProductSkuById(id as string);
   const { data: initData } = useGetInitialForCreate();
 
   const { mutate: createProductSkuMutate, isPending: isCreatePending } =
@@ -59,7 +59,7 @@ const ProductSkuUpsert = () => {
   const { mutate: updateProductSkuMutate, isPending: isUpdatePending } =
     useUpdateProductSku();
 
-  console.log(attributes);
+  console.log(productsByCategory);
   const formik = useFormik({
     initialValues: {
       product_id: '',
@@ -267,7 +267,7 @@ const ProductSkuUpsert = () => {
                   onChange={(e) => {
                     handleAttributeChange(e, index);
                   }}
-                  value={attributes[index]}>
+                  value={attributes[index] ?? ''}>
                   {initData?.attributeList
                     ?.filter((a) => a?.name === item)
                     ?.map((item: IAttribute) => (

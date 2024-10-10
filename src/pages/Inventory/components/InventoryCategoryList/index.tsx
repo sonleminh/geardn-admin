@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from '@/constants/query-key';
@@ -30,8 +30,11 @@ import ActionButton from '@/components/ActionButton';
 import { useDeleteCategory, useGetCategoryList } from '@/services/category';
 import { IQuery } from '@/interfaces/IQuery';
 import EastOutlinedIcon from '@mui/icons-material/EastOutlined';
+import { useGetProductByCategory } from '@/services/product';
+import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 
-const InventoryList = () => {
+const InventoryCategoryList = () => {
+  const { id } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [query, setQuery] = useState<IQuery>({
@@ -39,7 +42,9 @@ const InventoryList = () => {
     page: 1,
   });
 
-  const { data } = useGetCategoryList();
+  const { data: productList } = useGetProductByCategory(id ?? '');
+
+  console.log(productList);
 
   const { showNotification } = useNotificationContext();
 
@@ -65,9 +70,17 @@ const InventoryList = () => {
     <Card sx={{ borderRadius: 2 }}>
       <Card>
         <CardHeader
+          action={
+            <ButtonWithTooltip
+              variant='contained'
+              onClick={() => navigate('/inventory')}
+              title='Quay lại'>
+              <KeyboardBackspaceIcon />
+            </ButtonWithTooltip>
+          }
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Danh sách danh mục kho hàng
+              Kho hàng sản phẩm theo danh mục
             </Typography>
           }
         />
@@ -78,22 +91,26 @@ const InventoryList = () => {
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
                 <TableCell>Tên</TableCell>
+                <TableCell>Mã sản phẩm</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data?.categoryList?.map((item, index) => (
+              {productList?.map((item, index) => (
                 <TableRow
                   key={index}
-                  sx={{ ':hover': { bgcolor: '#F1F1F1', cursor: 'pointer' } }}
-                  onClick={() => navigate(`/inventory/category/${item._id}`)}>
+                  sx={{
+                    ':hover': { bgcolor: '#F1F1F1', cursor: 'pointer' },
+                  }}
+                  onClick={() => navigate(`/inventory/product/${item._id}`)}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
                       {item.name}
                     </Typography>
                   </TableCell>
+                  <TableCell>{item?.sku_name}</TableCell>
                   <TableCell align='center'>
                     {moment(item.createdAt).format('DD/MM/YYYY')}
                   </TableCell>
@@ -106,9 +123,14 @@ const InventoryList = () => {
               ))}
             </TableBody>
           </Table>
+          {productList?.length === 0 && (
+            <Box sx={{ my: 2, textAlign: 'center', color: '#696969' }}>
+              Empty
+            </Box>
+          )}
         </TableContainer>
         <Divider />
-        <Box
+        {/* <Box
           p={2}
           sx={{
             ['.MuiPagination-ul']: {
@@ -127,11 +149,11 @@ const InventoryList = () => {
             showFirstButton
             showLastButton
           />
-        </Box>
+        </Box> */}
       </Card>
       {confirmModal()}
     </Card>
   );
 };
 
-export default InventoryList;
+export default InventoryCategoryList;

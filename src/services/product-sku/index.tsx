@@ -37,15 +37,30 @@ export const useGetProductSkuList = () => {
   });
 };
 
-const getproductSkuById = async (id: string) => {
+const getProductSkuById = async (id: string) => {
   const result = await getRequest(`${productSkuUrl}/${id}`);
   return result.data as IProductSku;
 };
 
-export const useGetproductSkuById = (id: string) => {
+export const useGetProductSkuById = (id: string) => {
   return useQuery({
     queryKey: [QueryKeys.ProductSku, id],
-    queryFn: () => getproductSkuById(id),
+    queryFn: () => getProductSkuById(id),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    enabled: !!id,
+  });
+};
+
+const getSkuByProductId = async (id: string) => {
+  const result = await getRequest(`${productSkuUrl}/product/${id}`);
+  return result.data as IProductSku[];
+};
+
+export const useGetSkuByByProductId = (id: string) => {
+  return useQuery({
+    queryKey: [QueryKeys.ProductSku, id],
+    queryFn: () => getSkuByProductId(id),
     refetchOnWindowFocus: false,
     refetchInterval: false,
     enabled: !!id,
