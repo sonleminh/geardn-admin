@@ -26,14 +26,6 @@ const Inventory = () => {
           element: <InventorySkuList />,
           index: true,
         },
-        {
-          path: '/update/:id',
-          element: <InventoryUpsert />,
-        },
-        {
-          path: '/create',
-          element: <InventoryUpsert />,
-        },
       ],
     },
   ]);

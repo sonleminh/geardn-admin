@@ -70,6 +70,11 @@ const InventoryCategoryList = () => {
     <Card sx={{ borderRadius: 2 }}>
       <Card>
         <CardHeader
+          title={
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+              Kho hàng sản phẩm theo danh mục
+            </Typography>
+          }
           action={
             <ButtonWithTooltip
               variant='contained'
@@ -77,11 +82,6 @@ const InventoryCategoryList = () => {
               title='Quay lại'>
               <KeyboardBackspaceIcon />
             </ButtonWithTooltip>
-          }
-          title={
-            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Kho hàng sản phẩm theo danh mục
-            </Typography>
           }
         />
         <Divider />

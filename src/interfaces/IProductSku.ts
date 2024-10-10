@@ -4,7 +4,7 @@ export interface IProductSku {
     _id: string;
     product_id: string;
     product_name: string;
-    attributes: IAttribute[];
+    attributes: string[];
     sku: string;
     price: number;
     quantity: number;
@@ -15,7 +15,7 @@ export interface IProductSku {
 export interface ICreateProductSku extends Record<string, unknown>  {
     product_id: string;
     product_name: string;
-    attributes: IAttribute[];
+    attributes: string[];
     sku: string;
     price: number;
     quantity: number;
@@ -25,7 +25,7 @@ export interface IUpdateProductSkuPayload {
     _id: string;
     product_id: string;
     product_name: string;
-    attributes: IAttribute[];
+    attributes: string[];
     sku: string;
     price: number;
     quantity: number;

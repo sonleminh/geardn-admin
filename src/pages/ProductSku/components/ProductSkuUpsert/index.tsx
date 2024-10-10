@@ -49,6 +49,7 @@ const ProductSkuUpsert = () => {
   const { showNotification } = useNotificationContext();
   const [categoryId, setCategoryId] = useState<string>('');
   const [attributes, setAttributes] = useState<string[]>([]);
+  const [editAttribute, setEditAttribute] = useState<IAttribute[]>([]);
 
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
   const { data: productSkuData } = useGetProductSkuById(id as string);
@@ -75,11 +76,11 @@ const ProductSkuUpsert = () => {
       const product = productsByCategory?.find(
         (item) => item._id === values.product_id
       );
-      console.log(attributeList);
+      // console.log(attributeList);
       const payload = {
         ...values,
         product_name: product?.name,
-        attributes: attributeList,
+        attributes: attributes,
         sku: `${product?.sku_name}-${attributeList
           ?.map((item) => item?.atb_sku)
           .join('')}`,
@@ -108,14 +109,23 @@ const ProductSkuUpsert = () => {
       }
     },
   });
-
   useEffect(() => {
     if (productSkuData) {
       formik.setFieldValue('product_id', productSkuData?.product_id);
       formik.setFieldValue('price', productSkuData?.price);
-      setAttributes(productSkuData?.attributes?.map((v) => v?._id));
+      setAttributes(productSkuData?.attributes?.map((v) => v));
     }
-  }, [productSkuData]);
+  }, [productSkuData, initData]);
+
+  useEffect(() => {
+    if (initData) {
+      setEditAttribute(
+        initData?.attributeList?.filter((item) =>
+          attributes?.includes(item._id)
+        )
+      );
+    }
+  }, [productSkuData, initData]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

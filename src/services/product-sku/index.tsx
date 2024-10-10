@@ -101,7 +101,6 @@ const updateProductSku = async (payload: any) => {
 };
 
 export const useUpdateProductSku = () => {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateProductSku,
   });
