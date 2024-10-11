@@ -36,6 +36,7 @@ import {
   useGetAttributeById,
   useUpdateAttribute,
 } from '@/services/attribute';
+import { createSchema, updateSchema } from '../utils/schema/attributeSchema';
 
 const AttributeUpsert = () => {
   const { id } = useParams();
@@ -57,7 +58,7 @@ const AttributeUpsert = () => {
       value: '',
       atb_sku: '',
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       if (isEdit) {

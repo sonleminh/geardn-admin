@@ -26,6 +26,7 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
+import { createSchema, updateSchema } from '../utils/schema/categorySchema';
 
 const CategoryUpsert = () => {
   const { id } = useParams();
@@ -45,7 +46,7 @@ const CategoryUpsert = () => {
     initialValues: {
       name: '',
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       if (isEdit) {

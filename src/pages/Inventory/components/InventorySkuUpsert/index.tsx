@@ -40,6 +40,7 @@ import {
 import { ICategory } from '@/interfaces/ICategory';
 import { IAttribute } from '@/interfaces/IAttribute';
 import { useGetProductByCategory } from '@/services/product';
+import { createSchema, updateSchema } from '../utils/schema/skuSchema';
 
 const InventorySkuUpsert = () => {
   const { id } = useParams();
@@ -68,7 +69,7 @@ const InventorySkuUpsert = () => {
       price: '',
       quantity: '',
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       const attributeList = attributes?.map((item) =>

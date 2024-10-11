@@ -42,7 +42,7 @@ export interface ICreateProduct extends Record<string, unknown>  {
     tags: ITagOptions[];
     images?: string[];
     brand: string;
-    attributes: string[];
+    attributes?: string[];
     sku_name: string;
     details: IDetails;
     description?: string;
@@ -62,7 +62,7 @@ export interface IUpdateProductPayload {
     description?: string;
 }
 
-export interface IProductPayload {
+export interface IProductPayload extends Record<string, unknown>  {
     name: string;
     discount?: {
       discountPrice: number;
