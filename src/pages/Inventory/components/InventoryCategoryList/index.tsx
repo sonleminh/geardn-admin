@@ -103,7 +103,7 @@ const InventoryCategoryList = () => {
                   sx={{
                     ':hover': { bgcolor: '#F1F1F1', cursor: 'pointer' },
                   }}
-                  onClick={() => navigate(`/inventory/product/${item._id}`)}>
+                  onClick={() => navigate(`/inventory/sku/${item._id}`)}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>

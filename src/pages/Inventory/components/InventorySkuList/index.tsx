@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -43,7 +43,7 @@ import Input from '@/components/Input';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
-import { IProductSku } from '@/interfaces/IProductSku';
+import { IProductSku } from '@/interfaces/ISku';
 
 const InventorySkuList = () => {
   const { id } = useParams();
@@ -61,6 +61,8 @@ const InventorySkuList = () => {
   console.log(skuEdit);
   const { data: skuList } = useGetSkuByByProductId(id ?? '');
 
+  const actionButtonRef = useRef<{ closePopover: () => void } | null>(null);
+
   console.log(skuList);
 
   const { showNotification } = useNotificationContext();
@@ -77,6 +79,7 @@ const InventorySkuList = () => {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
         showNotification('Xóa danh mục thành công', 'success');
+        // handleClosePopover();
       },
     });
   };
@@ -117,12 +120,21 @@ const InventorySkuList = () => {
             </Typography>
           }
           action={
-            <ButtonWithTooltip
-              variant='contained'
-              onClick={() => navigate(-1)}
-              title='Quay lại'>
-              <KeyboardBackspaceIcon />
-            </ButtonWithTooltip>
+            <Box>
+              <ButtonWithTooltip
+                variant='outlined'
+                onClick={() => navigate(-1)}
+                title='Quay lại'>
+                <KeyboardBackspaceIcon />
+              </ButtonWithTooltip>
+              <ButtonWithTooltip
+                variant='contained'
+                onClick={() => navigate('/inventory/sku/create')}
+                title='Thêm danh mục'
+                sx={{ ml: 1 }}>
+                <AddCircleOutlined />
+              </ButtonWithTooltip>
+            </Box>
           }
         />
         <Divider />
@@ -249,12 +261,15 @@ const InventorySkuList = () => {
                         <Button
                           size='small'
                           variant='contained'
+                          // onClick={() => {
+                          //   setSkuEdit(item?._id);
+                          //   setSkuEditForm({
+                          //     price: item?.price,
+                          //     quantity: item?.quantity,
+                          //   });
+                          // }}
                           onClick={() => {
-                            setSkuEdit(item?._id);
-                            setSkuEditForm({
-                              price: item?.price,
-                              quantity: item?.quantity,
-                            });
+                            navigate(`/inventory/sku/update/${item?._id}`);
                           }}>
                           <EditOutlinedIcon />
                         </Button>

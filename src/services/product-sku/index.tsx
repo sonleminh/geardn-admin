@@ -2,11 +2,7 @@ import { QueryKeys } from '@/constants/query-key';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
-import {
-  ICreateProductSku,
-  IProductSku,
-  IUpdateProductSkuPayload,
-} from '@/interfaces/IProductSku';
+import { ICreateSku, IProductSku, IUpdateSkuPayload } from '@/interfaces/ISku';
 import { ICategory } from '@/interfaces/ICategory';
 import { IAttribute } from '@/interfaces/IAttribute';
 
@@ -81,7 +77,7 @@ export const useGetInitialForCreate = () => {
   });
 };
 
-const createproductSku = async (payload: any) => {
+const createproductSku = async (payload: ICreateSku) => {
   const result = await postRequest(`${productSkuUrl}`, payload);
   return result.data as IProductSku;
 };
@@ -94,7 +90,7 @@ export const useCreateproductSku = () => {
 
 // Update
 
-const updateProductSku = async (payload: any) => {
+const updateProductSku = async (payload: IUpdateSkuPayload) => {
   const { _id, ...rest } = payload;
   const result = await patchRequest(`${productSkuUrl}/${_id}`, rest);
   return result.data as IProductSku;

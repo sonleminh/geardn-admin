@@ -4,6 +4,7 @@ import InventoryList from './components/InventoryList';
 import InventoryUpsert from './components/InventoryUpsert';
 import InventoryCategoryList from './components/InventoryCategoryList';
 import InventorySkuList from './components/InventorySkuList';
+import InventorySkuUpsert from './components/InventorySkuUpsert';
 
 const Inventory = () => {
   const router = useRoutes([
@@ -22,8 +23,18 @@ const Inventory = () => {
           index: true,
         },
         {
-          path: '/product/:id',
+          path: '/sku/:id',
           element: <InventorySkuList />,
+          index: true,
+        },
+        {
+          path: '/sku/create',
+          element: <InventorySkuUpsert />,
+          index: true,
+        },
+        {
+          path: '/sku/update/:id',
+          element: <InventorySkuUpsert />,
           index: true,
         },
       ],

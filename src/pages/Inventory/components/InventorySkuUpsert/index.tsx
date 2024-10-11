@@ -40,7 +40,7 @@ import { ICategory } from '@/interfaces/ICategory';
 import { IAttribute } from '@/interfaces/IAttribute';
 import { useGetProductByCategory } from '@/services/product';
 
-const ProductSkuUpsert = () => {
+const InventorySkuUpsert = () => {
   const { id } = useParams();
   const isEdit = !!id;
 
@@ -61,11 +61,13 @@ const ProductSkuUpsert = () => {
     useUpdateProductSku();
 
   console.log(editAttribute);
+  console.log('editSku', productSkuData);
   const formik = useFormik({
     initialValues: {
       product_id: '',
       attributes: '',
       price: '',
+      quantity: '',
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -73,18 +75,23 @@ const ProductSkuUpsert = () => {
       const attributeList = attributes?.map((item) =>
         initData?.attributeList.find((i) => i._id === item)
       );
+      console.log('ATBLIST:', attributeList);
       const product = productsByCategory?.find(
         (item) => item._id === values.product_id
       );
-      // console.log(attributeList);
+      console.log('prd:', product);
       const payload = {
         ...values,
-        product_name: product?.name,
+        product_name: isEdit ? productSkuData?.product_name : product?.name,
+        product_sku: isEdit ? productSkuData?.product_sku : product?.sku_name,
         attributes: attributes,
-        sku: `${product?.sku_name}-${attributeList
-          ?.map((item) => item?.atb_sku)
-          .join('')}`,
+        sku: `${
+          isEdit ? productSkuData?.sku_name : product?.sku_name
+        }-${attributeList?.map((item) => item?.atb_sku).join('')}`,
+        price: +values.price,
+        quantity: +values.quantity,
       };
+      console.log('pl:', payload);
       if (isEdit) {
         updateProductSkuMutate(
           { _id: id, ...payload },
@@ -94,7 +101,7 @@ const ProductSkuUpsert = () => {
                 queryKey: [QueryKeys.ProductSku],
               });
               showNotification('Cập nhật SKU thành công', 'success');
-              navigate('/product-sku');
+              navigate(-1);
             },
           }
         );
@@ -103,7 +110,7 @@ const ProductSkuUpsert = () => {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductSku] });
             showNotification('Tạo SKU thành công', 'success');
-            navigate('/product-sku');
+            navigate(-1);
           },
         });
       }
@@ -113,19 +120,21 @@ const ProductSkuUpsert = () => {
     if (productSkuData) {
       formik.setFieldValue('product_id', productSkuData?.product_id);
       formik.setFieldValue('price', productSkuData?.price);
+      formik.setFieldValue('quantity', productSkuData?.quantity);
       setAttributes(productSkuData?.attributes?.map((v) => v));
     }
   }, [productSkuData, initData]);
 
   useEffect(() => {
     if (initData) {
+      console.log(2);
       setEditAttribute(
         initData?.attributeList?.filter((item) =>
           attributes?.includes(item._id)
         )
       );
     }
-  }, [productSkuData, initData]);
+  }, [attributes]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -349,8 +358,24 @@ const ProductSkuUpsert = () => {
             onChange={handleChangeValue}
           />
         </FormControl>
+        <FormControl>
+          <Input
+            id='quantity'
+            label='Số lượng'
+            name='quantity'
+            variant='filled'
+            required
+            helperText={
+              <Box component={'span'} sx={helperTextStyle}>
+                {formik.errors.quantity}
+              </Box>
+            }
+            value={formik?.values.quantity}
+            onChange={handleChangeValue}
+          />
+        </FormControl>
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate('/product-sku')} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate(-1)} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>
@@ -363,7 +388,7 @@ const ProductSkuUpsert = () => {
   );
 };
 
-export default ProductSkuUpsert;
+export default InventorySkuUpsert;
 
 const helperTextStyle: SxProps<Theme> = {
   color: 'red',

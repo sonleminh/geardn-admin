@@ -68,10 +68,6 @@ const routes = [
             element: <Attribute />,
           },
           {
-            path: 'product-sku/*',
-            element: <ProductSku />,
-          },
-          {
             path: 'inventory/*',
             element: <Inventory />,
           },

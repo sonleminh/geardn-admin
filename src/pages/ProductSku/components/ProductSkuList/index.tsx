@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -42,6 +42,8 @@ const ProductSkuList = () => {
     page: 1,
   });
 
+  const actionButtonRef = useRef<{ closePopover: () => void } | null>(null);
+
   const { data } = useGetProductSkuList();
 
   const { showNotification } = useNotificationContext();
@@ -60,12 +62,19 @@ const ProductSkuList = () => {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductSku] });
         showNotification('Xóa mã hàng thành công', 'success');
+        // handleClosePopover();
       },
     });
   };
 
   const handleChangeQuery = (object: Partial<IQuery>) => {
     setQuery((prev) => ({ ...prev, ...object }));
+  };
+
+  const handleClosePopover = () => {
+    if (actionButtonRef.current) {
+      actionButtonRef.current.closePopover();
+    }
   };
 
   return (

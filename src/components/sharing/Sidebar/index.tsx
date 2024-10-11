@@ -32,11 +32,6 @@ const Sidebar = () => {
       icon: <FilterAltOutlinedIcon />,
     },
     {
-      link: '/product-sku',
-      label: 'Mã hàng',
-      icon: <StyleIcon />,
-    },
-    {
       link: '/inventory',
       label: 'Kho hàng',
       icon: <WarehouseOutlinedIcon />,
