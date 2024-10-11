@@ -9,7 +9,6 @@ import Dashboard from '@/pages/Dashboard';
 import Product from '@/pages/Product';
 import Category from '@/pages/Category';
 import Attribute from '@/pages/Attribute';
-import ProductSku from '@/pages/ProductSku';
 import Inventory from '@/pages/Inventory';
 
 const Loader =

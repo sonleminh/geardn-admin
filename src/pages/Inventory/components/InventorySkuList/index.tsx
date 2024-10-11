@@ -1,11 +1,29 @@
-import { ChangeEvent, useRef, useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from '@/constants/query-key';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { AddCircleOutlined, Edit, Delete } from '@mui/icons-material';
+import { AddCircleOutlined } from '@mui/icons-material';
 
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import Input from '@/components/Input';
+import { SKU_STATUS } from '@/constants/sku-status';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import useConfirmModal from '@/hooks/useModalConfirm';
+import { IQuery } from '@/interfaces/IQuery';
+import { useDeleteCategory } from '@/services/category';
+import {
+  useGetSkuByByProductId,
+  useUpdateProductSku,
+} from '@/services/product-sku';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import { formatPrice } from '@/utils/format-price';
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
+import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import {
   Box,
   Button,
@@ -13,7 +31,6 @@ import {
   CardHeader,
   Divider,
   FormControl,
-  Pagination,
   Table,
   TableBody,
   TableCell,
@@ -22,28 +39,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { truncateTextByLine } from '@/utils/css-helper.util';
 import moment from 'moment';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import ActionButton from '@/components/ActionButton';
-import { useDeleteCategory, useGetCategoryList } from '@/services/category';
-import { IQuery } from '@/interfaces/IQuery';
-import EastOutlinedIcon from '@mui/icons-material/EastOutlined';
-import {
-  useGetSkuByByProductId,
-  useUpdateProductSku,
-} from '@/services/product-sku';
-import { SKU_STATUS } from '@/constants/sku-status';
-import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
-import { formatPrice } from '@/utils/format-price';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import Input from '@/components/Input';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
-import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
-import { IProductSku } from '@/interfaces/ISku';
 
 const InventorySkuList = () => {
   const { id } = useParams();
@@ -53,24 +49,19 @@ const InventorySkuList = () => {
     limit: 10,
     page: 1,
   });
-  const [skuEdit, setSkuEdit] = useState<string>();
+  const [skuEdit, setSkuEdit] = useState<string>('');
   const [skuEditForm, setSkuEditForm] = useState<{
     price: number;
     quantity: number;
   }>({ price: 0, quantity: 0 });
-  console.log(skuEdit);
   const { data: skuList } = useGetSkuByByProductId(id ?? '');
-
-  const actionButtonRef = useRef<{ closePopover: () => void } | null>(null);
-
-  console.log(skuList);
 
   const { showNotification } = useNotificationContext();
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
-  const { mutate: updateSkuMutate, isPending: isUpdatePending } =
-    useUpdateProductSku();
+  // const { mutate: updateSkuMutate, isPending: isUpdatePending } =
+  //   useUpdateProductSku();
   const { mutate: deleteProductMutate } = useDeleteCategory();
 
   const handleDeleteProduct = (id: string) => {
@@ -78,7 +69,7 @@ const InventorySkuList = () => {
     deleteProductMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
-        showNotification('Xóa danh mục thành công', 'success');
+        showNotification('Xóa mã hàng thành công', 'success');
         // handleClosePopover();
       },
     });
@@ -93,23 +84,22 @@ const InventorySkuList = () => {
     setSkuEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    updateSkuMutate(
-      {
-        _id: skuEdit,
-        price: skuEditForm?.price,
-        quantity: +skuEditForm?.quantity,
-      },
-      {
-        onSuccess() {
-          queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductSku] });
-          setSkuEdit('');
-          showNotification('Cập nhật thành công', 'success');
-        },
-      }
-    );
-  };
-  console.log(skuEditForm);
+  // const handleSave = () => {
+  //   updateSkuMutate(
+  //     {
+  //       _id: skuEdit,
+  //       price: skuEditForm?.price,
+  //       quantity: +skuEditForm?.quantity,
+  //     },
+  //     {
+  //       onSuccess() {
+  //         queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductSku] });
+  //         setSkuEdit('');
+  //         showNotification('Cập nhật thành công', 'success');
+  //       },
+  //     }
+  //   );
+  // };
   return (
     <Card sx={{ borderRadius: 2 }}>
       <Card>
@@ -130,7 +120,7 @@ const InventorySkuList = () => {
               <ButtonWithTooltip
                 variant='contained'
                 onClick={() => navigate('/inventory/sku/create')}
-                title='Thêm danh mục'
+                title='Thêm mã hàng'
                 sx={{ ml: 1 }}>
                 <AddCircleOutlined />
               </ButtonWithTooltip>
@@ -258,35 +248,39 @@ const InventorySkuList = () => {
                   <TableCell align='center'>
                     {skuEdit !== item?._id ? (
                       <Box>
-                        <Button
+                        <ButtonWithTooltip
+                          title='Cập nhật'
                           size='small'
-                          variant='contained'
-                          // onClick={() => {
-                          //   setSkuEdit(item?._id);
-                          //   setSkuEditForm({
-                          //     price: item?.price,
-                          //     quantity: item?.quantity,
-                          //   });
-                          // }}
+                          variant='outlined'
                           onClick={() => {
                             navigate(`/inventory/sku/update/${item?._id}`);
                           }}>
                           <EditOutlinedIcon />
-                        </Button>
+                        </ButtonWithTooltip>
                         <Box display={'inline-block'} mx={1} />
-                        <Button
-                          size='small'
+                        <ButtonWithTooltip
+                          color='error'
+                          onClick={() => {
+                            showConfirmModal({
+                              title: 'Bạn có muốn xóa danh mục này không?',
+                              cancelText: 'Hủy',
+                              onOk: () => handleDeleteProduct(item?._id),
+                              okText: 'Xóa',
+                            });
+                          }}
                           variant='outlined'
-                          sx={{ bgcolor: '#' }}>
+                          title='Xoá'
+                          placement='left'>
                           <DeleteOutlineOutlinedIcon />
-                        </Button>
+                        </ButtonWithTooltip>
                       </Box>
                     ) : (
                       <Box>
                         <Button
                           size='small'
                           variant='contained'
-                          onClick={handleSave}>
+                          // onClick={handleSave}
+                        >
                           <SaveOutlinedIcon />
                         </Button>
                         <Box display={'inline-block'} mx={1} />

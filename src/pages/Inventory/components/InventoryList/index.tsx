@@ -2,13 +2,18 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { QueryKeys } from '@/constants/query-key';
 
-import { AddCircleOutlined, Edit, Delete } from '@mui/icons-material';
+import { AddCircleOutlined } from '@mui/icons-material';
 
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import useConfirmModal from '@/hooks/useModalConfirm';
+import { IQuery } from '@/interfaces/IQuery';
+import { useGetCategoryList } from '@/services/category';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
 import {
   Box,
-  Button,
   Card,
   CardHeader,
   Divider,
@@ -21,15 +26,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { truncateTextByLine } from '@/utils/css-helper.util';
 import moment from 'moment';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import ActionButton from '@/components/ActionButton';
-import { useDeleteCategory, useGetCategoryList } from '@/services/category';
-import { IQuery } from '@/interfaces/IQuery';
-import EastOutlinedIcon from '@mui/icons-material/EastOutlined';
 
 const InventoryList = () => {
   const queryClient = useQueryClient();
@@ -43,19 +40,7 @@ const InventoryList = () => {
 
   const { showNotification } = useNotificationContext();
 
-  const { confirmModal, showConfirmModal } = useConfirmModal();
-
-  const { mutate: deleteProductMutate } = useDeleteCategory();
-
-  const handleDeleteProduct = (id: string) => {
-    showNotification('Ok', 'error');
-    deleteProductMutate(id, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
-        showNotification('Xóa danh mục thành công', 'success');
-      },
-    });
-  };
+  const { confirmModal } = useConfirmModal();
 
   const handleChangeQuery = (object: Partial<IQuery>) => {
     setQuery((prev) => ({ ...prev, ...object }));
@@ -69,6 +54,15 @@ const InventoryList = () => {
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
               Danh sách danh mục kho hàng
             </Typography>
+          }
+          action={
+            <ButtonWithTooltip
+              variant='contained'
+              onClick={() => navigate('/inventory/sku/create')}
+              title='Thêm mã hàng'
+              sx={{ ml: 1 }}>
+              <AddCircleOutlined />
+            </ButtonWithTooltip>
           }
         />
         <Divider />
@@ -98,9 +92,12 @@ const InventoryList = () => {
                     {moment(item.createdAt).format('DD/MM/YYYY')}
                   </TableCell>
                   <TableCell align='center'>
-                    <Button variant='outlined'>
-                      <EastOutlinedIcon />
-                    </Button>
+                    <ButtonWithTooltip
+                      variant='outlined'
+                      title='Enter'
+                      sx={{ color: '#696969' }}>
+                      <KeyboardReturnIcon sx={{ fontSize: 20 }} />
+                    </ButtonWithTooltip>
                   </TableCell>
                 </TableRow>
               ))}

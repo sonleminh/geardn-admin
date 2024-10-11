@@ -22,7 +22,6 @@ const PrivateRoute = () => {
         refetch();
         if (rt?.accessToken) {
           Cookies.set('at', rt?.accessToken, { path: '/' });
-          console.log(3);
           whoAmIRefetch();
         } else {
           navigate('/login');

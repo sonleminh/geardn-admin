@@ -22,6 +22,7 @@ import {
   Divider,
   FormControl,
   FormHelperText,
+  Grid2,
   InputLabel,
   MenuItem,
   Select,
@@ -60,8 +61,6 @@ const InventorySkuUpsert = () => {
   const { mutate: updateProductSkuMutate, isPending: isUpdatePending } =
     useUpdateProductSku();
 
-  console.log(editAttribute);
-  console.log('editSku', productSkuData);
   const formik = useFormik({
     initialValues: {
       product_id: '',
@@ -75,23 +74,20 @@ const InventorySkuUpsert = () => {
       const attributeList = attributes?.map((item) =>
         initData?.attributeList.find((i) => i._id === item)
       );
-      console.log('ATBLIST:', attributeList);
       const product = productsByCategory?.find(
         (item) => item._id === values.product_id
       );
-      console.log('prd:', product);
       const payload = {
         ...values,
         product_name: isEdit ? productSkuData?.product_name : product?.name,
         product_sku: isEdit ? productSkuData?.product_sku : product?.sku_name,
         attributes: attributes,
         sku: `${
-          isEdit ? productSkuData?.sku_name : product?.sku_name
+          isEdit ? productSkuData?.product_sku : product?.sku_name
         }-${attributeList?.map((item) => item?.atb_sku).join('')}`,
         price: +values.price,
         quantity: +values.quantity,
       };
-      console.log('pl:', payload);
       if (isEdit) {
         updateProductSkuMutate(
           { _id: id, ...payload },
@@ -126,15 +122,14 @@ const InventorySkuUpsert = () => {
   }, [productSkuData, initData]);
 
   useEffect(() => {
-    if (initData) {
-      console.log(2);
+    if (isEdit && initData) {
       setEditAttribute(
         initData?.attributeList?.filter((item) =>
           attributes?.includes(item._id)
         )
       );
     }
-  }, [attributes]);
+  }, [attributes, initData, isEdit]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -159,17 +154,16 @@ const InventorySkuUpsert = () => {
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
         title={
-          <Typography variant='h5' sx={{ fontWeight: 600 }}>
-            {isEdit ? 'Sửa phân loại' : 'Thêm phân loại'}
+          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+            {isEdit ? 'Sửa phân loại' : 'Thêm phân loại'}:{' '}
+            {isEdit && productSkuData?.product_name}
           </Typography>
         }
       />
       <Divider />
 
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {isEdit ? (
-          <Typography>Tên sản phẩm: {productSkuData?.product_name}</Typography>
-        ) : (
+      <CardContent>
+        {!isEdit && (
           <>
             <FormControl
               variant='filled'
@@ -251,12 +245,55 @@ const InventorySkuUpsert = () => {
             </FormControl>
           </>
         )}
-        <Typography>Phân loại:</Typography>
-        {productsByCategory
-          ?.find((item) => item?._id === formik?.values?.product_id)
-          ?.attributes?.map((item: string, index: number) => (
-            <Box key={item} sx={{ display: 'flex' }}>
-              <Typography>{item}:</Typography>
+        <Typography mb={1}>Phân loại:</Typography>
+        <Grid2 container rowSpacing={2} columnSpacing={4}>
+          {productsByCategory
+            ?.find((item) => item?._id === formik?.values?.product_id)
+            ?.attributes?.map((item: string, index: number) => (
+              <Grid2 size={6} key={item} display={'flex'}>
+                <FormControl
+                  variant='filled'
+                  fullWidth
+                  sx={{
+                    '& .MuiFilledInput-root': {
+                      overflow: 'hidden',
+                      borderRadius: 1,
+                      backgroundColor: '#fff !important',
+                      border: '1px solid',
+                      borderColor: 'rgba(0,0,0,0.23)',
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                      },
+                      '&.Mui-focused': {
+                        backgroundColor: 'transparent',
+                        border: '2px solid',
+                      },
+                    },
+                    '& .MuiInputLabel-asterisk': {
+                      color: 'red',
+                    },
+                  }}>
+                  <InputLabel>{item}</InputLabel>
+                  <Select
+                    disableUnderline
+                    size='small'
+                    onChange={(e) => {
+                      handleAttributeChange(e, index);
+                    }}
+                    value={attributes[index] ?? ''}>
+                    {initData?.attributeList
+                      ?.filter((a) => a?.name === item)
+                      ?.map((item: IAttribute) => (
+                        <MenuItem key={item?._id} value={item?._id}>
+                          {item?.value}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              </Grid2>
+            ))}
+          {editAttribute?.map((item: IAttribute, index: number) => (
+            <Grid2 size={6} key={item?._id} display={'flex'}>
               <FormControl
                 variant='filled'
                 fullWidth
@@ -279,7 +316,7 @@ const InventorySkuUpsert = () => {
                     color: 'red',
                   },
                 }}>
-                <InputLabel>Giá trị</InputLabel>
+                <InputLabel>{item?.name}</InputLabel>
                 <Select
                   disableUnderline
                   size='small'
@@ -288,7 +325,7 @@ const InventorySkuUpsert = () => {
                   }}
                   value={attributes[index] ?? ''}>
                   {initData?.attributeList
-                    ?.filter((a) => a?.name === item)
+                    ?.filter((a) => a?.name === item?.name)
                     ?.map((item: IAttribute) => (
                       <MenuItem key={item?._id} value={item?._id}>
                         {item?.value}
@@ -296,84 +333,46 @@ const InventorySkuUpsert = () => {
                     ))}
                 </Select>
               </FormControl>
-            </Box>
+            </Grid2>
           ))}
-        {editAttribute?.map((item: IAttribute, index: number) => (
-          <Box key={item?._id} sx={{ display: 'flex' }}>
-            <Typography>{item?.name}:</Typography>
-            <FormControl
-              variant='filled'
-              fullWidth
-              sx={{
-                '& .MuiFilledInput-root': {
-                  overflow: 'hidden',
-                  borderRadius: 1,
-                  backgroundColor: '#fff !important',
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.23)',
-                  '&:hover': {
-                    backgroundColor: 'transparent',
-                  },
-                  '&.Mui-focused': {
-                    backgroundColor: 'transparent',
-                    border: '2px solid',
-                  },
-                },
-                '& .MuiInputLabel-asterisk': {
-                  color: 'red',
-                },
-              }}>
-              <InputLabel>Giá trị</InputLabel>
-              <Select
-                disableUnderline
-                size='small'
-                onChange={(e) => {
-                  handleAttributeChange(e, index);
-                }}
-                value={attributes[index] ?? ''}>
-                {initData?.attributeList
-                  ?.filter((a) => a?.name === item?.name)
-                  ?.map((item: IAttribute) => (
-                    <MenuItem key={item?._id} value={item?._id}>
-                      {item?.value}
-                    </MenuItem>
-                  ))}
-              </Select>
+          <Grid2 size={6}>
+            <FormControl fullWidth>
+              <Input
+                id='price'
+                label='Giá'
+                name='price'
+                variant='filled'
+                required
+                helperText={
+                  <Box component={'span'} sx={helperTextStyle}>
+                    {formik.errors.price}
+                  </Box>
+                }
+                value={formik?.values.price}
+                onChange={handleChangeValue}
+              />
             </FormControl>
-          </Box>
-        ))}
-        <FormControl>
-          <Input
-            id='price'
-            label='Giá'
-            name='price'
-            variant='filled'
-            required
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.price}
-              </Box>
-            }
-            value={formik?.values.price}
-            onChange={handleChangeValue}
-          />
-        </FormControl>
-        <FormControl>
-          <Input
-            id='quantity'
-            label='Số lượng'
-            name='quantity'
-            variant='filled'
-            required
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.quantity}
-              </Box>
-            }
-            value={formik?.values.quantity}
-            onChange={handleChangeValue}
-          />
-        </FormControl>
+          </Grid2>
+          <Grid2 size={6}>
+            <FormControl fullWidth>
+              <Input
+                id='quantity'
+                label='Số lượng'
+                name='quantity'
+                variant='filled'
+                required
+                helperText={
+                  <Box component={'span'} sx={helperTextStyle}>
+                    {formik.errors.quantity}
+                  </Box>
+                }
+                value={formik?.values.quantity}
+                onChange={handleChangeValue}
+              />
+            </FormControl>
+          </Grid2>
+        </Grid2>
+
         <Box sx={{ textAlign: 'end' }}>
           <Button onClick={() => navigate(-1)} sx={{ mr: 2 }}>
             Trở lại
@@ -383,7 +382,7 @@ const InventorySkuUpsert = () => {
           </Button>
         </Box>
       </CardContent>
-      {/* {(isCreatePending || isUpdatePending) && <SuspenseLoader />} */}
+      {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
     </Card>
   );
 };

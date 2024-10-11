@@ -60,7 +60,6 @@ const AttributeUpsert = () => {
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      console.log(values);
       if (isEdit) {
         updateAttributeMutate(
           { _id: id, ...values },
@@ -108,7 +107,7 @@ const AttributeUpsert = () => {
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
         title={
-          <Typography variant='h5' sx={{ fontWeight: 600 }}>
+          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
             {isEdit ? 'Sửa phân loại' : 'Thêm phân loại'}
           </Typography>
         }
@@ -196,7 +195,7 @@ const AttributeUpsert = () => {
           </Button>
         </Box>
       </CardContent>
-      {/* {(isCreatePending || isUpdatePending) && <SuspenseLoader />} */}
+      {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
     </Card>
   );
 };

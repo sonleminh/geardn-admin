@@ -1,7 +1,6 @@
 import { useRoutes } from 'react-router-dom';
 import InventoryLayout from './components/InventoryLayout';
 import InventoryList from './components/InventoryList';
-import InventoryUpsert from './components/InventoryUpsert';
 import InventoryCategoryList from './components/InventoryCategoryList';
 import InventorySkuList from './components/InventorySkuList';
 import InventorySkuUpsert from './components/InventorySkuUpsert';

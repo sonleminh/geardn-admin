@@ -1,7 +1,8 @@
-export interface ISku {
+export interface IProductSku {
     _id: string;
     product_id: string;
     product_name: string;
+    product_sku: string;
     attributes: string[];
     sku: string;
     price: number;
@@ -10,23 +11,25 @@ export interface ISku {
     createdAt: Date;
 }
 
-export interface ICreateSku extends Record<string, unknown>  {
+export interface ICreateProductSku extends Record<string, unknown>  {
     product_id: string;
-    product_name?: string;
+    product_name: string;
+    product_sku: string;
     attributes: string[];
     sku: string;
     price: number;
     quantity: number;
-    status?: string;
+    status: string;
 }
-export interface IUpdateSkuPayload {
+export interface IUpdateProductSkuPayload {
     _id: string;
     product_id: string;
-    product_name?: string;
+    product_name: string;
+    product_sku: string;
     attributes: string[];
     sku: string;
-    price?: number;
-    quantity?: number;
-    status?: string;
+    price: number;
+    quantity: number;
+    status: string;
 }
   

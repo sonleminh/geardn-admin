@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from '@/constants/query-key';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { AddCircleOutlined, Edit, Delete } from '@mui/icons-material';
+import { AddCircleOutlined } from '@mui/icons-material';
 
+import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import useConfirmModal from '@/hooks/useModalConfirm';
+import { truncateTextByLine } from '@/utils/css-helper.util';
 import {
   Box,
   Card,
@@ -20,15 +25,12 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { truncateTextByLine } from '@/utils/css-helper.util';
 import moment from 'moment';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import ActionButton from '@/components/ActionButton';
 // import { useDeleteAttribute, useGetAttributeList } from '@/services/attribute';
 import { IQuery } from '@/interfaces/IQuery';
 import { useDeleteAttribute, useGetAttributeList } from '@/services/attribute';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 
 const AttributeList = () => {
   const queryClient = useQueryClient();
@@ -122,7 +124,7 @@ const AttributeList = () => {
                           variant='outlined'
                           title='Chỉnh sửa'
                           placement='left'>
-                          <Edit />
+                          <EditOutlinedIcon />
                         </ButtonWithTooltip>
                       </Box>
                       <Box>
@@ -139,7 +141,7 @@ const AttributeList = () => {
                           variant='outlined'
                           title='Xoá'
                           placement='left'>
-                          <Delete />
+                          <DeleteOutlineOutlinedIcon />
                         </ButtonWithTooltip>
                       </Box>
                     </ActionButton>

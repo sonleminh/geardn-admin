@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from '@/constants/query-key';
 
-import { AddCircleOutlined, Edit, Delete } from '@mui/icons-material';
+import { AddCircleOutlined } from '@mui/icons-material';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 
 import {
   Box,
@@ -28,6 +29,7 @@ import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ActionButton from '@/components/ActionButton';
 import { useDeleteCategory, useGetCategoryList } from '@/services/category';
 import { IQuery } from '@/interfaces/IQuery';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 
 const CategoryList = () => {
   const queryClient = useQueryClient();
@@ -109,7 +111,7 @@ const CategoryList = () => {
                           variant='outlined'
                           title='Chỉnh sửa'
                           placement='left'>
-                          <Edit />
+                          <EditOutlinedIcon />
                         </ButtonWithTooltip>
                       </Box>
                       <Box>
@@ -117,7 +119,7 @@ const CategoryList = () => {
                           color='error'
                           onClick={() => {
                             showConfirmModal({
-                              title: 'Bạn có muốn xóa bài viết này không?',
+                              title: 'Bạn có muốn xóa danh mục này khônsg?',
                               cancelText: 'Hủy',
                               onOk: () => handleDeleteProduct(item?._id),
                               okText: 'Xóa',
@@ -126,7 +128,7 @@ const CategoryList = () => {
                           variant='outlined'
                           title='Xoá'
                           placement='left'>
-                          <Delete />
+                          <DeleteOutlineOutlinedIcon />
                         </ButtonWithTooltip>
                       </Box>
                     </ActionButton>

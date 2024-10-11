@@ -6,7 +6,6 @@ import { NavLink } from 'react-router-dom';
 import MonitorIcon from '@mui/icons-material/Monitor';
 import LOGO from '@/assets/geardn-logo.png';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
-import StyleIcon from '@mui/icons-material/Style';
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined';
 
 const Sidebar = () => {

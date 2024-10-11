@@ -2,17 +2,20 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { QueryKeys } from '@/constants/query-key';
 
-import { AddCircleOutlined, Edit, Delete } from '@mui/icons-material';
-
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import useConfirmModal from '@/hooks/useModalConfirm';
+import { IQuery } from '@/interfaces/IQuery';
+import { useGetProductByCategory } from '@/services/product';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
+import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
 import {
   Box,
-  Button,
   Card,
   CardHeader,
   Divider,
-  Pagination,
   Table,
   TableBody,
   TableCell,
@@ -21,17 +24,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { truncateTextByLine } from '@/utils/css-helper.util';
 import moment from 'moment';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import ActionButton from '@/components/ActionButton';
-import { useDeleteCategory, useGetCategoryList } from '@/services/category';
-import { IQuery } from '@/interfaces/IQuery';
-import EastOutlinedIcon from '@mui/icons-material/EastOutlined';
-import { useGetProductByCategory } from '@/services/product';
-import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 
 const InventoryCategoryList = () => {
   const { id } = useParams();
@@ -44,23 +37,9 @@ const InventoryCategoryList = () => {
 
   const { data: productList } = useGetProductByCategory(id ?? '');
 
-  console.log(productList);
-
   const { showNotification } = useNotificationContext();
 
-  const { confirmModal, showConfirmModal } = useConfirmModal();
-
-  const { mutate: deleteProductMutate } = useDeleteCategory();
-
-  const handleDeleteProduct = (id: string) => {
-    showNotification('Ok', 'error');
-    deleteProductMutate(id, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
-        showNotification('Xóa danh mục thành công', 'success');
-      },
-    });
-  };
+  const { confirmModal } = useConfirmModal();
 
   const handleChangeQuery = (object: Partial<IQuery>) => {
     setQuery((prev) => ({ ...prev, ...object }));
@@ -115,9 +94,12 @@ const InventoryCategoryList = () => {
                     {moment(item.createdAt).format('DD/MM/YYYY')}
                   </TableCell>
                   <TableCell align='center'>
-                    <Button variant='outlined'>
-                      <EastOutlinedIcon />
-                    </Button>
+                    <ButtonWithTooltip
+                      variant='outlined'
+                      title='Enter'
+                      sx={{ color: '#696969' }}>
+                      <KeyboardReturnIcon sx={{ fontSize: 20 }} />
+                    </ButtonWithTooltip>
                   </TableCell>
                 </TableRow>
               ))}

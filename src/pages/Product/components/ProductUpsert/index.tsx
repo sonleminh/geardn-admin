@@ -87,7 +87,7 @@ const ProductUpsert = () => {
       },
       description: '',
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       const hasDiscount =
@@ -206,7 +206,7 @@ const ProductUpsert = () => {
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
         title={
-          <Typography variant='h5' sx={{ fontWeight: 600 }}>
+          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
             {isEdit ? 'Sửa sản phẩm' : 'Thêm sản phẩm'}
           </Typography>
         }

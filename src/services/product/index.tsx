@@ -4,11 +4,7 @@ import { AxiosError } from 'axios';
 import { QueryKeys } from '@/constants/query-key';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
-import {
-  ICreateProduct,
-  IProduct,
-  IUpdateProductPayload,
-} from '@/interfaces/IProduct';
+import { IProduct, IUpdateProductPayload } from '@/interfaces/IProduct';
 import { ErrorResponse } from '@/interfaces/IError';
 import { IQuery } from '@/interfaces/IQuery';
 import queryString from 'query-string';

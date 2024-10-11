@@ -1,10 +1,11 @@
 import { QueryKeys } from '@/constants/query-key';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
-import { ICreateSku, IProductSku, IUpdateSkuPayload } from '@/interfaces/ISku';
+import { ICreateSku, IUpdateSkuPayload } from '@/interfaces/ISku';
 import { ICategory } from '@/interfaces/ICategory';
 import { IAttribute } from '@/interfaces/IAttribute';
+import { IProductSku } from '@/interfaces/IProductSku';
 
 type TProductSkusRes = {
   productSkuList: IProductSku[];

@@ -11,14 +11,7 @@ export const createFormData = (payload: any) => {
           formData.append(key, JSON.stringify(value));
           continue;
         }
-        // if(key === 'images') {
-        //   for (let i = 0; i < value.length; i++) {
-        //     formData.append('images', value[i]);
-        //   }
-        //   continue;
-        // }
         if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-          console.log(value)
           Object.keys(value).forEach((subKey) => {
             const fieldName = `${key}[${subKey}]`;
             if (value[subKey] === undefined || value[subKey].length === 0 || value[subKey] === 0) {

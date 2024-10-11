@@ -1,12 +1,22 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useQueryClient } from '@tanstack/react-query';
-import { useDeleteProduct, useGetProductList } from '@/services/product';
 import { QueryKeys } from '@/constants/query-key';
+import { useDeleteProduct, useGetProductList } from '@/services/product';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { AddCircleOutlined, Edit, Delete } from '@mui/icons-material';
+import { AddCircleOutlined } from '@mui/icons-material';
 
+import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import useConfirmModal from '@/hooks/useModalConfirm';
+import { ITagOptions } from '@/interfaces/IProduct';
+import { IQuery } from '@/interfaces/IQuery';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import { getBgColor } from '@/utils/getTagBgColor';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Box,
   Card,
@@ -21,15 +31,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { truncateTextByLine } from '@/utils/css-helper.util';
 import moment from 'moment';
-import { IQuery } from '@/interfaces/IQuery';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import ActionButton from '@/components/ActionButton';
-import { ITagOptions } from '@/interfaces/IProduct';
-import { getBgColor } from '@/utils/getTagBgColor';
 
 const ProductList = () => {
   const queryClient = useQueryClient();
@@ -153,7 +155,7 @@ const ProductList = () => {
                           variant='outlined'
                           title='Chỉnh sửa'
                           placement='left'>
-                          <Edit />
+                          <EditOutlinedIcon />
                         </ButtonWithTooltip>
                       </Box>
                       <Box>
@@ -170,7 +172,7 @@ const ProductList = () => {
                           variant='outlined'
                           title='Xoá'
                           placement='left'>
-                          <Delete />
+                          <DeleteOutlineOutlinedIcon />
                         </ButtonWithTooltip>
                       </Box>
                     </ActionButton>
