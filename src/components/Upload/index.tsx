@@ -83,19 +83,6 @@ const Upload = ({
                   className='thumbnail'
                 />
               </Box>
-              {/* <HighlightOffIcon
-                onClick={() => {
-                  setPreviewSource(undefined);
-                  onClearValue?.();
-                }}
-                sx={{
-                  fontSize: 28,
-                  cursor: 'pointer',
-                  ':hover': {
-                    color: '#757575',
-                  },
-                }}
-              /> */}
             </>
           )}
           {(value as string)?.length > 0 && (
@@ -111,18 +98,6 @@ const Upload = ({
                 }}>
                 <img src={value as string} className='thumbnail' />
               </Box>
-              {/* <HighlightOffIcon
-                onClick={() => {
-                  onClearValue?.();
-                }}
-                sx={{
-                  fontSize: 28,
-                  cursor: 'pointer',
-                  ':hover': {
-                    color: '#757575',
-                  },
-                }}
-              /> */}
             </>
           )}
         </Box>

@@ -118,7 +118,7 @@ const InventorySkuUpsert = () => {
       formik.setFieldValue('product_id', productSkuData?.product_id);
       formik.setFieldValue('price', productSkuData?.price);
       formik.setFieldValue('quantity', productSkuData?.quantity);
-      setAttributes(productSkuData?.attributes?.map((v) => v));
+      setAttributes(productSkuData?.attributes?.map((a) => a?._id));
     }
   }, [productSkuData, initData]);
 
@@ -170,6 +170,7 @@ const InventorySkuUpsert = () => {
               variant='filled'
               fullWidth
               sx={{
+                mb: 2,
                 '& .MuiFilledInput-root': {
                   overflow: 'hidden',
                   borderRadius: 1,
@@ -207,6 +208,7 @@ const InventorySkuUpsert = () => {
               variant='filled'
               fullWidth
               sx={{
+                mb: 2,
                 '& .MuiFilledInput-root': {
                   overflow: 'hidden',
                   borderRadius: 1,

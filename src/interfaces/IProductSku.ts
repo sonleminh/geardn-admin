@@ -1,9 +1,11 @@
+import { IAttribute } from "./IAttribute";
+
 export interface IProductSku {
     _id: string;
     product_id: string;
     product_name: string;
     product_sku: string;
-    attributes: string[];
+    attributes: IAttribute[];
     sku: string;
     price: number;
     quantity: number;

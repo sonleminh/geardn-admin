@@ -52,7 +52,6 @@ const ProductUpsert = () => {
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
   const [attributes, setAttributes] = useState<string[]>([]);
-  const [categoryId, setCategoryId] = useState<string>('');
   const [tags, setTags] = useState<ITagOptions[]>([]);
   const [showDetailForm, setShowDetailForm] = useState<boolean>(false);
 
@@ -105,7 +104,6 @@ const ProductUpsert = () => {
       const payload: IProductPayload = {
         ...values,
         details,
-        category: initData?.categories.find((c) => c._id === categoryId),
         tags: tags,
         discount: hasDiscount
           ? {
@@ -166,7 +164,6 @@ const ProductUpsert = () => {
       formik.setFieldValue('description', productData?.description);
       formik.setFieldValue('attributes', productData?.attributes);
       formik.setFieldValue('sku_name', productData?.sku_name);
-      setCategoryId(productData?.category?._id);
       setTags(productData?.tags);
       setAttributes(productData?.attributes);
     }
@@ -193,9 +190,8 @@ const ProductUpsert = () => {
     formik.setFieldValue('attributes', val);
   };
 
-  const handleCategoryChange = (e: SelectChangeEvent<unknown>) => {
-    setCategoryId(e.target.value as string);
-    formik.setFieldValue('category', e.target.value as string);
+  const handleSelectChange = (e: SelectChangeEvent<unknown>) => {
+    formik.setFieldValue('category', e.target.value);
   };
 
   const handleUploadResult = (result: string[]) => {
@@ -275,7 +271,7 @@ const ProductUpsert = () => {
                 disableUnderline
                 size='small'
                 name='category'
-                onChange={handleCategoryChange}
+                onChange={handleSelectChange}
                 value={formik?.values?.category}>
                 {initData?.categories?.map((item) => (
                   <MenuItem key={item._id} value={item?._id}>

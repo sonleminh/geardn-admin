@@ -7,7 +7,7 @@ export const createSchema = yup.object({
     attributes: yup.array().max(3, 'Nhập tối đa 3 phân loại!'),
     sku_name: yup.string().required('Nội dung này không được để trống!').max(20, 'Không được vượt quá 20 ký tự!'),
     images: yup.array().min(1,'Ảnh không được để trống!').max(3, 'Sản phẩm yêu cầu tối đa 3 ảnh!'),
-    brand: yup.string().required('Nội dung này không được để trống!').max(20, 'Không được vượt quá 20 ký tự!'),
+    brand: yup.string().max(20, 'Không được vượt quá 20 ký tự!'),
     details: yup.object().shape({
         guarantee: yup
           .string()
@@ -29,7 +29,7 @@ export const updateSchema = yup.object({
     attributes: yup.array().max(3, 'Nhập tối đa 3 phân loại!'),
     sku_name: yup.string().required('Nội dung này không được để trống!').max(20, 'Không được vượt quá 20 ký tự!'),
     images: yup.array().min(1,'Ảnh không được để trống!').max(3, 'Sản phẩm yêu cầu tối đa 3 ảnh!'),
-    brand: yup.string().required('Nội dung này không được để trống!').max(20, 'Không được vượt quá 20 ký tự!'),
+    brand: yup.string().max(20, 'Không được vượt quá 20 ký tự!'),
     details: yup.object().shape({
         guarantee: yup
           .string()

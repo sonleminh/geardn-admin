@@ -32,6 +32,8 @@ import {
   Typography,
 } from '@mui/material';
 import moment from 'moment';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import ExcelUpload from '@/components/ExcelUpload';
 
 const ProductList = () => {
   const queryClient = useQueryClient();
@@ -69,12 +71,23 @@ const ProductList = () => {
       <Card>
         <CardHeader
           action={
-            <ButtonWithTooltip
-              variant='contained'
-              onClick={() => navigate('create')}
-              title='Thêm gói cước'>
-              <AddCircleOutlined />
-            </ButtonWithTooltip>
+            <Box>
+              {/* <ButtonWithTooltip
+                variant='outlined'
+                onClick={() => navigate('create')}
+                title='Nhập Excel'
+                sx={{ mr: 2 }}>
+                <UploadFileIcon sx={{ mr: 1 }} /> Excel
+              </ButtonWithTooltip> */}
+              <ExcelUpload />
+              <ButtonWithTooltip
+                sx={{ ml: 2 }}
+                variant='contained'
+                onClick={() => navigate('create')}
+                title='Thêm gói cước'>
+                <AddCircleOutlined />
+              </ButtonWithTooltip>
+            </Box>
           }
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
