@@ -8,11 +8,6 @@ import { QueryKeys } from '@/constants/query-key';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
-// import {
-//   useCreateAttribute,
-//   useGetAttributeById,
-//   useUpdateAttribute,
-// } from '@/services/Attribute';
 import {
   Box,
   Button,
@@ -69,7 +64,7 @@ const AttributeUpsert = () => {
               queryClient.invalidateQueries({
                 queryKey: [QueryKeys.Attribute],
               });
-              showNotification('Cập nhật danh mục thành công', 'success');
+              showNotification('Cập nhật phân loại thành công', 'success');
               navigate('/attribute');
             },
           }
@@ -78,7 +73,7 @@ const AttributeUpsert = () => {
         createAttributeMutate(values, {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Attribute] });
-            showNotification('Tạo danh mục thành công', 'success');
+            showNotification('Tạo phân loại thành công', 'success');
             navigate('/attribute');
           },
         });

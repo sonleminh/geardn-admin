@@ -123,6 +123,7 @@ const CategoryList = () => {
                               cancelText: 'Hủy',
                               onOk: () => handleDeleteProduct(item?._id),
                               okText: 'Xóa',
+                              btnOkColor: 'error',
                             });
                           }}
                           variant='outlined'

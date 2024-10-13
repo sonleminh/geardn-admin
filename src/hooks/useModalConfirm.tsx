@@ -1,5 +1,12 @@
 import { ReactNode, useState } from 'react';
-import { Box, Button, Modal, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  ButtonPropsColorOverrides,
+  Modal,
+  Typography,
+} from '@mui/material';
+import { OverridableStringUnion } from '@mui/types';
 
 export interface IShowConfirmModal {
   onOk?: () => void;
@@ -12,6 +19,16 @@ export interface IShowConfirmModal {
   showBtnCancel?: boolean;
   hideIconBtnOk?: boolean;
   hideIconBtnCancel?: boolean;
+  btnOkColor?: OverridableStringUnion<
+    | 'primary'
+    | 'inherit'
+    | 'secondary'
+    | 'success'
+    | 'error'
+    | 'info'
+    | 'warning',
+    ButtonPropsColorOverrides
+  >;
 }
 
 const useConfirmModal = () => {
@@ -29,6 +46,7 @@ const useConfirmModal = () => {
     showBtnOk = true,
     hideIconBtnOk = false,
     hideIconBtnCancel = false,
+    btnOkColor = 'primary',
   }: IShowConfirmModal) => {
     setIsOpen(true);
     setModalProps({
@@ -48,12 +66,16 @@ const useConfirmModal = () => {
       showBtnOk,
       hideIconBtnOk,
       hideIconBtnCancel,
+      btnOkColor,
     });
   };
 
   const confirmModal = () => {
     return (
-      <Modal open={isOpen} disableScrollLock={true}>
+      <Modal
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        disableScrollLock={true}>
         <Box
           sx={{
             position: 'absolute',
@@ -69,9 +91,9 @@ const useConfirmModal = () => {
           <Typography sx={{ mb: 3, fontSize: 16 }}>
             {modalProps?.title}
           </Typography>
-          <Typography id='modal-modal-description' sx={{ my: 2 }}>
+          <Box id='modal-modal-description' sx={{ my: 2 }}>
             {modalProps?.content}
-          </Typography>
+          </Box>
           <Box sx={{ textAlign: 'center' }}>
             {modalProps?.showBtnCancel && (
               <Button
@@ -84,7 +106,7 @@ const useConfirmModal = () => {
             {modalProps?.showBtnOk && (
               <Button
                 variant='contained'
-                color='error'
+                color={modalProps?.btnOkColor}
                 onClick={() => modalProps?.onOk?.()}
                 sx={{ textTransform: 'none' }}>
                 {modalProps?.okText}

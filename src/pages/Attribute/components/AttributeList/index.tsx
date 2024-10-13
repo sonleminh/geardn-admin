@@ -136,6 +136,7 @@ const AttributeList = () => {
                               cancelText: 'Hủy',
                               onOk: () => handleDeleteAttribute(item?._id),
                               okText: 'Xóa',
+                              btnOkColor: 'error',
                             });
                           }}
                           variant='outlined'

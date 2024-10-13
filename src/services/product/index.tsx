@@ -86,6 +86,25 @@ export const useCreateProduct = () => {
   });
 };
 
+const uploadProductsFile = async (file: File) => {
+  console.log(file);
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const result = await postRequest(`${productUrl}/upload`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return result.data as IProduct;
+};
+
+export const useUploadProductsFile = () => {
+  return useMutation({
+    mutationFn: uploadProductsFile,
+  });
+};
+
 const getProductInitial = async () => {
   const result = await getRequest(`${productUrl}/initial-to-create`);
   return result.data as TInitDataRes;

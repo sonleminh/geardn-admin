@@ -1,38 +1,84 @@
-import { Box, Button } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import React, { useRef, useState } from 'react';
-import * as XLSX from 'xlsx';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import useConfirmModal from '@/hooks/useModalConfirm';
+import { useUploadProductsFile } from '@/services/product';
+import { QueryKeys } from '@/constants/query-key';
+import { useQueryClient } from '@tanstack/react-query';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import axios, { AxiosError } from 'axios';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
+import SuspenseLoader from '../SuspenseLoader';
 
 const ExcelUpload = () => {
-  const [file, setFile] = useState<any>(null);
-  const [fileData, setFileData] = useState<any>(null);
-  const [error, setError] = useState('');
+  const queryClient = useQueryClient();
+  const [file, setFile] = useState<File | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
-  console.log('f:', file);
+  const { showNotification } = useNotificationContext();
+  const { confirmModal, showConfirmModal } = useConfirmModal();
+
+  const { mutate: uploadProductsFile, isPending: isCreatePending } =
+    useUploadProductsFile();
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files ? e.target.files[0] : null;
     if (selectedFile) {
-      const reader = new FileReader();
-      reader.readAsArrayBuffer(selectedFile);
-      reader.onload = async (e) => {
-        setFile(e.target?.result);
-      };
-      // setFile(selectedFile);
+      setFile(selectedFile);
+      triggerModal(selectedFile);
     }
   };
 
-  const handleFileUpload = async (e: any) => {
-    e?.preventDefault();
-    if (file != null) {
-      const workbook = XLSX.read(file, { type: 'buffer' });
-      const sheetName = workbook.SheetNames[0]; // Get the first sheet
-      const sheet = workbook.Sheets[sheetName];
-      const data = XLSX.utils.sheet_to_json(sheet);
-      setFileData(data);
+  const handleFileUpload = async (file: File | null) => {
+    console.log(file);
+    if (file) {
+      uploadProductsFile(file, {
+        onSuccess() {
+          queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+          showNotification('Thêm danh sách sản phẩm thành công', 'success');
+          setFile(null);
+        },
+
+        onError: (err: Error | AxiosError) => {
+          if (axios.isAxiosError(err)) {
+            showNotification(err.response?.data?.message, 'error');
+          } else {
+            showNotification(err.message, 'error');
+          }
+        },
+      });
     }
   };
 
-  console.log('fd:', fileData);
+  const triggerModal = (selectedFile: File | null) => {
+    showConfirmModal({
+      title: 'Nhập file Excel sản phẩm:',
+      content: (
+        <Box display={'flex'} alignItems={'center'}>
+          <Button
+            sx={{ mr: 2, border: '2px solid#000' }}
+            variant='outlined'
+            onClick={() => {
+              if (uploadInputRef.current) {
+                uploadInputRef.current.click();
+              }
+            }}>
+            <FileUploadIcon />
+          </Button>
+          {selectedFile ? (
+            <Typography> {selectedFile.name}</Typography>
+          ) : (
+            <Typography sx={{ fontSize: 13 }}>
+              Không có tệp nào được chọn
+            </Typography>
+          )}
+        </Box>
+      ),
+      cancelText: 'Quay lại',
+      onOk: () => handleFileUpload(selectedFile),
+      okText: 'Thêm',
+    });
+  };
+
   return (
     <>
       <input
@@ -43,16 +89,13 @@ const ExcelUpload = () => {
         style={{ display: 'none' }}
       />
       <Button
-        variant='contained'
-        onClick={() => {
-          if (uploadInputRef.current) {
-            uploadInputRef.current.click();
-          }
-        }}>
+        sx={{ border: '2px solid#157641', color: '#157641' }}
+        variant='outlined'
+        onClick={() => triggerModal(file)}>
         <UploadFileIcon sx={{ mr: 1 }} /> Excel
       </Button>
-      <Button onClick={handleFileUpload}>Upload</Button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {confirmModal()}
+      {isCreatePending && <SuspenseLoader />}
     </>
   );
 };
