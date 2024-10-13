@@ -15,10 +15,6 @@ import queryString from 'query-string';
 
 type TProductsRes = {
   productList: IProduct[];
-  categories: {
-    _id: string;
-    label: string;
-  }[];
   total: number;
 };
 

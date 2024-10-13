@@ -32,7 +32,6 @@ import {
   Typography,
 } from '@mui/material';
 import moment from 'moment';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
 import ExcelUpload from '@/components/ExcelUpload';
 
 const ProductList = () => {

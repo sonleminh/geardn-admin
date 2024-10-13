@@ -29,7 +29,6 @@ const ExcelUpload = () => {
   };
 
   const handleFileUpload = async (file: File | null) => {
-    console.log(file);
     if (file) {
       uploadProductsFile(file, {
         onSuccess() {

@@ -2,6 +2,7 @@ import { useRoutes } from 'react-router-dom';
 import ProductLayout from './components/ProductLayout';
 import ProductList from './components/ProductList';
 import ProductUpsert from './components/ProductUpsert';
+import NewProductList from './components/NewProductList';
 // import ProductUpsert from './components/ProductUpsert';
 
 const Product = () => {
@@ -13,6 +14,11 @@ const Product = () => {
         {
           path: '',
           element: <ProductList />,
+          index: true,
+        },
+        {
+          path: '/new',
+          element: <NewProductList />,
           index: true,
         },
         {
