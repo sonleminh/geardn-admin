@@ -3,7 +3,6 @@ export interface ICategory {
     name: string
 }
 
-
 export interface ITagOptions {
     value: string;
     label: string;

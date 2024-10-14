@@ -12,9 +12,11 @@ import {
 import { ErrorResponse } from '@/interfaces/IError';
 import { IQuery } from '@/interfaces/IQuery';
 import queryString from 'query-string';
+import { ICategory } from '@/interfaces/ICategory';
 
 type TProductsRes = {
   productList: IProduct[];
+  categories: ICategory[];
   total: number;
 };
 
@@ -26,7 +28,7 @@ type TInitDataRes = {
 const productUrl = '/product';
 
 const getProductList = async (query: IQuery) => {
-  const newParams = { ...query };
+  const newParams = { ...query, page: (query.page ?? 0) + 1 };
   const queryParams = queryString.stringify(newParams ?? {});
   const result = await getRequest(`${productUrl}?${queryParams}`);
   return result.data as TProductsRes;
