@@ -15,6 +15,10 @@ import queryString from 'query-string';
 
 type TProductsRes = {
   productList: IProduct[];
+  categories: {
+    _id: string;
+    label: string;
+  }[];
   total: number;
 };
 
@@ -26,7 +30,7 @@ type TInitDataRes = {
 const productUrl = '/product';
 
 const getProductList = async (query: IQuery) => {
-  const newParams = { ...query };
+  const newParams = { ...query, page: (query.page ?? 0) + 1 };
   const queryParams = queryString.stringify(newParams ?? {});
   const result = await getRequest(`${productUrl}?${queryParams}`);
   return result.data as TProductsRes;

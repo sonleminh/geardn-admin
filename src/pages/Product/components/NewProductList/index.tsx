@@ -1,7 +1,7 @@
-import { ITagOptions } from '@/interfaces/IProduct';
+import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import { IQuery } from '@/interfaces/IQuery';
 import { useGetProductList } from '@/services/product';
-import { getBgColor } from '@/utils/getTagBgColor';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Box from '@mui/material/Box';
@@ -23,6 +23,10 @@ import { alpha } from '@mui/material/styles';
 import { visuallyHidden } from '@mui/utils';
 import moment from 'moment';
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import useConfirmModal from '@/hooks/useModalConfirm';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 interface Data {
   stt: number;
@@ -30,42 +34,7 @@ interface Data {
   category: number;
   images: string;
   created_at: string;
-  //   action: string;
 }
-
-// function createData(
-//   id: number,
-//   name: string,
-//   category: number,
-//   images: string,
-//   carbs: number,
-//   protein: number
-// ): Data {
-//   return {
-//     id,
-//     name,
-//     calories,
-//     fat,
-//     carbs,
-//     protein,
-//   };
-// }
-
-// const rows = [
-//   createData(1, 'Cupcake', 305, 3.7, 67, 4.3),
-//   createData(2, 'Donut', 452, 25.0, 51, 4.9),
-//   createData(3, 'Eclair', 262, 16.0, 24, 6.0),
-//   createData(4, 'Frozen yoghurt', 159, 6.0, 24, 4.0),
-//   createData(5, 'Gingerbread', 356, 16.0, 49, 3.9),
-//   createData(6, 'Honeycomb', 408, 3.2, 87, 6.5),
-//   createData(7, 'Ice cream sandwich', 237, 9.0, 37, 4.3),
-//   createData(8, 'Jelly Bean', 375, 0.0, 94, 0.0),
-//   createData(9, 'KitKat', 518, 26.0, 65, 7.0),
-//   createData(10, 'Lollipop', 392, 0.2, 98, 0.0),
-//   createData(11, 'Marshmallow', 318, 0, 81, 2.0),
-//   createData(12, 'Nougat', 360, 19.0, 9, 37.0),
-//   createData(13, 'Oreo', 437, 18.0, 63, 4.0),
-// ];
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
   if (b[orderBy] < a[orderBy]) {
@@ -90,58 +59,6 @@ function getComparator<Key extends keyof any>(
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
-
-interface HeadCell {
-  disablePadding: boolean;
-  id: keyof Data;
-  label: string;
-  numeric: boolean;
-  sortable: boolean;
-}
-
-const headCells: readonly HeadCell[] = [
-  {
-    id: 'stt',
-    numeric: false,
-    disablePadding: true,
-    label: 'STT',
-    sortable: false,
-  },
-  {
-    id: 'name',
-    numeric: false,
-    disablePadding: true,
-    label: 'Tên sản phẩm',
-    sortable: true,
-  },
-  {
-    id: 'category',
-    numeric: false,
-    disablePadding: true,
-    label: 'Danh mục',
-    sortable: true,
-  },
-  {
-    id: 'images',
-    numeric: false,
-    disablePadding: true,
-    label: 'Ảnh',
-    sortable: false,
-  },
-  {
-    id: 'created_at',
-    numeric: false,
-    disablePadding: true,
-    label: 'Ngày tạo',
-    sortable: true,
-  },
-  //   {
-  //     id: 'action',
-  //     numeric: false,
-  //     disablePadding: false,
-  //     label: 'Hành động',
-  //   },
-];
 
 interface EnhancedTableProps {
   numSelected: number;
@@ -183,31 +100,78 @@ function EnhancedTableHead(props: EnhancedTableProps) {
             }}
           />
         </TableCell>
-        {headCells.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            align={'center'}
-            padding={headCell.disablePadding ? 'none' : 'normal'}
-            sortDirection={orderBy === headCell.id ? order : false}>
-            {headCell.sortable ? (
-              <TableSortLabel
-                active={orderBy === headCell.id}
-                direction={orderBy === headCell.id ? order : 'asc'}
-                onClick={createSortHandler(headCell.id)}>
-                {headCell.label}
-                {orderBy === headCell.id ? (
-                  <Box component='span' sx={visuallyHidden}>
-                    {order === 'desc'
-                      ? 'sorted descending'
-                      : 'sorted ascending'}
-                  </Box>
-                ) : null}
-              </TableSortLabel>
-            ) : (
-              headCell.label
-            )}
-          </TableCell>
-        ))}
+        <TableCell
+          align={'center'}
+          padding={'none'}
+          sortDirection={orderBy === 'stt' ? order : false}>
+          <TableSortLabel
+            active={orderBy === 'stt'}
+            direction={orderBy === 'stt' ? order : 'asc'}
+            onClick={createSortHandler('stt')}>
+            STT
+            {orderBy === 'stt' ? (
+              <Box component='span' sx={visuallyHidden}>
+                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+              </Box>
+            ) : null}
+          </TableSortLabel>
+        </TableCell>
+        <TableCell
+          align={'center'}
+          padding={'none'}
+          sortDirection={orderBy === 'name' ? order : false}>
+          <TableSortLabel
+            active={orderBy === 'name'}
+            direction={orderBy === 'name' ? order : 'asc'}
+            onClick={createSortHandler('name')}>
+            Tên sản phẩm
+            {orderBy === 'name' ? (
+              <Box component='span' sx={visuallyHidden}>
+                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+              </Box>
+            ) : null}
+          </TableSortLabel>
+        </TableCell>
+        <TableCell
+          align={'center'}
+          padding={'none'}
+          sx={{ width: '18%' }}
+          sortDirection={orderBy === 'category' ? order : false}>
+          <TableSortLabel
+            active={orderBy === 'category'}
+            direction={orderBy === 'category' ? order : 'asc'}
+            onClick={createSortHandler('category')}>
+            Danh mục
+            {orderBy === 'category' ? (
+              <Box component='span' sx={visuallyHidden}>
+                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+              </Box>
+            ) : null}
+          </TableSortLabel>
+        </TableCell>
+        <TableCell
+          align={'center'}
+          padding={'none'}
+          sx={{ width: 80 }}
+          sortDirection={orderBy === 'images' ? order : false}>
+          Ảnh
+        </TableCell>
+        <TableCell
+          align={'center'}
+          padding={'none'}
+          sortDirection={orderBy === 'created_at' ? order : false}>
+          <TableSortLabel
+            active={orderBy === 'created_at'}
+            direction={orderBy === 'created_at' ? order : 'asc'}
+            onClick={createSortHandler('created_at')}>
+            Ngày tạo
+            {orderBy === 'created_at' ? (
+              <Box component='span' sx={visuallyHidden}>
+                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+              </Box>
+            ) : null}
+          </TableSortLabel>
+        </TableCell>
         <TableCell align={'center'}>Hành động</TableCell>
       </TableRow>
     </TableHead>
@@ -247,7 +211,7 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
           variant='h6'
           id='tableTitle'
           component='div'>
-          Nutrition
+          Danh sách sản phẩm
         </Typography>
       )}
       {numSelected > 0 ? (
@@ -267,14 +231,15 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
   );
 }
 export default function NewProductList() {
+  const navigate = useNavigate();
+  const { confirmModal, showConfirmModal } = useConfirmModal();
+
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof Data>('stt');
   const [selected, setSelected] = useState<readonly number[]>([]);
-  const [page, setPage] = useState(0);
-  //   const [rowsPerPage, setRowsPerPage] = useState(2);
   const [query, setQuery] = useState<IQuery>({
-    limit: 2,
-    page: 1,
+    limit: 10,
+    page: 0,
   });
 
   const { data } = useGetProductList({ ...query });
@@ -319,53 +284,52 @@ export default function NewProductList() {
     setSelected(newSelected);
   };
 
-  console.log(query);
-
   const handleChangePage = (event: unknown, newPage: number) => {
-    // setPage(newPage);
     setQuery((prev) => ({ ...prev, ...{ page: newPage } }));
   };
-
-  console.log('p:', page);
-  console.log('q:', query);
 
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(1);
+    setQuery((prev) => ({
+      ...prev,
+      ...{ limit: +event.target.value },
+    }));
   };
 
   // Avoid a layout jump when reaching the last page with empty rows.
-  //   const emptyRows =
-  //     page > 0
-  //       ? Math.max(0, (1 + page) * rowsPerPage - data ? data?.total : 0)
-  //       : 0;
+  const emptyRows =
+    (query?.page ?? 0) > 0
+      ? Math.max(
+          0,
+          (1 + (query.page ?? 0)) * (query.limit ?? 10) - (data?.total ?? 0)
+        )
+      : 0;
+
+  console.log('emp:', emptyRows);
 
   const rows = useMemo(
     () =>
       data?.productList?.map((product, index) => ({
         stt: index + 1,
+        _id: product._id,
         name: product.name,
         category: product.category?.name || '',
         images: product.images[0] || '',
         created_at: moment(product?.createdAt)?.format('DD/MM/YYYY'),
-        // action: 'cc', // You can replace 'cc' with actual actions
       })) || [],
     [data]
   );
 
   const visibleRows = useMemo(
     () => rows.sort(getComparator(order, orderBy)),
-    // .slice(page * query?.limit, page * query.limit + query.limit),
-    [order, orderBy, page, query.limit, rows]
+    [order, orderBy, query.limit, rows]
   );
-
   return (
     <Box sx={{ width: '100%' }}>
       <Paper sx={{ width: '100%', mb: 2 }}>
         <EnhancedTableToolbar numSelected={selected.length} />
-        <TableContainer>
+        <TableContainer sx={{ overflow: 'unset' }}>
           <Table sx={{ minWidth: 750 }} aria-labelledby='tableTitle'>
             <EnhancedTableHead
               numSelected={selected.length}
@@ -375,7 +339,18 @@ export default function NewProductList() {
               onRequestSort={handleRequestSort}
               rowCount={data?.total || 0}
             />
-            <TableBody>
+            <TableBody
+              sx={{
+                height:
+                  80 *
+                    ((data?.total ?? 10) < (query?.limit ?? 2)
+                      ? data?.total ?? 10
+                      : query?.limit ?? 10) +
+                  1 *
+                    ((data?.total ?? 0) < (query?.limit ?? 10)
+                      ? data?.total ?? 0
+                      : query?.limit ?? 10),
+              }}>
               {visibleRows?.map((row, index) => {
                 const isItemSelected = selected.includes(index);
                 const labelId = `enhanced-table-checkbox-${index}`;
@@ -414,15 +389,19 @@ export default function NewProductList() {
                       padding='none'>
                       {row.name}
                     </TableCell>
-                    <TableCell padding='none' align='center'>
+                    <TableCell
+                      padding='none'
+                      align='center'
+                      sx={{ width: '16%' }}>
                       {row?.category}
                     </TableCell>
-                    <TableCell padding='none' align='center'>
+                    <TableCell padding='none' align='center' sx={{ width: 80 }}>
                       <Box
                         sx={{
+                          height: 80,
                           '.thumbnail': {
-                            width: 100,
-                            height: 100,
+                            width: 80,
+                            height: 80,
                             objectFit: 'contain',
                           },
                         }}>
@@ -433,24 +412,51 @@ export default function NewProductList() {
                     <TableCell padding='none' align='center'>
                       {row?.created_at}
                     </TableCell>
-                    <TableCell align='center'>cc</TableCell>
+                    <TableCell align='center' width={'10%'}>
+                      <Box onClick={(e) => e.stopPropagation()}>
+                        <ActionButton>
+                          <Box mb={1}>
+                            <ButtonWithTooltip
+                              color='primary'
+                              variant='outlined'
+                              title='Chi tiết'
+                              placement='left'>
+                              <InfoOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
+                          <Box mb={1}>
+                            <ButtonWithTooltip
+                              color='primary'
+                              onClick={() => navigate(`update/${row?._id}`)}
+                              variant='outlined'
+                              title='Chỉnh sửa'
+                              placement='left'>
+                              <EditOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
+                        </ActionButton>
+                      </Box>
+                    </TableCell>
                   </TableRow>
                 );
               })}
-              {/* {emptyRows > 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} />
+              {emptyRows > 0 && data && (
+                <TableRow
+                  style={{
+                    height: 80 * emptyRows,
+                  }}>
+                  <TableCell colSpan={12} />
                 </TableRow>
-              )} */}
+              )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[2, 5, 10, 25]}
+          rowsPerPageOptions={[10, 20]}
           component='div'
           count={data?.total ?? 0}
-          rowsPerPage={query?.limit ?? 5}
-          page={query.page ?? 0}
+          rowsPerPage={query?.limit ?? 10}
+          page={query?.page ?? 0}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
