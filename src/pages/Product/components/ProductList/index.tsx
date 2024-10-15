@@ -1,7 +1,7 @@
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import { IQuery } from '@/interfaces/IQuery';
-import { useGetProductList } from '@/services/product';
+import { useGetProductByCategory, useGetProductList } from '@/services/product';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Box from '@mui/material/Box';
@@ -307,6 +307,11 @@ export default function ProductList() {
   console.log(category);
 
   const { data } = useGetProductList({ ...query });
+  const {
+    data: productByCategory,
+    isLoading,
+    isPending,
+  } = useGetProductByCategory(category);
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
@@ -319,8 +324,9 @@ export default function ProductList() {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = data?.productList?.map((n, index) => index);
-      console.log(newSelected);
+      const newSelected = (productByCategory ?? data?.productList)?.map(
+        (n, index) => index
+      );
       if (newSelected) {
         setSelected(newSelected);
       }
@@ -372,7 +378,7 @@ export default function ProductList() {
 
   const rows = useMemo(
     () =>
-      data?.productList?.map((product, index) => ({
+      (productByCategory ?? data?.productList)?.map((product, index) => ({
         stt: index + 1,
         _id: product._id,
         name: product.name,
@@ -380,7 +386,7 @@ export default function ProductList() {
         images: product.images[0] || '',
         created_at: moment(product?.createdAt)?.format('DD/MM/YYYY'),
       })) || [],
-    [data]
+    [data, productByCategory]
   );
 
   const visibleRows = useMemo(
@@ -391,6 +397,10 @@ export default function ProductList() {
   const handleCategoryChange = (event: SelectChangeEvent<string>) => {
     setCategory(event.target.value);
   };
+
+  console.log('isLoading:', isLoading);
+  console.log('isPending:', isPending);
+  console.log('visibleRows:', visibleRows);
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -413,109 +423,126 @@ export default function ProductList() {
             />
             <TableBody
               sx={{
-                height:
-                  80 *
-                    ((data?.total ?? 10) < (query?.limit ?? 2)
+                height: !productByCategory
+                  ? 80 *
+                    ((data?.total ?? 0) < (query?.limit ?? 2)
                       ? data?.total ?? 10
-                      : query?.limit ?? 10) +
-                  1 *
-                    ((data?.total ?? 0) < (query?.limit ?? 10)
-                      ? data?.total ?? 0
-                      : query?.limit ?? 10),
+                      : query?.limit ?? 10)
+                  : '',
+                // + 1 *
+                // ((data?.total ?? 0) < (query?.limit ?? 10)
+                //   ? data?.total ?? 0
+                //   : query?.limit ?? 10),
               }}>
-              {visibleRows?.map((row, index) => {
-                const isItemSelected = selected.includes(index);
-                const labelId = `enhanced-table-checkbox-${index}`;
+              {isPending
+                ? 'đang tải ...'
+                : visibleRows?.map((row, index) => {
+                    const isItemSelected = selected.includes(index);
+                    const labelId = `enhanced-table-checkbox-${index}`;
 
-                return (
-                  <TableRow
-                    hover
-                    onClick={(event) => handleClick(event, index)}
-                    role='checkbox'
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    key={row.stt}
-                    selected={isItemSelected}
-                    sx={{ cursor: 'pointer' }}>
-                    <TableCell padding='checkbox'>
-                      <Checkbox
-                        color='primary'
-                        checked={isItemSelected}
-                        inputProps={{
-                          'aria-labelledby': labelId,
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell
-                      component='th'
-                      id={labelId}
-                      scope='row'
-                      padding='none'
-                      align='center'>
-                      {index + 1}
-                    </TableCell>
-                    <TableCell
-                      component='th'
-                      id={labelId}
-                      scope='row'
-                      padding='none'>
-                      {row.name}
-                    </TableCell>
-                    <TableCell
-                      padding='none'
-                      align='center'
-                      sx={{ width: '16%' }}>
-                      {row?.category}
-                    </TableCell>
-                    <TableCell padding='none' align='center' sx={{ width: 80 }}>
-                      <Box
-                        sx={{
-                          height: 80,
-                          '.thumbnail': {
-                            width: 80,
-                            height: 80,
-                            objectFit: 'contain',
-                          },
-                        }}>
-                        <img src={row?.images} className='thumbnail' />
-                      </Box>
-                    </TableCell>
+                    return (
+                      <TableRow
+                        hover
+                        onClick={(event) => handleClick(event, index)}
+                        role='checkbox'
+                        aria-checked={isItemSelected}
+                        tabIndex={-1}
+                        key={row.stt}
+                        selected={isItemSelected}
+                        sx={{ cursor: 'pointer' }}>
+                        <TableCell padding='checkbox' sx={{ height: 80 }}>
+                          <Checkbox
+                            color='primary'
+                            checked={isItemSelected}
+                            inputProps={{
+                              'aria-labelledby': labelId,
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell
+                          component='th'
+                          id={labelId}
+                          scope='row'
+                          padding='none'
+                          align='center'
+                          sx={{ height: 80 }}>
+                          {index + 1}
+                        </TableCell>
+                        <TableCell
+                          component='th'
+                          id={labelId}
+                          scope='row'
+                          padding='none'
+                          sx={{ height: 80 }}>
+                          {row.name}
+                        </TableCell>
+                        <TableCell
+                          padding='none'
+                          align='center'
+                          sx={{ width: '16%', height: 80 }}>
+                          {row?.category}
+                        </TableCell>
+                        <TableCell
+                          padding='none'
+                          align='center'
+                          sx={{ width: 80, height: 80 }}>
+                          <Box
+                            sx={{
+                              height: 80,
+                              '.thumbnail': {
+                                width: 80,
+                                height: 80,
+                                objectFit: 'contain',
+                              },
+                            }}>
+                            <img
+                              src={row?.images}
+                              className='thumbnail'
+                              style={{ width: 80, height: 80 }}
+                            />
+                          </Box>
+                        </TableCell>
 
-                    <TableCell padding='none' align='center'>
-                      {row?.created_at}
-                    </TableCell>
-                    <TableCell align='center' width={'10%'}>
-                      <Box onClick={(e) => e.stopPropagation()}>
-                        <ActionButton>
-                          <Box mb={1}>
-                            <ButtonWithTooltip
-                              color='primary'
-                              variant='outlined'
-                              title='Chi tiết'
-                              placement='left'>
-                              <InfoOutlinedIcon />
-                            </ButtonWithTooltip>
+                        <TableCell
+                          padding='none'
+                          align='center'
+                          sx={{ height: 80 }}>
+                          {row?.created_at}
+                        </TableCell>
+                        <TableCell
+                          align='center'
+                          sx={{ width: '10%', height: 80 }}>
+                          <Box onClick={(e) => e.stopPropagation()}>
+                            <ActionButton>
+                              <Box mb={1}>
+                                <ButtonWithTooltip
+                                  color='primary'
+                                  variant='outlined'
+                                  title='Chi tiết'
+                                  placement='left'>
+                                  <InfoOutlinedIcon />
+                                </ButtonWithTooltip>
+                              </Box>
+                              <Box mb={1}>
+                                <ButtonWithTooltip
+                                  color='primary'
+                                  onClick={() => navigate(`update/${row?._id}`)}
+                                  variant='outlined'
+                                  title='Chỉnh sửa'
+                                  placement='left'>
+                                  <EditOutlinedIcon />
+                                </ButtonWithTooltip>
+                              </Box>
+                            </ActionButton>
                           </Box>
-                          <Box mb={1}>
-                            <ButtonWithTooltip
-                              color='primary'
-                              onClick={() => navigate(`update/${row?._id}`)}
-                              variant='outlined'
-                              title='Chỉnh sửa'
-                              placement='left'>
-                              <EditOutlinedIcon />
-                            </ButtonWithTooltip>
-                          </Box>
-                        </ActionButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
               {emptyRows > 0 && data && (
                 <TableRow
                   style={{
-                    height: 80 * emptyRows,
+                    height: 80 * emptyRows + 1 * emptyRows,
                   }}>
                   <TableCell colSpan={12} />
                 </TableRow>
@@ -526,7 +553,7 @@ export default function ProductList() {
         <TablePagination
           rowsPerPageOptions={[10, 20]}
           component='div'
-          count={data?.total ?? 0}
+          count={productByCategory?.length ?? data?.total ?? 0}
           rowsPerPage={query?.limit ?? 10}
           page={query?.page ?? 0}
           onPageChange={handleChangePage}
