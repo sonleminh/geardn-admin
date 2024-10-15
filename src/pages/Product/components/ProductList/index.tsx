@@ -1,7 +1,11 @@
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import { IQuery } from '@/interfaces/IQuery';
-import { useGetProductByCategory, useGetProductList } from '@/services/product';
+import {
+  useDeleteManyProduct,
+  useGetProductByCategory,
+  useGetProductList,
+} from '@/services/product';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import Box from '@mui/material/Box';
@@ -30,6 +34,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ExcelUpload from '@/components/ExcelUpload';
 import { AddCircleOutlined } from '@mui/icons-material';
 import {
+  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
@@ -37,6 +42,10 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 import { ICategory } from '@/interfaces/ICategory';
+import ClearIcon from '@mui/icons-material/Clear';
+import { useLoginMutate } from '@/services/auth';
+import { useQueryClient } from '@tanstack/react-query';
+import { QueryKeys } from '@/constants/query-key';
 
 interface Data {
   stt: number;
@@ -192,10 +201,29 @@ interface EnhancedTableToolbarProps {
   categoryList: ICategory[];
   onCategoryChange: (event: SelectChangeEvent<string>) => void;
   categoryValue: string;
+  handleDeleteFilter: () => void;
+  selected: string[];
 }
 function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { numSelected, categoryList, onCategoryChange, categoryValue } = props;
+  const {
+    numSelected,
+    categoryList,
+    onCategoryChange,
+    categoryValue,
+    handleDeleteFilter,
+    selected,
+  } = props;
+
+  const delManyPrdMutation = useDeleteManyProduct();
+
+  const handleDelete = () => {
+    delManyPrdMutation.mutate(selected);
+    // delManyPrdMutation?.
+    // queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+  };
+
   return (
     <Toolbar
       sx={[
@@ -231,39 +259,23 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
       {numSelected > 0 ? (
         <Tooltip title='Delete'>
           <IconButton>
-            <DeleteIcon />
+            <DeleteIcon onClick={handleDelete} />
           </IconButton>
         </Tooltip>
       ) : (
         <>
           <FormControl
-            variant='filled'
             size='small'
             sx={{
-              width: 300,
+              width: 250,
               mr: 2,
-              '& .MuiFilledInput-root': {
-                overflow: 'hidden',
-                borderRadius: 1,
-                backgroundColor: '#fff !important',
-                border: '1px solid',
-                borderColor: 'rgba(0,0,0,0.23)',
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                },
-                '&.Mui-focused': {
-                  backgroundColor: 'transparent',
-                  border: '2px solid',
-                },
-              },
-              '& .MuiInputLabel-asterisk': {
-                color: 'red',
+              '& .MuiInputBase-root': {
+                minHeight: 40,
               },
             }}>
             <InputLabel>Danh mục</InputLabel>
             <Select
-              disableUnderline
-              name='category'
+              label='Danh mục'
               onChange={onCategoryChange}
               value={categoryValue}>
               {categoryList?.map((item) => (
@@ -272,6 +284,23 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
                 </MenuItem>
               ))}
             </Select>
+            {categoryValue && (
+              <ClearIcon
+                sx={{
+                  position: 'absolute',
+                  right: 30,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  p: '2px',
+                  ':hover': {
+                    bgcolor: '#eee',
+                    borderRadius: '50%',
+                    cursor: 'pointer',
+                  },
+                }}
+                onClick={handleDeleteFilter}
+              />
+            )}
           </FormControl>
           <ExcelUpload />
           <ButtonWithTooltip
@@ -281,11 +310,11 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
             title='Thêm gói cước'>
             <AddCircleOutlined />
           </ButtonWithTooltip>
-          <Tooltip title='Filter list'>
+          {/* <Tooltip title='Filter list'>
             <IconButton>
               <FilterListIcon />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
         </>
       )}
     </Toolbar>
@@ -298,7 +327,7 @@ export default function ProductList() {
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof Data>('stt');
   const [category, setCategory] = useState<string>('');
-  const [selected, setSelected] = useState<readonly number[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
   const [query, setQuery] = useState<IQuery>({
     limit: 10,
     page: 0,
@@ -307,12 +336,10 @@ export default function ProductList() {
   console.log(category);
 
   const { data } = useGetProductList({ ...query });
-  const {
-    data: productByCategory,
-    isLoading,
-    isPending,
-  } = useGetProductByCategory(category);
+  const { data: productByCategory, isLoading } =
+    useGetProductByCategory(category);
 
+  console.log(selected);
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
     property: keyof Data
@@ -325,7 +352,7 @@ export default function ProductList() {
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       const newSelected = (productByCategory ?? data?.productList)?.map(
-        (n, index) => index
+        (n) => n?._id
       );
       if (newSelected) {
         setSelected(newSelected);
@@ -335,9 +362,9 @@ export default function ProductList() {
     setSelected([]);
   };
 
-  const handleClick = (event: React.MouseEvent<unknown>, id: number) => {
+  const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
     const selectedIndex = selected.indexOf(id);
-    let newSelected: readonly number[] = [];
+    let newSelected: string[] = [];
 
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, id);
@@ -398,10 +425,6 @@ export default function ProductList() {
     setCategory(event.target.value);
   };
 
-  console.log('isLoading:', isLoading);
-  console.log('isPending:', isPending);
-  console.log('visibleRows:', visibleRows);
-
   return (
     <Box sx={{ width: '100%' }}>
       <Paper sx={{ width: '100%', mb: 2 }}>
@@ -410,6 +433,10 @@ export default function ProductList() {
           categoryList={data?.categories ?? []}
           onCategoryChange={handleCategoryChange}
           categoryValue={category}
+          handleDeleteFilter={() => {
+            setCategory('');
+          }}
+          selected={selected}
         />
         <TableContainer sx={{ overflow: 'unset' }}>
           <Table sx={{ minWidth: 750 }} aria-labelledby='tableTitle'>
@@ -423,6 +450,7 @@ export default function ProductList() {
             />
             <TableBody
               sx={{
+                position: 'relative',
                 height: !productByCategory
                   ? 80 *
                     ((data?.total ?? 0) < (query?.limit ?? 2)
@@ -434,111 +462,121 @@ export default function ProductList() {
                 //   ? data?.total ?? 0
                 //   : query?.limit ?? 10),
               }}>
-              {isPending
-                ? 'đang tải ...'
-                : visibleRows?.map((row, index) => {
-                    const isItemSelected = selected.includes(index);
-                    const labelId = `enhanced-table-checkbox-${index}`;
+              {isLoading ? (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    right: '50%',
+                    transform: 'translate(50%, -50%)',
+                  }}>
+                  <CircularProgress size={64} disableShrink thickness={3} />
+                </Box>
+              ) : (
+                visibleRows?.map((row, index) => {
+                  const isItemSelected = selected.includes(row._id);
+                  const labelId = `enhanced-table-checkbox-${index}`;
 
-                    return (
-                      <TableRow
-                        hover
-                        onClick={(event) => handleClick(event, index)}
-                        role='checkbox'
-                        aria-checked={isItemSelected}
-                        tabIndex={-1}
-                        key={row.stt}
-                        selected={isItemSelected}
-                        sx={{ cursor: 'pointer' }}>
-                        <TableCell padding='checkbox' sx={{ height: 80 }}>
-                          <Checkbox
-                            color='primary'
-                            checked={isItemSelected}
-                            inputProps={{
-                              'aria-labelledby': labelId,
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell
-                          component='th'
-                          id={labelId}
-                          scope='row'
-                          padding='none'
-                          align='center'
-                          sx={{ height: 80 }}>
-                          {index + 1}
-                        </TableCell>
-                        <TableCell
-                          component='th'
-                          id={labelId}
-                          scope='row'
-                          padding='none'
-                          sx={{ height: 80 }}>
-                          {row.name}
-                        </TableCell>
-                        <TableCell
-                          padding='none'
-                          align='center'
-                          sx={{ width: '16%', height: 80 }}>
-                          {row?.category}
-                        </TableCell>
-                        <TableCell
-                          padding='none'
-                          align='center'
-                          sx={{ width: 80, height: 80 }}>
-                          <Box
-                            sx={{
+                  return (
+                    <TableRow
+                      hover
+                      onClick={(event) => handleClick(event, row._id)}
+                      role='checkbox'
+                      aria-checked={isItemSelected}
+                      tabIndex={-1}
+                      key={row.stt}
+                      selected={isItemSelected}
+                      sx={{ cursor: 'pointer' }}>
+                      <TableCell padding='checkbox' sx={{ height: 80 }}>
+                        <Checkbox
+                          color='primary'
+                          checked={isItemSelected}
+                          inputProps={{
+                            'aria-labelledby': labelId,
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell
+                        component='th'
+                        id={labelId}
+                        scope='row'
+                        padding='none'
+                        align='center'
+                        sx={{ height: 80 }}>
+                        {index + 1}
+                      </TableCell>
+                      <TableCell
+                        component='th'
+                        id={labelId}
+                        scope='row'
+                        padding='none'
+                        sx={{ height: 80 }}>
+                        {row.name}
+                      </TableCell>
+                      <TableCell
+                        padding='none'
+                        align='center'
+                        sx={{ width: '16%', height: 80 }}>
+                        {row?.category}
+                      </TableCell>
+                      <TableCell
+                        padding='none'
+                        align='center'
+                        sx={{ width: 80, height: 80 }}>
+                        <Box
+                          sx={{
+                            height: 80,
+                            '.thumbnail': {
+                              width: 80,
                               height: 80,
-                              '.thumbnail': {
-                                width: 80,
-                                height: 80,
-                                objectFit: 'contain',
-                              },
-                            }}>
-                            <img
-                              src={row?.images}
-                              className='thumbnail'
-                              style={{ width: 80, height: 80 }}
-                            />
-                          </Box>
-                        </TableCell>
+                              objectFit: 'contain',
+                            },
+                          }}>
+                          <img
+                            src={row?.images}
+                            className='thumbnail'
+                            style={{ width: 80, height: 80 }}
+                          />
+                        </Box>
+                      </TableCell>
 
-                        <TableCell
-                          padding='none'
-                          align='center'
-                          sx={{ height: 80 }}>
-                          {row?.created_at}
-                        </TableCell>
-                        <TableCell
-                          align='center'
-                          sx={{ width: '10%', height: 80 }}>
-                          <Box onClick={(e) => e.stopPropagation()}>
-                            <ActionButton>
-                              <Box mb={1}>
-                                <ButtonWithTooltip
-                                  color='primary'
-                                  variant='outlined'
-                                  title='Chi tiết'
-                                  placement='left'>
-                                  <InfoOutlinedIcon />
-                                </ButtonWithTooltip>
-                              </Box>
-                              <Box mb={1}>
-                                <ButtonWithTooltip
-                                  color='primary'
-                                  onClick={() => navigate(`update/${row?._id}`)}
-                                  variant='outlined'
-                                  title='Chỉnh sửa'
-                                  placement='left'>
-                                  <EditOutlinedIcon />
-                                </ButtonWithTooltip>
-                              </Box>
-                            </ActionButton>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                      <TableCell
+                        padding='none'
+                        align='center'
+                        sx={{ height: 80 }}>
+                        {row?.created_at}
+                      </TableCell>
+                      <TableCell
+                        align='center'
+                        sx={{ width: '10%', height: 80 }}>
+                        <Box onClick={(e) => e.stopPropagation()}>
+                          <ActionButton>
+                            <Box mb={1}>
+                              <ButtonWithTooltip
+                                color='primary'
+                                variant='outlined'
+                                title='Chi tiết'
+                                placement='left'>
+                                <InfoOutlinedIcon />
+                              </ButtonWithTooltip>
+                            </Box>
+                            <Box mb={1}>
+                              <ButtonWithTooltip
+                                color='primary'
+                                onClick={() => navigate(`update/${row?._id}`)}
+                                variant='outlined'
+                                title='Chỉnh sửa'
+                                placement='left'>
+                                <EditOutlinedIcon />
+                              </ButtonWithTooltip>
+                            </Box>
+                          </ActionButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
               {emptyRows > 0 && data && (
                 <TableRow
                   style={{

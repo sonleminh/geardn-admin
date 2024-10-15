@@ -142,6 +142,24 @@ export const useDeleteProduct = () => {
   });
 };
 
+const deleteManyProduct = async (ids: string[]) => {
+  const result = await deleteRequest(`${productUrl}`, { data: ids });
+  return result.data;
+};
+
+export const useDeleteManyProduct = () => {
+  return useMutation({
+    mutationKey: [QueryKeys.Product],
+    mutationFn: deleteManyProduct,
+    onSuccess: (data) => {
+      console.log(data);
+    },
+    onError(error: AxiosError<ErrorResponse>) {
+      console.log(error);
+    },
+  });
+};
+
 const uploadImage = async (
   files: FileList,
   onProgress: (progress: number) => void
