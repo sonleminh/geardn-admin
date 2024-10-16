@@ -54,7 +54,7 @@ const getSkuByProductId = async (id: string) => {
   return result.data as IProductSku[];
 };
 
-export const useGetSkuByByProductId = (id: string) => {
+export const useGetSkuByProductId = (id: string) => {
   return useQuery({
     queryKey: [QueryKeys.ProductSku, id],
     queryFn: () => getSkuByProductId(id),
@@ -108,7 +108,7 @@ const deleteProductSku = async (id: string) => {
   return result.data;
 };
 
-export const useDeleteproductSku = () => {
+export const useDeleteProductSku = () => {
   return useMutation({
     mutationFn: deleteProductSku,
   });

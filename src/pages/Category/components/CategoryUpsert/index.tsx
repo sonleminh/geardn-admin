@@ -98,7 +98,7 @@ const CategoryUpsert = () => {
         <FormControl>
           <Input
             id='name'
-            label='Giá trị'
+            label='Tên danh mục'
             name='name'
             variant='filled'
             required

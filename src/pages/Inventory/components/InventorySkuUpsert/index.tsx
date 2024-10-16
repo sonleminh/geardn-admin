@@ -83,9 +83,9 @@ const InventorySkuUpsert = () => {
         product_name: isEdit ? productSkuData?.product_name : product?.name,
         product_sku: isEdit ? productSkuData?.product_sku : product?.sku_name,
         attributes: attributes,
-        sku: `${
-          isEdit ? productSkuData?.product_sku : product?.sku_name
-        }-${attributeList?.map((item) => item?.atb_sku).join('')}`,
+        sku: `${isEdit ? productSkuData?.product_sku : product?.sku_name}${
+          attributeList?.length > 0 ? '-' : ''
+        }${attributeList?.map((item) => item?.atb_sku).join('')}`,
         price: +values.price,
         quantity: +values.quantity,
       };
@@ -212,14 +212,11 @@ const InventorySkuUpsert = () => {
                 '& .MuiFilledInput-root': {
                   overflow: 'hidden',
                   borderRadius: 1,
-                  backgroundColor: '#fff !important',
+                  backgroundColor: categoryId ? '#fff' : '',
                   border: '1px solid',
                   borderColor: 'rgba(0,0,0,0.23)',
-                  '&:hover': {
-                    backgroundColor: 'transparent',
-                  },
+
                   '&.Mui-focused': {
-                    backgroundColor: 'transparent',
                     border: '2px solid',
                   },
                 },
@@ -232,6 +229,7 @@ const InventorySkuUpsert = () => {
                 disableUnderline
                 size='small'
                 name='product_id'
+                disabled={!categoryId}
                 onChange={handleSelectChange}
                 value={formik?.values?.product_id}>
                 {productsByCategory?.map((item) => (

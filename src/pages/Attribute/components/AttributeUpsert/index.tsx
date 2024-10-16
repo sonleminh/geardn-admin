@@ -104,7 +104,7 @@ const AttributeUpsert = () => {
       <CardHeader
         title={
           <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            {isEdit ? 'Sửa phân loại' : 'Thêm phân loại'}
+            {isEdit ? 'Sửa thuộc tính' : 'Thêm thuộc tính'}
           </Typography>
         }
       />

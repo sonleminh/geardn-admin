@@ -14,7 +14,8 @@ import useConfirmModal from '@/hooks/useModalConfirm';
 import { IQuery } from '@/interfaces/IQuery';
 import { useDeleteCategory } from '@/services/category';
 import {
-  useGetSkuByByProductId,
+  useDeleteProductSku,
+  useGetSkuByProductId,
   useUpdateProductSku,
 } from '@/services/product-sku';
 import { truncateTextByLine } from '@/utils/css-helper.util';
@@ -54,7 +55,7 @@ const InventorySkuList = () => {
     price: number;
     quantity: number;
   }>({ price: 0, quantity: 0 });
-  const { data: skuList } = useGetSkuByByProductId(id ?? '');
+  const { data: skuList } = useGetSkuByProductId(id ?? '');
 
   const { showNotification } = useNotificationContext();
 
@@ -62,13 +63,13 @@ const InventorySkuList = () => {
 
   // const { mutate: updateSkuMutate, isPending: isUpdatePending } =
   //   useUpdateProductSku();
-  const { mutate: deleteProductMutate } = useDeleteCategory();
+  const { mutate: deleteProductSku } = useDeleteProductSku();
 
   const handleDeleteProduct = (id: string) => {
     showNotification('Ok', 'error');
-    deleteProductMutate(id, {
+    deleteProductSku(id, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductSku] });
         showNotification('Xóa mã hàng thành công', 'success');
         // handleClosePopover();
       },
@@ -106,7 +107,10 @@ const InventorySkuList = () => {
         <CardHeader
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Kho hàng sản phẩm{skuList && ': ' + skuList[0]?.product_name}
+              Kho hàng sản phẩm
+              {skuList && skuList.length > 0
+                ? ': ' + skuList[0]?.product_name
+                : ''}
             </Typography>
           }
           action={
