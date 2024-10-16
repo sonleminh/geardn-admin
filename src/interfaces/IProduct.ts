@@ -23,10 +23,10 @@ interface IDetails {
 export interface IProduct {
     _id: string;
     name: string;
-    discount: IDiscount;
+    // discount?: IDiscount;
     category: ICategory;
     tags: ITagOptions[];
-    images: string;
+    images: string[];
     attributes: string[];
     sku_name: string;
     brand: string;
@@ -37,7 +37,7 @@ export interface IProduct {
 
 export interface ICreateProduct extends Record<string, unknown>  {
     name?: string;
-    discount?: IDiscount;
+    // discount?: IDiscount;
     category: string;
     tags: ITagOptions[];
     images?: string[];
@@ -51,7 +51,7 @@ export interface ICreateProduct extends Record<string, unknown>  {
 export interface IUpdateProductPayload {
     _id: string;
     name?: string;
-    discount?: IDiscount;
+    // discount?: IDiscount;
     category: string;
     tags: ITagOptions[];
     images?: string[];

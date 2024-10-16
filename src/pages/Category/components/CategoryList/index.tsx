@@ -119,7 +119,7 @@ const CategoryList = () => {
                           color='error'
                           onClick={() => {
                             showConfirmModal({
-                              title: 'Bạn có muốn xóa danh mục này khônsg?',
+                              title: 'Bạn có muốn xóa danh mục này không?',
                               cancelText: 'Hủy',
                               onOk: () => handleDeleteProduct(item?._id),
                               okText: 'Xóa',

@@ -1,38 +1,7 @@
-import ActionButton from '@/components/ActionButton';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import { IQuery } from '@/interfaces/IQuery';
-import {
-  useDeleteManyProduct,
-  useGetProductByCategory,
-  useGetProductList,
-} from '@/services/product';
-import DeleteIcon from '@mui/icons-material/Delete';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import Box from '@mui/material/Box';
-import Checkbox from '@mui/material/Checkbox';
-import IconButton from '@mui/material/IconButton';
-import Paper from '@mui/material/Paper';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
-import TableSortLabel from '@mui/material/TableSortLabel';
-import Toolbar from '@mui/material/Toolbar';
-import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
-import { alpha } from '@mui/material/styles';
-import { visuallyHidden } from '@mui/utils';
-import moment from 'moment';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import ExcelUpload from '@/components/ExcelUpload';
-import { AddCircleOutlined } from '@mui/icons-material';
+import moment from 'moment';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   CircularProgress,
   FormControl,
@@ -40,17 +9,56 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  TableContainer,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TablePagination,
+  TableRow,
+  TableSortLabel,
+  Toolbar,
+  Tooltip,
+  Typography,
+  Paper,
+  Box,
+  Checkbox,
+  IconButton,
+  Grid2,
 } from '@mui/material';
-import { ICategory } from '@/interfaces/ICategory';
+import { alpha } from '@mui/material/styles';
+import { visuallyHidden } from '@mui/utils';
+
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import { AddCircleOutlined } from '@mui/icons-material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import ClearIcon from '@mui/icons-material/Clear';
-import { useLoginMutate } from '@/services/auth';
-import { useQueryClient } from '@tanstack/react-query';
+
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import HtmlRenderBox from '@/components/HtmlRenderBox';
+import ActionButton from '@/components/ActionButton';
+import ExcelUpload from '@/components/ExcelUpload';
+
+import useConfirmModal from '@/hooks/useModalConfirm';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+
+import { ITagOptions } from '@/interfaces/IProduct';
+import { ICategory } from '@/interfaces/ICategory';
 import { QueryKeys } from '@/constants/query-key';
+import { IQuery } from '@/interfaces/IQuery';
+
+import {
+  useDeleteManyProduct,
+  useGetProductByCategory,
+  useGetProductList,
+} from '@/services/product';
+import { getBgColor } from '@/utils/getTagBgColor';
 
 interface Data {
   stt: number;
   name: string;
-  category: number;
+  category: string;
   images: string;
   created_at: string;
 }
@@ -203,10 +211,9 @@ interface EnhancedTableToolbarProps {
   categoryValue: string;
   handleDeleteFilter: () => void;
   selected: string[];
+  handleDeleteSelected: () => void;
 }
 function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const {
     numSelected,
     categoryList,
@@ -214,14 +221,23 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
     categoryValue,
     handleDeleteFilter,
     selected,
+    handleDeleteSelected,
   } = props;
+
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { showNotification } = useNotificationContext();
 
   const delManyPrdMutation = useDeleteManyProduct();
 
   const handleDelete = () => {
-    delManyPrdMutation.mutate(selected);
-    // delManyPrdMutation?.
-    // queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+    delManyPrdMutation.mutate(selected, {
+      onSuccess() {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+        handleDeleteSelected();
+        showNotification('Xóa sản phẩm thành công', 'success');
+      },
+    });
   };
 
   return (
@@ -333,13 +349,10 @@ export default function ProductList() {
     page: 0,
   });
 
-  console.log(category);
-
   const { data } = useGetProductList({ ...query });
   const { data: productByCategory, isLoading } =
     useGetProductByCategory(category);
 
-  console.log(selected);
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
     property: keyof Data
@@ -425,6 +438,110 @@ export default function ProductList() {
     setCategory(event.target.value);
   };
 
+  const handleDetailClick = (row: Data) => {
+    const detailPrd = data?.productList?.find((prd) => prd.name === row.name);
+    showConfirmModal({
+      title: (
+        <Typography sx={{ fontSize: 20, fontWeight: 'bold' }}>
+          Chi tiết sản phẩm
+        </Typography>
+      ),
+      content: (
+        <Grid2 container rowSpacing={1}>
+          <Grid2 size={3.5} fontSize={15}>
+            Tên:
+          </Grid2>
+          <Grid2 size={8.5}> {detailPrd?.name}</Grid2>
+          <Grid2 size={3.5}>Danh mục: </Grid2>
+          <Grid2 size={8.5}> {detailPrd?.category?.name}</Grid2>
+          <Grid2 size={3.5}>Ảnh:</Grid2>
+          <Grid2 size={8.5}>
+            {detailPrd?.images?.map((img) => (
+              <Box
+                sx={{
+                  height: 60,
+                  '.thumbnail': {
+                    width: 60,
+                    height: 60,
+                    objectFit: 'contain',
+                    border: '1px solid #ccc',
+                  },
+                }}
+                key={img}>
+                <img src={img} className='thumbnail' />
+              </Box>
+            ))}
+          </Grid2>
+          {detailPrd?.tags && detailPrd?.tags?.length > 0 && (
+            <Grid2 size={3.5}>Tags: </Grid2>
+          )}
+          {detailPrd?.tags && detailPrd?.tags?.length > 0 && (
+            <Grid2 size={8.5}>
+              {detailPrd?.tags?.map((tag: ITagOptions) => (
+                <Box
+                  key={tag.value}
+                  sx={{
+                    width: 100,
+                    padding: '4px 2px',
+                    my: 1,
+                    bgcolor: getBgColor(tag.value),
+                    color: '#fff',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    textAlign: 'center',
+                    fontSize: 13,
+                  }}>
+                  {tag.label}
+                </Box>
+              ))}
+            </Grid2>
+          )}
+          <Grid2 size={3.5}>Thuộc tính: </Grid2>
+          <Grid2 size={8.5}>
+            {detailPrd?.attributes?.map((att: string) => (
+              <Box key={att}>{att}</Box>
+            ))}
+          </Grid2>
+          <Grid2 size={3.5}>Mã sản phẩm: </Grid2>
+          <Grid2 size={8.5}>{detailPrd?.sku_name}</Grid2>
+          <Grid2 size={3.5}>Chi tiết: </Grid2>
+          <Grid2 size={8.5}>
+            {Object.keys(detailPrd?.details || {}).length === 0 ? (
+              <>Không có</>
+            ) : (
+              <Grid2 container>
+                {detailPrd?.details.guarantee && (
+                  <>
+                    <Grid2 size={4.5}>- Bảo hành:</Grid2>
+                    <Grid2 size={7.5}>{detailPrd?.details.guarantee}</Grid2>
+                  </>
+                )}
+                {detailPrd?.details.weight && (
+                  <>
+                    <Grid2 size={4.5}>- Trọng lượng:</Grid2>
+                    <Grid2 size={7.5}>{detailPrd?.details.weight}</Grid2>
+                  </>
+                )}
+                {detailPrd?.details.material && (
+                  <>
+                    <Grid2 size={4.5}>- Chất liệu:</Grid2>
+                    <Grid2 size={7.5}>{detailPrd?.details.material}</Grid2>
+                  </>
+                )}
+              </Grid2>
+            )}
+          </Grid2>
+          <Grid2 size={3.5}>Mô tả: </Grid2>
+          <Grid2 size={8.5}>
+            <HtmlRenderBox html={detailPrd?.description ?? ''} />
+          </Grid2>
+        </Grid2>
+      ),
+      showBtnOk: false,
+      cancelText: 'Đóng',
+    });
+  };
+
   return (
     <Box sx={{ width: '100%' }}>
       <Paper sx={{ width: '100%', mb: 2 }}>
@@ -437,6 +554,9 @@ export default function ProductList() {
             setCategory('');
           }}
           selected={selected}
+          handleDeleteSelected={() => {
+            setSelected([]);
+          }}
         />
         <TableContainer sx={{ overflow: 'unset' }}>
           <Table sx={{ minWidth: 750 }} aria-labelledby='tableTitle'>
@@ -556,7 +676,8 @@ export default function ProductList() {
                                 color='primary'
                                 variant='outlined'
                                 title='Chi tiết'
-                                placement='left'>
+                                placement='left'
+                                onClick={() => handleDetailClick(row)}>
                                 <InfoOutlinedIcon />
                               </ButtonWithTooltip>
                             </Box>
@@ -598,6 +719,7 @@ export default function ProductList() {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
+      {confirmModal()}
     </Box>
   );
 }

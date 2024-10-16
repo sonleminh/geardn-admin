@@ -85,7 +85,6 @@ export const useCreateProduct = () => {
 };
 
 const uploadProductsFile = async (file: File) => {
-  console.log(file);
   const formData = new FormData();
   formData.append('file', file);
 
@@ -151,12 +150,6 @@ export const useDeleteManyProduct = () => {
   return useMutation({
     mutationKey: [QueryKeys.Product],
     mutationFn: deleteManyProduct,
-    onSuccess: (data) => {
-      console.log(data);
-    },
-    onError(error: AxiosError<ErrorResponse>) {
-      console.log(error);
-    },
   });
 };
 
