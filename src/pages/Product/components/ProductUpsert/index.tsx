@@ -144,18 +144,18 @@ const ProductUpsert = () => {
   useEffect(() => {
     if (productData) {
       formik.setFieldValue('name', productData?.name);
-      formik.setFieldValue(
-        'discount.discountPrice',
-        productData?.discount?.discountPrice
-      );
-      formik.setFieldValue(
-        'discount.startDate',
-        formatDateToNormal(productData?.discount?.startDate)
-      );
-      formik.setFieldValue(
-        'discount.endDate',
-        formatDateToNormal(productData?.discount?.endDate)
-      );
+      // formik.setFieldValue(
+      //   'discount.discountPrice',
+      //   productData?.discount?.discountPrice
+      // );
+      // formik.setFieldValue(
+      //   'discount.startDate',
+      //   formatDateToNormal(productData?.discount?.startDate)
+      // );
+      // formik.setFieldValue(
+      //   'discount.endDate',
+      //   formatDateToNormal(productData?.discount?.endDate)
+      // );
       formik.setFieldValue('name', productData?.name);
       formik.setFieldValue('category', productData?.category?._id);
       formik.setFieldValue('tags', productData?.tags);

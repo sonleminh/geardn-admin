@@ -41,6 +41,7 @@ import { ICategory } from '@/interfaces/ICategory';
 import { IAttribute } from '@/interfaces/IAttribute';
 import { useGetProductByCategory } from '@/services/product';
 import { createSchema, updateSchema } from '../utils/schema/skuSchema';
+import MultipleFileUpload from '@/components/MultipleFileUpload';
 
 const InventorySkuUpsert = () => {
   const { id } = useParams();
@@ -373,6 +374,19 @@ const InventorySkuUpsert = () => {
             </FormControl>
           </Grid2>
         </Grid2>
+        <FormControl>
+          <MultipleFileUpload
+            title={'Ảnh'}
+            required
+            helperText={
+              <Box component={'span'} sx={helperTextStyle}>
+                {formik.errors.images}
+              </Box>
+            }
+            value={formik?.values?.images}
+            onUploadChange={handleUploadResult}
+          />
+        </FormControl>
 
         <Box sx={{ textAlign: 'end' }}>
           <Button onClick={() => navigate(-1)} sx={{ mr: 2 }}>
