@@ -10,11 +10,11 @@ type TUploadProps = {
   title?: ReactNode;
   required?: boolean;
   onClearValue?: () => void;
-  onUploadChange: (images: string[]) => void;
-  value: string[];
+  onUploadChange: (image: string) => void;
+  value: string;
 } & TextFieldProps;
 
-const MultipleFileUpload = ({
+const ImageUpload = ({
   title,
   required,
   disabled,
@@ -22,10 +22,11 @@ const MultipleFileUpload = ({
   onUploadChange,
   helperText,
 }: TUploadProps) => {
-  const [images, setImages] = useState<string[]>([]);
+  const [image, setImage] = useState<string>('');
   const [progress, setProgress] = useState<number | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const { mutate: uploadMutate } = useUploadImage();
+
   const handleFileInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e?.target?.files;
     if (files) {
@@ -34,7 +35,7 @@ const MultipleFileUpload = ({
         { files, onProgress: setProgress },
         {
           onSuccess(data) {
-            setImages((prev) => [...prev, ...data.images]);
+            setImage(data.images[0]);
             setProgress(null);
           },
         }
@@ -43,14 +44,14 @@ const MultipleFileUpload = ({
   };
 
   useEffect(() => {
-    if (JSON.stringify(value) !== JSON.stringify(images)) {
-      setImages(value);
+    if (JSON.stringify(value) !== JSON.stringify(image)) {
+      setImage(value);
     }
   }, [value]);
 
   useEffect(() => {
-    onUploadChange(images);
-  }, [images]);
+    onUploadChange(image);
+  }, [image]);
 
   return (
     <Box display={'flex'}>
@@ -83,7 +84,7 @@ const MultipleFileUpload = ({
                 uploadInputRef.current.click();
               }
             }}>
-            <FileUploadIcon sx={{ mr: 1 }} />
+            <FileUploadIcon />
             {/* Upload */}
           </Button>
         </Box>
@@ -98,42 +99,39 @@ const MultipleFileUpload = ({
       </Box>
       <Box>
         <Box display={'flex'}>
-          {images?.length > 0 &&
-            images?.map((item: string, index: number) => (
-              <Box
-                key={item}
+          {!progress && image !== '' && (
+            <Box
+              sx={{
+                position: 'relative',
+                mr: 1.5,
+                '.thumbnail': {
+                  maxWidth: 60,
+                  maxHeight: 60,
+                  mr: 1,
+                  border: '1px solid #aaaaaa',
+                },
+              }}>
+              <img src={image} className='thumbnail' />
+              <ClearIcon
+                onClick={() => {
+                  setImage('');
+                }}
                 sx={{
-                  position: 'relative',
-                  mr: 1.5,
-                  '.thumbnail': {
-                    maxWidth: 60,
-                    maxHeight: 60,
-                    mr: 1,
-                    border: '1px solid #aaaaaa',
+                  position: 'absolute',
+                  top: '-6px',
+                  right: '0px',
+                  bgcolor: 'white',
+                  fontSize: 16,
+                  border: '1px solid #696969',
+                  borderRadius: '2px',
+                  cursor: 'pointer',
+                  ':hover': {
+                    bgcolor: '#eaeaea',
                   },
-                }}>
-                <img src={item} className='thumbnail' />
-                <ClearIcon
-                  onClick={() => {
-                    const newImages = images.filter((_, i) => i !== index);
-                    setImages(newImages);
-                  }}
-                  sx={{
-                    position: 'absolute',
-                    top: '-6px',
-                    right: '0px',
-                    bgcolor: 'white',
-                    fontSize: 16,
-                    border: '1px solid #696969',
-                    borderRadius: '2px',
-                    cursor: 'pointer',
-                    ':hover': {
-                      bgcolor: '#eaeaea',
-                    },
-                  }}
-                />
-              </Box>
-            ))}
+                }}
+              />
+            </Box>
+          )}
           {progress !== null && <CircularProgressWithLabel value={progress} />}
         </Box>
       </Box>
@@ -141,19 +139,4 @@ const MultipleFileUpload = ({
   );
 };
 
-export default MultipleFileUpload;
-
-{
-  /* <HighlightOffIcon
-                onClick={() => {
-                  onClearValue?.();
-                }}
-                sx={{
-                  fontSize: 28,
-                  cursor: 'pointer',
-                  ':hover': {
-                    color: '#757575',
-                  },
-                }}
-              /> */
-}
+export default ImageUpload;

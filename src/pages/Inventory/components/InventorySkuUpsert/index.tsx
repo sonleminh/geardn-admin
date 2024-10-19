@@ -41,7 +41,8 @@ import { ICategory } from '@/interfaces/ICategory';
 import { IAttribute } from '@/interfaces/IAttribute';
 import { useGetProductByCategory } from '@/services/product';
 import { createSchema, updateSchema } from '../utils/schema/skuSchema';
-import MultipleFileUpload from '@/components/MultipleFileUpload';
+import MultipleFileUpload from '@/components/MultipleImageUpload';
+import ImageUpload from '@/components/ImageUpload';
 
 const InventorySkuUpsert = () => {
   const { id } = useParams();
@@ -53,6 +54,7 @@ const InventorySkuUpsert = () => {
   const [categoryId, setCategoryId] = useState<string>('');
   const [attributes, setAttributes] = useState<string[]>([]);
   const [editAttribute, setEditAttribute] = useState<IAttribute[]>([]);
+  const [image, setImage] = useState<string>('');
 
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
   const { data: productSkuData } = useGetProductSkuById(id as string);
@@ -66,6 +68,7 @@ const InventorySkuUpsert = () => {
   const formik = useFormik({
     initialValues: {
       product_id: '',
+      sku_image: '',
       attributes: '',
       price: '',
       quantity: '',
@@ -117,6 +120,7 @@ const InventorySkuUpsert = () => {
   useEffect(() => {
     if (productSkuData) {
       formik.setFieldValue('product_id', productSkuData?.product_id);
+      formik.setFieldValue('sku_image', productSkuData?.sku_image);
       formik.setFieldValue('price', productSkuData?.price);
       formik.setFieldValue('quantity', productSkuData?.quantity);
       setAttributes(productSkuData?.attributes?.map((a) => a?._id));
@@ -150,6 +154,10 @@ const InventorySkuUpsert = () => {
     const updatedAtributeList = [...attributes];
     updatedAtributeList[index] = e?.target?.value;
     setAttributes(updatedAtributeList);
+  };
+
+  const handleUploadResult = (result: string) => {
+    formik.setFieldValue('sku_image', result);
   };
 
   return (
@@ -248,7 +256,7 @@ const InventorySkuUpsert = () => {
           </>
         )}
         <Typography mb={1}>Phân loại:</Typography>
-        <Grid2 container rowSpacing={2} columnSpacing={4}>
+        <Grid2 container rowSpacing={2} columnSpacing={4} mb={2}>
           {productsByCategory
             ?.find((item) => item?._id === formik?.values?.product_id)
             ?.attributes?.map((item: string, index: number) => (
@@ -375,15 +383,15 @@ const InventorySkuUpsert = () => {
           </Grid2>
         </Grid2>
         <FormControl>
-          <MultipleFileUpload
+          <ImageUpload
             title={'Ảnh'}
             required
             helperText={
               <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.images}
+                {formik.errors.sku_image}
               </Box>
             }
-            value={formik?.values?.images}
+            value={formik?.values?.sku_image}
             onUploadChange={handleUploadResult}
           />
         </FormControl>

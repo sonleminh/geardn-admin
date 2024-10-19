@@ -5,6 +5,7 @@ export interface IProductSku {
     product_id: string;
     product_name: string;
     product_sku: string;
+    sku_image: string;
     attributes: IAttribute[];
     sku: string;
     price: number;
@@ -17,6 +18,7 @@ export interface ICreateProductSku extends Record<string, unknown>  {
     product_id: string;
     product_name: string;
     product_sku: string;
+    sku_image: string;
     attributes: string[];
     sku: string;
     price: number;
@@ -28,6 +30,7 @@ export interface IUpdateProductSkuPayload {
     product_id: string;
     product_name: string;
     product_sku: string;
+    sku_image: string;
     attributes: string[];
     sku: string;
     price: number;

@@ -27,8 +27,8 @@ export interface IProduct {
     category: ICategory;
     tags: ITagOptions[];
     images: string[];
-    attributes: string[];
-    sku_name: string;
+    // attributes: string[];
+    // sku_name: string;
     brand: string;
     details: IDetails;
     description: string;
@@ -42,8 +42,8 @@ export interface ICreateProduct extends Record<string, unknown>  {
     tags: ITagOptions[];
     images?: string[];
     brand: string;
-    attributes?: string[];
-    sku_name: string;
+    // attributes?: string[];
+    // sku_name: string;
     details: IDetails;
     description?: string;
 }
@@ -55,8 +55,8 @@ export interface IUpdateProductPayload {
     category: string;
     tags: ITagOptions[];
     images?: string[];
-    attributes?: string[];
-    sku_name: string;
+    // attributes?: string[];
+    // sku_name: string;
     brand: string;
     details: IDetails;
     description?: string;
@@ -64,17 +64,17 @@ export interface IUpdateProductPayload {
 
 export interface IProductPayload extends Record<string, unknown>  {
     name: string;
-    discount?: {
-      discountPrice: number;
-      startDate: string;
-      endDate: string;
-    };
+    // discount?: {
+    //   discountPrice: number;
+    //   startDate: string;
+    //   endDate: string;
+    // };
     tags: ITagOptions[];
     category: string;
     images: string[];
     brand: string;
-    attributes?: string[];  
-    sku_name: string;
+    // attributes?: string[];  
+    // sku_name: string;
     details: IDetails;
     description: string;
   }
