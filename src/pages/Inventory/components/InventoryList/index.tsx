@@ -58,7 +58,7 @@ const InventoryList = () => {
           action={
             <ButtonWithTooltip
               variant='contained'
-              onClick={() => navigate('/inventory/sku/create')}
+              onClick={() => navigate('/inventory/model/create')}
               title='Thêm mã hàng'
               sx={{ ml: 1 }}>
               <AddCircleOutlined />

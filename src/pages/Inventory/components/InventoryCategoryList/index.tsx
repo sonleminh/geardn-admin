@@ -82,14 +82,15 @@ const InventoryCategoryList = () => {
                   sx={{
                     ':hover': { bgcolor: '#F1F1F1', cursor: 'pointer' },
                   }}
-                  onClick={() => navigate(`/inventory/sku/${item._id}`)}>
+                  onClick={() => navigate(`/inventory/model/${item._id}`)}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
                       {item.name}
                     </Typography>
                   </TableCell>
-                  <TableCell>{item?.sku_name}</TableCell>
+                  <TableCell>cc</TableCell>
+                  {/* <TableCell>{item?.sku_name}</TableCell> */}
                   <TableCell align='center'>
                     {moment(item.createdAt).format('DD/MM/YYYY')}
                   </TableCell>

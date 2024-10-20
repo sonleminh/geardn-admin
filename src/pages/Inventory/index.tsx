@@ -2,8 +2,8 @@ import { useRoutes } from 'react-router-dom';
 import InventoryLayout from './components/InventoryLayout';
 import InventoryList from './components/InventoryList';
 import InventoryCategoryList from './components/InventoryCategoryList';
-import InventorySkuList from './components/InventorySkuList';
-import InventorySkuUpsert from './components/InventorySkuUpsert';
+import InventoryModelUpsert from './components/InventoryModelUpsert';
+import InventoryModelList from './components/InventoryModelList';
 
 const Inventory = () => {
   const router = useRoutes([
@@ -22,18 +22,18 @@ const Inventory = () => {
           index: true,
         },
         {
-          path: '/sku/:id',
-          element: <InventorySkuList />,
+          path: '/model/:id',
+          element: <InventoryModelList />,
           index: true,
         },
         {
-          path: '/sku/create',
-          element: <InventorySkuUpsert />,
+          path: '/model/create',
+          element: <InventoryModelUpsert />,
           index: true,
         },
         {
-          path: '/sku/update/:id',
-          element: <InventorySkuUpsert />,
+          path: '/model/update/:id',
+          element: <InventoryModelUpsert />,
           index: true,
         },
       ],

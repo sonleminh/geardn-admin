@@ -8,16 +8,14 @@ import { AddCircleOutlined } from '@mui/icons-material';
 
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import Input from '@/components/Input';
-import { SKU_STATUS } from '@/constants/sku-status';
+// import { Model_STATUS } from '@/constants/Model-status';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
 import { IQuery } from '@/interfaces/IQuery';
-import { useDeleteCategory } from '@/services/category';
-import {
-  useDeleteProductSku,
-  useGetSkuByProductId,
-  useUpdateProductSku,
-} from '@/services/product-sku';
+// import {
+//   useDeleteProductModel,
+//   useGetModelByProductId
+// } from '@/services/model';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
@@ -41,8 +39,10 @@ import {
   Typography,
 } from '@mui/material';
 import moment from 'moment';
+import { useGetModelByProductId } from '@/services/model';
+import { useGetProductById } from '@/services/product';
 
-const InventorySkuList = () => {
+const InventoryModelList = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -50,31 +50,32 @@ const InventorySkuList = () => {
     limit: 10,
     page: 1,
   });
-  const [skuEdit, setSkuEdit] = useState<string>('');
-  const [skuEditForm, setSkuEditForm] = useState<{
+  const [modelEdit, setModelEdit] = useState<string>('');
+  const [modelEditForm, setModelEditForm] = useState<{
     price: number;
-    quantity: number;
-  }>({ price: 0, quantity: 0 });
-  const { data: skuList } = useGetSkuByProductId(id ?? '');
+    stock: number;
+  }>({ price: 0, stock: 0 });
 
   const { showNotification } = useNotificationContext();
+  const { data: productData } = useGetProductById(id as string);
+  const { data: modelList } = useGetModelByProductId(id ?? '');
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
-  // const { mutate: updateSkuMutate, isPending: isUpdatePending } =
-  //   useUpdateProductSku();
-  const { mutate: deleteProductSku } = useDeleteProductSku();
+  // const { mutate: updateModelMutate, isPending: isUpdatePending } =
+  //   useUpdateProductModel();
+  // const { mutate: deleteProductModel } = useDeleteProductModel();
 
-  const handleDeleteProduct = (id: string) => {
-    showNotification('Ok', 'error');
-    deleteProductSku(id, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductSku] });
-        showNotification('Xóa mã hàng thành công', 'success');
-        // handleClosePopover();
-      },
-    });
-  };
+  // const handleDeleteProduct = (id: string) => {
+  //   showNotification('Ok', 'error');
+  //   deleteProductModel(id, {
+  //     onSuccess: () => {
+  //       queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductModel] });
+  //       showNotification('Xóa mã hàng thành công', 'success');
+  //       // handleClosePopover();
+  //     },
+  //   });
+  // };
 
   const handleChangeQuery = (object: Partial<IQuery>) => {
     setQuery((prev) => ({ ...prev, ...object }));
@@ -82,20 +83,20 @@ const InventorySkuList = () => {
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setSkuEditForm((prev) => ({ ...prev, [name]: value }));
+    setModelEditForm((prev) => ({ ...prev, [name]: value }));
   };
 
   // const handleSave = () => {
-  //   updateSkuMutate(
+  //   updateModelMutate(
   //     {
-  //       _id: skuEdit,
-  //       price: skuEditForm?.price,
-  //       quantity: +skuEditForm?.quantity,
+  //       _id: ModelEdit,
+  //       price: ModelEditForm?.price,
+  //       stock: +ModelEditForm?.stock,
   //     },
   //     {
   //       onSuccess() {
-  //         queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductSku] });
-  //         setSkuEdit('');
+  //         queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductModel] });
+  //         setModelEdit('');
   //         showNotification('Cập nhật thành công', 'success');
   //       },
   //     }
@@ -108,9 +109,7 @@ const InventorySkuList = () => {
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
               Kho hàng sản phẩm
-              {skuList && skuList.length > 0
-                ? ': ' + skuList[0]?.product_name
-                : ''}
+              {`: ${productData?.name}`}
             </Typography>
           }
           action={
@@ -123,7 +122,7 @@ const InventorySkuList = () => {
               </ButtonWithTooltip>
               <ButtonWithTooltip
                 variant='contained'
-                onClick={() => navigate('/inventory/sku/create')}
+                onClick={() => navigate('/inventory/Model/create')}
                 title='Thêm mã hàng'
                 sx={{ ml: 1 }}>
                 <AddCircleOutlined />
@@ -137,30 +136,30 @@ const InventorySkuList = () => {
             <TableHead>
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
-                <TableCell>Mã loại</TableCell>
+                <TableCell>Tên loại hàng</TableCell>
                 <TableCell align='center'>Giá</TableCell>
                 <TableCell align='center'>Số lượng</TableCell>
-                <TableCell align='center'>Trạng thái</TableCell>
+                {/* <TableCell align='center'>Trạng thái</TableCell> */}
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {skuList?.map((item, index) => (
+              {modelList?.map((item, index) => (
                 <TableRow
                   key={index}
                   sx={{
-                    bgcolor: skuEdit === item?._id ? '#F1F1F1' : 'white',
+                    bgcolor: modelEdit === item?._id ? '#F1F1F1' : 'white',
                     ':hover': { bgcolor: '#F1F1F1', cursor: 'pointer' },
                   }}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.sku}
+                      {item?.name}
                     </Typography>
                   </TableCell>
                   <TableCell align='center' sx={{ width: '20%', py: 0 }}>
-                    {skuEdit && skuEdit === item?._id ? (
+                    {modelEdit && modelEdit === item?._id ? (
                       <FormControl
                         sx={{
                           '.MuiInputBase-root': {
@@ -187,7 +186,7 @@ const InventorySkuList = () => {
                           //     {formik.errors.name}
                           //   </Box>
                           // }
-                          value={skuEditForm?.price ?? 0}
+                          value={modelEditForm?.price ?? 0}
                           onChange={handleChangeValue}
                           sx={{
                             width: 112,
@@ -202,7 +201,7 @@ const InventorySkuList = () => {
                     )}
                   </TableCell>
                   <TableCell align='center' sx={{ width: '10%', py: 0 }}>
-                    {skuEdit && skuEdit === item?._id ? (
+                    {modelEdit && modelEdit === item?._id ? (
                       <FormControl
                         sx={{
                           '.MuiInputBase-root': {
@@ -222,14 +221,14 @@ const InventorySkuList = () => {
                           variant='outlined'
                           type='number'
                           size='small'
-                          name='quantity'
+                          name='stock'
                           required
                           // helperText={
                           //   <Box component={'span'} sx={helperTextStyle}>
                           //     {formik.errors.name}
                           //   </Box>
                           // }
-                          value={skuEditForm?.quantity ?? 0}
+                          value={modelEditForm?.stock ?? 0}
                           onChange={handleChangeValue}
                           sx={{
                             width: 80,
@@ -240,24 +239,21 @@ const InventorySkuList = () => {
                         />
                       </FormControl>
                     ) : (
-                      item?.quantity
+                      item?.stock
                     )}
-                  </TableCell>
-                  <TableCell align='center'>
-                    {SKU_STATUS[item?.status] ?? ''}
                   </TableCell>
                   <TableCell align='center'>
                     {moment(item.createdAt).format('DD/MM/YYYY')}
                   </TableCell>
                   <TableCell align='center'>
-                    {skuEdit !== item?._id ? (
+                    {modelEdit !== item?._id ? (
                       <Box>
                         <ButtonWithTooltip
                           title='Cập nhật'
                           size='small'
                           variant='outlined'
                           onClick={() => {
-                            navigate(`/inventory/sku/update/${item?._id}`);
+                            navigate(`/inventory/model/update/${item?._id}`);
                           }}>
                           <EditOutlinedIcon />
                         </ButtonWithTooltip>
@@ -266,9 +262,9 @@ const InventorySkuList = () => {
                           color='error'
                           onClick={() => {
                             showConfirmModal({
-                              title: 'Bạn có muốn xóa danh mục này không?',
+                              title: 'Bạn có muốn xóa loại này không?',
                               cancelText: 'Hủy',
-                              onOk: () => handleDeleteProduct(item?._id),
+                              // onOk: () => handleDeleteProduct(item?._id),
                               okText: 'Xóa',
                             });
                           }}
@@ -291,7 +287,7 @@ const InventorySkuList = () => {
                         <Button
                           size='small'
                           variant='outlined'
-                          onClick={() => setSkuEdit('')}>
+                          onClick={() => setModelEdit('')}>
                           <CloseOutlinedIcon />
                         </Button>
                       </Box>
@@ -301,11 +297,11 @@ const InventorySkuList = () => {
               ))}
             </TableBody>
           </Table>
-          {skuList?.length === 0 && (
+          {/* {ModelList?.length === 0 && (
             <Box sx={{ my: 2, textAlign: 'center', color: '#696969' }}>
               Empty
             </Box>
-          )}
+          )} */}
         </TableContainer>
         <Divider />
         {/* <Box
@@ -334,4 +330,4 @@ const InventorySkuList = () => {
   );
 };
 
-export default InventorySkuList;
+export default InventoryModelList;

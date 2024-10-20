@@ -1,18 +1,24 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
-import { QueryKeys } from '@/constants/query-key';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 // import {
-//   useCreateProductSku,
-//   useGetProductSkuById,
-//   useUpdateProductSku,
-// } from '@/services/ProductSku';
+//   useCreateModel,
+//   useGetModelById,
+//   useUpdateModel,
+// } from '@/services/Model';
+import { ICategory } from '@/interfaces/ICategory';
+import {
+  useCreateModel,
+  useGetInitialForCreate,
+  useGetModelById,
+  useUpdateModel,
+} from '@/services/model';
+import { useGetProductByCategory, useGetProductById } from '@/services/product';
 import {
   Box,
   Button,
@@ -31,20 +37,11 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import {
-  useCreateproductSku,
-  useGetInitialForCreate,
-  useGetProductSkuById,
-  useUpdateProductSku,
-} from '@/services/product-sku';
-import { ICategory } from '@/interfaces/ICategory';
-import { IAttribute } from '@/interfaces/IAttribute';
-import { useGetProductByCategory } from '@/services/product';
 import { createSchema, updateSchema } from '../utils/schema/skuSchema';
-import MultipleFileUpload from '@/components/MultipleImageUpload';
-import ImageUpload from '@/components/ImageUpload';
+import { QueryKeys } from '@/constants/query-key';
+import Input from '@/components/Input';
 
-const InventorySkuUpsert = () => {
+const InventoryModelUpsert = () => {
   const { id } = useParams();
   const isEdit = !!id;
 
@@ -52,65 +49,57 @@ const InventorySkuUpsert = () => {
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
   const [categoryId, setCategoryId] = useState<string>('');
-  const [attributes, setAttributes] = useState<string[]>([]);
-  const [editAttribute, setEditAttribute] = useState<IAttribute[]>([]);
+  const [productId, setProductId] = useState<string>('');
   const [image, setImage] = useState<string>('');
+  const [variant, setVariant] = useState<string[]>([]);
 
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
-  const { data: productSkuData } = useGetProductSkuById(id as string);
+  const { data: modelData } = useGetModelById(id as string);
+  const { data: product } = useGetProductById(productId as string);
   const { data: initData } = useGetInitialForCreate();
 
-  const { mutate: createProductSkuMutate, isPending: isCreatePending } =
-    useCreateproductSku();
-  const { mutate: updateProductSkuMutate, isPending: isUpdatePending } =
-    useUpdateProductSku();
+  const { mutate: createModelMutate, isPending: isCreatePending } =
+    useCreateModel();
+  const { mutate: updateModelMutate, isPending: isUpdatePending } =
+    useUpdateModel();
+
+  console.log('vr:', variant);
 
   const formik = useFormik({
     initialValues: {
       product_id: '',
-      sku_image: '',
-      attributes: '',
+      name: '',
       price: '',
-      quantity: '',
+      stock: '',
     },
-    validationSchema: isEdit ? updateSchema : createSchema,
+    // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      const attributeList = attributes?.map((item) =>
-        initData?.attributeList.find((i) => i._id === item)
-      );
-      const product = productsByCategory?.find(
-        (item) => item._id === values.product_id
-      );
       const payload = {
         ...values,
-        product_name: isEdit ? productSkuData?.product_name : product?.name,
-        product_sku: isEdit ? productSkuData?.product_sku : product?.sku_name,
-        attributes: attributes,
-        sku: `${isEdit ? productSkuData?.product_sku : product?.sku_name}${
-          attributeList?.length > 0 ? '-' : ''
-        }${attributeList?.map((item) => item?.atb_sku).join('')}`,
+        name: variant?.join(),
         price: +values.price,
-        quantity: +values.quantity,
+        stock: +values.stock,
       };
+      console.log('pl:', payload);
       if (isEdit) {
-        updateProductSkuMutate(
+        updateModelMutate(
           { _id: id, ...payload },
           {
             onSuccess() {
               queryClient.invalidateQueries({
-                queryKey: [QueryKeys.ProductSku],
+                queryKey: [QueryKeys.Model],
               });
-              showNotification('Cập nhật SKU thành công', 'success');
+              showNotification('Cập nhật loại hàng thành công', 'success');
               navigate(-1);
             },
           }
         );
       } else {
-        createProductSkuMutate(payload, {
+        createModelMutate(payload, {
           onSuccess() {
-            queryClient.invalidateQueries({ queryKey: [QueryKeys.ProductSku] });
-            showNotification('Tạo SKU thành công', 'success');
+            queryClient.invalidateQueries({ queryKey: [QueryKeys.Model] });
+            showNotification('Tạo loại hàng thành công', 'success');
             navigate(-1);
           },
         });
@@ -118,46 +107,41 @@ const InventorySkuUpsert = () => {
     },
   });
   useEffect(() => {
-    if (productSkuData) {
-      formik.setFieldValue('product_id', productSkuData?.product_id);
-      formik.setFieldValue('sku_image', productSkuData?.sku_image);
-      formik.setFieldValue('price', productSkuData?.price);
-      formik.setFieldValue('quantity', productSkuData?.quantity);
-      setAttributes(productSkuData?.attributes?.map((a) => a?._id));
+    if (modelData) {
+      formik.setFieldValue('product_id', modelData?.product_id);
+      formik.setFieldValue('price', modelData?.price);
+      formik.setFieldValue('stock', modelData?.stock);
+      setProductId(modelData?.product_id);
+      setVariant(modelData?.name?.split(','));
     }
-  }, [productSkuData, initData]);
-
-  useEffect(() => {
-    if (isEdit && initData) {
-      setEditAttribute(
-        initData?.attributeList?.filter((item) =>
-          attributes?.includes(item._id)
-        )
-      );
-    }
-  }, [attributes, initData, isEdit]);
+  }, [modelData, initData]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     formik.setFieldValue(name, value);
   };
 
-  const handleSelectChange = (event: SelectChangeEvent<string>) => {
-    const { name, value } = event.target;
+  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
     formik.setFieldValue(name, value);
-  };
-
-  const handleAttributeChange = (
-    e: SelectChangeEvent<string>,
-    index: number
-  ) => {
-    const updatedAtributeList = [...attributes];
-    updatedAtributeList[index] = e?.target?.value;
-    setAttributes(updatedAtributeList);
+    setProductId(value);
   };
 
   const handleUploadResult = (result: string) => {
     formik.setFieldValue('sku_image', result);
+  };
+
+  const handleVariantChange = (e: SelectChangeEvent<string>, index: number) => {
+    const { value } = e.target;
+
+    // Create a copy of the current variantName array
+    const updatedVariants = [...variant];
+
+    // Update the variant at the specific index
+    updatedVariants[index] = value;
+
+    // Update the state
+    setVariant(updatedVariants);
   };
 
   return (
@@ -166,7 +150,7 @@ const InventorySkuUpsert = () => {
         title={
           <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
             {isEdit ? 'Sửa phân loại' : 'Thêm phân loại'}:{' '}
-            {isEdit && productSkuData?.product_name}
+            {isEdit && modelData?.name}
           </Typography>
         }
       />
@@ -203,9 +187,9 @@ const InventorySkuUpsert = () => {
                 disableUnderline
                 size='small'
                 onChange={(e) => {
-                  setCategoryId(e?.target?.value);
+                  setCategoryId(e?.target?.value as string);
                 }}
-                value={categoryId}>
+                value={categoryId ?? ''}>
                 {initData?.categoryList?.map((item: ICategory) => (
                   <MenuItem key={item?._id} value={item?._id}>
                     {item?.name}
@@ -255,59 +239,14 @@ const InventorySkuUpsert = () => {
             </FormControl>
           </>
         )}
-        <Typography mb={1}>Phân loại:</Typography>
-        <Grid2 container rowSpacing={2} columnSpacing={4} mb={2}>
-          {productsByCategory
-            ?.find((item) => item?._id === formik?.values?.product_id)
-            ?.attributes?.map((item: string, index: number) => (
-              <Grid2 size={6} key={item} display={'flex'}>
-                <FormControl
-                  variant='filled'
-                  fullWidth
-                  sx={{
-                    '& .MuiFilledInput-root': {
-                      overflow: 'hidden',
-                      borderRadius: 1,
-                      backgroundColor: '#fff !important',
-                      border: '1px solid',
-                      borderColor: 'rgba(0,0,0,0.23)',
-                      '&:hover': {
-                        backgroundColor: 'transparent',
-                      },
-                      '&.Mui-focused': {
-                        backgroundColor: 'transparent',
-                        border: '2px solid',
-                      },
-                    },
-                    '& .MuiInputLabel-asterisk': {
-                      color: 'red',
-                    },
-                  }}>
-                  <InputLabel>{item}</InputLabel>
-                  <Select
-                    disableUnderline
-                    size='small'
-                    onChange={(e) => {
-                      handleAttributeChange(e, index);
-                    }}
-                    value={attributes[index] ?? ''}>
-                    {initData?.attributeList
-                      ?.filter((a) => a?.name === item)
-                      ?.map((item: IAttribute) => (
-                        <MenuItem key={item?._id} value={item?._id}>
-                          {item?.value}
-                        </MenuItem>
-                      ))}
-                  </Select>
-                </FormControl>
-              </Grid2>
-            ))}
-          {editAttribute?.map((item: IAttribute, index: number) => (
-            <Grid2 size={6} key={item?._id} display={'flex'}>
+        <Grid2 container rowSpacing={2} columnSpacing={4}>
+          {product?.tier_variations?.map((item, index) => (
+            <Grid2 key={item?.name} size={6}>
               <FormControl
                 variant='filled'
                 fullWidth
                 sx={{
+                  mb: 2,
                   '& .MuiFilledInput-root': {
                     overflow: 'hidden',
                     borderRadius: 1,
@@ -331,16 +270,14 @@ const InventorySkuUpsert = () => {
                   disableUnderline
                   size='small'
                   onChange={(e) => {
-                    handleAttributeChange(e, index);
+                    handleVariantChange(e, index);
                   }}
-                  value={attributes[index] ?? ''}>
-                  {initData?.attributeList
-                    ?.filter((a) => a?.name === item?.name)
-                    ?.map((item: IAttribute) => (
-                      <MenuItem key={item?._id} value={item?._id}>
-                        {item?.value}
-                      </MenuItem>
-                    ))}
+                  value={variant[index] ?? ''}>
+                  {item?.options?.map((item: string) => (
+                    <MenuItem key={item} value={item}>
+                      {item}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid2>
@@ -352,7 +289,8 @@ const InventorySkuUpsert = () => {
                 label='Giá'
                 name='price'
                 variant='filled'
-                required
+                type='number'
+                size='small'
                 helperText={
                   <Box component={'span'} sx={helperTextStyle}>
                     {formik.errors.price}
@@ -366,35 +304,22 @@ const InventorySkuUpsert = () => {
           <Grid2 size={6}>
             <FormControl fullWidth>
               <Input
-                id='quantity'
+                id='stock'
                 label='Số lượng'
-                name='quantity'
+                name='stock'
                 variant='filled'
-                required
+                size='small'
                 helperText={
                   <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.quantity}
+                    {formik.errors.stock}
                   </Box>
                 }
-                value={formik?.values.quantity}
+                value={formik?.values.stock}
                 onChange={handleChangeValue}
               />
             </FormControl>
           </Grid2>
         </Grid2>
-        <FormControl>
-          <ImageUpload
-            title={'Ảnh'}
-            required
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.sku_image}
-              </Box>
-            }
-            value={formik?.values?.sku_image}
-            onUploadChange={handleUploadResult}
-          />
-        </FormControl>
 
         <Box sx={{ textAlign: 'end' }}>
           <Button onClick={() => navigate(-1)} sx={{ mr: 2 }}>
@@ -410,7 +335,7 @@ const InventorySkuUpsert = () => {
   );
 };
 
-export default InventorySkuUpsert;
+export default InventoryModelUpsert;
 
 const helperTextStyle: SxProps<Theme> = {
   color: 'red',
