@@ -1,3 +1,5 @@
+import { IVariant } from "./IVariant";
+
 export interface ICategory {
     _id: string;
     name: string
@@ -27,6 +29,7 @@ export interface IProduct {
     category: ICategory;
     tags: ITagOptions[];
     images: string[];
+    tier_variations: IVariant[]
     // attributes: string[];
     // sku_name: string;
     brand: string;

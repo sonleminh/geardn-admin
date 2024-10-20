@@ -1,10 +1,11 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import CKEditor from '@/components/CKEditor';
-import Input from '@/components/Input';
 import MultipleFileUpload from '@/components/MultipleImageUpload';
 import SuspenseLoader from '@/components/SuspenseLoader';
+import ImageUpload from '@/components/ImageUpload';
+import CKEditor from '@/components/CKEditor';
+import Input from '@/components/Input';
 
 import { QueryKeys } from '@/constants/query-key';
 import { useNotificationContext } from '@/contexts/NotificationContext';
@@ -22,7 +23,6 @@ import {
   Autocomplete,
   Box,
   Button,
-  ButtonGroup,
   Card,
   CardContent,
   CardHeader,
@@ -39,22 +39,20 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-// import { TYPE_ATTRIBUTE } from '@/constants/type-attribute';
-import { createSchema, updateSchema } from '../utils/schema/productSchema';
 import AddIcon from '@mui/icons-material/Add';
-import ImageUpload from '@/components/ImageUpload';
-import RemoveIcon from '@mui/icons-material/Remove';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
-import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import RemoveIcon from '@mui/icons-material/Remove';
+import UploadIcon from '@mui/icons-material/Upload';
 
 type DetailKey = 'guarantee' | 'weight' | 'material';
 
 interface IVariant {
   name: string;
   options: string[];
-  images: string[];
+  images?: string[];
 }
 
 const ProductUpsert = () => {
@@ -73,6 +71,8 @@ const ProductUpsert = () => {
   const [optionImage, setOptionImage] = useState<string>('');
   const [optionImageList, setOptionImageList] = useState<string[]>([]);
   const [optionError, setOptionError] = useState<string>();
+  const [isEditOption, setIsEditOption] = useState<boolean>(false);
+  const [editOptionIndex, setEditOptionIndex] = useState<number | null>(null);
 
   const isEdit = !!id;
 
@@ -87,11 +87,11 @@ const ProductUpsert = () => {
   const formik = useFormik({
     initialValues: {
       name: '',
-      discount: {
-        discountPrice: '',
-        startDate: '',
-        endDate: '',
-      },
+      // discount: {
+      //   discountPrice: '',
+      //   startDate: '',
+      //   endDate: '',
+      // },
       category: '',
       tags: [],
       // attributes: [],
@@ -105,7 +105,7 @@ const ProductUpsert = () => {
       },
       description: '',
     },
-    validationSchema: isEdit ? updateSchema : createSchema,
+    // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       // const hasDiscount =
@@ -124,6 +124,8 @@ const ProductUpsert = () => {
         ...values,
         details,
         tags: tags,
+        tier_variations: variants,
+        images: ['casc'],
         // discount: hasDiscount
         //   ? {
         //       discountPrice: Number(values.discount.discountPrice),
@@ -184,7 +186,7 @@ const ProductUpsert = () => {
       // formik.setFieldValue('attributes', productData?.attributes);
       // formik.setFieldValue('sku_name', productData?.sku_name);
       setTags(productData?.tags);
-      // setAttributes(productData?.attributes);
+      setVariants(productData?.tier_variations);
     }
   }, [productData, initData]);
 
@@ -241,31 +243,86 @@ const ProductUpsert = () => {
     setOptionImageList((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleDelBtn = () => {
+    setVariantName('');
+    setOption('');
+    setOptionImage('');
+    setOptionList([]);
+    setOptionImageList([]);
+  };
+
   const handleSaveVariant = () => {
     if (option) {
       setOptionError('Thêm hoặc xoá tuỳ chọn trước khi lưu biến thể!');
     } else {
-      setOptionError('');
-      if (variantName && optionList)
-        setVariants((prev) => [
-          ...prev,
-          { name: variantName, options: optionList, images: optionImageList },
-        ]);
-      setVariantName('');
-      setOptionList([]);
-      setOptionImageList([]);
+      if (isEditOption && editOptionIndex !== null) {
+        setOptionError('');
+        if (variantName && optionList.length > 0) {
+          const updatedVariant: IVariant = {
+            name: variantName,
+            options: optionList,
+            ...(optionImageList &&
+              optionImageList.length > 0 && { images: optionImageList }),
+          };
+
+          // Update existing variant
+          setVariants((prev) => {
+            const newVariants = [...prev];
+            newVariants[editOptionIndex] = updatedVariant;
+            return newVariants;
+          });
+        }
+
+        setVariantName('');
+        setOptionList([]);
+        setOptionImageList([]);
+        setEditOptionIndex(null);
+      } else {
+        setOptionError('');
+        if (variantName && optionList.length > 0) {
+          const newVariant: IVariant = {
+            name: variantName,
+            options: optionList,
+            ...(optionImageList &&
+              optionImageList.length > 0 && { images: optionImageList }),
+          };
+
+          // Add new variant
+          setVariants((prev) => [...prev, newVariant]);
+        }
+
+        setVariantName('');
+        setOptionList([]);
+        setOptionImageList([]);
+        setEditOptionIndex(null);
+      }
     }
   };
 
+  console.log('showVariantForm:', showVariantForm);
+  console.log('editOptionIndex:', editOptionIndex);
   console.log('variants:', variants);
   console.log('optionImageList:', optionImageList);
 
-  // const handleDeleteVariant = () => {
-  //     setVariants((prev) => [
-  //       ...prev,
-  //       { name: variantName, options: optionList, images: optionImageList },
-  //     ]);
-  // };
+  const handleEditVariant = (variant: IVariant, index: number) => {
+    setIsEditOption(true);
+    setEditOptionIndex(index);
+    setVariantName(variant?.name);
+    setOptionList(variant?.options);
+    if (variant?.images) {
+      setOptionImageList(variant?.images);
+    }
+  };
+
+  const handleDelAllVariant = () => {
+    setVariants([]);
+    setShowVariantForm(false);
+  };
+
+  const handleDeleteVariant = (variantIndex: number) => {
+    setShowVariantForm(true);
+    setVariants(variants?.filter((item, index) => index !== variantIndex));
+  };
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -392,51 +449,6 @@ const ProductUpsert = () => {
             </FormControl>
           </Grid2>
 
-          {/* <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Autocomplete
-                multiple
-                fullWidth
-                options={TYPE_ATTRIBUTE ?? []}
-                disableCloseOnSelect
-                value={attributes ?? []}
-                onChange={(e, val) => handleAttributeChange(e, val)}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder='Phân loại ...'
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    sx={{
-                      bgcolor: '#fff',
-                      color: 'red',
-                      borderRadius: '10px',
-                    }}
-                  />
-                )}
-                size='small'
-              />
-            </FormControl>
-          </Grid2> */}
-          {/* <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Input
-                label='Mã sản phẩm'
-                name='sku_name'
-                variant='filled'
-                size='small'
-                required
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.sku_name}
-                  </Box>
-                }
-                value={formik?.values.sku_name}
-                onChange={handleChangeValue}
-              />
-            </FormControl>
-          </Grid2> */}
           <Grid2 size={6}>
             <FormControl fullWidth>
               <Input
@@ -458,8 +470,9 @@ const ProductUpsert = () => {
         <Box>
           <Box display={'flex'}>
             <Typography sx={{ width: 80, mr: 2, mb: 2 }}>Biến thể:</Typography>
-            {!showVariantForm && (
+            {!showVariantForm && variants?.length === 0 && (
               <Button
+                sx={{ height: 32 }}
                 variant={'contained'}
                 size='small'
                 onClick={handleAddVariant}>
@@ -467,10 +480,10 @@ const ProductUpsert = () => {
               </Button>
             )}
           </Box>
-          <Grid2 container sx={{ width: '100%' }} spacing={4}>
-            <Grid2 size={6}>
-              {showVariantForm && (
-                <>
+          {(showVariantForm || variants?.length > 0) && (
+            <Grid2 container spacing={4}>
+              <Grid2 size={6}>
+                <Box sx={{ p: 2, border: '1px solid #ccc', borderRadius: 2 }}>
                   <Grid2 container spacing={2}>
                     <Grid2 size={2}>
                       <Typography>Tên:</Typography>
@@ -485,30 +498,6 @@ const ProductUpsert = () => {
                         value={variantName ?? ''}
                       />
                     </Grid2>
-                    {/* <Grid2 size={5}>
-                      {optionList &&
-                        optionList?.map((item, index) => (
-                          <Grid2 size={12} key={item} display={'flex'}>
-                            <Typography>{item}</Typography>
-                            <Box
-                              sx={{
-                                position: 'relative',
-                                mr: 1.5,
-                                '.thumbnail': {
-                                  maxWidth: 60,
-                                  maxHeight: 60,
-                                  mr: 1,
-                                  border: '1px solid #aaaaaa',
-                                },
-                              }}>
-                              <img
-                                src={optionImageList[index]}
-                                className='thumbnail'
-                              />
-                            </Box>
-                          </Grid2>
-                        ))}
-                    </Grid2> */}
                     <Grid2 size={2}>
                       <Typography>Tuỳ chọn:</Typography>
                     </Grid2>
@@ -518,10 +507,12 @@ const ProductUpsert = () => {
                           <Box
                             key={item}
                             display={'flex'}
+                            alignItems={'center'}
                             mt={index !== 0 ? 2 : 0}>
                             <Input
                               sx={{
                                 width: '38%',
+                                mr: 5,
                                 '& .Mui-disabled': {
                                   backgroundColor: '#eee',
                                 },
@@ -530,29 +521,52 @@ const ProductUpsert = () => {
                               disabled
                               value={item}
                             />
-                            <Box
-                              sx={{
-                                position: 'relative',
-                                ml: 3,
-                                '.thumbnail': {
-                                  maxWidth: 60,
-                                  maxHeight: 60,
-                                  mr: 5,
-                                  border: '1px solid #aaaaaa',
-                                },
-                              }}>
-                              <img
-                                src={optionImageList[index]}
-                                className='thumbnail'
-                              />
-                            </Box>
+                            {optionImageList?.length > 0 &&
+                              (optionImageList[index] ? (
+                                <>
+                                  <RemoveIcon sx={{ mr: 3, fontSize: 16 }} />
+                                  <Box
+                                    sx={{
+                                      position: 'relative',
+                                      ml: 3,
+                                      '.thumbnail': {
+                                        maxWidth: 60,
+                                        maxHeight: 60,
+                                        mr: 5,
+                                        border: '1px solid #aaaaaa',
+                                        objectFit: 'contain',
+                                      },
+                                    }}>
+                                    <img
+                                      src={optionImageList[index]}
+                                      className='thumbnail'
+                                    />
+                                  </Box>
+                                </>
+                              ) : (
+                                <>
+                                  <RemoveIcon sx={{ mr: 3, fontSize: 16 }} />
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      width: 60,
+                                      height: 60,
+                                      ml: 3,
+                                      mr: 5,
+                                      fontSize: 13,
+                                    }}>
+                                    Không có
+                                  </Box>
+                                </>
+                              ))}
                             <RemoveCircleOutlineIcon
                               onClick={() => handleRemoveOption(index)}
                             />
                           </Box>
                         ))
                       ) : (
-                        <>Empty</>
+                        <>Không có</>
                       )}
                     </Grid2>
                     <Grid2 size={2}>
@@ -576,15 +590,33 @@ const ProductUpsert = () => {
                           mr: 0,
                         },
                       }}>
-                      <ImageUpload
-                        title={'Ảnh:'}
-                        value={optionImage}
-                        onUploadChange={handleOptionImageUpload}
-                      />
+                      {option ? (
+                        <ImageUpload
+                          title={'Ảnh:'}
+                          value={optionImage}
+                          onUploadChange={handleOptionImageUpload}
+                        />
+                      ) : (
+                        <Box display={'flex'}>
+                          <Typography mr={2}>Ảnh:</Typography>
+                          <Button
+                            disabled
+                            sx={{
+                              width: 80,
+                              height: 30,
+                              mr: 0,
+                            }}
+                            variant='contained'>
+                            <UploadIcon />
+                          </Button>
+                        </Box>
+                      )}
                     </Grid2>
                     <Grid2 size={1}>
                       <AddCircleOutlineOutlinedIcon
                         sx={{
+                          fontSize: 30,
+                          color: option ? '' : '#ccc',
                           ':hover': {
                             color: '#696969 ',
                             cursor: 'pointer',
@@ -599,56 +631,166 @@ const ProductUpsert = () => {
                         {optionError}
                       </Typography>
                       <Button
-                        sx={{ ml: 2 }}
+                        sx={{ ml: 2, textTransform: 'initial' }}
                         variant='contained'
+                        disabled={
+                          !variantName || optionList?.length === 0
+                            ? true
+                            : false
+                        }
                         onClick={handleSaveVariant}>
-                        <SaveOutlinedIcon />
+                        {/* <SaveOutlinedIcon /> */}Lưu
                       </Button>
-                      <Button sx={{ ml: 2 }} variant='outlined'>
-                        <CloseOutlinedIcon />
+                      <Button
+                        sx={{ ml: 2, textTransform: 'initial' }}
+                        variant='outlined'
+                        onClick={handleDelBtn}>
+                        {/* <CloseOutlinedIcon /> */}Xoá
+                      </Button>
+                      <Button
+                        sx={{
+                          ml: 2,
+                          textTransform: 'initial',
+                          color: 'red',
+                          border: '1px solid red',
+                        }}
+                        variant='outlined'
+                        onClick={handleDelAllVariant}>
+                        {/* <CloseOutlinedIcon /> */}Xoá tất cả
                       </Button>
                     </Box>
                   </Grid2>
-                </>
-              )}
-            </Grid2>
-            <Grid2 size={6} container display={'flex'}>
-              <Grid2 size={4}>
-                <Typography mr={2}>Danh sách biến thể:</Typography>
+                </Box>
               </Grid2>
-              <Grid2 size={8}>
-                {variants?.map((variant) => (
-                  <Box key={variant?.name}>
-                    <Box sx={{ display: 'flex', mb: 2 }}>
-                      <Typography mr={2}>Tên:</Typography>
-                      <Typography>{variant?.name}</Typography>
-                    </Box>
-                    {variant?.options?.map((option, index) => (
-                      <Box key={option} display={'flex'}>
-                        <Typography sx={{ width: 100 }}>{option}</Typography>
-                        {variant?.images?.length > 0 && (
-                          <Box
+              <Grid2
+                sx={{ p: 2, border: '1px solid #ccc', borderRadius: 2 }}
+                size={6}
+                container
+                rowSpacing={2}>
+                <Typography>Danh sách biến thể:</Typography>
+                {/* <Grid2 size={4}></Grid2> */}
+                {variants?.length > 0 ? (
+                  variants?.map((variant, index) => (
+                    <Grid2
+                      sx={{
+                        padding: 2,
+                        border: '1px solid #ccc',
+                        borderRadius: 2,
+                      }}
+                      key={variant?.name}
+                      size={12}>
+                      <Box>
+                        <Grid2 container>
+                          <Grid2 size={3} fontSize={15}>
+                            Tên:
+                          </Grid2>
+                          <Grid2 size={2} fontSize={15}>
+                            <Typography>{variant?.name}</Typography>
+                          </Grid2>
+                          <Grid2
                             sx={{
-                              position: 'relative',
-                              '.thumbnail': {
-                                maxWidth: 60,
-                                maxHeight: 60,
-                                border: '1px solid #aaaaaa',
-                              },
-                            }}>
-                            <img
-                              src={variant?.images?.[index]}
-                              className='thumbnail'
-                            />
-                          </Box>
-                        )}
+                              justifyContent: 'end',
+                              display: 'flex',
+                            }}
+                            size={7}>
+                            <Button
+                              sx={{
+                                minWidth: 40,
+                                width: 40,
+                                height: 30,
+                                mb: 1,
+                                mr: 1,
+                              }}
+                              variant='outlined'
+                              onClick={() => handleEditVariant(variant, index)}>
+                              <EditOutlinedIcon sx={{ fontSize: 20 }} />
+                            </Button>
+                            <Button
+                              sx={{ minWidth: 40, width: 40, height: 30 }}
+                              variant='outlined'
+                              onClick={() => handleDeleteVariant(index)}>
+                              <DeleteOutlineOutlinedIcon
+                                sx={{ fontSize: 20 }}
+                              />
+                            </Button>
+                          </Grid2>
+                          <Grid2 size={12}>
+                            <Box>
+                              <Grid2 container>
+                                <Grid2 size={3}>
+                                  <Typography fontSize={15}>
+                                    Tuỳ chọn:
+                                  </Typography>
+                                </Grid2>
+                                <Grid2 size={9}>
+                                  <Box>
+                                    {variant?.options?.map((option, index) => (
+                                      <Box
+                                        display={'flex'}
+                                        alignItems={'center'}
+                                        key={option}>
+                                        <Typography sx={{ width: 100 }}>
+                                          {option}
+                                        </Typography>
+                                        {variant?.images !== undefined &&
+                                          variant?.images?.length > 0 && (
+                                            <Box
+                                              display={'flex'}
+                                              alignItems={'center'}>
+                                              <RemoveIcon
+                                                sx={{ mr: 3, fontSize: 14 }}
+                                              />
+                                              {variant?.images?.[index] ? (
+                                                <Box
+                                                  sx={{
+                                                    position: 'relative',
+                                                    '.thumbnail': {
+                                                      width: 40,
+                                                      height: 40,
+                                                      border:
+                                                        '1px solid #aaaaaa',
+                                                      objectFit: 'contain',
+                                                    },
+                                                  }}>
+                                                  <img
+                                                    src={
+                                                      variant?.images?.[index]
+                                                    }
+                                                    className='thumbnail'
+                                                  />
+                                                </Box>
+                                              ) : (
+                                                <Box
+                                                  sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    height: 40,
+                                                    fontSize: 14,
+                                                  }}>
+                                                  Không có
+                                                </Box>
+                                              )}
+                                            </Box>
+                                          )}
+                                      </Box>
+                                    ))}
+                                  </Box>
+                                </Grid2>
+                              </Grid2>
+                            </Box>
+                          </Grid2>
+                        </Grid2>
                       </Box>
-                    ))}
-                  </Box>
-                ))}
+                    </Grid2>
+                  ))
+                ) : (
+                  <Grid2 size={12} textAlign={'center'}>
+                    Trống
+                  </Grid2>
+                )}
               </Grid2>
             </Grid2>
-          </Grid2>
+          )}
         </Box>
 
         <Box sx={{ display: 'flex' }}>
