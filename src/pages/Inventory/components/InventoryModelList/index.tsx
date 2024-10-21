@@ -122,7 +122,7 @@ const InventoryModelList = () => {
               </ButtonWithTooltip>
               <ButtonWithTooltip
                 variant='contained'
-                onClick={() => navigate('/inventory/Model/create')}
+                onClick={() => navigate('/inventory/model/create')}
                 title='Thêm mã hàng'
                 sx={{ ml: 1 }}>
                 <AddCircleOutlined />
