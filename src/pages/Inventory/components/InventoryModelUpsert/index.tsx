@@ -11,6 +11,8 @@ import { useFormik } from 'formik';
 //   useGetModelById,
 //   useUpdateModel,
 // } from '@/services/Model';
+import Input from '@/components/Input';
+import { QueryKeys } from '@/constants/query-key';
 import { ICategory } from '@/interfaces/ICategory';
 import {
   useCreateModel,
@@ -25,6 +27,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Checkbox,
   Divider,
   FormControl,
   FormHelperText,
@@ -38,8 +41,6 @@ import {
   Typography,
 } from '@mui/material';
 import { createSchema, updateSchema } from '../utils/schema/skuSchema';
-import { QueryKeys } from '@/constants/query-key';
-import Input from '@/components/Input';
 
 const InventoryModelUpsert = () => {
   const { id } = useParams();
@@ -50,7 +51,6 @@ const InventoryModelUpsert = () => {
   const { showNotification } = useNotificationContext();
   const [categoryId, setCategoryId] = useState<string>('');
   const [productId, setProductId] = useState<string>('');
-  const [image, setImage] = useState<string>('');
   const [variant, setVariant] = useState<string[]>([]);
 
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
@@ -63,16 +63,17 @@ const InventoryModelUpsert = () => {
   const { mutate: updateModelMutate, isPending: isUpdatePending } =
     useUpdateModel();
 
-  console.log('vr:', variant);
-
   const formik = useFormik({
     initialValues: {
       product_id: '',
-      name: '',
       price: '',
       stock: '',
+      extinfo: {
+        tier_index: [],
+        is_pre_order: false,
+      },
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       const payload = {
@@ -80,8 +81,10 @@ const InventoryModelUpsert = () => {
         name: variant?.join(),
         price: +values.price,
         stock: +values.stock,
+        // extinfo: {
+        //   tier_index: tierIndex,
+        // },
       };
-      console.log('pl:', payload);
       if (isEdit) {
         updateModelMutate(
           { _id: id, ...payload },
@@ -111,6 +114,14 @@ const InventoryModelUpsert = () => {
       formik.setFieldValue('product_id', modelData?.product_id);
       formik.setFieldValue('price', modelData?.price);
       formik.setFieldValue('stock', modelData?.stock);
+      formik.setFieldValue(
+        'extinfo.tier_index',
+        modelData?.extinfo?.tier_index
+      );
+      formik.setFieldValue(
+        'extinfo.is_pre_order',
+        modelData?.extinfo?.is_pre_order
+      );
       setProductId(modelData?.product_id);
       setVariant(modelData?.name?.split(','));
     }
@@ -127,21 +138,32 @@ const InventoryModelUpsert = () => {
     setProductId(value);
   };
 
-  const handleUploadResult = (result: string) => {
-    formik.setFieldValue('sku_image', result);
-  };
-
   const handleVariantChange = (e: SelectChangeEvent<string>, index: number) => {
     const { value } = e.target;
 
-    // Create a copy of the current variantName array
+    // variants
+
     const updatedVariants = [...variant];
 
-    // Update the variant at the specific index
     updatedVariants[index] = value;
 
-    // Update the state
     setVariant(updatedVariants);
+
+    // tier_index
+
+    if (product?.tier_variations) {
+      const updatedTierIndex: number[] = [
+        ...(formik.values.extinfo?.tier_index || []),
+      ];
+      updatedTierIndex[index] =
+        product.tier_variations[index]?.options?.indexOf(value) ?? 0;
+      formik.setFieldValue('extinfo.tier_index', updatedTierIndex);
+    }
+  };
+
+  const handleIsPreOrderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    formik.setFieldValue(name, checked);
   };
 
   return (
@@ -224,7 +246,7 @@ const InventoryModelUpsert = () => {
                 name='product_id'
                 disabled={!categoryId}
                 onChange={handleSelectChange}
-                value={formik?.values?.product_id}>
+                value={formik?.values?.product_id ?? ''}>
                 {productsByCategory?.map((item) => (
                   <MenuItem key={item?._id} value={item?._id}>
                     {item?.name}
@@ -318,6 +340,18 @@ const InventoryModelUpsert = () => {
                 onChange={handleChangeValue}
               />
             </FormControl>
+          </Grid2>
+          <Grid2 sx={{ display: 'flex', alignItems: 'center' }} size={6}>
+            <Checkbox
+              id='isPreOrder'
+              name='extinfo.is_pre_order'
+              checked={formik?.values?.extinfo?.is_pre_order ?? false}
+              onChange={handleIsPreOrderChange}
+              inputProps={{ 'aria-label': 'controlled' }}
+            />
+            <InputLabel htmlFor='isPreOrder' sx={{ cursor: 'pointer' }}>
+              Hàng đặt trước
+            </InputLabel>
           </Grid2>
         </Grid2>
 

@@ -125,7 +125,6 @@ const ProductUpsert = () => {
         details,
         tags: tags,
         tier_variations: variants,
-        images: ['casc'],
         // discount: hasDiscount
         //   ? {
         //       discountPrice: Number(values.discount.discountPrice),
@@ -298,11 +297,6 @@ const ProductUpsert = () => {
       }
     }
   };
-
-  console.log('showVariantForm:', showVariantForm);
-  console.log('editOptionIndex:', editOptionIndex);
-  console.log('variants:', variants);
-  console.log('optionImageList:', optionImageList);
 
   const handleEditVariant = (variant: IVariant, index: number) => {
     setIsEditOption(true);
