@@ -496,14 +496,14 @@ export default function ProductList() {
               ))}
             </Grid2>
           )}
-          <Grid2 size={3.5}>Thuộc tính: </Grid2>
+          {/* <Grid2 size={3.5}>Thuộc tính: </Grid2>
           <Grid2 size={8.5}>
             {detailPrd?.attributes?.map((att: string) => (
               <Box key={att}>{att}</Box>
             ))}
-          </Grid2>
-          <Grid2 size={3.5}>Mã sản phẩm: </Grid2>
-          <Grid2 size={8.5}>{detailPrd?.sku_name}</Grid2>
+          </Grid2> */}
+          {/* <Grid2 size={3.5}>Mã sản phẩm: </Grid2>
+          <Grid2 size={8.5}>{detailPrd?.sku_name}</Grid2> */}
           <Grid2 size={3.5}>Chi tiết: </Grid2>
           <Grid2 size={8.5}>
             {Object.keys(detailPrd?.details || {}).length === 0 ? (

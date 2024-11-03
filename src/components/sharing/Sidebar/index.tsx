@@ -7,6 +7,7 @@ import MonitorIcon from '@mui/icons-material/Monitor';
 import LOGO from '@/assets/geardn-logo.png';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 
 const Sidebar = () => {
   const menuList = [
@@ -34,6 +35,11 @@ const Sidebar = () => {
       link: '/inventory',
       label: 'Kho hàng',
       icon: <WarehouseOutlinedIcon />,
+    },
+    {
+      link: '/order',
+      label: 'Đơn hàng',
+      icon: <ShoppingBagOutlinedIcon />,
     },
   ];
   return (
