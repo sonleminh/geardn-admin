@@ -200,13 +200,9 @@ const OrderList = () => {
   const [tabValue, setTabValue] = useState('');
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-    console.log('newValue:', newValue);
     setTabValue(newValue);
     setQuery((prev) => ({ ...prev, ...{ status: newValue } }));
   };
-
-  console.log('tabValue:', tabValue);
-  console.log('tabValue:', tabValue);
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
@@ -452,7 +448,7 @@ const OrderList = () => {
           action={
             <ButtonWithTooltip
               variant='contained'
-              onClick={() => navigate('/inventory/model/create')}
+              onClick={() => navigate('/order/create')}
               title='Thêm mã hàng'
               sx={{ ml: 1 }}>
               <AddCircleOutlined />

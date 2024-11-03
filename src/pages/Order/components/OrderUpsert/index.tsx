@@ -37,7 +37,7 @@ import {
 } from '@mui/material';
 import { createSchema, updateSchema } from '../utils/schema/skuSchema';
 
-const Order = () => {
+const OrderUpsert = () => {
   const { id } = useParams();
   const isEdit = !!id;
 
@@ -166,7 +166,7 @@ const Order = () => {
       <CardHeader
         title={
           <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            {isEdit ? 'Sửa phân loại' : 'Thêm phân loại'}:{' '}
+            {isEdit ? 'Sửa đơn hàng' : 'Thêm đơn hàng'}:{' '}
             {isEdit && modelData?.name}
           </Typography>
         }
@@ -176,83 +176,53 @@ const Order = () => {
       <CardContent>
         {!isEdit && (
           <>
-            <FormControl
-              variant='filled'
-              fullWidth
-              sx={{
-                mb: 2,
-                '& .MuiFilledInput-root': {
-                  overflow: 'hidden',
-                  borderRadius: 1,
-                  backgroundColor: '#fff !important',
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.23)',
-                  '&:hover': {
-                    backgroundColor: 'transparent',
-                  },
-                  '&.Mui-focused': {
-                    backgroundColor: 'transparent',
-                    border: '2px solid',
-                  },
-                },
-                '& .MuiInputLabel-asterisk': {
-                  color: 'red',
-                },
-              }}>
-              <InputLabel>Danh mục</InputLabel>
-              <Select
-                disableUnderline
+            <FormControl fullWidth>
+              <Input
+                id='price'
+                label='Tên khách hàng'
+                name='price'
+                variant='filled'
                 size='small'
-                onChange={(e) => {
-                  setCategoryId(e?.target?.value as string);
-                }}
-                value={categoryId ?? ''}>
-                {initData?.categoryList?.map((item: ICategory) => (
-                  <MenuItem key={item?._id} value={item?._id}>
-                    {item?.name}
-                  </MenuItem>
-                ))}
-              </Select>
+                helperText={
+                  <Box component={'span'} sx={helperTextStyle}>
+                    {formik.errors.price}
+                  </Box>
+                }
+                value={formik?.values.price}
+                onChange={handleChangeValue}
+              />
             </FormControl>
-            <FormControl
-              variant='filled'
-              fullWidth
-              sx={{
-                mb: 2,
-                '& .MuiFilledInput-root': {
-                  overflow: 'hidden',
-                  borderRadius: 1,
-                  backgroundColor: categoryId ? '#fff' : '',
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.23)',
-
-                  '&.Mui-focused': {
-                    border: '2px solid',
-                  },
-                },
-                '& .MuiInputLabel-asterisk': {
-                  color: 'red',
-                },
-              }}>
-              <InputLabel>Sản phẩm</InputLabel>
-              <Select
-                disableUnderline
+            <FormControl fullWidth>
+              <Input
+                id='price'
+                label='Số điện thoại'
+                name='price'
+                variant='filled'
                 size='small'
-                name='product_id'
-                disabled={!categoryId}
-                onChange={handleSelectChange}
-                value={formik?.values?.product_id ?? ''}>
-                {productsByCategory?.map((item) => (
-                  <MenuItem key={item?._id} value={item?._id}>
-                    {item?.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              <FormHelperText>
-                <Box component={'span'} sx={helperTextStyle}>
-                  {formik.errors?.product_id}
-                </Box>
-              </FormHelperText>
+                helperText={
+                  <Box component={'span'} sx={helperTextStyle}>
+                    {formik.errors.price}
+                  </Box>
+                }
+                value={formik?.values.price}
+                onChange={handleChangeValue}
+              />
+            </FormControl>
+            <FormControl fullWidth>
+              <Input
+                id='price'
+                label='Email'
+                name='price'
+                variant='filled'
+                size='small'
+                helperText={
+                  <Box component={'span'} sx={helperTextStyle}>
+                    {formik.errors.price}
+                  </Box>
+                }
+                value={formik?.values.price}
+                onChange={handleChangeValue}
+              />
             </FormControl>
           </>
         )}
@@ -364,7 +334,7 @@ const Order = () => {
   );
 };
 
-export default Order;
+export default OrderUpsert;
 
 const helperTextStyle: SxProps<Theme> = {
   color: 'red',
