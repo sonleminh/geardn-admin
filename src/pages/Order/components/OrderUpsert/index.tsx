@@ -37,6 +37,8 @@ import {
 } from '@mui/material';
 import { createSchema, updateSchema } from '../utils/schema/skuSchema';
 import { IOrderItem } from '@/interfaces/IOrder';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -52,7 +54,10 @@ const OrderUpsert = () => {
   const [selectedModel, setSelectedModel] = useState<(number | undefined)[]>(
     []
   );
+  const [selectedImage, setSelectedImage] = useState<string>('');
+  const [isOrderItemEdit, setIsOrderItemEdit] = useState<boolean>(false);
 
+  console.log('selectedImage:', selectedImage);
   console.log('orderItems:', orderItems);
 
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
@@ -147,17 +152,51 @@ const OrderUpsert = () => {
   };
 
   const handleVariantChange = (event: SelectChangeEvent, vIndex: number) => {
-    const optionIndex = product?.tier_variations[vIndex]?.options?.indexOf(
-      event?.target?.value ?? ''
-    );
+    const selectedOptionIndex = product?.tier_variations[
+      vIndex
+    ]?.options.indexOf(event.target.value);
     const updatedSelectedModel = [...selectedModel];
-    if (optionIndex !== -1) {
-      updatedSelectedModel[vIndex] = optionIndex;
-    } else {
-      updatedSelectedModel[vIndex] = undefined;
-    }
+    updatedSelectedModel[vIndex] = selectedOptionIndex;
     setSelectedModel(updatedSelectedModel);
   };
+
+  const getFilteredOptions = (vIndex: number) => {
+    // If no previous option selected, show all options
+    if (vIndex === 0) {
+      return (
+        product?.tier_variations[vIndex].options.filter((_, optionIndex) =>
+          product.models.some(
+            (model) => model.extinfo.tier_index[0] === optionIndex
+          )
+        ) ?? []
+      );
+    }
+
+    // Filter options based on previous selections
+    return (
+      product?.tier_variations[vIndex]?.options.filter((_, optionIndex) =>
+        product.models.some(
+          (model) =>
+            model.extinfo.tier_index[vIndex - 1] ===
+              selectedModel[vIndex - 1] &&
+            model.extinfo.tier_index[vIndex] === optionIndex
+        )
+      ) ?? []
+    );
+  };
+
+  // const handleVariantChange = (event: SelectChangeEvent, vIndex: number) => {
+  //   const optionIndex = product?.tier_variations[vIndex]?.options?.indexOf(
+  //     event?.target?.value ?? ''
+  //   );
+  //   const updatedSelectedModel = [...selectedModel];
+  //   if (optionIndex !== -1) {
+  //     updatedSelectedModel[vIndex] = optionIndex;
+  //   } else {
+  //     updatedSelectedModel[vIndex] = undefined;
+  //   }
+  //   setSelectedModel(updatedSelectedModel);
+  // };
   console.log('selectedModel', selectedModel);
   const hanleAddOrderItem = () => {
     const matchedModel = product?.models?.find(
@@ -183,14 +222,62 @@ const OrderUpsert = () => {
       price: matchedModel?.price ?? 0,
       quantity: +quantity,
     };
-    console.log('newItem:', newItem);
 
     setOrderItems((prev) => [...prev, newItem]);
+    setCategoryId('');
+    setProductId('');
+    setSelectedImage('');
+    setQuantity('');
   };
 
   useEffect(() => {
-    setSelectedModel([]);
-  }, [product]);
+    if (product?.tier_variations.length === 0) {
+      setSelectedImage(product.images[0]);
+      return;
+    }
+
+    // Find the model based on selected indices
+    const matchedModel = product?.models.find((model) =>
+      model.extinfo.tier_index.every(
+        (tierIdx, idx) => tierIdx === selectedModel[idx]
+      )
+    );
+
+    // If an image exists for the selected tier index, use it; otherwise, fallback to the default image
+    if (matchedModel) {
+      const tierIndex = matchedModel.extinfo.tier_index[0];
+      const image =
+        product?.tier_variations[0]?.images?.[tierIndex] || product?.images[0];
+      console.log('image:', image);
+      setSelectedImage(image ?? '');
+    }
+  }, [selectedModel, product]);
+
+  const handleEditOrderItem = (item: IOrderItem, index: number) => {
+    // setIsOrderItemEdit(true);
+    // setProductId(item?.product_id);
+    setIsOrderItemEdit(true); // Set edit mode
+    setProductId(item.product_id); // Set productId
+    setCategoryId(item.product_id); // Set categoryId
+
+    // Find the model based on item details to pre-fill variant selections
+    const matchedProduct = productData?.find(
+      (prod) => prod._id === item.product_id
+    );
+    if (matchedProduct) {
+      const selectedModelIndices = matchedProduct.models.find(
+        (model) => model._id === item.model_id
+      )?.extinfo?.tier_index;
+
+      if (selectedModelIndices) {
+        setSelectedModel(selectedModelIndices);
+      }
+    }
+
+    setQuantity(item.quantity.toString());
+  };
+
+  console.log('productId:', productId);
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -360,6 +447,9 @@ const OrderUpsert = () => {
                 size='small'
                 onChange={(e) => {
                   setCategoryId(e?.target?.value as string);
+                  setProductId('');
+                  setSelectedModel([]);
+                  setSelectedImage('');
                 }}
                 value={categoryId ?? ''}>
                 {initData?.categoryList?.map((item: ICategory) => (
@@ -394,8 +484,12 @@ const OrderUpsert = () => {
                 disableUnderline
                 size='small'
                 name='product'
-                disabled={!categoryId}
-                onChange={(e) => setProductId(e.target.value)}
+                disabled={!categoryId && !isOrderItemEdit}
+                onChange={(e) => {
+                  setProductId(e.target.value);
+                  setSelectedModel([]);
+                  setSelectedImage('');
+                }}
                 value={productId}>
                 {productsByCategory?.map((item) => (
                   <MenuItem key={item?._id} value={item?._id}>
@@ -448,20 +542,26 @@ const OrderUpsert = () => {
                         ]
                       : ''
                   }>
-                  {item?.options
-                    ?.filter((item, index) =>
-                      product.models.some(
-                        (model) => model?.extinfo?.tier_index[vIndex] === index
-                      )
-                    )
-                    .map((item: string) => (
-                      <MenuItem key={item} value={item}>
-                        {item}
-                      </MenuItem>
-                    ))}
+                  {getFilteredOptions(vIndex).map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             ))}
+            {selectedImage && (
+              <img
+                src={selectedImage}
+                alt=''
+                style={{
+                  width: '100%',
+                  maxWidth: '100px',
+                  marginBottom: '8px',
+                  borderRadius: '8px',
+                }}
+              />
+            )}
             <FormControl fullWidth>
               <Input
                 label='Số lượng'
@@ -480,7 +580,7 @@ const OrderUpsert = () => {
             </FormControl>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
               <Button variant='contained' onClick={hanleAddOrderItem}>
-                Thêm
+                Lưu
               </Button>
               <Button
                 sx={{
@@ -497,105 +597,83 @@ const OrderUpsert = () => {
             </Box>
           </Grid2>
           <Grid2 size={6}>
-            <Typography mb={1}>Ghi chú</Typography>
-          </Grid2>
-        </Grid2>
-        {/* </>
-        )} */}
-        <Grid2 container rowSpacing={2} columnSpacing={4}>
-          {/* {product?.tier_variations?.map((item, index) => (
-            <Grid2 key={item?.name} size={6}>
-              <FormControl
-                variant='filled'
-                fullWidth
+            <Typography mb={1}>Sản phẩm</Typography>
+            {orderItems?.map((item, index) => (
+              <Box
                 sx={{
-                  mb: 2,
-                  '& .MuiFilledInput-root': {
-                    overflow: 'hidden',
-                    borderRadius: 1,
-                    backgroundColor: '#fff !important',
-                    border: '1px solid',
-                    borderColor: 'rgba(0,0,0,0.23)',
-                    '&:hover': {
-                      backgroundColor: 'transparent',
-                    },
-                    '&.Mui-focused': {
-                      backgroundColor: 'transparent',
-                      border: '2px solid',
-                    },
-                  },
-                  '& .MuiInputLabel-asterisk': {
-                    color: 'red',
-                  },
-                }}>
-                <InputLabel>{item?.name}</InputLabel>
-                <Select
-                  disableUnderline
-                  size='small'
-                  onChange={(e) => {
-                    handleVariantChange(e, index);
-                  }}
-                  value={variant[index] ?? ''}>
-                  {item?.options?.map((item: string) => (
-                    <MenuItem key={item} value={item}>
-                      {item}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid2>
-          ))} */}
-          {/* <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Input
-                id='price'
-                label='Giá'
-                name='price'
-                variant='filled'
-                type='number'
-                size='small'
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.price}
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mt: index !== 0 ? 2 : 0,
+                }}
+                key={item?.model_id}>
+                <Box sx={{ display: 'flex' }}>
+                  <img
+                    src={item?.image}
+                    alt='Selected Product'
+                    style={{
+                      width: '50px',
+                      maxWidth: '50px',
+                      height: '50px',
+                      objectFit: 'contain',
+                      marginRight: '12px',
+                      border: '1px solid #ccc',
+                      borderRadius: '2px',
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center',
+                    }}>
+                    <Typography sx={{ fontSize: 15 }}>
+                      {item?.product_name}
+                    </Typography>
+                    {item?.name && (
+                      <Typography
+                        sx={{
+                          display: 'inline-block',
+                          px: '6px',
+                          py: '2px',
+                          bgcolor: '#f3f4f6',
+                          fontSize: 11,
+                          borderRadius: 0.5,
+                        }}>
+                        {item?.name}
+                      </Typography>
+                    )}
                   </Box>
-                }
-                value={formik?.values.price}
-                onChange={handleChangeValue}
-              />
-            </FormControl>
+                </Box>
+                <Box sx={{ display: 'flex' }}>
+                  <Typography sx={{ width: 50, mr: 2, fontSize: 14 }}>
+                    x {item?.quantity}
+                  </Typography>
+                  <Button
+                    sx={{
+                      minWidth: 40,
+                      width: 40,
+                      height: 30,
+                      mr: 1,
+                    }}
+                    variant='outlined'
+                    onClick={() => {
+                      handleEditOrderItem(item, index);
+                    }}>
+                    <EditOutlinedIcon sx={{ fontSize: 20 }} />
+                  </Button>
+                  <Button
+                    sx={{ minWidth: 40, width: 40, height: 30 }}
+                    variant='outlined'
+                    // onClick={() => handleDeleteVariant(index)}
+                  >
+                    <DeleteOutlineOutlinedIcon sx={{ fontSize: 20 }} />
+                  </Button>
+                </Box>
+              </Box>
+            ))}
           </Grid2>
-          <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Input
-                id='stock'
-                label='Số lượng'
-                name='stock'
-                variant='filled'
-                size='small'
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.stock}
-                  </Box>
-                }
-                value={formik?.values.stock}
-                onChange={handleChangeValue}
-              />
-            </FormControl>
-          </Grid2>
-          <Grid2 sx={{ display: 'flex', alignItems: 'center' }} size={6}>
-            <Checkbox
-              id='isPreOrder'
-              name='extinfo.is_pre_order'
-              checked={formik?.values?.extinfo?.is_pre_order ?? false}
-              onChange={handleIsPreOrderChange}
-              inputProps={{ 'aria-label': 'controlled' }}
-            />
-            <InputLabel htmlFor='isPreOrder' sx={{ cursor: 'pointer' }}>
-              Hàng đặt trước
-            </InputLabel>
-          </Grid2> */}
         </Grid2>
-
         <Box sx={{ textAlign: 'end' }}>
           <Button onClick={() => navigate(-1)} sx={{ mr: 2 }}>
             Trở lại
