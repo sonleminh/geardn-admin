@@ -58,7 +58,7 @@ const InventoryModelList = () => {
 
   const { showNotification } = useNotificationContext();
   const { data: productData } = useGetProductById(id as string);
-  const { data: modelList } = useGetModelByProductId(id ?? '');
+  // const { data: modelList } = useGetModelByProductId(id ?? '');
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
@@ -145,7 +145,7 @@ const InventoryModelList = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {modelList?.map((item, index) => (
+              {productData?.models?.map((item, index) => (
                 <TableRow
                   key={index}
                   sx={{
@@ -155,7 +155,7 @@ const InventoryModelList = () => {
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item?.name}
+                      {item?.name ? item?.name : 'Không có'}
                     </Typography>
                   </TableCell>
                   <TableCell align='center' sx={{ width: '20%', py: 0 }}>

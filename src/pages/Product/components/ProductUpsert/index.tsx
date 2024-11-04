@@ -330,7 +330,7 @@ const ProductUpsert = () => {
       <Divider />
 
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Grid2 container rowSpacing={1.5} columnSpacing={4}>
+        <Grid2 container rowSpacing={2} columnSpacing={4}>
           <Grid2 size={6}>
             <FormControl fullWidth>
               <Input
@@ -633,24 +633,24 @@ const ProductUpsert = () => {
                             : false
                         }
                         onClick={handleSaveVariant}>
-                        {/* <SaveOutlinedIcon /> */}Lưu
+                        Lưu
                       </Button>
                       <Button
                         sx={{ ml: 2, textTransform: 'initial' }}
                         variant='outlined'
                         onClick={handleDelBtn}>
-                        {/* <CloseOutlinedIcon /> */}Xoá
+                        Xoá
                       </Button>
                       <Button
                         sx={{
                           ml: 2,
                           textTransform: 'initial',
-                          color: 'red',
-                          border: '1px solid red',
+                          color: '#D03739',
+                          border: '1px solid #D03739',
                         }}
                         variant='outlined'
                         onClick={handleDelAllVariant}>
-                        {/* <CloseOutlinedIcon /> */}Xoá tất cả
+                        Xoá tất cả
                       </Button>
                     </Box>
                   </Grid2>

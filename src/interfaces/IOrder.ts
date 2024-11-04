@@ -3,10 +3,10 @@ export interface IOrderItem {
     name: string;
     image: string;
     price: number;
-    extinfo: {
-        tier_index: number[];
-        is_pre_order: boolean;
-    };
+    // extinfo: {
+    //     tier_index: number[];
+    //     is_pre_order: boolean;
+    // };
     product_id: string;
     product_name: string;
     quantity: number;

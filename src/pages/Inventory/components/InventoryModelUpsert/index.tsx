@@ -40,7 +40,8 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { createSchema, updateSchema } from '../utils/schema/skuSchema';
+import { createSchema, updateSchema } from '../utils/schema/modelSchema';
+import { IOrderItem } from '@/interfaces/IOrder';
 
 const InventoryModelUpsert = () => {
   const { id } = useParams();
@@ -65,7 +66,7 @@ const InventoryModelUpsert = () => {
 
   const formik = useFormik({
     initialValues: {
-      product_id: '',
+      product: '',
       price: '',
       stock: '',
       extinfo: {
@@ -111,7 +112,7 @@ const InventoryModelUpsert = () => {
   });
   useEffect(() => {
     if (modelData) {
-      formik.setFieldValue('product_id', modelData?.product_id);
+      formik.setFieldValue('product', modelData?.product);
       formik.setFieldValue('price', modelData?.price);
       formik.setFieldValue('stock', modelData?.stock);
       formik.setFieldValue(
@@ -122,7 +123,7 @@ const InventoryModelUpsert = () => {
         'extinfo.is_pre_order',
         modelData?.extinfo?.is_pre_order
       );
-      setProductId(modelData?.product_id);
+      setProductId(modelData?.product);
       setVariant(modelData?.name?.split(','));
     }
   }, [modelData, initData]);
@@ -243,10 +244,10 @@ const InventoryModelUpsert = () => {
               <Select
                 disableUnderline
                 size='small'
-                name='product_id'
+                name='product'
                 disabled={!categoryId}
                 onChange={handleSelectChange}
-                value={formik?.values?.product_id ?? ''}>
+                value={formik?.values?.product ?? ''}>
                 {productsByCategory?.map((item) => (
                   <MenuItem key={item?._id} value={item?._id}>
                     {item?.name}
@@ -255,7 +256,7 @@ const InventoryModelUpsert = () => {
               </Select>
               <FormHelperText>
                 <Box component={'span'} sx={helperTextStyle}>
-                  {formik.errors?.product_id}
+                  {formik.errors?.product}
                 </Box>
               </FormHelperText>
             </FormControl>
