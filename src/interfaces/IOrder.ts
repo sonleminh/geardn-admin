@@ -1,15 +1,12 @@
 export interface IOrderItem {
     model_id: string;
-    name: string;
-    image: string;
-    price: number;
-    // extinfo: {
-    //     tier_index: number[];
-    //     is_pre_order: boolean;
-    // };
     product_id: string;
     product_name: string;
+    // category_id: string;
+    name: string;
+    image: string;
     quantity: number;
+    price: number;
 }
 
 export interface IOrder {

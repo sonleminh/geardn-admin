@@ -56,8 +56,10 @@ const OrderUpsert = () => {
   );
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [isOrderItemEdit, setIsOrderItemEdit] = useState<boolean>(false);
+  const [modelIdEdit, setModelIdEdit] = useState<string>('');
+  const [itemIndex, setItemIndex] = useState<number | null>(null);
 
-  console.log('selectedImage:', selectedImage);
+  console.log('itemIndex:', itemIndex);
   console.log('orderItems:', orderItems);
 
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
@@ -158,6 +160,7 @@ const OrderUpsert = () => {
     const updatedSelectedModel = [...selectedModel];
     updatedSelectedModel[vIndex] = selectedOptionIndex;
     setSelectedModel(updatedSelectedModel);
+    setQuantity('');
   };
 
   const getFilteredOptions = (vIndex: number) => {
@@ -197,8 +200,7 @@ const OrderUpsert = () => {
   //   }
   //   setSelectedModel(updatedSelectedModel);
   // };
-  console.log('selectedModel', selectedModel);
-  const hanleAddOrderItem = () => {
+  const hanleUpsertOrderItem = () => {
     const matchedModel = product?.models?.find(
       (model) =>
         JSON.stringify(model?.extinfo?.tier_index) ===
@@ -215,15 +217,24 @@ const OrderUpsert = () => {
 
     const newItem = {
       model_id: matchedModel?._id ?? '',
-      product_id: productId ?? '',
+      product_id: productId,
       product_name: product?.name ?? '',
+      // category_id: categoryId,
       name: matchedModel?.name ?? '',
       image: itemImage ?? '',
       price: matchedModel?.price ?? 0,
       quantity: +quantity,
     };
+    if (itemIndex) {
+      const updatedOrderItems = [...orderItems];
+      updatedOrderItems[itemIndex] = newItem;
+      setOrderItems(updatedOrderItems);
+      setItemIndex(null);
+    } else {
+      console.log(2);
+      setOrderItems((prev) => [...prev, newItem]);
+    }
 
-    setOrderItems((prev) => [...prev, newItem]);
     setCategoryId('');
     setProductId('');
     setSelectedImage('');
@@ -248,36 +259,50 @@ const OrderUpsert = () => {
       const tierIndex = matchedModel.extinfo.tier_index[0];
       const image =
         product?.tier_variations[0]?.images?.[tierIndex] || product?.images[0];
-      console.log('image:', image);
       setSelectedImage(image ?? '');
     }
   }, [selectedModel, product]);
 
-  const handleEditOrderItem = (item: IOrderItem, index: number) => {
-    // setIsOrderItemEdit(true);
-    // setProductId(item?.product_id);
-    setIsOrderItemEdit(true); // Set edit mode
-    setProductId(item.product_id); // Set productId
-    setCategoryId(item.product_id); // Set categoryId
-
-    // Find the model based on item details to pre-fill variant selections
-    const matchedProduct = productData?.find(
-      (prod) => prod._id === item.product_id
-    );
-    if (matchedProduct) {
-      const selectedModelIndices = matchedProduct.models.find(
-        (model) => model._id === item.model_id
-      )?.extinfo?.tier_index;
-
-      if (selectedModelIndices) {
-        setSelectedModel(selectedModelIndices);
-      }
+  useEffect(() => {
+    if (isOrderItemEdit && product && modelIdEdit) {
+      setSelectedModel(
+        product?.models?.find((item) => item._id === modelIdEdit)?.extinfo
+          .tier_index ?? []
+      );
+      setCategoryId(product?.category?._id);
     }
+  }, [isOrderItemEdit, product, modelIdEdit]);
 
-    setQuantity(item.quantity.toString());
+  const handleEditOrderItem = (item: IOrderItem, index: number) => {
+    setIsOrderItemEdit(true);
+    // setCategoryId(item?.category_id);
+    setProductId(item?.product_id);
+    setModelIdEdit(item?.model_id);
+    setQuantity(`${item?.quantity}`);
+    setItemIndex(index);
+    // setIsOrderItemEdit(true); // Set edit mode
+    // setProductId(item.product_id); // Set productId
+    // setCategoryId(item.product_id); // Set categoryId
+    // // Find the model based on item details to pre-fill variant selections
+    // const matchedProduct = product?.models?.find(
+    //   (model) => model._id === item.product_id
+    // );
+    // if (matchedProduct) {
+    //   const selectedModelIndices = matchedProduct.models.find(
+    //     (model) => model._id === item.model_id
+    //   )?.extinfo?.tier_index;
+    //   if (selectedModelIndices) {
+    //     setSelectedModel(selectedModelIndices);
+    //   }
+    // }
+    // setQuantity(item.quantity.toString());
   };
 
-  console.log('productId:', productId);
+  const handleDeleteOrderItem = (index: number) => {
+    const updatedOrderItems = [...orderItems];
+    updatedOrderItems.splice(index, 1);
+    setOrderItems(updatedOrderItems);
+  };
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -450,6 +475,7 @@ const OrderUpsert = () => {
                   setProductId('');
                   setSelectedModel([]);
                   setSelectedImage('');
+                  setQuantity('');
                 }}
                 value={categoryId ?? ''}>
                 {initData?.categoryList?.map((item: ICategory) => (
@@ -489,6 +515,7 @@ const OrderUpsert = () => {
                   setProductId(e.target.value);
                   setSelectedModel([]);
                   setSelectedImage('');
+                  setQuantity('');
                 }}
                 value={productId}>
                 {productsByCategory?.map((item) => (
@@ -579,8 +606,8 @@ const OrderUpsert = () => {
               />
             </FormControl>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-              <Button variant='contained' onClick={hanleAddOrderItem}>
-                Lưu
+              <Button variant='contained' onClick={hanleUpsertOrderItem}>
+                {isOrderItemEdit ? 'Lưu' : 'Thêm'}
               </Button>
               <Button
                 sx={{
@@ -665,8 +692,7 @@ const OrderUpsert = () => {
                   <Button
                     sx={{ minWidth: 40, width: 40, height: 30 }}
                     variant='outlined'
-                    // onClick={() => handleDeleteVariant(index)}
-                  >
+                    onClick={() => handleDeleteOrderItem(index)}>
                     <DeleteOutlineOutlinedIcon sx={{ fontSize: 20 }} />
                   </Button>
                 </Box>
