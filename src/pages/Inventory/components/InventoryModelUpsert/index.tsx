@@ -1,26 +1,23 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import SuspenseLoader from '@/components/SuspenseLoader';
-
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { useFormik } from 'formik';
-// import {
-//   useCreateModel,
-//   useGetModelById,
-//   useUpdateModel,
-// } from '@/services/Model';
-import Input from '@/components/Input';
-import { QueryKeys } from '@/constants/query-key';
-import { ICategory } from '@/interfaces/ICategory';
+import { useGetProductByCategory, useGetProductById } from '@/services/product';
 import {
   useCreateModel,
   useGetInitialForCreate,
   useGetModelById,
   useUpdateModel,
 } from '@/services/model';
-import { useGetProductByCategory, useGetProductById } from '@/services/product';
+
+import SuspenseLoader from '@/components/SuspenseLoader';
+import Input from '@/components/Input';
+
+import { useFormik } from 'formik';
+import { QueryKeys } from '@/constants/query-key';
+import { ICategory } from '@/interfaces/ICategory';
+
 import {
   Box,
   Button,
@@ -41,7 +38,17 @@ import {
   Typography,
 } from '@mui/material';
 import { createSchema, updateSchema } from '../utils/schema/modelSchema';
-import { IOrderItem } from '@/interfaces/IOrder';
+
+interface IModelPayload {
+  product: string;
+  name?: string;
+  price: string;
+  stock: string;
+  extinfo: {
+    tier_index?: number[];
+    is_pre_order: false;
+  };
+}
 
 const InventoryModelUpsert = () => {
   const { id } = useParams();
@@ -53,6 +60,7 @@ const InventoryModelUpsert = () => {
   const [categoryId, setCategoryId] = useState<string>('');
   const [productId, setProductId] = useState<string>('');
   const [variant, setVariant] = useState<string[]>([]);
+  const [tierIndex, setTierIndex] = useState<number[]>([]);
 
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
   const { data: modelData } = useGetModelById(id as string);
@@ -70,22 +78,27 @@ const InventoryModelUpsert = () => {
       price: '',
       stock: '',
       extinfo: {
-        tier_index: [],
         is_pre_order: false,
       },
-    },
+    } as IModelPayload,
     validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       const payload = {
         ...values,
-        name: variant?.join(),
+        name: product?.sk,
         price: +values.price,
         stock: +values.stock,
-        // extinfo: {
-        //   tier_index: tierIndex,
-        // },
       };
+      if (variant.length) {
+        payload.name = variant.join(',');
+      }
+      if (tierIndex.length) {
+        payload.extinfo.tier_index = tierIndex;
+      } else {
+        delete payload.extinfo.tier_index;
+      }
+
       if (isEdit) {
         updateModelMutate(
           { _id: id, ...payload },
@@ -116,10 +129,6 @@ const InventoryModelUpsert = () => {
       formik.setFieldValue('price', modelData?.price);
       formik.setFieldValue('stock', modelData?.stock);
       formik.setFieldValue(
-        'extinfo.tier_index',
-        modelData?.extinfo?.tier_index
-      );
-      formik.setFieldValue(
         'extinfo.is_pre_order',
         modelData?.extinfo?.is_pre_order
       );
@@ -133,24 +142,30 @@ const InventoryModelUpsert = () => {
     formik.setFieldValue(name, value);
   };
 
-  const handleSelectChange = (e: SelectChangeEvent<string>) => {
+  const handleCategoryChange = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
+    formik.setFieldValue(name, value);
+    setCategoryId(value);
+    setTierIndex([]);
+    setVariant([]);
+    formik.resetForm();
+  };
+
+  const handleProductChange = (e: SelectChangeEvent<string>) => {
     const { name, value } = e.target;
     formik.setFieldValue(name, value);
     setProductId(value);
+    setTierIndex([]);
+    setVariant([]);
+    formik.setFieldValue('price', '');
+    formik.setFieldValue('stock', '');
   };
 
   const handleVariantChange = (e: SelectChangeEvent<string>, index: number) => {
     const { value } = e.target;
-
-    // variants
-
     const updatedVariants = [...variant];
-
     updatedVariants[index] = value;
-
     setVariant(updatedVariants);
-
-    // tier_index
 
     if (product?.tier_variations) {
       const updatedTierIndex: number[] = [
@@ -158,7 +173,7 @@ const InventoryModelUpsert = () => {
       ];
       updatedTierIndex[index] =
         product.tier_variations[index]?.options?.indexOf(value) ?? 0;
-      formik.setFieldValue('extinfo.tier_index', updatedTierIndex);
+      setTierIndex(updatedTierIndex);
     }
   };
 
@@ -209,9 +224,7 @@ const InventoryModelUpsert = () => {
               <Select
                 disableUnderline
                 size='small'
-                onChange={(e) => {
-                  setCategoryId(e?.target?.value as string);
-                }}
+                onChange={handleCategoryChange}
                 value={categoryId ?? ''}>
                 {initData?.categoryList?.map((item: ICategory) => (
                   <MenuItem key={item?._id} value={item?._id}>
@@ -246,7 +259,7 @@ const InventoryModelUpsert = () => {
                 size='small'
                 name='product'
                 disabled={!categoryId}
-                onChange={handleSelectChange}
+                onChange={handleProductChange}
                 value={formik?.values?.product ?? ''}>
                 {productsByCategory?.map((item) => (
                   <MenuItem key={item?._id} value={item?._id}>

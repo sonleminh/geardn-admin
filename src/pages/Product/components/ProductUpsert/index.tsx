@@ -95,7 +95,7 @@ const ProductUpsert = () => {
       category: '',
       tags: [],
       // attributes: [],
-      // sku_name: '',
+      sku_name: '',
       images: [],
       brand: '',
       details: {
@@ -125,6 +125,7 @@ const ProductUpsert = () => {
         details,
         tags: tags,
         tier_variations: variants,
+
         // discount: hasDiscount
         //   ? {
         //       discountPrice: Number(values.discount.discountPrice),
@@ -182,8 +183,8 @@ const ProductUpsert = () => {
       formik.setFieldValue('images', productData?.images);
       formik.setFieldValue('brand', productData?.brand);
       formik.setFieldValue('description', productData?.description);
+      formik.setFieldValue('sku_name', productData?.sku_name);
       // formik.setFieldValue('attributes', productData?.attributes);
-      // formik.setFieldValue('sku_name', productData?.sku_name);
       setTags(productData?.tags);
       setVariants(productData?.tier_variations);
     }
@@ -456,6 +457,23 @@ const ProductUpsert = () => {
                   </Box>
                 }
                 value={formik?.values.brand}
+                onChange={handleChangeValue}
+              />
+            </FormControl>
+          </Grid2>
+          <Grid2 size={6}>
+            <FormControl fullWidth>
+              <Input
+                label='Mã hàng'
+                name='sku_name'
+                variant='filled'
+                size='small'
+                helperText={
+                  <Box component={'span'} sx={helperTextStyle}>
+                    {formik.errors.sku_name}
+                  </Box>
+                }
+                value={formik?.values.sku_name}
                 onChange={handleChangeValue}
               />
             </FormControl>

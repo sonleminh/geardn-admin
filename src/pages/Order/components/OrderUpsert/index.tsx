@@ -61,6 +61,7 @@ const OrderUpsert = () => {
 
   console.log('itemIndex:', itemIndex);
   console.log('orderItems:', orderItems);
+  console.log('categoryId:', categoryId);
 
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
   const { data: modelData } = useGetModelById(id as string);
@@ -119,6 +120,42 @@ const OrderUpsert = () => {
       // }
     },
   });
+
+  useEffect(() => {
+    if (product?.tier_variations.length === 0) {
+      setSelectedImage(product.images[0]);
+      return;
+    }
+
+    // Find the model based on selected indices
+    const matchedModel = product?.models.find((model) =>
+      model.extinfo.tier_index.every(
+        (tierIdx, idx) => tierIdx === selectedModel[idx]
+      )
+    );
+
+    // If an image exists for the selected tier index, use it; otherwise, fallback to the default image
+    if (matchedModel) {
+      const tierIndex = matchedModel.extinfo.tier_index[0];
+      const image =
+        product?.tier_variations[0]?.images?.[tierIndex] || product?.images[0];
+      setSelectedImage(image ?? '');
+    }
+  }, [selectedModel, product]);
+
+  useEffect(() => {
+    if (
+      (isOrderItemEdit && product && modelIdEdit) ||
+      (isOrderItemEdit && product)
+    ) {
+      setSelectedModel(
+        product?.models?.find((item) => item._id === modelIdEdit)?.extinfo
+          .tier_index ?? []
+      );
+      setCategoryId(product?.category?._id);
+    }
+  }, [isOrderItemEdit, product, modelIdEdit]);
+
   // useEffect(() => {
   //   if (modelData) {
   //     formik.setFieldValue('product_id', modelData?.product_id);
@@ -225,13 +262,13 @@ const OrderUpsert = () => {
       price: matchedModel?.price ?? 0,
       quantity: +quantity,
     };
-    if (itemIndex) {
+    if (itemIndex !== null) {
       const updatedOrderItems = [...orderItems];
       updatedOrderItems[itemIndex] = newItem;
+      console.log('updatedOrderItems:', updatedOrderItems);
       setOrderItems(updatedOrderItems);
       setItemIndex(null);
     } else {
-      console.log(2);
       setOrderItems((prev) => [...prev, newItem]);
     }
 
@@ -241,37 +278,14 @@ const OrderUpsert = () => {
     setQuantity('');
   };
 
-  useEffect(() => {
-    if (product?.tier_variations.length === 0) {
-      setSelectedImage(product.images[0]);
-      return;
-    }
-
-    // Find the model based on selected indices
-    const matchedModel = product?.models.find((model) =>
-      model.extinfo.tier_index.every(
-        (tierIdx, idx) => tierIdx === selectedModel[idx]
-      )
-    );
-
-    // If an image exists for the selected tier index, use it; otherwise, fallback to the default image
-    if (matchedModel) {
-      const tierIndex = matchedModel.extinfo.tier_index[0];
-      const image =
-        product?.tier_variations[0]?.images?.[tierIndex] || product?.images[0];
-      setSelectedImage(image ?? '');
-    }
-  }, [selectedModel, product]);
-
-  useEffect(() => {
-    if (isOrderItemEdit && product && modelIdEdit) {
-      setSelectedModel(
-        product?.models?.find((item) => item._id === modelIdEdit)?.extinfo
-          .tier_index ?? []
-      );
-      setCategoryId(product?.category?._id);
-    }
-  }, [isOrderItemEdit, product, modelIdEdit]);
+  const handleCancelUpsertOrderItem = () => {
+    setIsOrderItemEdit(false);
+    setCategoryId('');
+    setProductId('');
+    setSelectedImage('');
+    setModelIdEdit('');
+    setQuantity('');
+  };
 
   const handleEditOrderItem = (item: IOrderItem, index: number) => {
     setIsOrderItemEdit(true);
@@ -610,16 +624,11 @@ const OrderUpsert = () => {
                 {isOrderItemEdit ? 'Lưu' : 'Thêm'}
               </Button>
               <Button
-                sx={{
-                  ml: 2,
-                  textTransform: 'initial',
-                  color: '#fff',
-                  border: '1px solid #D03739',
-                  bgcolor: '#D03739',
-                }}
+                sx={{ ml: 2 }}
                 variant='outlined'
-                size='small'>
-                Xoá
+                disabled={!categoryId || !productId}
+                onClick={handleCancelUpsertOrderItem}>
+                Hủy
               </Button>
             </Box>
           </Grid2>
