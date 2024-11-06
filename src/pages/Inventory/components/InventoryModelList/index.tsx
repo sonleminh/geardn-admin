@@ -39,13 +39,16 @@ import {
   Typography,
 } from '@mui/material';
 import moment from 'moment';
-import { useGetModelByProductId } from '@/services/model';
+import { useDeleteModel, useGetModelByProductId } from '@/services/model';
 import { useGetProductById } from '@/services/product';
 
 const InventoryModelList = () => {
   const { id } = useParams();
-  const queryClient = useQueryClient();
+  console.log(id);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { mutate: deleteModelMutate } = useDeleteModel();
+
   const [query, setQuery] = useState<IQuery>({
     limit: 10,
     page: 1,
@@ -102,6 +105,18 @@ const InventoryModelList = () => {
   //     }
   //   );
   // };
+
+  const handleDeleteModel = (id: string) => {
+    showNotification('Ok', 'success');
+    deleteModelMutate(id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: [QueryKeys.Product],
+        });
+        showNotification('Xóa loại hàng thành công', 'success');
+      },
+    });
+  };
   return (
     <Card sx={{ borderRadius: 2 }}>
       <Card>
@@ -122,7 +137,7 @@ const InventoryModelList = () => {
               </ButtonWithTooltip>
               <ButtonWithTooltip
                 variant='contained'
-                onClick={() => navigate('/inventory/model/create')}
+                onClick={() => navigate(`/inventory/model/create/${id}`)}
                 title='Thêm mã hàng'
                 sx={{ ml: 1 }}>
                 <AddCircleOutlined />
@@ -264,7 +279,7 @@ const InventoryModelList = () => {
                             showConfirmModal({
                               title: 'Bạn có muốn xóa loại này không?',
                               cancelText: 'Hủy',
-                              // onOk: () => handleDeleteProduct(item?._id),
+                              onOk: () => handleDeleteModel(item?._id),
                               okText: 'Xóa',
                             });
                           }}

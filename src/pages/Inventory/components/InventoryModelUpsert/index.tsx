@@ -38,6 +38,7 @@ import {
   Typography,
 } from '@mui/material';
 import { createSchema, updateSchema } from '../utils/schema/modelSchema';
+import axios, { AxiosError } from 'axios';
 
 interface IModelPayload {
   product: string;
@@ -53,6 +54,8 @@ interface IModelPayload {
 const InventoryModelUpsert = () => {
   const { id } = useParams();
   const isEdit = !!id;
+
+  console.log(id);
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -86,7 +89,7 @@ const InventoryModelUpsert = () => {
     onSubmit(values) {
       const payload = {
         ...values,
-        name: product?.sk,
+        sku: product?.sku_name,
         price: +values.price,
         stock: +values.stock,
       };
@@ -110,6 +113,13 @@ const InventoryModelUpsert = () => {
               showNotification('Cập nhật loại hàng thành công', 'success');
               navigate(-1);
             },
+            onError: (err: Error | AxiosError) => {
+              if (axios.isAxiosError(err)) {
+                showNotification(err.response?.data?.message, 'error');
+              } else {
+                showNotification(err.message, 'error');
+              }
+            },
           }
         );
       } else {
@@ -118,6 +128,13 @@ const InventoryModelUpsert = () => {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Model] });
             showNotification('Tạo loại hàng thành công', 'success');
             navigate(-1);
+          },
+          onError: (err: Error | AxiosError) => {
+            if (axios.isAxiosError(err)) {
+              showNotification(err.response?.data?.message, 'error');
+            } else {
+              showNotification(err.message, 'error');
+            }
           },
         });
       }
