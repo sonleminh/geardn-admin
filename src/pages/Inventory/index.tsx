@@ -27,7 +27,7 @@ const Inventory = () => {
           index: true,
         },
         {
-          path: '/model/create',
+          path: '/model/create/:id',
           element: <InventoryModelUpsert />,
           index: true,
         },

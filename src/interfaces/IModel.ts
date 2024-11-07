@@ -12,7 +12,6 @@ export interface IModel {
 }
 
 export interface ICreateModel extends Record<string, unknown>  {
-    product: string;
     name?: string;
     price: number;
     stock: number;
@@ -23,7 +22,6 @@ export interface ICreateModel extends Record<string, unknown>  {
 }
 export interface IUpdateModel{
     _id: string;
-    product: string;
     name?: string;
     price: number;
     stock: number;

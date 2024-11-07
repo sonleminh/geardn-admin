@@ -2,21 +2,21 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
-import { useQueryClient } from '@tanstack/react-query';
-import { useGetProductByCategory, useGetProductById } from '@/services/product';
 import {
   useCreateModel,
-  useGetInitialForCreate,
   useGetModelById,
   useUpdateModel,
 } from '@/services/model';
+import { useGetProductById } from '@/services/product';
+import { useQueryClient } from '@tanstack/react-query';
+import axios, { AxiosError } from 'axios';
 
 import SuspenseLoader from '@/components/SuspenseLoader';
 import Input from '@/components/Input';
 
-import { useFormik } from 'formik';
 import { QueryKeys } from '@/constants/query-key';
-import { ICategory } from '@/interfaces/ICategory';
+import { useFormik } from 'formik';
+import { createSchema, updateSchema } from '../utils/schema/modelSchema';
 
 import {
   Box,
@@ -27,7 +27,6 @@ import {
   Checkbox,
   Divider,
   FormControl,
-  FormHelperText,
   Grid2,
   InputLabel,
   MenuItem,
@@ -37,8 +36,6 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { createSchema, updateSchema } from '../utils/schema/modelSchema';
-import axios, { AxiosError } from 'axios';
 
 interface IModelPayload {
   product: string;
@@ -53,22 +50,18 @@ interface IModelPayload {
 
 const InventoryModelUpsert = () => {
   const { id } = useParams();
-  const isEdit = !!id;
-
-  console.log(id);
+  const isEdit = !!id && !window.location.pathname.includes('create');
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
-  const [categoryId, setCategoryId] = useState<string>('');
-  const [productId, setProductId] = useState<string>('');
   const [variant, setVariant] = useState<string[]>([]);
   const [tierIndex, setTierIndex] = useState<number[]>([]);
 
-  const { data: productsByCategory } = useGetProductByCategory(categoryId);
-  const { data: modelData } = useGetModelById(id as string);
-  const { data: product } = useGetProductById(productId as string);
-  const { data: initData } = useGetInitialForCreate();
+  const { data: modelData } = useGetModelById(isEdit ? (id as string) : '');
+  const { data: product } = useGetProductById(
+    isEdit && modelData ? modelData?.product : !isEdit ? id ?? '' : ''
+  );
 
   const { mutate: createModelMutate, isPending: isCreatePending } =
     useCreateModel();
@@ -77,7 +70,6 @@ const InventoryModelUpsert = () => {
 
   const formik = useFormik({
     initialValues: {
-      product: '',
       price: '',
       stock: '',
       extinfo: {
@@ -89,6 +81,7 @@ const InventoryModelUpsert = () => {
     onSubmit(values) {
       const payload = {
         ...values,
+        product: isEdit ? modelData?.product : id,
         sku: product?.sku_name,
         price: +values.price,
         stock: +values.stock,
@@ -101,7 +94,6 @@ const InventoryModelUpsert = () => {
       } else {
         delete payload.extinfo.tier_index;
       }
-
       if (isEdit) {
         updateModelMutate(
           { _id: id, ...payload },
@@ -149,33 +141,13 @@ const InventoryModelUpsert = () => {
         'extinfo.is_pre_order',
         modelData?.extinfo?.is_pre_order
       );
-      setProductId(modelData?.product);
       setVariant(modelData?.name?.split(','));
     }
-  }, [modelData, initData]);
+  }, [modelData]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     formik.setFieldValue(name, value);
-  };
-
-  const handleCategoryChange = (e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target;
-    formik.setFieldValue(name, value);
-    setCategoryId(value);
-    setTierIndex([]);
-    setVariant([]);
-    formik.resetForm();
-  };
-
-  const handleProductChange = (e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target;
-    formik.setFieldValue(name, value);
-    setProductId(value);
-    setTierIndex([]);
-    setVariant([]);
-    formik.setFieldValue('price', '');
-    formik.setFieldValue('stock', '');
   };
 
   const handleVariantChange = (e: SelectChangeEvent<string>, index: number) => {
@@ -204,94 +176,13 @@ const InventoryModelUpsert = () => {
       <CardHeader
         title={
           <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            {isEdit ? 'Sửa phân loại' : 'Thêm phân loại'}:{' '}
-            {isEdit && modelData?.name}
+            {isEdit ? 'Sửa phân loại' : 'Thêm phân loại'}: {product?.name}
           </Typography>
         }
       />
       <Divider />
 
       <CardContent>
-        {!isEdit && (
-          <>
-            <FormControl
-              variant='filled'
-              fullWidth
-              sx={{
-                mb: 2,
-                '& .MuiFilledInput-root': {
-                  overflow: 'hidden',
-                  borderRadius: 1,
-                  backgroundColor: '#fff !important',
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.23)',
-                  '&:hover': {
-                    backgroundColor: 'transparent',
-                  },
-                  '&.Mui-focused': {
-                    backgroundColor: 'transparent',
-                    border: '2px solid',
-                  },
-                },
-                '& .MuiInputLabel-asterisk': {
-                  color: 'red',
-                },
-              }}>
-              <InputLabel>Danh mục</InputLabel>
-              <Select
-                disableUnderline
-                size='small'
-                onChange={handleCategoryChange}
-                value={categoryId ?? ''}>
-                {initData?.categoryList?.map((item: ICategory) => (
-                  <MenuItem key={item?._id} value={item?._id}>
-                    {item?.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl
-              variant='filled'
-              fullWidth
-              sx={{
-                mb: 2,
-                '& .MuiFilledInput-root': {
-                  overflow: 'hidden',
-                  borderRadius: 1,
-                  backgroundColor: categoryId ? '#fff' : '',
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.23)',
-
-                  '&.Mui-focused': {
-                    border: '2px solid',
-                  },
-                },
-                '& .MuiInputLabel-asterisk': {
-                  color: 'red',
-                },
-              }}>
-              <InputLabel>Sản phẩm</InputLabel>
-              <Select
-                disableUnderline
-                size='small'
-                name='product'
-                disabled={!categoryId}
-                onChange={handleProductChange}
-                value={formik?.values?.product ?? ''}>
-                {productsByCategory?.map((item) => (
-                  <MenuItem key={item?._id} value={item?._id}>
-                    {item?.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              <FormHelperText>
-                <Box component={'span'} sx={helperTextStyle}>
-                  {formik.errors?.product}
-                </Box>
-              </FormHelperText>
-            </FormControl>
-          </>
-        )}
         <Grid2 container rowSpacing={2} columnSpacing={4}>
           {product?.tier_variations?.map((item, index) => (
             <Grid2 key={item?.name} size={6}>

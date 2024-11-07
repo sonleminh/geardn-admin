@@ -1,28 +1,30 @@
 import { ChangeEvent, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { QueryKeys } from '@/constants/query-key';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+
 import { useQueryClient } from '@tanstack/react-query';
 
-import { AddCircleOutlined } from '@mui/icons-material';
+import { useGetProductById } from '@/services/product';
+import { useDeleteModel } from '@/services/model';
+
+import useConfirmModal from '@/hooks/useModalConfirm';
 
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import Input from '@/components/Input';
-// import { Model_STATUS } from '@/constants/Model-status';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import useConfirmModal from '@/hooks/useModalConfirm';
+
 import { IQuery } from '@/interfaces/IQuery';
-// import {
-//   useDeleteProductModel,
-//   useGetModelByProductId
-// } from '@/services/model';
+import { QueryKeys } from '@/constants/query-key';
+
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
-import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
+import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
+import { AddCircleOutlined } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -39,12 +41,9 @@ import {
   Typography,
 } from '@mui/material';
 import moment from 'moment';
-import { useDeleteModel, useGetModelByProductId } from '@/services/model';
-import { useGetProductById } from '@/services/product';
 
 const InventoryModelList = () => {
   const { id } = useParams();
-  console.log(id);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { mutate: deleteModelMutate } = useDeleteModel();
