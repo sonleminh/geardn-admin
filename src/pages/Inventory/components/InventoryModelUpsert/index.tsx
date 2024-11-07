@@ -63,6 +63,8 @@ const InventoryModelUpsert = () => {
     isEdit && modelData ? modelData?.product : !isEdit ? id ?? '' : ''
   );
 
+  console.log('tierIndex:', tierIndex);
+
   const { mutate: createModelMutate, isPending: isCreatePending } =
     useCreateModel();
   const { mutate: updateModelMutate, isPending: isUpdatePending } =
@@ -157,9 +159,7 @@ const InventoryModelUpsert = () => {
     setVariant(updatedVariants);
 
     if (product?.tier_variations) {
-      const updatedTierIndex: number[] = [
-        ...(formik.values.extinfo?.tier_index || []),
-      ];
+      const updatedTierIndex: number[] = [...(tierIndex || [])];
       updatedTierIndex[index] =
         product.tier_variations[index]?.options?.indexOf(value) ?? 0;
       setTierIndex(updatedTierIndex);
