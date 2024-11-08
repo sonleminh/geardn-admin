@@ -11,11 +11,11 @@ export interface ITagOptions {
     label: string;
 }
 
-interface IDiscount {
-    discountPrice?: number | string;
-    startDate?: string;
-    endDate?: string;
-}
+// interface IDiscount {
+//     discountPrice?: number | string;
+//     startDate?: string;
+//     endDate?: string;
+// }
 
 interface IDetails {
     guarantee?: number | string;
@@ -77,6 +77,7 @@ export interface IProductPayload extends Record<string, unknown>  {
     tags: ITagOptions[];
     category: string;
     images: string[];
+    sku_name: string;
     brand: string;
     // attributes?: string[];  
     // sku_name: string;

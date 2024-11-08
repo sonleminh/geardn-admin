@@ -316,7 +316,7 @@ const ProductUpsert = () => {
 
   const handleDeleteVariant = (variantIndex: number) => {
     setShowVariantForm(true);
-    setVariants(variants?.filter((item, index) => index !== variantIndex));
+    setVariants(variants?.filter((_, index) => index !== variantIndex));
   };
 
   return (

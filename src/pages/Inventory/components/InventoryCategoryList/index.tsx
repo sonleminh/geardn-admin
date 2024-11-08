@@ -28,22 +28,22 @@ import moment from 'moment';
 
 const InventoryCategoryList = () => {
   const { id } = useParams();
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [query, setQuery] = useState<IQuery>({
-    limit: 10,
-    page: 1,
-  });
+  // const [query, setQuery] = useState<IQuery>({
+  //   limit: 10,
+  //   page: 1,
+  // });
 
   const { data: productList } = useGetProductByCategory(id ?? '');
 
-  const { showNotification } = useNotificationContext();
+  // const { showNotification } = useNotificationContext();
 
   const { confirmModal } = useConfirmModal();
 
-  const handleChangeQuery = (object: Partial<IQuery>) => {
-    setQuery((prev) => ({ ...prev, ...object }));
-  };
+  // const handleChangeQuery = (object: Partial<IQuery>) => {
+  //   setQuery((prev) => ({ ...prev, ...object }));
+  // };
 
   return (
     <Card sx={{ borderRadius: 2 }}>

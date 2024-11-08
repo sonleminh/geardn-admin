@@ -48,10 +48,10 @@ const InventoryModelList = () => {
   const queryClient = useQueryClient();
   const { mutate: deleteModelMutate } = useDeleteModel();
 
-  const [query, setQuery] = useState<IQuery>({
-    limit: 10,
-    page: 1,
-  });
+  // const [query, setQuery] = useState<IQuery>({
+  //   limit: 10,
+  //   page: 1,
+  // });
   const [modelEdit, setModelEdit] = useState<string>('');
   const [modelEditForm, setModelEditForm] = useState<{
     price: number;
@@ -79,9 +79,9 @@ const InventoryModelList = () => {
   //   });
   // };
 
-  const handleChangeQuery = (object: Partial<IQuery>) => {
-    setQuery((prev) => ({ ...prev, ...object }));
-  };
+  // const handleChangeQuery = (object: Partial<IQuery>) => {
+  //   setQuery((prev) => ({ ...prev, ...object }));
+  // };
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

@@ -354,7 +354,7 @@ export default function ProductList() {
     useGetProductByCategory(category);
 
   const handleRequestSort = (
-    event: React.MouseEvent<unknown>,
+    _: React.MouseEvent<unknown> | null,
     property: keyof Data
   ) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -375,7 +375,7 @@ export default function ProductList() {
     setSelected([]);
   };
 
-  const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
+  const handleClick = (_: React.MouseEvent<unknown>, id: string) => {
     const selectedIndex = selected.indexOf(id);
     let newSelected: string[] = [];
 
@@ -394,8 +394,11 @@ export default function ProductList() {
     setSelected(newSelected);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setQuery((prev) => ({ ...prev, ...{ page: newPage } }));
+  const handleChangePage = (
+    _: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => {
+    setQuery((prev) => ({ ...prev, page: newPage }));
   };
 
   const handleChangeRowsPerPage = (

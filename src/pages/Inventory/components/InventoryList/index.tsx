@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
 
-import { AddCircleOutlined } from '@mui/icons-material';
-
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
@@ -29,7 +27,7 @@ import {
 import moment from 'moment';
 
 const InventoryList = () => {
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [query, setQuery] = useState<IQuery>({
     limit: 10,

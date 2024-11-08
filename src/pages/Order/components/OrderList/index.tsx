@@ -6,21 +6,18 @@ import { useQueryClient } from '@tanstack/react-query';
 import { AddCircleOutlined } from '@mui/icons-material';
 
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import { ORDER_STATUS } from '@/constants/order-status';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
+import { IOrderItem } from '@/interfaces/IOrder';
 import { IQuery } from '@/interfaces/IQuery';
-import { useGetCategoryList } from '@/services/category';
-import { truncateTextByLine } from '@/utils/css-helper.util';
-import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
+import { useGetOrderList } from '@/services/order';
+import { formatPrice } from '@/utils/format-price';
 import {
   Box,
   Card,
   CardHeader,
-  Checkbox,
   Divider,
-  IconButton,
-  Pagination,
-  Paper,
   Tab,
   Table,
   TableBody,
@@ -32,17 +29,10 @@ import {
   TableSortLabel,
   Tabs,
   TextField,
-  Toolbar,
-  Tooltip,
   Typography,
-  alpha,
 } from '@mui/material';
-import moment from 'moment';
-import { useGetOrderList } from '@/services/order';
 import { visuallyHidden } from '@mui/utils';
-import { IOrderItem } from '@/interfaces/IOrder';
-import { ORDER_STATUS } from '@/constants/order-status';
-import { formatPrice } from '@/utils/format-price';
+import moment from 'moment';
 
 interface TabPanelProps {
   children?: React.ReactNode;

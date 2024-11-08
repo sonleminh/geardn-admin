@@ -59,9 +59,9 @@ const OrderUpsert = () => {
   const [modelIdEdit, setModelIdEdit] = useState<string>('');
   const [itemIndex, setItemIndex] = useState<number | null>(null);
 
-  console.log('itemIndex:', itemIndex);
+  // console.log('itemIndex:', itemIndex);
   console.log('orderItems:', orderItems);
-  console.log('categoryId:', categoryId);
+  // console.log('categoryId:', categoryId);
 
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
   const { data: modelData } = useGetModelById(id as string);
@@ -129,16 +129,17 @@ const OrderUpsert = () => {
 
     // Find the model based on selected indices
     const matchedModel = product?.models.find((model) =>
-      model.extinfo.tier_index.every(
+      model?.extinfo?.tier_index?.every(
         (tierIdx, idx) => tierIdx === selectedModel[idx]
       )
     );
 
     // If an image exists for the selected tier index, use it; otherwise, fallback to the default image
     if (matchedModel) {
-      const tierIndex = matchedModel.extinfo.tier_index[0];
+      const tierIndex = matchedModel?.extinfo?.tier_index?.[0];
       const image =
-        product?.tier_variations[0]?.images?.[tierIndex] || product?.images[0];
+        product?.tier_variations[0]?.images?.[tierIndex ?? 0] ||
+        product?.images[0];
       setSelectedImage(image ?? '');
     }
   }, [selectedModel, product]);
@@ -179,16 +180,16 @@ const OrderUpsert = () => {
     formik.setFieldValue(name, value);
   };
 
-  const handleSelectChange = (e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target;
-    formik.setFieldValue(name, value);
-    setProductId(value);
-  };
+  // const handleSelectChange = (e: SelectChangeEvent<string>) => {
+  //   const { name, value } = e.target;
+  //   formik.setFieldValue(name, value);
+  //   setProductId(value);
+  // };
 
-  const handleIsPreOrderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    formik.setFieldValue(name, checked);
-  };
+  // const handleIsPreOrderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const { name, checked } = e.target;
+  //   formik.setFieldValue(name, checked);
+  // };
 
   const handleVariantChange = (event: SelectChangeEvent, vIndex: number) => {
     const selectedOptionIndex = product?.tier_variations[
@@ -206,7 +207,7 @@ const OrderUpsert = () => {
       return (
         product?.tier_variations[vIndex].options.filter((_, optionIndex) =>
           product.models.some(
-            (model) => model.extinfo.tier_index[0] === optionIndex
+            (model) => model?.extinfo?.tier_index?.[0] === optionIndex
           )
         ) ?? []
       );
@@ -217,9 +218,9 @@ const OrderUpsert = () => {
       product?.tier_variations[vIndex]?.options.filter((_, optionIndex) =>
         product.models.some(
           (model) =>
-            model.extinfo.tier_index[vIndex - 1] ===
-              selectedModel[vIndex - 1] &&
-            model.extinfo.tier_index[vIndex] === optionIndex
+            model?.extinfo?.tier_index?.[vIndex - 1] ===
+              selectedModel?.[vIndex - 1] &&
+            model?.extinfo?.tier_index?.[vIndex] === optionIndex
         )
       ) ?? []
     );
@@ -244,38 +245,39 @@ const OrderUpsert = () => {
         JSON.stringify(selectedModel)
     );
 
-    const itemImage =
-      // product?.tier_variations &&
-      product?.tier_variations && product?.tier_variations?.length > 0
-        ? product?.tier_variations?.[0]?.images?.[
-            matchedModel?.extinfo?.tier_index?.[0] ?? 0
-          ]
-        : product?.images?.[0];
+    console.log('macthedModel', matchedModel);
 
-    const newItem = {
-      model_id: matchedModel?._id ?? '',
-      product_id: productId,
-      product_name: product?.name ?? '',
-      // category_id: categoryId,
-      name: matchedModel?.name ?? '',
-      image: itemImage ?? '',
-      price: matchedModel?.price ?? 0,
-      quantity: +quantity,
-    };
-    if (itemIndex !== null) {
-      const updatedOrderItems = [...orderItems];
-      updatedOrderItems[itemIndex] = newItem;
-      console.log('updatedOrderItems:', updatedOrderItems);
-      setOrderItems(updatedOrderItems);
-      setItemIndex(null);
-    } else {
-      setOrderItems((prev) => [...prev, newItem]);
-    }
+    // const itemImage =
+    //   // product?.tier_variations &&
+    //   product?.tier_variations && product?.tier_variations?.length > 0
+    //     ? product?.tier_variations?.[0]?.images?.[
+    //         matchedModel?.extinfo?.tier_index?.[0] ?? 0
+    //       ]
+    //     : product?.images?.[0];
 
-    setCategoryId('');
-    setProductId('');
-    setSelectedImage('');
-    setQuantity('');
+    // const newItem = {
+    //   model_id: matchedModel?._id ?? '',
+    //   product_id: productId,
+    //   product_name: product?.name ?? '',
+    //   // category_id: categoryId,
+    //   name: matchedModel?.name ?? '',
+    //   image: itemImage ?? '',
+    //   price: matchedModel?.price ?? 0,
+    //   quantity: +quantity,
+    // };
+    // if (itemIndex !== null) {
+    //   const updatedOrderItems = [...orderItems];
+    //   updatedOrderItems[itemIndex] = newItem;
+    //   setOrderItems(updatedOrderItems);
+    //   setItemIndex(null);
+    // } else {
+    //   setOrderItems((prev) => [...prev, newItem]);
+    // }
+
+    // setCategoryId('');
+    // setProductId('');
+    // setSelectedImage('');
+    // setQuantity('');
   };
 
   const handleCancelUpsertOrderItem = () => {
