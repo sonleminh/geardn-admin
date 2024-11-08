@@ -36,6 +36,7 @@ export interface IProduct {
     sku_name: string;
     brand: string;
     details: IDetails;
+    original_price: number;
     description: string;
     createdAt: string;
 }

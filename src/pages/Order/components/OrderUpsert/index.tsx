@@ -314,11 +314,29 @@ const OrderUpsert = () => {
     // setQuantity(item.quantity.toString());
   };
 
+  console.log(!!0);
+
   const handleDeleteOrderItem = (index: number) => {
     const updatedOrderItems = [...orderItems];
     updatedOrderItems.splice(index, 1);
     setOrderItems(updatedOrderItems);
   };
+
+  function showOrderItemStock() {
+    // if (product && selectedModel.length > 0) {
+    //   const matchedModel = product?.models?.find(
+    //     (model) =>
+    //       JSON.stringify(model?.extinfo?.tier_index) ===
+    //       JSON.stringify(selectedModel)
+    //   );
+    //   return matchedModel?.stock;
+    // } else if (product && selectedModel.length === 0) {
+    //   return product?.models?.[0]?.stock;
+    // } else {
+    //   return null;
+    // }
+  }
+  console.log(selectedModel);
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -535,8 +553,11 @@ const OrderUpsert = () => {
                 }}
                 value={productId}>
                 {productsByCategory?.map((item) => (
-                  <MenuItem key={item?._id} value={item?._id}>
-                    {item?.name}
+                  <MenuItem
+                    key={item?._id}
+                    value={item?._id}
+                    disabled={!item?.original_price}>
+                    {item?.name} {!item?.original_price && '- (Hết hàng)'}
                   </MenuItem>
                 ))}
               </Select>
@@ -605,6 +626,7 @@ const OrderUpsert = () => {
                 }}
               />
             )}
+            {showOrderItemStock()}
             <FormControl fullWidth>
               <Input
                 label='Số lượng'
