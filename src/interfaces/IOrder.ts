@@ -27,3 +27,14 @@ export interface IOrder {
     receive_option: string;
     createdAt: Date;
 }
+
+export interface ICreateOrder extends Record<string, unknown>  {
+    name?: string;
+    items: IOrderItem[]
+}
+export interface IUpdateOrder{
+    _id: string;
+    name?: string;
+    items: IOrderItem[]
+}
+  

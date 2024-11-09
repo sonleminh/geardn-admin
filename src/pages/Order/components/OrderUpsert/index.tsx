@@ -32,6 +32,7 @@ import {
   Select,
   SelectChangeEvent,
   SxProps,
+  TextField,
   Theme,
   Typography,
 } from '@mui/material';
@@ -39,6 +40,7 @@ import { createSchema, updateSchema } from '../utils/schema/skuSchema';
 import { IOrderItem } from '@/interfaces/IOrder';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import { useCreateOrder } from '@/services/order';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -60,7 +62,7 @@ const OrderUpsert = () => {
   const [itemIndex, setItemIndex] = useState<number | null>(null);
 
   // console.log('itemIndex:', itemIndex);
-  console.log('orderItems:', orderItems);
+  // console.log('orderItems:', orderItems);
   // console.log('categoryId:', categoryId);
 
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
@@ -68,10 +70,10 @@ const OrderUpsert = () => {
   const { data: product } = useGetProductById(productId as string);
   const { data: initData } = useGetInitialForCreate();
 
-  const { mutate: createModelMutate, isPending: isCreatePending } =
-    useCreateModel();
-  const { mutate: updateModelMutate, isPending: isUpdatePending } =
-    useUpdateModel();
+  const { mutate: createOrderMutate, isPending: isCreatePending } =
+    useCreateOrder();
+  // const { mutate: updateOrderMutate, isPending: isUpdatePending } =
+  //   useUpdateOrder();
 
   const formik = useFormik({
     initialValues: {
@@ -79,45 +81,47 @@ const OrderUpsert = () => {
       phone: '',
       email: '',
       items: '',
-      extinfo: {
-        tier_index: [],
-        is_pre_order: false,
-      },
     },
-    validationSchema: isEdit ? updateSchema : createSchema,
+    // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      // const payload = {
-      //   ...values,
-      //   name: variant?.join(),
-      //   price: +values.price,
-      //   stock: +values.stock,
-      //   // extinfo: {
-      //   //   tier_index: tierIndex,
-      //   // },
-      // };
-      // if (isEdit) {
-      //   updateModelMutate(
-      //     { _id: id, ...payload },
-      //     {
-      //       onSuccess() {
-      //         queryClient.invalidateQueries({
-      //           queryKey: [QueryKeys.Model],
-      //         });
-      //         showNotification('Cập nhật loại hàng thành công', 'success');
-      //         navigate(-1);
-      //       },
-      //     }
-      //   );
-      // } else {
-      //   createModelMutate(payload, {
-      //     onSuccess() {
-      //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Model] });
-      //       showNotification('Tạo loại hàng thành công', 'success');
-      //       navigate(-1);
-      //     },
-      //   });
-      // }
+      const payload = {
+        ...values,
+        name: 'cc',
+        phone: '0789',
+        items: orderItems,
+        receive_option: 'COD',
+        total_amount: 20000,
+        // name: variant?.join(),
+        // price: +values.price,
+        // stock: +values.stock,
+        // extinfo: {
+        //   tier_index: tierIndex,
+        // },
+      };
+      console.log(payload);
+      if (isEdit) {
+        // updateModelMutate(
+        //   { _id: id, ...payload },
+        //   {
+        //     onSuccess() {
+        //       queryClient.invalidateQueries({
+        //         queryKey: [QueryKeys.Model],
+        //       });
+        //       showNotification('Cập nhật loại hàng thành công', 'success');
+        //       navigate(-1);
+        //     },
+        //   }
+        // );
+      } else {
+        createOrderMutate(payload, {
+          onSuccess() {
+            queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
+            showNotification('Tạo đơn hàng thành công', 'success');
+            // navigate(-1);
+          },
+        });
+      }
     },
   });
 
@@ -198,6 +202,7 @@ const OrderUpsert = () => {
     const updatedSelectedModel = [...selectedModel];
     updatedSelectedModel[vIndex] = selectedOptionIndex;
     setSelectedModel(updatedSelectedModel);
+    setSelectedImage('');
     setQuantity('');
   };
 
@@ -239,45 +244,53 @@ const OrderUpsert = () => {
   //   setSelectedModel(updatedSelectedModel);
   // };
   const hanleUpsertOrderItem = () => {
-    const matchedModel = product?.models?.find(
-      (model) =>
-        JSON.stringify(model?.extinfo?.tier_index) ===
-        JSON.stringify(selectedModel)
-    );
+    let matchedModel;
+    if (!product?.tier_variations?.length) {
+      matchedModel = product?.models[0];
+    } else {
+      matchedModel = product?.models?.find(
+        (model) =>
+          JSON.stringify(model?.extinfo?.tier_index) ===
+          JSON.stringify(selectedModel)
+      );
+    }
 
-    console.log('macthedModel', matchedModel);
+    // console.log(matchedModel);
 
-    // const itemImage =
-    //   // product?.tier_variations &&
-    //   product?.tier_variations && product?.tier_variations?.length > 0
-    //     ? product?.tier_variations?.[0]?.images?.[
-    //         matchedModel?.extinfo?.tier_index?.[0] ?? 0
-    //       ]
-    //     : product?.images?.[0];
+    if (
+      !isOrderItemEdit &&
+      orderItems?.find((item) => item?.model_id === matchedModel?._id)
+    ) {
+      return showNotification('Sản phẩm đã có trong danh sách!', 'error');
+    }
 
-    // const newItem = {
-    //   model_id: matchedModel?._id ?? '',
-    //   product_id: productId,
-    //   product_name: product?.name ?? '',
-    //   // category_id: categoryId,
-    //   name: matchedModel?.name ?? '',
-    //   image: itemImage ?? '',
-    //   price: matchedModel?.price ?? 0,
-    //   quantity: +quantity,
-    // };
-    // if (itemIndex !== null) {
-    //   const updatedOrderItems = [...orderItems];
-    //   updatedOrderItems[itemIndex] = newItem;
-    //   setOrderItems(updatedOrderItems);
-    //   setItemIndex(null);
-    // } else {
-    //   setOrderItems((prev) => [...prev, newItem]);
-    // }
+    if (matchedModel && +quantity > matchedModel?.stock) {
+      return showNotification('Số lượng vượt quá hàng trong kho!!', 'error');
+    }
 
-    // setCategoryId('');
-    // setProductId('');
-    // setSelectedImage('');
-    // setQuantity('');
+    const newItem = {
+      model_id: matchedModel?._id ?? '',
+      product_id: productId,
+      product_name: product?.name ?? '',
+      // category_id: categoryId,
+      name: matchedModel?.name ?? '',
+      image: selectedImage,
+      price: matchedModel?.price ?? 0,
+      quantity: +quantity,
+    };
+    if (itemIndex !== null) {
+      const updatedOrderItems = [...orderItems];
+      updatedOrderItems[itemIndex] = newItem;
+      setOrderItems(updatedOrderItems);
+      setItemIndex(null);
+    } else {
+      setOrderItems((prev) => [...prev, newItem]);
+    }
+
+    setCategoryId('');
+    setProductId('');
+    setSelectedImage('');
+    setQuantity('');
   };
 
   const handleCancelUpsertOrderItem = () => {
@@ -314,8 +327,6 @@ const OrderUpsert = () => {
     // setQuantity(item.quantity.toString());
   };
 
-  console.log(!!0);
-
   const handleDeleteOrderItem = (index: number) => {
     const updatedOrderItems = [...orderItems];
     updatedOrderItems.splice(index, 1);
@@ -323,20 +334,25 @@ const OrderUpsert = () => {
   };
 
   function showOrderItemStock() {
-    // if (product && selectedModel.length > 0) {
-    //   const matchedModel = product?.models?.find(
-    //     (model) =>
-    //       JSON.stringify(model?.extinfo?.tier_index) ===
-    //       JSON.stringify(selectedModel)
-    //   );
-    //   return matchedModel?.stock;
-    // } else if (product && selectedModel.length === 0) {
-    //   return product?.models?.[0]?.stock;
-    // } else {
-    //   return null;
-    // }
+    if (product && selectedModel.length > 0) {
+      const matchedModel = product?.models?.find(
+        (model) =>
+          JSON.stringify(model?.extinfo?.tier_index) ===
+          JSON.stringify(selectedModel)
+      );
+      return matchedModel?.stock;
+    } else if (
+      product &&
+      selectedModel.length === 0 &&
+      product?.models?.length === 1
+    ) {
+      return product?.models?.[0]?.stock;
+    } else {
+      return null;
+    }
   }
-  console.log(selectedModel);
+  // console.log('slt:', selectedModel);
+  // console.log(!!product?.tier_variations?.length && !!selectedModel?.length);
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -556,7 +572,14 @@ const OrderUpsert = () => {
                   <MenuItem
                     key={item?._id}
                     value={item?._id}
-                    disabled={!item?.original_price}>
+                    disabled={
+                      !item?.original_price
+                      //  ||
+                      // orderItems?.find((orderItem) =>
+                      //   item?.models?.some(
+                      //     (item) => item._id === orderItem?.model_id
+                      //   )
+                    }>
                     {item?.name} {!item?.original_price && '- (Hết hàng)'}
                   </MenuItem>
                 ))}
@@ -614,19 +637,33 @@ const OrderUpsert = () => {
                 </Select>
               </FormControl>
             ))}
-            {selectedImage && (
-              <img
-                src={selectedImage}
-                alt=''
-                style={{
-                  width: '100%',
-                  maxWidth: '100px',
-                  marginBottom: '8px',
-                  borderRadius: '8px',
-                }}
-              />
+            {categoryId && productId && (
+              <Box>
+                <Grid2 container spacing={4} mb={1}>
+                  <Grid2 sx={{ display: 'flex' }} size={6}>
+                    <Typography mr={2}>Ảnh:</Typography>
+                    {selectedImage && (
+                      <img
+                        src={selectedImage}
+                        alt=''
+                        style={{
+                          width: '100%',
+                          maxWidth: '80px',
+                          height: '80px',
+                          marginBottom: '4px',
+                          borderRadius: '4px',
+                          border: '1px solid #ccc',
+                          objectFit: 'contain',
+                        }}
+                      />
+                    )}
+                  </Grid2>
+                  <Grid2 size={6}>
+                    <Typography>Kho: {showOrderItemStock()}</Typography>
+                  </Grid2>
+                </Grid2>
+              </Box>
             )}
-            {showOrderItemStock()}
             <FormControl fullWidth>
               <Input
                 label='Số lượng'
@@ -644,7 +681,10 @@ const OrderUpsert = () => {
               />
             </FormControl>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-              <Button variant='contained' onClick={hanleUpsertOrderItem}>
+              <Button
+                variant='contained'
+                onClick={hanleUpsertOrderItem}
+                disabled={!selectedImage || !quantity}>
                 {isOrderItemEdit ? 'Lưu' : 'Thêm'}
               </Button>
               <Button
@@ -742,7 +782,7 @@ const OrderUpsert = () => {
           </Button>
         </Box>
       </CardContent>
-      {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
+      {/* {(isCreatePending || isUpdatePending) && <SuspenseLoader />} */}
     </Card>
   );
 };

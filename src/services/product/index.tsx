@@ -15,7 +15,7 @@ import queryString from 'query-string';
 import { ICategory } from '@/interfaces/ICategory';
 
 type TProductsRes = {
-  productList: IProduct[];
+  products: IProduct[];
   categories: ICategory[];
   total: number;
 };

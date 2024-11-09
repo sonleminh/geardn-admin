@@ -364,7 +364,7 @@ export default function ProductList() {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = (productByCategory ?? data?.productList)?.map(
+      const newSelected = (productByCategory ?? data?.products)?.map(
         (n) => n?._id
       );
       if (newSelected) {
@@ -421,7 +421,7 @@ export default function ProductList() {
 
   const rows = useMemo(
     () =>
-      (productByCategory ?? data?.productList)?.map((product, index) => ({
+      (productByCategory ?? data?.products)?.map((product, index) => ({
         stt: index + 1,
         _id: product._id,
         name: product.name,
@@ -442,7 +442,7 @@ export default function ProductList() {
   };
 
   const handleDetailClick = (row: Data) => {
-    const detailPrd = data?.productList?.find((prd) => prd.name === row.name);
+    const detailPrd = data?.products?.find((prd) => prd.name === row.name);
     showConfirmModal({
       title: (
         <Typography sx={{ fontSize: 20, fontWeight: 'bold' }}>

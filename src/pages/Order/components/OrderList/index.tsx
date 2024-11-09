@@ -33,6 +33,9 @@ import {
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
 import moment from 'moment';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import ActionButton from '@/components/ActionButton';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -333,30 +336,31 @@ const OrderList = () => {
                             align='center'
                             sx={{ width: '10%', height: 80 }}>
                             <Box onClick={(e) => e.stopPropagation()}>
-                              {/* <ActionButton>
-                                  <Box mb={1}>
-                                    <ButtonWithTooltip
-                                      color='primary'
-                                      variant='outlined'
-                                      title='Chi tiết'
-                                      placement='left'
-                                      onClick={() => handleDetailClick(row)}>
-                                      <InfoOutlinedIcon />
-                                    </ButtonWithTooltip>
-                                  </Box>
-                                  <Box mb={1}>
-                                    <ButtonWithTooltip
-                                      color='primary'
-                                      onClick={() =>
-                                        navigate(`update/${row?._id}`)
-                                      }
-                                      variant='outlined'
-                                      title='Chỉnh sửa'
-                                      placement='left'>
-                                      <EditOutlinedIcon />
-                                    </ButtonWithTooltip>
-                                  </Box>
-                                </ActionButton> */}
+                              <ActionButton>
+                                <Box mb={1}>
+                                  <ButtonWithTooltip
+                                    color='primary'
+                                    variant='outlined'
+                                    title='Chi tiết'
+                                    placement='left'
+                                    // onClick={() => handleDetailClick(row)}
+                                  >
+                                    <InfoOutlinedIcon />
+                                  </ButtonWithTooltip>
+                                </Box>
+                                <Box mb={1}>
+                                  <ButtonWithTooltip
+                                    color='primary'
+                                    onClick={() =>
+                                      navigate(`update/${row?._id}`)
+                                    }
+                                    variant='outlined'
+                                    title='Chỉnh sửa'
+                                    placement='left'>
+                                    <EditOutlinedIcon />
+                                  </ButtonWithTooltip>
+                                </Box>
+                              </ActionButton>
                             </Box>
                           </TableCell>
                         </TableRow>
