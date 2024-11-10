@@ -39,3 +39,18 @@ export const useGetOrderList = (query: IQuery) => {
     refetchInterval: false,
   });
 };
+
+const getOrderById = async (id: string) => {
+  const result = await getRequest(`${orderUrl}/${id}`);
+  return result.data as IOrder;
+};
+
+export const useGetOrderById = (id: string) => {
+  return useQuery({
+    queryKey: [QueryKeys.Order, id],
+    queryFn: () => getOrderById(id),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    enabled: !!id,
+  });
+};

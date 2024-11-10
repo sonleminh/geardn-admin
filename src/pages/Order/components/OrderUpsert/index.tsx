@@ -40,7 +40,7 @@ import { createSchema, updateSchema } from '../utils/schema/skuSchema';
 import { IOrderItem } from '@/interfaces/IOrder';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import { useCreateOrder } from '@/services/order';
+import { useCreateOrder, useGetOrderById } from '@/services/order';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -65,8 +65,9 @@ const OrderUpsert = () => {
   // console.log('orderItems:', orderItems);
   // console.log('categoryId:', categoryId);
 
+  const { data: orderData } = useGetOrderById(id as string);
+  console.log('order:', orderData);
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
-  const { data: modelData } = useGetModelById(id as string);
   const { data: product } = useGetProductById(productId as string);
   const { data: initData } = useGetInitialForCreate();
 
@@ -161,23 +162,25 @@ const OrderUpsert = () => {
     }
   }, [isOrderItemEdit, product, modelIdEdit]);
 
-  // useEffect(() => {
-  //   if (modelData) {
-  //     formik.setFieldValue('product_id', modelData?.product_id);
-  //     formik.setFieldValue('price', modelData?.price);
-  //     formik.setFieldValue('stock', modelData?.stock);
-  //     formik.setFieldValue(
-  //       'extinfo.tier_index',
-  //       modelData?.extinfo?.tier_index
-  //     );
-  //     formik.setFieldValue(
-  //       'extinfo.is_pre_order',
-  //       modelData?.extinfo?.is_pre_order
-  //     );
-  //     setProductId(modelData?.product_id);
-  //     setVariant(modelData?.name?.split(','));
-  //   }
-  // }, [modelData, initData]);
+  useEffect(() => {
+    if (orderData) {
+      console.log('od:', orderData?.items);
+      // formik.setFieldValue('product_id', modelData?.product_id);
+      // formik.setFieldValue('price', modelData?.price);
+      // formik.setFieldValue('stock', modelData?.stock);
+      // formik.setFieldValue(
+      //   'extinfo.tier_index',
+      //   modelData?.extinfo?.tier_index
+      // );
+      // formik.setFieldValue(
+      //   'extinfo.is_pre_order',
+      //   modelData?.extinfo?.is_pre_order
+      // );
+      setOrderItems(orderData?.items);
+    }
+  }, [orderData]);
+
+  console.log('o:', orderData);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -360,7 +363,6 @@ const OrderUpsert = () => {
         title={
           <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
             {isEdit ? 'Sửa đơn hàng' : 'Thêm đơn hàng'}:{' '}
-            {isEdit && modelData?.name}
           </Typography>
         }
       />
