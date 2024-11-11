@@ -40,7 +40,12 @@ import { createSchema, updateSchema } from '../utils/schema/skuSchema';
 import { IOrderItem } from '@/interfaces/IOrder';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import { useCreateOrder, useGetOrderById } from '@/services/order';
+import {
+  getProvinces,
+  useCreateOrder,
+  useGetOrderById,
+  useGetProvinces,
+} from '@/services/order';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -70,6 +75,25 @@ const OrderUpsert = () => {
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
   const { data: product } = useGetProductById(productId as string);
   const { data: initData } = useGetInitialForCreate();
+  const { data: provinces } = useGetProvinces();
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await fetch(
+  //         'https://provinces.open-api.vn/api/?depth=2'
+  //       );
+  //       if (!response.ok) {
+  //         throw new Error('Network response was not ok');
+  //       }
+  //       const result = await response.json();
+  //       console.log(result);
+  //     } catch (err) {
+  //       console.log(err);
+  //     }
+  //   };
+  //   fetchData();
+  // }, []);
 
   const { mutate: createOrderMutate, isPending: isCreatePending } =
     useCreateOrder();
@@ -165,8 +189,9 @@ const OrderUpsert = () => {
   useEffect(() => {
     if (orderData) {
       console.log('od:', orderData?.items);
-      // formik.setFieldValue('product_id', modelData?.product_id);
-      // formik.setFieldValue('price', modelData?.price);
+      formik.setFieldValue('name', orderData?.name);
+      formik.setFieldValue('phone', orderData?.phone);
+      formik.setFieldValue('email', orderData?.email);
       // formik.setFieldValue('stock', modelData?.stock);
       // formik.setFieldValue(
       //   'extinfo.tier_index',

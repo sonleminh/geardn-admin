@@ -54,3 +54,25 @@ export const useGetOrderById = (id: string) => {
     enabled: !!id,
   });
 };
+
+export const getProvinces = async () => {
+  try {
+    return await fetch('https://provinces.open-api.vn/api/?depth=2');
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const getProvince = async () => {
+  const result = await getRequest('https://provinces.open-api.vn/api/?depth=2');
+  return result.data as IOrder;
+};
+
+export const useGetProvinces = () => {
+  return useQuery({
+    queryKey: [],
+    queryFn: () => getProvince(),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+  });
+};
