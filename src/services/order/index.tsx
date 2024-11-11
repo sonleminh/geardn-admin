@@ -11,6 +11,32 @@ type TOrderRes = {
   total: number;
 };
 
+interface IProvince {
+  name: string;
+  code: number;
+  division_type: string;
+  codename: string;
+  phone_code: number;
+  districts: IIDistrict[];
+}
+
+interface IIDistrict {
+  name: string;
+  code: number;
+  division_type: string;
+  codename: string;
+  province_code: number;
+  wards: IWards[];
+}
+
+interface IWards {
+  name: string;
+  code: number;
+  division_type: string;
+  codename: string;
+  short_codename: string;
+}
+
 const orderUrl = '/order';
 
 const createOrder = async (payload: ICreateOrder) => {
@@ -55,17 +81,12 @@ export const useGetOrderById = (id: string) => {
   });
 };
 
-export const getProvinces = async () => {
-  try {
-    return await fetch('https://provinces.open-api.vn/api/?depth=2');
-  } catch (error) {
-    console.log(error);
-  }
-};
-
 const getProvince = async () => {
-  const result = await getRequest('https://provinces.open-api.vn/api/?depth=2');
-  return result.data as IOrder;
+  const result = await getRequest(
+    'https://provinces.open-api.vn/api/?depth=3',
+    { withCredentials: false }
+  );
+  return result.data as IProvince[];
 };
 
 export const useGetProvinces = () => {

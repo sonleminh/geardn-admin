@@ -77,24 +77,6 @@ const OrderUpsert = () => {
   const { data: initData } = useGetInitialForCreate();
   const { data: provinces } = useGetProvinces();
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const response = await fetch(
-  //         'https://provinces.open-api.vn/api/?depth=2'
-  //       );
-  //       if (!response.ok) {
-  //         throw new Error('Network response was not ok');
-  //       }
-  //       const result = await response.json();
-  //       console.log(result);
-  //     } catch (err) {
-  //       console.log(err);
-  //     }
-  //   };
-  //   fetchData();
-  // }, []);
-
   const { mutate: createOrderMutate, isPending: isCreatePending } =
     useCreateOrder();
   // const { mutate: updateOrderMutate, isPending: isUpdatePending } =
@@ -415,20 +397,47 @@ const OrderUpsert = () => {
             </FormControl>
           </Grid2>
           <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Input
-                label='Tỉnh/Thành phố'
-                name='phone'
-                variant='filled'
+            <FormControl
+              variant='filled'
+              fullWidth
+              sx={{
+                mb: 2,
+                '& .MuiFilledInput-root': {
+                  overflow: 'hidden',
+                  borderRadius: 1,
+                  backgroundColor: '#fff !important',
+                  border: '1px solid',
+                  borderColor: 'rgba(0,0,0,0.23)',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                  },
+                  '&.Mui-focused': {
+                    backgroundColor: 'transparent',
+                    border: '2px solid',
+                  },
+                },
+                '& .MuiInputLabel-asterisk': {
+                  color: 'red',
+                },
+              }}>
+              <InputLabel>Tỉnh/Thành phố</InputLabel>
+              <Select
+                disableUnderline
                 size='small'
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.phone}
-                  </Box>
-                }
-                value={formik?.values.phone}
-                onChange={handleChangeValue}
-              />
+                onChange={(e) => {
+                  setCategoryId(e?.target?.value as string);
+                  setProductId('');
+                  setSelectedModel([]);
+                  setSelectedImage('');
+                  setQuantity('');
+                }}
+                value={categoryId ?? ''}>
+                {provinces?.map((item) => (
+                  <MenuItem key={item?.code} value={item?.name}>
+                    {item?.name}
+                  </MenuItem>
+                ))}
+              </Select>
             </FormControl>
           </Grid2>
           <Grid2 size={6}>
