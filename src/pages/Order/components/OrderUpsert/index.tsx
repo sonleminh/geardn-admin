@@ -29,9 +29,17 @@ import {
   Grid2,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   SelectChangeEvent,
   SxProps,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableFooter,
+  TableHead,
+  TableRow,
   TextField,
   Theme,
   Typography,
@@ -46,7 +54,9 @@ import {
   useGetDistrictByCode,
   useGetOrderById,
   useGetProvinces,
+  useUpdateOrder,
 } from '@/services/order';
+import { formatPrice } from '@/utils/format-price';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -77,13 +87,13 @@ const OrderUpsert = () => {
   const { data: initData } = useGetInitialForCreate();
   const { data: provinces } = useGetProvinces();
   const { data: district } = useGetDistrictByCode(districtCode);
-  console.log('district:', districtCode);
-  console.log('provinces:', provinces);
+  // console.log('district:', districtCode);
+  // console.log('provinces:', provinces);
 
   const { mutate: createOrderMutate, isPending: isCreatePending } =
     useCreateOrder();
-  // const { mutate: updateOrderMutate, isPending: isUpdatePending } =
-  //   useUpdateOrder();
+  const { mutate: updateOrderMutate, isPending: isUpdatePending } =
+    useUpdateOrder();
 
   const formik = useFormik({
     initialValues: {
@@ -99,10 +109,9 @@ const OrderUpsert = () => {
     onSubmit(values) {
       const payload = {
         ...values,
-        phone: '0789',
         items: orderItems,
         receive_option: 'COD',
-        total_amount: 20000,
+        total_amount: totalAmount(),
         district: district?.name,
         // name: variant?.join(),
         // price: +values.price,
@@ -112,28 +121,28 @@ const OrderUpsert = () => {
         // },
       };
       console.log(payload);
-      // if (isEdit) {
-      //   // updateModelMutate(
-      //   //   { _id: id, ...payload },
-      //   //   {
-      //   //     onSuccess() {
-      //   //       queryClient.invalidateQueries({
-      //   //         queryKey: [QueryKeys.Model],
-      //   //       });
-      //   //       showNotification('Cập nhật loại hàng thành công', 'success');
-      //   //       navigate(-1);
-      //   //     },
-      //   //   }
-      //   // );
-      // } else {
-      //   createOrderMutate(payload, {
-      //     onSuccess() {
-      //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
-      //       showNotification('Tạo đơn hàng thành công', 'success');
-      //       // navigate(-1);
-      //     },
-      //   });
-      // }
+      if (isEdit) {
+        updateOrderMutate(
+          { _id: id, ...payload },
+          {
+            onSuccess() {
+              queryClient.invalidateQueries({
+                queryKey: [QueryKeys.Model],
+              });
+              showNotification('Cập nhật đơn hàng thành công', 'success');
+              navigate(-1);
+            },
+          }
+        );
+      } else {
+        createOrderMutate(payload, {
+          onSuccess() {
+            queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
+            showNotification('Tạo đơn hàng thành công', 'success');
+            // navigate(-1);
+          },
+        });
+      }
     },
   });
 
@@ -369,6 +378,13 @@ const OrderUpsert = () => {
       return null;
     }
   }
+
+  const totalAmount = () => {
+    return orderItems?.reduce(
+      (acc, item) => acc + (item?.price ?? 0) * (item?.quantity ?? 0),
+      0
+    );
+  };
   // console.log('slt:', selectedModel);
   // console.log(!!product?.tier_variations?.length && !!selectedModel?.length);
 
@@ -386,182 +402,182 @@ const OrderUpsert = () => {
       <CardContent>
         {/* {!isEdit && (
           <> */}
-        <Grid2 container rowSpacing={2} columnSpacing={4}>
-          <Grid2 container rowSpacing={2} size={6}>
-            <Grid2 size={12}>
-              <FormControl fullWidth>
-                <Input
-                  label='Tên khách hàng'
-                  name='name'
-                  variant='filled'
-                  size='small'
-                  helperText={
-                    <Box component={'span'} sx={helperTextStyle}>
-                      {formik.errors.name}
-                    </Box>
-                  }
-                  value={formik?.values.name}
-                  onChange={handleChangeValue}
-                />
-              </FormControl>
-            </Grid2>
-            <Grid2 size={12}>
-              <FormControl fullWidth>
-                <Input
-                  label='Email'
-                  name='email'
-                  variant='filled'
-                  size='small'
-                  helperText={
-                    <Box component={'span'} sx={helperTextStyle}>
-                      {formik.errors.email}
-                    </Box>
-                  }
-                  value={formik?.values.email}
-                  onChange={handleChangeValue}
-                />
-              </FormControl>
-            </Grid2>
-            <Grid2 size={12}>
-              <FormControl fullWidth>
-                <Input
-                  label='Số điện thoại'
-                  name='phone'
-                  variant='filled'
-                  size='small'
-                  helperText={
-                    <Box component={'span'} sx={helperTextStyle}>
-                      {formik.errors.phone}
-                    </Box>
-                  }
-                  value={formik?.values.phone}
-                  onChange={handleChangeValue}
-                />
-              </FormControl>
-            </Grid2>
+        <Typography mb={1}>Thông tin:</Typography>
+        <Grid2 container rowSpacing={2} columnSpacing={4} mb={2}>
+          <Grid2 size={6}>
+            <FormControl fullWidth>
+              <Input
+                label='Tên khách hàng'
+                name='name'
+                variant='filled'
+                size='small'
+                helperText={
+                  <Box component={'span'} sx={helperTextStyle}>
+                    {formik.errors.name}
+                  </Box>
+                }
+                value={formik?.values.name}
+                onChange={handleChangeValue}
+              />
+            </FormControl>
           </Grid2>
-          <Grid2 container size={6}>
-            <Grid2 size={12}>
-              <FormControl
+          <Grid2 size={6}>
+            <FormControl fullWidth>
+              <Input
+                label='Email'
+                name='email'
                 variant='filled'
-                fullWidth
-                sx={{
-                  '& .MuiFilledInput-root': {
-                    overflow: 'hidden',
-                    borderRadius: 1,
-                    backgroundColor: '#fff !important',
-                    border: '1px solid',
-                    borderColor: 'rgba(0,0,0,0.23)',
-                    '&:hover': {
-                      backgroundColor: 'transparent',
-                    },
-                    '&.Mui-focused': {
-                      backgroundColor: 'transparent',
-                      border: '2px solid',
-                    },
-                  },
-                  '& .MuiInputLabel-asterisk': {
-                    color: 'red',
-                  },
-                }}>
-                <InputLabel>Tỉnh/Thành phố</InputLabel>
-                <Select
-                  disableUnderline
-                  size='small'
-                  name='province'
-                  onChange={handleSelectChangeValue}
-                  value={formik?.values.province ?? ''}>
-                  {provinces &&
-                    provinces?.map((item) => (
-                      <MenuItem key={item?.code} value={item?.name}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
-            </Grid2>
-            <Grid2 size={12}>
-              <FormControl
+                size='small'
+                helperText={
+                  <Box component={'span'} sx={helperTextStyle}>
+                    {formik.errors.email}
+                  </Box>
+                }
+                value={formik?.values.email}
+                onChange={handleChangeValue}
+              />
+            </FormControl>
+          </Grid2>
+          <Grid2 size={6}>
+            <FormControl fullWidth>
+              <Input
+                label='Số điện thoại'
+                name='phone'
                 variant='filled'
-                fullWidth
-                sx={{
-                  '& .MuiFilledInput-root': {
-                    overflow: 'hidden',
-                    borderRadius: 1,
-                    backgroundColor: '#fff !important',
-                    border: '1px solid',
-                    borderColor: 'rgba(0,0,0,0.23)',
-                    '&:hover': {
-                      backgroundColor: 'transparent',
-                    },
-                    '&.Mui-focused': {
-                      backgroundColor: 'transparent',
-                      border: '2px solid',
-                    },
+                size='small'
+                helperText={
+                  <Box component={'span'} sx={helperTextStyle}>
+                    {formik.errors.phone}
+                  </Box>
+                }
+                value={formik?.values.phone}
+                onChange={handleChangeValue}
+              />
+            </FormControl>
+          </Grid2>
+        </Grid2>
+        <Typography mb={1}>Địa chỉ:</Typography>
+        <Grid2 mb={4} container rowSpacing={2} columnSpacing={4}>
+          <Grid2 size={6}>
+            <FormControl
+              variant='filled'
+              fullWidth
+              sx={{
+                '& .MuiFilledInput-root': {
+                  overflow: 'hidden',
+                  borderRadius: 1,
+                  backgroundColor: '#fff !important',
+                  border: '1px solid',
+                  borderColor: 'rgba(0,0,0,0.23)',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
                   },
-                  '& .MuiInputLabel-asterisk': {
-                    color: 'red',
+                  '&.Mui-focused': {
+                    backgroundColor: 'transparent',
+                    border: '2px solid',
                   },
-                }}>
-                <InputLabel>Quận/Huyện</InputLabel>
-                <Select
-                  disableUnderline
-                  size='small'
-                  name='district'
-                  onChange={(e) => {
-                    setDistrictCode(e?.target?.value as string);
-                  }}
-                  value={districtCode}>
-                  {provinces
-                    ?.find((item) => item?.name === formik?.values?.province)
-                    ?.districts?.map((item) => (
-                      <MenuItem key={item?.code} value={item?.code}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
-            </Grid2>
-            <Grid2 size={12}>
-              <FormControl
-                variant='filled'
-                fullWidth
-                sx={{
-                  '& .MuiFilledInput-root': {
-                    overflow: 'hidden',
-                    borderRadius: 1,
-                    backgroundColor: '#fff !important',
-                    border: '1px solid',
-                    borderColor: 'rgba(0,0,0,0.23)',
-                    '&:hover': {
-                      backgroundColor: 'transparent',
-                    },
-                    '&.Mui-focused': {
-                      backgroundColor: 'transparent',
-                      border: '2px solid',
-                    },
-                  },
-                  '& .MuiInputLabel-asterisk': {
-                    color: 'red',
-                  },
-                }}>
-                <InputLabel>Phường/Xã</InputLabel>
-                <Select
-                  disableUnderline
-                  name='ward'
-                  size='small'
-                  onChange={handleSelectChangeValue}
-                  value={formik?.values.ward ?? ''}>
-                  {district?.wards?.map((item) => (
+                },
+                '& .MuiInputLabel-asterisk': {
+                  color: 'red',
+                },
+              }}>
+              <InputLabel>Tỉnh/Thành phố</InputLabel>
+              <Select
+                disableUnderline
+                size='small'
+                name='province'
+                onChange={handleSelectChangeValue}
+                value={formik?.values.province ?? ''}>
+                {provinces &&
+                  provinces?.map((item) => (
                     <MenuItem key={item?.code} value={item?.name}>
                       {item?.name}
                     </MenuItem>
                   ))}
-                </Select>
-              </FormControl>
-            </Grid2>
+              </Select>
+            </FormControl>
           </Grid2>
-          <Grid2 size={12}>
+          <Grid2 size={6}>
+            <FormControl
+              variant='filled'
+              fullWidth
+              sx={{
+                '& .MuiFilledInput-root': {
+                  overflow: 'hidden',
+                  borderRadius: 1,
+                  backgroundColor: '#fff !important',
+                  border: '1px solid',
+                  borderColor: 'rgba(0,0,0,0.23)',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                  },
+                  '&.Mui-focused': {
+                    backgroundColor: 'transparent',
+                    border: '2px solid',
+                  },
+                },
+                '& .MuiInputLabel-asterisk': {
+                  color: 'red',
+                },
+              }}>
+              <InputLabel>Quận/Huyện</InputLabel>
+              <Select
+                disableUnderline
+                size='small'
+                name='district'
+                onChange={(e) => {
+                  setDistrictCode(e?.target?.value as string);
+                }}
+                value={districtCode}>
+                {provinces
+                  ?.find((item) => item?.name === formik?.values?.province)
+                  ?.districts?.map((item) => (
+                    <MenuItem key={item?.code} value={item?.code}>
+                      {item?.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          </Grid2>
+          <Grid2 size={6}>
+            <FormControl
+              variant='filled'
+              fullWidth
+              sx={{
+                '& .MuiFilledInput-root': {
+                  overflow: 'hidden',
+                  borderRadius: 1,
+                  backgroundColor: '#fff !important',
+                  border: '1px solid',
+                  borderColor: 'rgba(0,0,0,0.23)',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                  },
+                  '&.Mui-focused': {
+                    backgroundColor: 'transparent',
+                    border: '2px solid',
+                  },
+                },
+                '& .MuiInputLabel-asterisk': {
+                  color: 'red',
+                },
+              }}>
+              <InputLabel>Phường/Xã</InputLabel>
+              <Select
+                disableUnderline
+                name='ward'
+                size='small'
+                onChange={handleSelectChangeValue}
+                value={formik?.values.ward ?? ''}>
+                {district?.wards?.map((item) => (
+                  <MenuItem key={item?.code} value={item?.name}>
+                    {item?.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid2>
+          <Grid2 size={6}>
             <FormControl fullWidth>
               <Input
                 label='Địa chỉ cụ thể'
@@ -580,7 +596,7 @@ const OrderUpsert = () => {
             </FormControl>
           </Grid2>
           <Grid2 size={6}>
-            <Typography mb={1}>Thêm sản phẩm</Typography>
+            <Typography mb={1}>Thêm sản phẩm:</Typography>
             <FormControl
               variant='filled'
               fullWidth
@@ -784,9 +800,116 @@ const OrderUpsert = () => {
               </Button>
             </Box>
           </Grid2>
-          <Grid2 size={6}>
-            <Typography mb={1}>Sản phẩm</Typography>
-            {orderItems?.map((item, index) => (
+          <Grid2
+            // sx={{ border: '1px solid #aaaaaa', borderRadius: 1, p: 2 }}
+            size={6}>
+            <Typography mb={1}>Sản phẩm:</Typography>
+            <TableContainer component={Paper}>
+              <Table sx={{}} aria-label='simple table'>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ width: '3%', px: 1 }} align='center'>
+                      Stt
+                    </TableCell>
+                    <TableCell sx={{ width: '5%', px: 0 }} align='center'>
+                      Ảnh
+                    </TableCell>
+                    <TableCell sx={{ width: '20%', px: 1 }} align='center'>
+                      Tên
+                    </TableCell>
+                    <TableCell sx={{ width: '5%', px: 1 }} align='center'>
+                      SL
+                    </TableCell>
+                    <TableCell sx={{ width: '8%', px: 1 }} align='center'>
+                      Giá
+                    </TableCell>
+                    <TableCell sx={{ width: '16%' }} align='center'>
+                      Tuỳ chọn
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {orderItems?.length ? (
+                    orderItems.map((item, index) => (
+                      <TableRow
+                        key={item.model_id}
+                        sx={{
+                          '&:last-child td, &:last-child th': { border: 0 },
+                        }}>
+                        <TableCell
+                          sx={{ px: 1 }}
+                          component='th'
+                          scope='row'
+                          align='center'>
+                          {index + 1}
+                        </TableCell>
+                        <TableCell sx={{ px: 0 }} align='center'>
+                          <img
+                            src={item?.image}
+                            alt='Selected Product'
+                            style={{
+                              width: '48px',
+                              maxWidth: '48px',
+                              height: '48px',
+                              objectFit: 'contain',
+                              border: '1px solid #ccc',
+                              borderRadius: '2px',
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 13 }}>
+                          {item.product_name}
+                        </TableCell>
+                        <TableCell sx={{ px: 1 }} align='center'>
+                          {item.quantity}
+                        </TableCell>
+                        <TableCell sx={{ fontSize: 12 }} align='center'>
+                          {formatPrice(item?.price)}
+                        </TableCell>
+                        <TableCell align='center'>
+                          <Button
+                            sx={{
+                              minWidth: 20,
+                              width: 20,
+                              height: 30,
+                              mr: 1,
+                            }}
+                            variant='outlined'
+                            onClick={() => {
+                              handleEditOrderItem(item, index);
+                            }}>
+                            <EditOutlinedIcon sx={{ fontSize: 14 }} />
+                          </Button>
+                          <Button
+                            sx={{ minWidth: 20, width: 20, height: 30 }}
+                            variant='outlined'
+                            onClick={() => handleDeleteOrderItem(index)}>
+                            <DeleteOutlineOutlinedIcon sx={{ fontSize: 14 }} />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <Box>Empty</Box>
+                  )}
+                </TableBody>
+              </Table>
+              <Divider />
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'end',
+                  alignItems: 'center',
+                  width: '100%',
+                  px: 4,
+                  py: 1,
+                }}>
+                <Typography sx={{ mr: 4, fontSize: 14 }}>Tổng tiền:</Typography>
+                <Typography>{formatPrice(totalAmount())}</Typography>
+              </Box>
+            </TableContainer>
+            {/* <Typography mb={1}>Sản phẩm:</Typography> */}
+            {/* {orderItems?.map((item, index) => (
               <Box
                 sx={{
                   display: 'flex',
@@ -834,8 +957,12 @@ const OrderUpsert = () => {
                   </Box>
                 </Box>
                 <Box sx={{ display: 'flex' }}>
-                  <Typography sx={{ width: 50, mr: 2, fontSize: 14 }}>
+                  <Typography sx={{ width: 40, mr: 1, fontSize: 14 }}>
                     x {item?.quantity}
+                  </Typography>
+                  <Typography
+                    sx={{ width: 80, mr: 3, fontSize: 14, textAlign: 'end' }}>
+                    {formatPrice(item?.price)}
                   </Typography>
                   <Button
                     sx={{
@@ -858,7 +985,8 @@ const OrderUpsert = () => {
                   </Button>
                 </Box>
               </Box>
-            ))}
+            ))} */}
+            {/* <Divider sx={{ mt: 2 }} /> */}
           </Grid2>
         </Grid2>
         <Box sx={{ textAlign: 'end' }}>

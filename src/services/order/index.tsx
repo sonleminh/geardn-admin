@@ -1,8 +1,8 @@
 import { QueryKeys } from '@/constants/query-key';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { getRequest, postRequest } from '../axios';
+import { getRequest, patchRequest, postRequest } from '../axios';
 
-import { ICreateOrder, IOrder } from '@/interfaces/IOrder';
+import { ICreateOrder, IOrder, IUpdateOrder } from '@/interfaces/IOrder';
 import { IQuery } from '@/interfaces/IQuery';
 import queryString from 'query-string';
 
@@ -114,5 +114,17 @@ export const useGetDistrictByCode = (code: string) => {
     refetchOnWindowFocus: false,
     refetchInterval: false,
     enabled: !!code,
+  });
+};
+
+const updateOrder = async (payload: IUpdateOrder) => {
+  const { _id, ...rest } = payload;
+  const result = await patchRequest(`${orderUrl}/${_id}`, rest);
+  return result.data as IOrder;
+};
+
+export const useUpdateOrder = () => {
+  return useMutation({
+    mutationFn: updateOrder,
   });
 };
