@@ -36,13 +36,14 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { createSchema, updateSchema } from '../utils/schema/skuSchema';
+import { createSchema, updateSchema } from '../utils/schema/orderSchema';
 import { IOrderItem } from '@/interfaces/IOrder';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import {
   getProvinces,
   useCreateOrder,
+  useGetDistrictByCode,
   useGetOrderById,
   useGetProvinces,
 } from '@/services/order';
@@ -65,17 +66,19 @@ const OrderUpsert = () => {
   const [isOrderItemEdit, setIsOrderItemEdit] = useState<boolean>(false);
   const [modelIdEdit, setModelIdEdit] = useState<string>('');
   const [itemIndex, setItemIndex] = useState<number | null>(null);
+  const [districtCode, setDistrictCode] = useState<string>('');
 
-  // console.log('itemIndex:', itemIndex);
   // console.log('orderItems:', orderItems);
   // console.log('categoryId:', categoryId);
 
   const { data: orderData } = useGetOrderById(id as string);
-  console.log('order:', orderData);
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
-  const { data: product } = useGetProductById(productId as string);
+  const { data: product } = useGetProductById(productId);
   const { data: initData } = useGetInitialForCreate();
   const { data: provinces } = useGetProvinces();
+  const { data: district } = useGetDistrictByCode(districtCode);
+  console.log('district:', districtCode);
+  console.log('provinces:', provinces);
 
   const { mutate: createOrderMutate, isPending: isCreatePending } =
     useCreateOrder();
@@ -88,17 +91,19 @@ const OrderUpsert = () => {
       phone: '',
       email: '',
       items: '',
+      province: '',
+      ward: '',
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       const payload = {
         ...values,
-        name: 'cc',
         phone: '0789',
         items: orderItems,
         receive_option: 'COD',
         total_amount: 20000,
+        district: district?.name,
         // name: variant?.join(),
         // price: +values.price,
         // stock: +values.stock,
@@ -107,28 +112,28 @@ const OrderUpsert = () => {
         // },
       };
       console.log(payload);
-      if (isEdit) {
-        // updateModelMutate(
-        //   { _id: id, ...payload },
-        //   {
-        //     onSuccess() {
-        //       queryClient.invalidateQueries({
-        //         queryKey: [QueryKeys.Model],
-        //       });
-        //       showNotification('Cập nhật loại hàng thành công', 'success');
-        //       navigate(-1);
-        //     },
-        //   }
-        // );
-      } else {
-        createOrderMutate(payload, {
-          onSuccess() {
-            queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
-            showNotification('Tạo đơn hàng thành công', 'success');
-            // navigate(-1);
-          },
-        });
-      }
+      // if (isEdit) {
+      //   // updateModelMutate(
+      //   //   { _id: id, ...payload },
+      //   //   {
+      //   //     onSuccess() {
+      //   //       queryClient.invalidateQueries({
+      //   //         queryKey: [QueryKeys.Model],
+      //   //       });
+      //   //       showNotification('Cập nhật loại hàng thành công', 'success');
+      //   //       navigate(-1);
+      //   //     },
+      //   //   }
+      //   // );
+      // } else {
+      //   createOrderMutate(payload, {
+      //     onSuccess() {
+      //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
+      //       showNotification('Tạo đơn hàng thành công', 'success');
+      //       // navigate(-1);
+      //     },
+      //   });
+      // }
     },
   });
 
@@ -187,10 +192,13 @@ const OrderUpsert = () => {
     }
   }, [orderData]);
 
-  console.log('o:', orderData);
-
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    formik.setFieldValue(name, value);
+  };
+  const handleSelectChangeValue = (e: SelectChangeEvent<string>) => {
+    const { name, value } = e.target;
+    console.log('o:', name, value);
     formik.setFieldValue(name, value);
   };
 
@@ -379,135 +387,179 @@ const OrderUpsert = () => {
         {/* {!isEdit && (
           <> */}
         <Grid2 container rowSpacing={2} columnSpacing={4}>
-          <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Input
-                label='Tên khách hàng'
-                name='name'
-                variant='filled'
-                size='small'
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.name}
-                  </Box>
-                }
-                value={formik?.values.name}
-                onChange={handleChangeValue}
-              />
-            </FormControl>
+          <Grid2 container rowSpacing={2} size={6}>
+            <Grid2 size={12}>
+              <FormControl fullWidth>
+                <Input
+                  label='Tên khách hàng'
+                  name='name'
+                  variant='filled'
+                  size='small'
+                  helperText={
+                    <Box component={'span'} sx={helperTextStyle}>
+                      {formik.errors.name}
+                    </Box>
+                  }
+                  value={formik?.values.name}
+                  onChange={handleChangeValue}
+                />
+              </FormControl>
+            </Grid2>
+            <Grid2 size={12}>
+              <FormControl fullWidth>
+                <Input
+                  label='Email'
+                  name='email'
+                  variant='filled'
+                  size='small'
+                  helperText={
+                    <Box component={'span'} sx={helperTextStyle}>
+                      {formik.errors.email}
+                    </Box>
+                  }
+                  value={formik?.values.email}
+                  onChange={handleChangeValue}
+                />
+              </FormControl>
+            </Grid2>
+            <Grid2 size={12}>
+              <FormControl fullWidth>
+                <Input
+                  label='Số điện thoại'
+                  name='phone'
+                  variant='filled'
+                  size='small'
+                  helperText={
+                    <Box component={'span'} sx={helperTextStyle}>
+                      {formik.errors.phone}
+                    </Box>
+                  }
+                  value={formik?.values.phone}
+                  onChange={handleChangeValue}
+                />
+              </FormControl>
+            </Grid2>
           </Grid2>
-          <Grid2 size={6}>
-            <FormControl
-              variant='filled'
-              fullWidth
-              sx={{
-                mb: 2,
-                '& .MuiFilledInput-root': {
-                  overflow: 'hidden',
-                  borderRadius: 1,
-                  backgroundColor: '#fff !important',
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.23)',
-                  '&:hover': {
-                    backgroundColor: 'transparent',
+          <Grid2 container size={6}>
+            <Grid2 size={12}>
+              <FormControl
+                variant='filled'
+                fullWidth
+                sx={{
+                  '& .MuiFilledInput-root': {
+                    overflow: 'hidden',
+                    borderRadius: 1,
+                    backgroundColor: '#fff !important',
+                    border: '1px solid',
+                    borderColor: 'rgba(0,0,0,0.23)',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'transparent',
+                      border: '2px solid',
+                    },
                   },
-                  '&.Mui-focused': {
-                    backgroundColor: 'transparent',
-                    border: '2px solid',
+                  '& .MuiInputLabel-asterisk': {
+                    color: 'red',
                   },
-                },
-                '& .MuiInputLabel-asterisk': {
-                  color: 'red',
-                },
-              }}>
-              <InputLabel>Tỉnh/Thành phố</InputLabel>
-              <Select
-                disableUnderline
-                size='small'
-                onChange={(e) => {
-                  setCategoryId(e?.target?.value as string);
-                  setProductId('');
-                  setSelectedModel([]);
-                  setSelectedImage('');
-                  setQuantity('');
-                }}
-                value={categoryId ?? ''}>
-                {provinces?.map((item) => (
-                  <MenuItem key={item?.code} value={item?.name}>
-                    {item?.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid2>
-          <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Input
-                label='Số điện thoại'
-                name='phone'
+                }}>
+                <InputLabel>Tỉnh/Thành phố</InputLabel>
+                <Select
+                  disableUnderline
+                  size='small'
+                  name='province'
+                  onChange={handleSelectChangeValue}
+                  value={formik?.values.province ?? ''}>
+                  {provinces &&
+                    provinces?.map((item) => (
+                      <MenuItem key={item?.code} value={item?.name}>
+                        {item?.name}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Grid2>
+            <Grid2 size={12}>
+              <FormControl
                 variant='filled'
-                size='small'
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.phone}
-                  </Box>
-                }
-                value={formik?.values.phone}
-                onChange={handleChangeValue}
-              />
-            </FormControl>
-          </Grid2>
-          <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Input
-                label='Quận/Huyện'
-                name='name'
+                fullWidth
+                sx={{
+                  '& .MuiFilledInput-root': {
+                    overflow: 'hidden',
+                    borderRadius: 1,
+                    backgroundColor: '#fff !important',
+                    border: '1px solid',
+                    borderColor: 'rgba(0,0,0,0.23)',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'transparent',
+                      border: '2px solid',
+                    },
+                  },
+                  '& .MuiInputLabel-asterisk': {
+                    color: 'red',
+                  },
+                }}>
+                <InputLabel>Quận/Huyện</InputLabel>
+                <Select
+                  disableUnderline
+                  size='small'
+                  name='district'
+                  onChange={(e) => {
+                    setDistrictCode(e?.target?.value as string);
+                  }}
+                  value={districtCode}>
+                  {provinces
+                    ?.find((item) => item?.name === formik?.values?.province)
+                    ?.districts?.map((item) => (
+                      <MenuItem key={item?.code} value={item?.code}>
+                        {item?.name}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+            </Grid2>
+            <Grid2 size={12}>
+              <FormControl
                 variant='filled'
-                size='small'
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.name}
-                  </Box>
-                }
-                value={formik?.values.name}
-                onChange={handleChangeValue}
-              />
-            </FormControl>
-          </Grid2>
-          <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Input
-                label='Email'
-                name='email'
-                variant='filled'
-                size='small'
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.email}
-                  </Box>
-                }
-                value={formik?.values.email}
-                onChange={handleChangeValue}
-              />
-            </FormControl>
-          </Grid2>
-
-          <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Input
-                label='Phường/Xã'
-                name='phone'
-                variant='filled'
-                size='small'
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.phone}
-                  </Box>
-                }
-                value={formik?.values.phone}
-                onChange={handleChangeValue}
-              />
-            </FormControl>
+                fullWidth
+                sx={{
+                  '& .MuiFilledInput-root': {
+                    overflow: 'hidden',
+                    borderRadius: 1,
+                    backgroundColor: '#fff !important',
+                    border: '1px solid',
+                    borderColor: 'rgba(0,0,0,0.23)',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'transparent',
+                      border: '2px solid',
+                    },
+                  },
+                  '& .MuiInputLabel-asterisk': {
+                    color: 'red',
+                  },
+                }}>
+                <InputLabel>Phường/Xã</InputLabel>
+                <Select
+                  disableUnderline
+                  name='ward'
+                  size='small'
+                  onChange={handleSelectChangeValue}
+                  value={formik?.values.ward ?? ''}>
+                  {district?.wards?.map((item) => (
+                    <MenuItem key={item?.code} value={item?.name}>
+                      {item?.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid2>
           </Grid2>
           <Grid2 size={12}>
             <FormControl fullWidth>

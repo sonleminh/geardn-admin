@@ -46,6 +46,7 @@ import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import RemoveIcon from '@mui/icons-material/Remove';
 import UploadIcon from '@mui/icons-material/Upload';
+import { createSchema, updateSchema } from '../utils/schema/productSchema';
 
 type DetailKey = 'guarantee' | 'weight' | 'material';
 
@@ -105,7 +106,7 @@ const ProductUpsert = () => {
       },
       description: '',
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       // const hasDiscount =
@@ -332,12 +333,13 @@ const ProductUpsert = () => {
 
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Grid2 container rowSpacing={2} columnSpacing={4}>
-          <Grid2 size={6}>
+          <Grid2 size={12}>
             <FormControl fullWidth>
               <Input
                 label='Tên'
                 name='name'
                 variant='filled'
+                size='small'
                 required
                 helperText={
                   <Box component={'span'} sx={helperTextStyle}>
@@ -349,21 +351,7 @@ const ProductUpsert = () => {
               />
             </FormControl>
           </Grid2>
-          <Grid2 size={6}>
-            <FormControl>
-              <MultipleFileUpload
-                title={'Ảnh'}
-                required
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.images}
-                  </Box>
-                }
-                value={formik?.values?.images}
-                onUploadChange={handleUploadResult}
-              />
-            </FormControl>
-          </Grid2>
+
           <Grid2 size={6}>
             <FormControl
               variant='filled'
@@ -868,6 +856,19 @@ const ProductUpsert = () => {
             </Grid2>
           </FormControl>
         )}
+        <FormControl>
+          <MultipleFileUpload
+            title={'Ảnh:'}
+            required
+            helperText={
+              <Box component={'span'} sx={helperTextStyle}>
+                {formik.errors.images}
+              </Box>
+            }
+            value={formik?.values?.images}
+            onUploadChange={handleUploadResult}
+          />
+        </FormControl>
         <FormControl>
           <Typography mb={1}>
             Mô tả:

@@ -17,10 +17,10 @@ interface IProvince {
   division_type: string;
   codename: string;
   phone_code: number;
-  districts: IIDistrict[];
+  districts: IDistrict[];
 }
 
-interface IIDistrict {
+interface IDistrict {
   name: string;
   code: number;
   division_type: string;
@@ -83,7 +83,7 @@ export const useGetOrderById = (id: string) => {
 
 const getProvince = async () => {
   const result = await getRequest(
-    'https://provinces.open-api.vn/api/?depth=3',
+    'https://provinces.open-api.vn/api/?depth=2',
     { withCredentials: false }
   );
   return result.data as IProvince[];
@@ -91,9 +91,28 @@ const getProvince = async () => {
 
 export const useGetProvinces = () => {
   return useQuery({
-    queryKey: [],
+    queryKey: ['provinces'],
     queryFn: () => getProvince(),
     refetchOnWindowFocus: false,
     refetchInterval: false,
+  });
+};
+
+const getDistrictByCode = async (code: string) => {
+  console.log(3, code);
+  const result = await getRequest(
+    `https://provinces.open-api.vn/api/d/${code}?depth=2`,
+    { withCredentials: false }
+  );
+  return result.data as IDistrict;
+};
+
+export const useGetDistrictByCode = (code: string) => {
+  return useQuery({
+    queryKey: ['district', code],
+    queryFn: () => getDistrictByCode(code),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    enabled: !!code,
   });
 };

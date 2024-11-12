@@ -54,10 +54,10 @@ const MultipleImageUpload = ({
 
   return (
     <Box display={'flex'}>
-      <Box mr={2}>
-        <Box display={'flex'}>
+      <Box height={'60px'} mr={2}>
+        <Box display={'flex'} mb={'6px'}>
           {title && (
-            <Typography mr={2} mb={1.5}>
+            <Typography width={'80px'} mr={2}>
               {title}{' '}
               {required && (
                 <Typography component={'span'} color='red'>
@@ -75,7 +75,7 @@ const MultipleImageUpload = ({
             style={{ display: 'none' }}
           />
           <Button
-            sx={{ width: '120px', height: '30px', mr: 2 }}
+            sx={{ width: '60px', height: '32px', mr: 2 }}
             variant='contained'
             disabled={disabled}
             onClick={() => {
@@ -83,7 +83,7 @@ const MultipleImageUpload = ({
                 uploadInputRef.current.click();
               }
             }}>
-            <FileUploadIcon sx={{ mr: 1 }} />
+            <FileUploadIcon />
             {/* Upload */}
           </Button>
         </Box>
@@ -104,6 +104,7 @@ const MultipleImageUpload = ({
                 key={item}
                 sx={{
                   position: 'relative',
+                  height: '60px',
                   mr: 1.5,
                   '.thumbnail': {
                     maxWidth: 60,
