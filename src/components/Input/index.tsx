@@ -25,9 +25,6 @@ const Input = styled((props: TextFieldProps) => (
       'background-color',
       'box-shadow',
     ]),
-    '&:hover': {
-      backgroundColor: 'transparent',
-    },
     '&.Mui-focused': {
       backgroundColor: 'transparent',
       border: '2px solid',

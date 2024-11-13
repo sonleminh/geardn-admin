@@ -37,4 +37,8 @@ export interface IUpdateOrder{
     name?: string;
     items: IOrderItem[]
 }
-  
+
+export interface IUpdateOrderStatus{
+    _id: string;
+    status: string;
+}

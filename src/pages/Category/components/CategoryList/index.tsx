@@ -45,11 +45,11 @@ const CategoryList = () => {
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
-  const { mutate: deleteProductMutate } = useDeleteCategory();
+  const { mutate: deleteCategoryMutate } = useDeleteCategory();
 
-  const handleDeleteProduct = (id: string) => {
+  const handleDeleteCategory = (id: string) => {
     showNotification('Ok', 'error');
-    deleteProductMutate(id, {
+    deleteCategoryMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
         showNotification('Xóa danh mục thành công', 'success');
@@ -121,7 +121,7 @@ const CategoryList = () => {
                             showConfirmModal({
                               title: 'Bạn có muốn xóa danh mục này không?',
                               cancelText: 'Hủy',
-                              onOk: () => handleDeleteProduct(item?._id),
+                              onOk: () => handleDeleteCategory(item?._id),
                               okText: 'Xóa',
                               btnOkColor: 'error',
                             });

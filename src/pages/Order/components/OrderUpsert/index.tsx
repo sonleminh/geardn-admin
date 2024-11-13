@@ -111,8 +111,8 @@ const OrderUpsert = () => {
         ...values,
         items: orderItems,
         receive_option: 'COD',
-        total_amount: totalAmount(),
         district: district?.name,
+        // total_amount: totalAmount(),
         // name: variant?.join(),
         // price: +values.price,
         // stock: +values.stock,
@@ -120,7 +120,6 @@ const OrderUpsert = () => {
         //   tier_index: tierIndex,
         // },
       };
-      console.log(payload);
       if (isEdit) {
         updateOrderMutate(
           { _id: id, ...payload },
@@ -139,7 +138,7 @@ const OrderUpsert = () => {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
             showNotification('Tạo đơn hàng thành công', 'success');
-            // navigate(-1);
+            navigate(-1);
           },
         });
       }
@@ -770,6 +769,13 @@ const OrderUpsert = () => {
             )}
             <FormControl fullWidth>
               <Input
+                // sx={{
+                //   '& .MuiFilledInput-root': {
+                //     ':hover': {
+                //       backgroundColor: '#E0E0E0 !important',
+                //     },
+                //   },
+                // }}
                 label='Số lượng'
                 name='quantity'
                 variant='filled'
@@ -780,6 +786,7 @@ const OrderUpsert = () => {
                     {/* {formik.errors.name} */}
                   </Box>
                 }
+                disabled={showOrderItemStock() === 0 ? true : false}
                 onChange={(e) => setQuantity(e.target.value)}
                 value={quantity}
               />
@@ -890,7 +897,7 @@ const OrderUpsert = () => {
                       </TableRow>
                     ))
                   ) : (
-                    <Box>Empty</Box>
+                    <Box sx={{ width: '100%' }}>Empty</Box>
                   )}
                 </TableBody>
               </Table>
@@ -990,12 +997,13 @@ const OrderUpsert = () => {
           </Grid2>
         </Grid2>
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate(-1)} sx={{ mr: 2 }}>
-            Trở lại
-          </Button>
-          <Button variant='contained' onClick={() => formik.handleSubmit()}>
+          <Button
+            sx={{ mr: 2 }}
+            variant='contained'
+            onClick={() => formik.handleSubmit()}>
             Thêm
           </Button>
+          <Button onClick={() => navigate(-1)}>Trở lại</Button>
         </Box>
       </CardContent>
       {/* {(isCreatePending || isUpdatePending) && <SuspenseLoader />} */}

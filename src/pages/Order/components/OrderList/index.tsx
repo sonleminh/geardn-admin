@@ -11,13 +11,23 @@ import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
 import { IOrderItem } from '@/interfaces/IOrder';
 import { IQuery } from '@/interfaces/IQuery';
-import { useGetOrderList } from '@/services/order';
+import {
+  useDeleteOrder,
+  useGetOrderList,
+  useUpdateOrderStatus,
+} from '@/services/order';
 import { formatPrice } from '@/utils/format-price';
 import {
   Box,
   Card,
   CardHeader,
+  CircularProgress,
   Divider,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
   Tab,
   Table,
   TableBody,
@@ -36,6 +46,8 @@ import moment from 'moment';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ActionButton from '@/components/ActionButton';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import { QueryKeys } from '@/constants/query-key';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -181,6 +193,9 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 const OrderList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { mutate: updateOrderStatusMutate, isPending: isUpdatePending } =
+    useUpdateOrderStatus();
+
   const [query, setQuery] = useState<IQuery>({
     search: '',
     status: '',
@@ -191,6 +206,7 @@ const OrderList = () => {
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof Data>('stt');
   const [tabValue, setTabValue] = useState('');
+  const [updateStatusId, setUpdateStatusId] = useState('');
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
@@ -209,12 +225,25 @@ const OrderList = () => {
   const { data } = useGetOrderList(query);
 
   const { showNotification } = useNotificationContext();
+  const { mutate: deleteOrderMutate } = useDeleteOrder();
 
-  const { confirmModal } = useConfirmModal();
+  const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const handleChangeQuery = (object: Partial<IQuery>) => {
     setQuery((prev) => ({ ...prev, ...object }));
   };
+
+  const handleDeleteOrder = (id: string) => {
+    showNotification('Ok', 'error');
+    deleteOrderMutate(id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
+        showNotification('Xóa danh mục thành công', 'success');
+      },
+    });
+  };
+
+  // console.log('isPending', isPending);
 
   function CustomTabPanel(props: TabPanelProps) {
     const { value, index, ...other } = props;
@@ -329,7 +358,27 @@ const OrderList = () => {
                             padding='none'
                             align='center'
                             sx={{ height: 80 }}>
-                            {ORDER_STATUS[row.status]}
+                            <Select
+                              sx={{
+                                width: '120px',
+                                minHeight: '36px',
+                                fontSize: 14,
+                              }}
+                              disableUnderline
+                              size='small'
+                              onChange={(e) => handleUpdateStatus(e, row._id)}
+                              value={row?.status ?? ''}>
+                              {Object.entries(ORDER_STATUS)?.map(
+                                ([key, label]) => (
+                                  <MenuItem
+                                    sx={{ fontSize: 12 }}
+                                    key={key}
+                                    value={key}>
+                                    {label}
+                                  </MenuItem>
+                                )
+                              )}
+                            </Select>
                           </TableCell>
 
                           <TableCell
@@ -337,7 +386,7 @@ const OrderList = () => {
                             sx={{ width: '10%', height: 80 }}>
                             <Box onClick={(e) => e.stopPropagation()}>
                               <ActionButton>
-                                <Box mb={1}>
+                                {/* <Box mb={1}>
                                   <ButtonWithTooltip
                                     color='primary'
                                     variant='outlined'
@@ -347,7 +396,7 @@ const OrderList = () => {
                                   >
                                     <InfoOutlinedIcon />
                                   </ButtonWithTooltip>
-                                </Box>
+                                </Box> */}
                                 <Box mb={1}>
                                   <ButtonWithTooltip
                                     color='primary'
@@ -358,6 +407,25 @@ const OrderList = () => {
                                     title='Chỉnh sửa'
                                     placement='left'>
                                     <EditOutlinedIcon />
+                                  </ButtonWithTooltip>
+                                </Box>
+                                <Box mb={1}>
+                                  <ButtonWithTooltip
+                                    color='error'
+                                    onClick={() => {
+                                      showConfirmModal({
+                                        title:
+                                          'Bạn có muốn xóa đơn hàng này không?',
+                                        cancelText: 'Hủy',
+                                        onOk: () => handleDeleteOrder(row?._id),
+                                        okText: 'Xóa',
+                                        btnOkColor: 'error',
+                                      });
+                                    }}
+                                    variant='outlined'
+                                    title='Xoá'
+                                    placement='left'>
+                                    <DeleteOutlineOutlinedIcon />
                                   </ButtonWithTooltip>
                                 </Box>
                               </ActionButton>
@@ -430,6 +498,19 @@ const OrderList = () => {
     }));
   };
 
+  const handleUpdateStatus = (e: SelectChangeEvent<string>, id: string) => {
+    updateOrderStatusMutate(
+      { _id: id, status: e.target.value },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
+          showNotification('Cập nhật trạng thái thành công', 'success');
+        },
+      }
+    );
+    // queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
+  };
+
   return (
     <Card sx={{ borderRadius: 2 }}>
       <Card>
@@ -458,7 +539,7 @@ const OrderList = () => {
               aria-label='basic tabs example'>
               <Tab label='Tất cả' value={''} />\{}
               <Tab label='Đang xử lý' value={'pending'} />
-              <Tab label='Đã xác nhận' />
+              <Tab label='Đã xác nhận' value={'pending'} /> // check
               <Tab label='Đang vận chuyển' />
               <Tab label='Hoàn thành' value={'completed'} />
               <Tab label='Đã huỷ' />

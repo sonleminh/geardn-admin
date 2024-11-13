@@ -1,8 +1,13 @@
 import { QueryKeys } from '@/constants/query-key';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { getRequest, patchRequest, postRequest } from '../axios';
+import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 
-import { ICreateOrder, IOrder, IUpdateOrder } from '@/interfaces/IOrder';
+import {
+  ICreateOrder,
+  IOrder,
+  IUpdateOrder,
+  IUpdateOrderStatus,
+} from '@/interfaces/IOrder';
 import { IQuery } from '@/interfaces/IQuery';
 import queryString from 'query-string';
 
@@ -126,5 +131,28 @@ const updateOrder = async (payload: IUpdateOrder) => {
 export const useUpdateOrder = () => {
   return useMutation({
     mutationFn: updateOrder,
+  });
+};
+
+const updateOrderStatus = async (payload: IUpdateOrderStatus) => {
+  const { _id, ...rest } = payload;
+  const result = await patchRequest(`${orderUrl}/${_id}/status`, rest);
+  return result.data as IOrder;
+};
+
+export const useUpdateOrderStatus = () => {
+  return useMutation({
+    mutationFn: updateOrderStatus,
+  });
+};
+
+const deleteOrder = async (id: string) => {
+  const result = await deleteRequest(`${orderUrl}/${id}`);
+  return result.data;
+};
+
+export const useDeleteOrder = () => {
+  return useMutation({
+    mutationFn: deleteOrder,
   });
 };
