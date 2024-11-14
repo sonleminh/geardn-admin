@@ -538,12 +538,9 @@ const OrderList = () => {
               onChange={handleChange}
               aria-label='basic tabs example'>
               <Tab label='Tất cả' value={''} />\{}
-              <Tab label='Đang xử lý' value={'pending'} />
-              <Tab label='Đã xác nhận' value={'pending'} /> // check
-              <Tab label='Đang vận chuyển' />
-              <Tab label='Hoàn thành' value={'completed'} />
-              <Tab label='Đã huỷ' />
-              <Tab label='Trả hàng' />
+              {Object.entries(ORDER_STATUS)?.map(([key, label]) => (
+                <Tab key={key} label={label} value={key} />
+              ))}
             </Tabs>
           </Box>
           <CustomTabPanel value={''} index={0} />

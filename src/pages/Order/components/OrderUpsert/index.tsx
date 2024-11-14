@@ -57,6 +57,7 @@ import {
   useUpdateOrder,
 } from '@/services/order';
 import { formatPrice } from '@/utils/format-price';
+import axios, { AxiosError } from 'axios';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -131,6 +132,13 @@ const OrderUpsert = () => {
               showNotification('Cập nhật đơn hàng thành công', 'success');
               navigate(-1);
             },
+            onError: (err: Error | AxiosError) => {
+              if (axios.isAxiosError(err)) {
+                showNotification(err.response?.data?.message, 'error');
+              } else {
+                showNotification(err.message, 'error');
+              }
+            },
           }
         );
       } else {
@@ -139,6 +147,13 @@ const OrderUpsert = () => {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
             showNotification('Tạo đơn hàng thành công', 'success');
             navigate(-1);
+          },
+          onError: (err: Error | AxiosError) => {
+            if (axios.isAxiosError(err)) {
+              showNotification(err.response?.data?.message, 'error');
+            } else {
+              showNotification(err.message, 'error');
+            }
           },
         });
       }
@@ -290,9 +305,9 @@ const OrderUpsert = () => {
       return showNotification('Sản phẩm đã có trong danh sách!', 'error');
     }
 
-    if (matchedModel && +quantity > matchedModel?.stock) {
-      return showNotification('Số lượng vượt quá hàng trong kho!!', 'error');
-    }
+    // if (matchedModel && +quantity > matchedModel?.stock) {
+    //   return showNotification('Số lượng vượt quá hàng trong kho!!', 'error');
+    // }
 
     const newItem = {
       model_id: matchedModel?._id ?? '',
@@ -384,8 +399,6 @@ const OrderUpsert = () => {
       0
     );
   };
-  // console.log('slt:', selectedModel);
-  // console.log(!!product?.tier_variations?.length && !!selectedModel?.length);
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -494,6 +507,9 @@ const OrderUpsert = () => {
                     </MenuItem>
                   ))}
               </Select>
+              <FormHelperText>
+                {formik?.errors.ward || 'Please select your ward.'}
+              </FormHelperText>
             </FormControl>
           </Grid2>
           <Grid2 size={6}>
@@ -786,7 +802,7 @@ const OrderUpsert = () => {
                     {/* {formik.errors.name} */}
                   </Box>
                 }
-                disabled={showOrderItemStock() === 0 ? true : false}
+                disabled={!isEdit && showOrderItemStock() === 0 ? true : false}
                 onChange={(e) => setQuantity(e.target.value)}
                 value={quantity}
               />
@@ -1001,7 +1017,7 @@ const OrderUpsert = () => {
             sx={{ mr: 2 }}
             variant='contained'
             onClick={() => formik.handleSubmit()}>
-            Thêm
+            {isEdit ? 'Lưu' : 'Thêm'}
           </Button>
           <Button onClick={() => navigate(-1)}>Trở lại</Button>
         </Box>
