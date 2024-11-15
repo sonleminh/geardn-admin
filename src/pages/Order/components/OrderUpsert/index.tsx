@@ -507,6 +507,9 @@ const OrderUpsert = () => {
                     </MenuItem>
                   ))}
               </Select>
+              <FormHelperText>
+                {formik?.errors.ward || 'Please select your ward.'}
+              </FormHelperText>
             </FormControl>
           </Grid2>
           <Grid2 size={6}>
