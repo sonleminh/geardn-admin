@@ -4,10 +4,6 @@ export interface IOrderItem {
     image: string;
     product_id: string;
     product_name: string;
-    extinfo: {
-        tier_index: number[];
-        is_pre_order: boolean;
-    }
     quantity: number;
     price: number;
 }
@@ -22,10 +18,10 @@ export interface IOrder {
     total_amount: number;
     status: string;
     address: {
-        street: string;
         city: string;
-        state: string;
-        country: string;
+        district: string;
+        ward: string;
+        specific_address: string;
     };
     receive_option: string;
     createdAt: Date;

@@ -102,8 +102,15 @@ const OrderUpsert = () => {
       phone: '',
       email: '',
       items: '',
-      province: '',
-      ward: '',
+      address: {
+        city: '',
+        district: '',
+        ward: '',
+        specific_address: '',
+      },
+      receive_option: 'DELIVERY',
+      note: '',
+      payment_method: 'COD',
     },
     validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -160,6 +167,8 @@ const OrderUpsert = () => {
     },
   });
 
+  console.log(formik?.values.address.city);
+
   useEffect(() => {
     if (product?.tier_variations.length === 0) {
       setSelectedImage(product.images[0]);
@@ -202,6 +211,13 @@ const OrderUpsert = () => {
       formik.setFieldValue('name', orderData?.name);
       formik.setFieldValue('phone', orderData?.phone);
       formik.setFieldValue('email', orderData?.email);
+      formik.setFieldValue('address.city', orderData?.address?.city);
+      formik.setFieldValue('address.district', orderData?.address?.district);
+      formik.setFieldValue('address.ward', orderData?.address?.ward);
+      formik.setFieldValue(
+        'address.specific_address',
+        orderData?.address?.specific_address
+      );
       // formik.setFieldValue('stock', modelData?.stock);
       // formik.setFieldValue(
       //   'extinfo.tier_index',
@@ -223,6 +239,9 @@ const OrderUpsert = () => {
     const { name, value } = e.target;
     console.log('o:', name, value);
     formik.setFieldValue(name, value);
+    if (name === 'address.district') {
+      // setDistrictCode(provinces)
+    }
   };
 
   // const handleSelectChange = (e: SelectChangeEvent<string>) => {
@@ -313,7 +332,6 @@ const OrderUpsert = () => {
       model_id: matchedModel?._id ?? '',
       product_id: productId,
       product_name: product?.name ?? '',
-      // category_id: categoryId,
       name: matchedModel?.name ?? '',
       image: selectedImage,
       price: matchedModel?.price ?? 0,
@@ -497,9 +515,9 @@ const OrderUpsert = () => {
               <Select
                 disableUnderline
                 size='small'
-                name='province'
+                name='address.city'
                 onChange={handleSelectChangeValue}
-                value={formik?.values.province ?? ''}>
+                value={formik?.values?.address?.city}>
                 {provinces &&
                   provinces?.map((item) => (
                     <MenuItem key={item?.code} value={item?.name}>
@@ -508,7 +526,7 @@ const OrderUpsert = () => {
                   ))}
               </Select>
               <FormHelperText>
-                {formik?.errors.ward || 'Please select your ward.'}
+                {formik?.errors?.address?.city || 'Please select your city'}
               </FormHelperText>
             </FormControl>
           </Grid2>
@@ -539,19 +557,23 @@ const OrderUpsert = () => {
               <Select
                 disableUnderline
                 size='small'
-                name='district'
-                onChange={(e) => {
-                  setDistrictCode(e?.target?.value as string);
-                }}
+                name='address.district'
+                onChange={handleSelectChangeValue}
                 value={districtCode}>
                 {provinces
-                  ?.find((item) => item?.name === formik?.values?.province)
+                  ?.find(
+                    (item) => item?.name === formik?.values?.address.district
+                  )
                   ?.districts?.map((item) => (
-                    <MenuItem key={item?.code} value={item?.code}>
+                    <MenuItem key={item?.code} value={item?.name}>
                       {item?.name}
                     </MenuItem>
                   ))}
               </Select>
+              <FormHelperText>
+                {formik?.errors?.address?.district ||
+                  'Please select your district'}
+              </FormHelperText>
             </FormControl>
           </Grid2>
           <Grid2 size={6}>
@@ -580,23 +602,26 @@ const OrderUpsert = () => {
               <InputLabel>Phường/Xã</InputLabel>
               <Select
                 disableUnderline
-                name='ward'
+                name='address.ward'
                 size='small'
                 onChange={handleSelectChangeValue}
-                value={formik?.values.ward ?? ''}>
+                value={formik?.values.address.ward}>
                 {district?.wards?.map((item) => (
                   <MenuItem key={item?.code} value={item?.name}>
                     {item?.name}
                   </MenuItem>
                 ))}
               </Select>
+              <FormHelperText>
+                {formik?.errors?.address?.ward || 'Please select your ward'}
+              </FormHelperText>
             </FormControl>
           </Grid2>
           <Grid2 size={6}>
             <FormControl fullWidth>
               <Input
                 label='Địa chỉ cụ thể'
-                name='phone'
+                name='address.specific_address'
                 variant='filled'
                 size='small'
                 rows={3}
