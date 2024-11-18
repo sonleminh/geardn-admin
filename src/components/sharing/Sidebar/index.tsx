@@ -1,4 +1,3 @@
-// import HeaderLogo from '../../../components/Header/HeaderLogo';
 import { Box, Button, Divider, Link, List, ListItem } from '@mui/material';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -63,19 +62,21 @@ const Sidebar = () => {
         sx={{
           my: 3,
           textAlign: 'center',
+          color: '#fff',
         }}>
-        <Link
-          href='/'
-          sx={{
-            '.header-logo': {
-              width: '120px',
-              height: { xs: '48px' },
-              objectFit: 'contain',
-              borderRadius: 2,
-              overflow: 'hidden',
-            },
-          }}>
-          <img src={LOGO} alt='geardn' className='header-logo' />
+        <Link href='/'>
+          <Box
+            sx={{
+              '.header-logoo': {
+                width: '120px',
+                height: { xs: '48px' },
+                objectFit: 'contain',
+                borderRadius: 2,
+                overflow: 'hidden',
+              },
+            }}>
+            <img src={LOGO} alt='geardn' className='header-logoo' />
+          </Box>
         </Link>
       </Box>
       <Divider sx={{ bgcolor: '#a1a1a1' }} />
