@@ -8,6 +8,7 @@ import LOGO from '@/assets/geardn-logo.png';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import PaymentIcon from '@mui/icons-material/Payment';
 
 const Sidebar = () => {
   const menuList = [
@@ -16,6 +17,17 @@ const Sidebar = () => {
       label: 'Dashboard',
       icon: <DashboardIcon />,
     },
+    {
+      link: '/order',
+      label: 'Đơn hàng',
+      icon: <ShoppingBagOutlinedIcon />,
+    },
+    {
+      link: '/inventory',
+      label: 'Kho hàng',
+      icon: <WarehouseOutlinedIcon />,
+    },
+
     {
       link: '/product',
       label: 'Sản phẩm',
@@ -32,14 +44,9 @@ const Sidebar = () => {
       icon: <FilterAltOutlinedIcon />,
     },
     {
-      link: '/inventory',
-      label: 'Kho hàng',
-      icon: <WarehouseOutlinedIcon />,
-    },
-    {
-      link: '/order',
-      label: 'Đơn hàng',
-      icon: <ShoppingBagOutlinedIcon />,
+      link: '/payment',
+      label: 'Thanh toán',
+      icon: <PaymentIcon />,
     },
   ];
   return (

@@ -11,6 +11,7 @@ import Category from '@/pages/Category';
 import Attribute from '@/pages/Attribute';
 import Inventory from '@/pages/Inventory';
 import Order from '@/pages/Order';
+import Payment from '@/pages/Payment';
 
 const Loader =
   <P extends object>(Component: React.ComponentType<P>): React.FC<P> =>
@@ -74,6 +75,10 @@ const routes = [
           {
             path: 'order/*',
             element: <Order />,
+          },
+          {
+            path: 'payment/*',
+            element: <Payment />,
           },
         ],
       },

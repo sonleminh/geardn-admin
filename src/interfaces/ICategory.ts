@@ -1,7 +1,7 @@
 export interface ICategory {
     _id: string;
     name: string;
-    createdAt?: string;
+    createdAt?: Date;
 }
 
 export interface ICreateCategory extends Record<string, unknown>  {

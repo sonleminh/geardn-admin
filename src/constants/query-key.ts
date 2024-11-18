@@ -5,4 +5,5 @@ export const QueryKeys = {
     Attribute: 'ATTRIBUTE',
     Model: 'MODEL',
     Inventory: 'INVENTORY',
+    Payment: 'PAYMENT',
 }
