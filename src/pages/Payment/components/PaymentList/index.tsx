@@ -52,7 +52,7 @@ const PaymentList = () => {
     deletePaymentMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Payment] });
-        showNotification('Xóa danh mục thành công', 'success');
+        showNotification('Xóa hình thức thanh toán thành công', 'success');
       },
     });
   };
@@ -85,22 +85,49 @@ const PaymentList = () => {
             <TableHead>
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
+                <TableCell align='center'>Key</TableCell>
                 <TableCell>Tên</TableCell>
+                <TableCell align='center'>Ảnh</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
+                <TableCell align='center'>Vô hiệu hoá</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data?.paymentList?.map((item, index) => (
+              {data?.data?.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell align='center'>{index + 1}</TableCell>
+                  <TableCell align='center'>{item?.key}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
                       {item.name}
                     </Typography>
                   </TableCell>
+                  <TableCell
+                    padding='none'
+                    align='center'
+                    sx={{ width: 48, height: 48 }}>
+                    <Box
+                      sx={{
+                        height: 48,
+                        '.thumbnail': {
+                          width: 48,
+                          height: 48,
+                          objectFit: 'contain',
+                        },
+                      }}>
+                      <img
+                        src={item.image}
+                        className='thumbnail'
+                        style={{ width: 48, height: 48 }}
+                      />
+                    </Box>
+                  </TableCell>
                   <TableCell align='center'>
                     {moment(item.createdAt).format('DD/MM/YYYY')}
+                  </TableCell>
+                  <TableCell align='center'>
+                    {item?.is_disabled ? 'Có' : 'Không'}
                   </TableCell>
                   <TableCell align='center'>
                     <ActionButton>
@@ -119,7 +146,8 @@ const PaymentList = () => {
                           color='error'
                           onClick={() => {
                             showConfirmModal({
-                              title: 'Bạn có muốn xóa danh mục này không?',
+                              title:
+                                'Bạn có muốn xóa hình thức thanh toán này không?',
                               cancelText: 'Hủy',
                               onOk: () => handleDeletePayment(item?._id),
                               okText: 'Xóa',
@@ -148,9 +176,9 @@ const PaymentList = () => {
             },
             textAlign: 'right',
           }}>
-          <Typography>Tổng cộng: {data?.total ?? 0}</Typography>
+          {/* <Typography>Tổng cộng: {data?.total ?? 0}</Typography> */}
           <Pagination
-            count={Math.ceil((data?.total ?? 0) / query.limit!)}
+            // count={Math.ceil((data?.total ?? 0) / query.limit!)}
             page={query.page ?? 0}
             onChange={(_: React.ChangeEvent<unknown>, newPage) => {
               handleChangeQuery({ page: newPage });

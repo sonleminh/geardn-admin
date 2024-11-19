@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from 'react';
+import { ChangeEvent, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import Input from '@/components/Input';
@@ -9,6 +9,7 @@ import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 
+import ImageUpload from '@/components/ImageUpload';
 import {
   useCreatePayment,
   useGetPaymentById,
@@ -20,13 +21,15 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Checkbox,
   Divider,
   FormControl,
+  InputLabel,
   SxProps,
   Theme,
   Typography,
 } from '@mui/material';
-import ImageUpload from '@/components/ImageUpload';
+import { createSchema, updateSchema } from '../utils/schema/categorySchema';
 // import { createSchema, updateSchema } from '../utils/schema/PaymentSchema';
 
 const PaymentUpsert = () => {
@@ -36,10 +39,7 @@ const PaymentUpsert = () => {
   const { showNotification } = useNotificationContext();
 
   const isEdit = !!id;
-
-  const [optionImage, setOptionImage] = useState<string>('');
-
-  const { data: PaymentData } = useGetPaymentById(id as string);
+  const { data: paymentData } = useGetPaymentById(id as string);
 
   const { mutate: createPaymentMutate, isPending: isCreatePending } =
     useCreatePayment();
@@ -47,49 +47,54 @@ const PaymentUpsert = () => {
     useUpdatePayment();
   const formik = useFormik({
     initialValues: {
+      key: '',
       name: '',
       image: '',
-      display_name: '',
+      is_disabled: false,
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      // if (isEdit) {
-      //   updatePaymentMutate(
-      //     { _id: id, ...values },
-      //     {
-      //       onSuccess() {
-      //         queryClient.invalidateQueries({ queryKey: [QueryKeys.Payment] });
-      //         showNotification('Cập nhật danh mục thành công', 'success');
-      //         navigate('/Payment');
-      //       },
-      //     }
-      //   );
-      // } else {
-      //   createPaymentMutate(values, {
-      //     onSuccess() {
-      //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Payment] });
-      //       showNotification('Tạo danh mục thành công', 'success');
-      //       navigate('/Payment');
-      //     },
-      //   });
-      // }
+      console.log(values);
+      if (isEdit) {
+        updatePaymentMutate(
+          { _id: id, ...values },
+          {
+            onSuccess() {
+              queryClient.invalidateQueries({ queryKey: [QueryKeys.Payment] });
+              showNotification('Cập nhật danh mục thành công', 'success');
+              navigate('/Payment');
+            },
+          }
+        );
+      } else {
+        createPaymentMutate(values, {
+          onSuccess() {
+            queryClient.invalidateQueries({ queryKey: [QueryKeys.Payment] });
+            showNotification('Tạo hình thức thanh toán thành công', 'success');
+            navigate('/payment');
+          },
+        });
+      }
     },
   });
 
   useEffect(() => {
-    if (PaymentData) {
-      formik.setFieldValue('name', PaymentData?.name);
+    if (paymentData) {
+      formik.setFieldValue('key', paymentData?.key);
+      formik.setFieldValue('name', paymentData?.name);
+      formik.setFieldValue('image', paymentData?.image);
+      formik.setFieldValue('is_disabled', paymentData?.is_disabled);
     }
-  }, [PaymentData]);
+  }, [paymentData]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     formik.setFieldValue(name, value);
   };
 
-  const handleOptionImageUpload = (result: string) => {
-    setOptionImage(result);
+  const handleMethodImage = (result: string) => {
+    formik.setFieldValue('image', result);
   };
 
   return (
@@ -106,6 +111,22 @@ const PaymentUpsert = () => {
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <FormControl>
           <Input
+            id='key'
+            label='Key'
+            name='key'
+            variant='filled'
+            required
+            helperText={
+              <Box component={'span'} sx={helperTextStyle}>
+                {formik.errors.key}
+              </Box>
+            }
+            value={formik?.values.key}
+            onChange={handleChangeValue}
+          />
+        </FormControl>
+        <FormControl>
+          <Input
             id='name'
             label='Tên'
             name='name'
@@ -120,29 +141,26 @@ const PaymentUpsert = () => {
             onChange={handleChangeValue}
           />
         </FormControl>
-        <FormControl>
-          <Input
-            id='display_name'
-            label='Tên hiển thị'
-            name='display_name'
-            variant='filled'
-            required
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.display_name}
-              </Box>
-            }
-            value={formik?.values.display_name}
-            onChange={handleChangeValue}
-          />
-        </FormControl>
         <ImageUpload
           title={'Ảnh:'}
-          value={optionImage}
-          onUploadChange={handleOptionImageUpload}
+          value={formik?.values?.image}
+          onUploadChange={handleMethodImage}
         />
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <InputLabel htmlFor='is_disable' sx={{ cursor: 'pointer' }}>
+            Vô hiệu hoá:
+          </InputLabel>
+          <Checkbox
+            id='is_disable'
+            name='is_disable'
+            checked={formik?.values?.is_disabled ?? false}
+            onChange={handleChangeValue}
+            inputProps={{ 'aria-label': 'controlled' }}
+          />
+        </Box>
+
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate('/Payment')} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate('/payment')} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>

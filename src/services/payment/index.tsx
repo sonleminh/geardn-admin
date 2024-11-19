@@ -7,11 +7,12 @@ import {
   IUpdatePaymentPayload,
 } from '@/interfaces/IPayment';
 type TPaymentsRes = {
-  paymentList: IPayment[];
-  total: number;
+  status: number;
+  message: string;
+  data: IPayment[];
 };
 
-const paymentUrl = '/Payment';
+const paymentUrl = '/payment-method';
 
 const getPaymentList = async () => {
   const result = await getRequest(`${paymentUrl}`);
