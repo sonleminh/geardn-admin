@@ -25,11 +25,14 @@ import {
   Checkbox,
   Divider,
   FormControl,
+  FormControlLabel,
   FormHelperText,
   Grid2,
   InputLabel,
   MenuItem,
   Paper,
+  Radio,
+  RadioGroup,
   Select,
   SelectChangeEvent,
   SxProps,
@@ -51,6 +54,7 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import {
   getProvinces,
   useCreateOrder,
+  useGetDistrict,
   useGetDistrictByCode,
   useGetOrderById,
   useGetProvinces,
@@ -58,6 +62,7 @@ import {
 } from '@/services/order';
 import { formatPrice } from '@/utils/format-price';
 import axios, { AxiosError } from 'axios';
+import { useGetPaymentById } from '@/services/payment';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -87,7 +92,9 @@ const OrderUpsert = () => {
   const { data: product } = useGetProductById(productId);
   const { data: initData } = useGetInitialForCreate();
   const { data: provinces } = useGetProvinces();
-  const { data: district } = useGetDistrictByCode(districtCode);
+  const { data: payment } = useGetPaymentById('673c8947d6a67118f380f4ab');
+
+  // const { data: district } = useGetDistrictByCode(districtCode);
   // console.log('district:', districtCode);
   // console.log('provinces:', provinces);
 
@@ -98,19 +105,24 @@ const OrderUpsert = () => {
 
   const formik = useFormik({
     initialValues: {
-      name: '',
-      phone: '',
-      email: '',
-      items: '',
+      customer: {
+        name: '',
+        phone: '',
+        mail: '',
+      },
+      shipment: {
+        method: 1,
+      },
       address: {
         city: '',
         district: '',
         ward: '',
-        specific_address: '',
+        detail_address: '',
       },
-      receive_option: 'DELIVERY',
+      payment: {
+        method: payment?._id,
+      },
       note: '',
-      payment_method: 'COD',
     },
     validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -118,56 +130,57 @@ const OrderUpsert = () => {
       const payload = {
         ...values,
         items: orderItems,
-        receive_option: 'COD',
         district: district?.name,
-        // total_amount: totalAmount(),
-        // name: variant?.join(),
-        // price: +values.price,
-        // stock: +values.stock,
-        // extinfo: {
-        //   tier_index: tierIndex,
-        // },
       };
-      if (isEdit) {
-        updateOrderMutate(
-          { _id: id, ...payload },
-          {
-            onSuccess() {
-              queryClient.invalidateQueries({
-                queryKey: [QueryKeys.Model],
-              });
-              showNotification('Cập nhật đơn hàng thành công', 'success');
-              navigate(-1);
-            },
-            onError: (err: Error | AxiosError) => {
-              if (axios.isAxiosError(err)) {
-                showNotification(err.response?.data?.message, 'error');
-              } else {
-                showNotification(err.message, 'error');
-              }
-            },
-          }
-        );
-      } else {
-        createOrderMutate(payload, {
-          onSuccess() {
-            queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
-            showNotification('Tạo đơn hàng thành công', 'success');
-            navigate(-1);
-          },
-          onError: (err: Error | AxiosError) => {
-            if (axios.isAxiosError(err)) {
-              showNotification(err.response?.data?.message, 'error');
-            } else {
-              showNotification(err.message, 'error');
-            }
-          },
-        });
-      }
+
+      console.log('payload:', payload);
+      // if (isEdit) {
+      //   updateOrderMutate(
+      //     { _id: id, ...payload },
+      //     {
+      //       onSuccess() {
+      //         queryClient.invalidateQueries({
+      //           queryKey: [QueryKeys.Model],
+      //         });
+      //         showNotification('Cập nhật đơn hàng thành công', 'success');
+      //         navigate(-1);
+      //       },
+      //       onError: (err: Error | AxiosError) => {
+      //         if (axios.isAxiosError(err)) {
+      //           showNotification(err.response?.data?.message, 'error');
+      //         } else {
+      //           showNotification(err.message, 'error');
+      //         }
+      //       },
+      //     }
+      //   );
+      // } else {
+      //   createOrderMutate(payload, {
+      //     onSuccess() {
+      //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
+      //       showNotification('Tạo đơn hàng thành công', 'success');
+      //       navigate(-1);
+      //     },
+      //     onError: (err: Error | AxiosError) => {
+      //       if (axios.isAxiosError(err)) {
+      //         showNotification(err.response?.data?.message, 'error');
+      //       } else {
+      //         showNotification(err.message, 'error');
+      //       }
+      //     },
+      //   });
+      // }
     },
   });
 
-  console.log(formik?.values.address.city);
+  const { data: district } = useGetDistrict(
+    provinces
+      ?.find((item) => item?.name === formik?.values?.address?.city)
+      ?.districts?.find(
+        (item) => item?.name === formik?.values?.address?.district
+      )
+      ?.code.toString() ?? ''
+  );
 
   useEffect(() => {
     if (product?.tier_variations.length === 0) {
@@ -438,15 +451,15 @@ const OrderUpsert = () => {
             <FormControl fullWidth>
               <Input
                 label='Tên khách hàng'
-                name='name'
+                name='customer.name'
                 variant='filled'
                 size='small'
                 helperText={
                   <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.name}
+                    {formik?.errors?.customer?.name}
                   </Box>
                 }
-                value={formik?.values.name}
+                value={formik?.values?.customer?.name}
                 onChange={handleChangeValue}
               />
             </FormControl>
@@ -455,15 +468,15 @@ const OrderUpsert = () => {
             <FormControl fullWidth>
               <Input
                 label='Email'
-                name='email'
+                name='customer.mail'
                 variant='filled'
                 size='small'
                 helperText={
                   <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.email}
+                    {formik?.errors?.customer?.mail}
                   </Box>
                 }
-                value={formik?.values.email}
+                value={formik?.values?.customer?.mail}
                 onChange={handleChangeValue}
               />
             </FormControl>
@@ -472,15 +485,15 @@ const OrderUpsert = () => {
             <FormControl fullWidth>
               <Input
                 label='Số điện thoại'
-                name='phone'
+                name='customer.phone'
                 variant='filled'
                 size='small'
                 helperText={
                   <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.phone}
+                    {formik?.errors?.customer?.phone}
                   </Box>
                 }
-                value={formik?.values.phone}
+                value={formik?.values?.customer?.phone}
                 onChange={handleChangeValue}
               />
             </FormControl>
@@ -525,8 +538,8 @@ const OrderUpsert = () => {
                     </MenuItem>
                   ))}
               </Select>
-              <FormHelperText>
-                {formik?.errors?.address?.city || 'Please select your city'}
+              <FormHelperText sx={helperTextStyle}>
+                {formik?.errors?.address?.city}
               </FormHelperText>
             </FormControl>
           </Grid2>
@@ -551,6 +564,9 @@ const OrderUpsert = () => {
                 },
                 '& .MuiInputLabel-asterisk': {
                   color: 'red',
+                },
+                '& .Mui-disabled': {
+                  cursor: 'not-allowed',
                 },
               }}>
               <InputLabel>Quận/Huyện</InputLabel>
@@ -559,20 +575,18 @@ const OrderUpsert = () => {
                 size='small'
                 name='address.district'
                 onChange={handleSelectChangeValue}
-                value={districtCode}>
+                value={formik?.values?.address?.district}
+                disabled={!formik?.values?.address?.city}>
                 {provinces
-                  ?.find(
-                    (item) => item?.name === formik?.values?.address.district
-                  )
+                  ?.find((item) => item?.name === formik?.values?.address.city)
                   ?.districts?.map((item) => (
                     <MenuItem key={item?.code} value={item?.name}>
                       {item?.name}
                     </MenuItem>
                   ))}
               </Select>
-              <FormHelperText>
-                {formik?.errors?.address?.district ||
-                  'Please select your district'}
+              <FormHelperText sx={helperTextStyle}>
+                {formik?.errors?.address?.district}
               </FormHelperText>
             </FormControl>
           </Grid2>
@@ -598,6 +612,9 @@ const OrderUpsert = () => {
                 '& .MuiInputLabel-asterisk': {
                   color: 'red',
                 },
+                '& .Mui-disabled': {
+                  cursor: 'not-allowed',
+                },
               }}>
               <InputLabel>Phường/Xã</InputLabel>
               <Select
@@ -605,15 +622,16 @@ const OrderUpsert = () => {
                 name='address.ward'
                 size='small'
                 onChange={handleSelectChangeValue}
-                value={formik?.values.address.ward}>
+                value={formik?.values.address.ward}
+                disabled={!formik?.values?.address?.city}>
                 {district?.wards?.map((item) => (
                   <MenuItem key={item?.code} value={item?.name}>
                     {item?.name}
                   </MenuItem>
                 ))}
               </Select>
-              <FormHelperText>
-                {formik?.errors?.address?.ward || 'Please select your ward'}
+              <FormHelperText sx={helperTextStyle}>
+                {formik?.errors?.address?.ward}
               </FormHelperText>
             </FormControl>
           </Grid2>
@@ -621,20 +639,51 @@ const OrderUpsert = () => {
             <FormControl fullWidth>
               <Input
                 label='Địa chỉ cụ thể'
-                name='address.specific_address'
+                name='address.detail_address'
                 variant='filled'
                 size='small'
                 rows={3}
                 helperText={
                   <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.phone}
+                    {formik?.errors?.address?.detail_address}
                   </Box>
                 }
-                value={formik?.values.phone}
+                value={formik?.values?.address?.detail_address}
                 onChange={handleChangeValue}
               />
             </FormControl>
           </Grid2>
+          <Grid2 size={6}>
+            <FormControl>
+              <Typography sx={{ mb: 2, fontWeight: 600 }}>
+                Phương thức thanh toán
+              </Typography>
+              <RadioGroup name='payment.method'>
+                <FormControlLabel
+                  value={formik?.values?.payment?.method}
+                  control={<Radio size='small' />}
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <img
+                        src={payment?.image ?? ''}
+                        alt=''
+                        style={{
+                          width: '100%',
+                          maxWidth: '36px',
+                          height: '36px',
+                          objectFit: 'contain',
+                        }}
+                      />
+                      <Typography sx={{ ml: 1, fontSize: 14 }}>
+                        {payment?.name}
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </RadioGroup>
+            </FormControl>
+          </Grid2>
+          <Grid2 size={6} />
           <Grid2 size={6}>
             <Typography mb={1}>Thêm sản phẩm:</Typography>
             <FormControl
@@ -808,7 +857,7 @@ const OrderUpsert = () => {
                 </Grid2>
               </Box>
             )}
-            <FormControl fullWidth>
+            <FormControl sx={{ mb: 2 }} fullWidth>
               <Input
                 // sx={{
                 //   '& .MuiFilledInput-root': {
@@ -832,6 +881,7 @@ const OrderUpsert = () => {
                 value={quantity}
               />
             </FormControl>
+
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
               <Button
                 variant='contained'
@@ -848,9 +898,7 @@ const OrderUpsert = () => {
               </Button>
             </Box>
           </Grid2>
-          <Grid2
-            // sx={{ border: '1px solid #aaaaaa', borderRadius: 1, p: 2 }}
-            size={6}>
+          <Grid2 size={6}>
             <Typography mb={1}>Sản phẩm:</Typography>
             <TableContainer component={Paper}>
               <Table sx={{}} aria-label='simple table'>
@@ -938,7 +986,21 @@ const OrderUpsert = () => {
                       </TableRow>
                     ))
                   ) : (
-                    <Box sx={{ width: '100%' }}>Empty</Box>
+                    <TableRow
+                      sx={{
+                        height: '80px',
+                        '& td': { border: 0 },
+                      }}>
+                      <TableCell
+                        colSpan={6}
+                        align='center'
+                        sx={{
+                          textAlign: 'center',
+                          color: '#999',
+                        }}>
+                        Empty
+                      </TableCell>
+                    </TableRow>
                   )}
                 </TableBody>
               </Table>

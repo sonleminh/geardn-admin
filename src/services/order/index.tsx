@@ -103,7 +103,7 @@ export const useGetProvinces = () => {
   });
 };
 
-const getDistrictByCode = async (code: string) => {
+const getDistrict = async (code: string) => {
   console.log(3, code);
   const result = await getRequest(
     `https://provinces.open-api.vn/api/d/${code}?depth=2`,
@@ -112,10 +112,10 @@ const getDistrictByCode = async (code: string) => {
   return result.data as IDistrict;
 };
 
-export const useGetDistrictByCode = (code: string) => {
+export const useGetDistrict = (code: string) => {
   return useQuery({
     queryKey: ['district', code],
-    queryFn: () => getDistrictByCode(code),
+    queryFn: () => getDistrict(code),
     refetchOnWindowFocus: false,
     refetchInterval: false,
     enabled: !!code,
