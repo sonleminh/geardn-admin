@@ -67,6 +67,7 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import moment, { Moment } from 'moment';
+import { IModel } from '@/interfaces/IModel';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -83,17 +84,20 @@ const OrderUpsert = () => {
   const [selectedModel, setSelectedModel] = useState<(number | undefined)[]>(
     []
   );
+  const [matchedModel, setMatchedModel] = useState<IModel>();
+
   const [selectedImage, setSelectedImage] = useState<string>('');
   const [isOrderItemEdit, setIsOrderItemEdit] = useState<boolean>(false);
   const [modelIdEdit, setModelIdEdit] = useState<string>('');
   const [itemIndex, setItemIndex] = useState<number | null>(null);
+  const [editItemStock, setEditItemStock] = useState<number | null>(null);
+
   const [shopAddress, setShopAddress] = useState<string>('');
   const [city, setCity] = useState<string>('');
   const [district, setDistrict] = useState<string>('');
   const [ward, setWard] = useState<string>('');
   const [detailAddress, setDetailAddress] = useState<string>('');
 
-  console.log('productId:', productId);
   // console.log('categoryId:', categoryId);
 
   const { data: orderData } = useGetOrderById(id as string);
@@ -102,8 +106,6 @@ const OrderUpsert = () => {
   const { data: initData } = useGetInitialForCreate();
   const { data: provinces } = useGetProvinces();
   const { data: payment } = useGetPaymentById('673c8947d6a67118f380f4ab');
-
-  console.log('selectedModel:', selectedModel);
 
   // const { data: district } = useGetDistrictByCode(districtCode);
   // console.log('district:', districtCode);
@@ -152,6 +154,18 @@ const OrderUpsert = () => {
           is_online_order: false,
         },
       };
+      if (!orderItems?.length) {
+        return showNotification(
+          'Không có sản phẩm nào để tạo đơn hàng',
+          'error'
+        );
+      }
+      if (
+        (values?.shipment?.method === 1 && !ward && !detailAddress) ||
+        (values?.shipment?.method === 2 && !shopAddress)
+      ) {
+        return showNotification('Vui lòng chọn địa chỉ nhận hàng', 'error');
+      }
       if (isEdit) {
         updateOrderMutate(
           { _id: id, ...payload },
@@ -233,7 +247,29 @@ const OrderUpsert = () => {
       setCategoryId(product?.category?._id);
     }
   }, [isOrderItemEdit, product, modelIdEdit]);
-  console.log('ward:', ward);
+
+  useEffect(() => {
+    if (product && selectedModel.length > 0) {
+      const matchedModel = product?.models?.find(
+        (model) =>
+          JSON.stringify(model?.extinfo?.tier_index) ===
+          JSON.stringify(selectedModel)
+      );
+      setMatchedModel(matchedModel);
+      // return matchedModel && isOrderItemEdit
+      //   ? matchedModel?.stock
+      //   : matchedModel?.stock;
+    } else if (
+      product &&
+      selectedModel.length === 0 &&
+      product?.models?.length === 1
+    ) {
+      setMatchedModel(product?.models?.[0]);
+    }
+  }, [product, selectedModel]);
+
+  console.log('matchedModel:', matchedModel);
+  console.log('quantity:', quantity);
 
   useEffect(() => {
     if (orderData) {
@@ -278,8 +314,6 @@ const OrderUpsert = () => {
       setOrderItems(orderData?.items);
     }
   }, [orderData, districtData]);
-
-  console.log();
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>
@@ -351,18 +385,16 @@ const OrderUpsert = () => {
   };
 
   const hanleUpsertOrderItem = () => {
-    let matchedModel;
-    if (!product?.tier_variations?.length) {
-      matchedModel = product?.models[0];
-    } else {
-      matchedModel = product?.models?.find(
-        (model) =>
-          JSON.stringify(model?.extinfo?.tier_index) ===
-          JSON.stringify(selectedModel)
-      );
-    }
-
-    // console.log(matchedModel);
+    // let matchedModel;
+    // if (!product?.tier_variations?.length) {
+    //   matchedModel = product?.models[0];
+    // } else {
+    //   matchedModel = product?.models?.find(
+    //     (model) =>
+    //       JSON.stringify(model?.extinfo?.tier_index) ===
+    //       JSON.stringify(selectedModel)
+    //   );
+    // }
 
     if (
       !isOrderItemEdit &&
@@ -370,12 +402,14 @@ const OrderUpsert = () => {
     ) {
       return showNotification('Sản phẩm đã có trong danh sách!', 'error');
     }
-    console.log(2, matchedModel && matchedModel?.stock + +quantity);
     if (
       matchedModel &&
       +quantity >
-        (isOrderItemEdit
-          ? matchedModel?.stock + +quantity
+        (orderData &&
+        isOrderItemEdit &&
+        itemIndex &&
+        itemIndex < orderData?.items?.length
+          ? matchedModel?.stock + orderData?.items?.[itemIndex ?? 0]?.quantity
           : matchedModel?.stock)
     ) {
       return showNotification('Số lượng vượt quá hàng trong kho!!', 'error');
@@ -417,6 +451,7 @@ const OrderUpsert = () => {
   const handleEditOrderItem = (item: IOrderItem, index: number) => {
     setIsOrderItemEdit(true);
     // setCategoryId(item?.category_id);
+    // setEditItemStock(item?.quantity + )
     setProductId(item?.product_id);
     setModelIdEdit(item?.model_id);
     setQuantity(`${item?.quantity}`);
@@ -445,24 +480,27 @@ const OrderUpsert = () => {
     setOrderItems(updatedOrderItems);
   };
 
-  function showOrderItemStock() {
-    if (product && selectedModel.length > 0) {
-      const matchedModel = product?.models?.find(
-        (model) =>
-          JSON.stringify(model?.extinfo?.tier_index) ===
-          JSON.stringify(selectedModel)
-      );
-      return matchedModel?.stock;
-    } else if (
-      product &&
-      selectedModel.length === 0 &&
-      product?.models?.length === 1
-    ) {
-      return product?.models?.[0]?.stock;
-    } else {
-      return null;
-    }
-  }
+  // function showOrderItemStock() {
+  //   if (product && selectedModel.length > 0) {
+  //     const matchedModel = product?.models?.find(
+  //       (model) =>
+  //         JSON.stringify(model?.extinfo?.tier_index) ===
+  //         JSON.stringify(selectedModel)
+  //     );
+  //     // return matchedModel && isOrderItemEdit
+  //     //   ? matchedModel?.stock
+  //     //   : matchedModel?.stock;
+  //     return matchedModel?.stock;
+  //   } else if (
+  //     product &&
+  //     selectedModel.length === 0 &&
+  //     product?.models?.length === 1
+  //   ) {
+  //     return product?.models?.[0]?.stock;
+  //   } else {
+  //     return 0;
+  //   }
+  // }
 
   const totalAmount = () => {
     return orderItems?.reduce(
@@ -474,6 +512,19 @@ const OrderUpsert = () => {
   const handleDateChange = (newValue: Moment | null) => {
     formik.setFieldValue('shipment.delivery_date', newValue);
   };
+
+  console.log('orderItems:', !orderData?.items[3]);
+  console.log('itemIndex:', itemIndex);
+  // console.log('itemIndex:', orderData?.items?.[itemIndex ?? 0]);
+  // console.log(
+  //   1,
+  //   orderData &&
+  //     matchedModel &&
+  //     matchedModel?.stock + orderData?.items?.[itemIndex ?? 0]?.quantity
+  // );
+
+  console.log('matched:', matchedModel);
+  console.log('quantity:', quantity);
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -702,7 +753,13 @@ const OrderUpsert = () => {
                 </FormControl>
               </Grid2>
               <Grid2 size={6}>
-                <FormControl fullWidth>
+                <FormControl
+                  fullWidth
+                  sx={{
+                    '.MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(0,0,0,0.23) !important',
+                    },
+                  }}>
                   <LocalizationProvider dateAdapter={AdapterMoment}>
                     <DateTimePicker
                       name='shipment.delivery_date'
@@ -1006,32 +1063,48 @@ const OrderUpsert = () => {
                     )}
                   </Grid2>
                   <Grid2 size={6}>
-                    <Typography>Kho: {showOrderItemStock()}</Typography>
+                    <Typography>
+                      Kho:{' '}
+                      {isEdit &&
+                      orderData &&
+                      matchedModel &&
+                      isOrderItemEdit &&
+                      itemIndex &&
+                      itemIndex > orderData?.items?.length &&
+                      !orderData?.items[itemIndex]
+                        ? matchedModel?.stock +
+                          orderData?.items?.[itemIndex ?? 0]?.quantity
+                        : matchedModel?.stock}
+                    </Typography>
                   </Grid2>
                 </Grid2>
               </Box>
             )}
             <FormControl sx={{ mb: 2 }} fullWidth>
               <Input
-                // sx={{
-                //   '& .MuiFilledInput-root': {
-                //     ':hover': {
-                //       backgroundColor: '#E0E0E0 !important',
-                //     },
-                //   },
-                // }}
                 label='Số lượng'
                 name='quantity'
                 variant='filled'
                 size='small'
                 type='number'
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {/* {formik.errors.name} */}
-                  </Box>
-                }
-                disabled={!isEdit && showOrderItemStock() === 0 ? true : false}
-                onChange={(e) => setQuantity(e.target.value)}
+                disabled={!isEdit && matchedModel?.stock === 0 ? true : false}
+                onKeyDown={(e) => {
+                  if (e.key === '-') {
+                    e.preventDefault();
+                  }
+                  if (quantity === '' && (e.key === '0' || e.key === 'Enter')) {
+                    e.preventDefault();
+                  }
+                }}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (matchedModel && +value > matchedModel?.stock) {
+                    console.log('>');
+                    setQuantity(matchedModel?.stock.toString());
+                  } else {
+                    setQuantity(value ? parseInt(value, 10)?.toString() : '');
+                  }
+                }}
                 value={quantity}
               />
             </FormControl>
@@ -1113,7 +1186,7 @@ const OrderUpsert = () => {
                         <TableCell sx={{ px: 1 }} align='center'>
                           {item.quantity}
                         </TableCell>
-                        <TableCell sx={{ fontSize: 12 }} align='center'>
+                        <TableCell sx={{ fontSize: 12 }} align='right'>
                           {formatPrice(item?.price)}
                         </TableCell>
                         <TableCell align='center'>

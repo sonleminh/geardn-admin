@@ -63,8 +63,6 @@ const InventoryModelUpsert = () => {
     isEdit && modelData ? modelData?.product : !isEdit ? id ?? '' : ''
   );
 
-  console.log('tierIndex:', tierIndex);
-
   const { mutate: createModelMutate, isPending: isCreatePending } =
     useCreateModel();
   const { mutate: updateModelMutate, isPending: isUpdatePending } =

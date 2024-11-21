@@ -26,6 +26,8 @@ export interface IOrder {
         method: string;
     },
     note: '';
+    total_amount: number;
+    status: string;
     createdAt: Date;
 }
 

@@ -243,8 +243,6 @@ const OrderList = () => {
     });
   };
 
-  // console.log('isPending', isPending);
-
   function CustomTabPanel(props: TabPanelProps) {
     const { value, index, ...other } = props;
     return (
@@ -334,13 +332,24 @@ const OrderList = () => {
                           </TableCell>
                           <TableCell
                             padding='none'
-                            align='center'
-                            sx={{ width: '16%', height: 80 }}>
-                            {row?.items?.map((item) => (
-                              <Box key={item.model_id} sx={{ fontSize: 12 }}>
-                                {item?.product_name}
-                              </Box>
-                            ))}
+                            sx={{
+                              width: '16%',
+                              height: 80,
+                            }}>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                height: 66,
+                                overflow: 'auto',
+                              }}>
+                              {row?.items?.map((item) => (
+                                <Box key={item.model_id} sx={{ fontSize: 12 }}>
+                                  - {item?.product_name}
+                                </Box>
+                              ))}
+                            </Box>
                           </TableCell>
                           <TableCell
                             padding='none'
@@ -458,7 +467,7 @@ const OrderList = () => {
       data?.orders?.map((order, index) => ({
         stt: index + 1,
         _id: order._id,
-        name: order.name,
+        name: order.customer?.name,
         items: order.items,
         created_at: moment(order?.createdAt)?.format('DD/MM/YYYY'),
         total_amount: order.total_amount,

@@ -104,7 +104,6 @@ export const useGetProvinces = () => {
 };
 
 const getDistrict = async (code: string) => {
-  console.log(3, code);
   const result = await getRequest(
     `https://provinces.open-api.vn/api/d/${code}?depth=2`,
     { withCredentials: false }
