@@ -72,7 +72,7 @@ export const useGetOrderList = (query: IQuery) => {
 };
 
 const getOrderById = async (id: string) => {
-  const result = await getRequest(`${orderUrl}/${id}`);
+  const result = await getRequest(`${orderUrl}/admin/${id}`);
   return result.data as IOrder;
 };
 

@@ -63,11 +63,16 @@ import {
 import { formatPrice } from '@/utils/format-price';
 import axios, { AxiosError } from 'axios';
 import { useGetPaymentById } from '@/services/payment';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import moment, { Moment } from 'moment';
 
 const OrderUpsert = () => {
   const { id } = useParams();
   const isEdit = !!id;
 
+  const { user } = useAuthContext();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
@@ -82,9 +87,13 @@ const OrderUpsert = () => {
   const [isOrderItemEdit, setIsOrderItemEdit] = useState<boolean>(false);
   const [modelIdEdit, setModelIdEdit] = useState<string>('');
   const [itemIndex, setItemIndex] = useState<number | null>(null);
-  const [districtCode, setDistrictCode] = useState<string>('');
+  const [shopAddress, setShopAddress] = useState<string>('');
+  const [city, setCity] = useState<string>('');
+  const [district, setDistrict] = useState<string>('');
+  const [ward, setWard] = useState<string>('');
+  const [detailAddress, setDetailAddress] = useState<string>('');
 
-  // console.log('orderItems:', orderItems);
+  console.log('productId:', productId);
   // console.log('categoryId:', categoryId);
 
   const { data: orderData } = useGetOrderById(id as string);
@@ -93,6 +102,8 @@ const OrderUpsert = () => {
   const { data: initData } = useGetInitialForCreate();
   const { data: provinces } = useGetProvinces();
   const { data: payment } = useGetPaymentById('673c8947d6a67118f380f4ab');
+
+  console.log('selectedModel:', selectedModel);
 
   // const { data: district } = useGetDistrictByCode(districtCode);
   // console.log('district:', districtCode);
@@ -112,15 +123,10 @@ const OrderUpsert = () => {
       },
       shipment: {
         method: 1,
-      },
-      address: {
-        city: '',
-        district: '',
-        ward: '',
-        detail_address: '',
+        delivery_date: moment(),
       },
       payment: {
-        method: payment?._id,
+        method: '673c8947d6a67118f380f4ab',
       },
       note: '',
     },
@@ -129,56 +135,66 @@ const OrderUpsert = () => {
     onSubmit(values) {
       const payload = {
         ...values,
+        user: user?._id,
         items: orderItems,
-        district: district?.name,
+        shipment: {
+          ...values?.shipment,
+          // method: values?.shipment?.method === 1 ? 1 : 2,
+          address:
+            values?.shipment?.method === 1
+              ? `${detailAddress}, ${ward}, ${district}, ${city}`
+              : shopAddress,
+          // receive_name: formik?.values?.customer?.name,
+          // receiver_phone: formik?.values?.customer?.phone,
+          // delivery_date: formik?.values?.shipment?.delivery_date,
+        },
+        flag: {
+          is_online_order: false,
+        },
       };
-
-      console.log('payload:', payload);
-      // if (isEdit) {
-      //   updateOrderMutate(
-      //     { _id: id, ...payload },
-      //     {
-      //       onSuccess() {
-      //         queryClient.invalidateQueries({
-      //           queryKey: [QueryKeys.Model],
-      //         });
-      //         showNotification('Cập nhật đơn hàng thành công', 'success');
-      //         navigate(-1);
-      //       },
-      //       onError: (err: Error | AxiosError) => {
-      //         if (axios.isAxiosError(err)) {
-      //           showNotification(err.response?.data?.message, 'error');
-      //         } else {
-      //           showNotification(err.message, 'error');
-      //         }
-      //       },
-      //     }
-      //   );
-      // } else {
-      //   createOrderMutate(payload, {
-      //     onSuccess() {
-      //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
-      //       showNotification('Tạo đơn hàng thành công', 'success');
-      //       navigate(-1);
-      //     },
-      //     onError: (err: Error | AxiosError) => {
-      //       if (axios.isAxiosError(err)) {
-      //         showNotification(err.response?.data?.message, 'error');
-      //       } else {
-      //         showNotification(err.message, 'error');
-      //       }
-      //     },
-      //   });
-      // }
+      if (isEdit) {
+        updateOrderMutate(
+          { _id: id, ...payload },
+          {
+            onSuccess() {
+              queryClient.invalidateQueries({
+                queryKey: [QueryKeys.Order],
+              });
+              showNotification('Cập nhật đơn hàng thành công', 'success');
+              navigate(-1);
+            },
+            onError: (err: Error | AxiosError) => {
+              if (axios.isAxiosError(err)) {
+                showNotification(err.response?.data?.message, 'error');
+              } else {
+                showNotification(err.message, 'error');
+              }
+            },
+          }
+        );
+      } else {
+        createOrderMutate(payload, {
+          onSuccess() {
+            queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
+            showNotification('Tạo đơn hàng thành công', 'success');
+            navigate(-1);
+          },
+          onError: (err: Error | AxiosError) => {
+            if (axios.isAxiosError(err)) {
+              showNotification(err.response?.data?.message, 'error');
+            } else {
+              showNotification(err.message, 'error');
+            }
+          },
+        });
+      }
     },
   });
 
-  const { data: district } = useGetDistrict(
+  const { data: districtData } = useGetDistrict(
     provinces
-      ?.find((item) => item?.name === formik?.values?.address?.city)
-      ?.districts?.find(
-        (item) => item?.name === formik?.values?.address?.district
-      )
+      ?.find((item) => item?.name === city)
+      ?.districts?.find((item) => item?.name === district)
       ?.code.toString() ?? ''
   );
 
@@ -217,20 +233,39 @@ const OrderUpsert = () => {
       setCategoryId(product?.category?._id);
     }
   }, [isOrderItemEdit, product, modelIdEdit]);
+  console.log('ward:', ward);
 
   useEffect(() => {
     if (orderData) {
-      console.log('od:', orderData?.items);
-      formik.setFieldValue('name', orderData?.name);
-      formik.setFieldValue('phone', orderData?.phone);
-      formik.setFieldValue('email', orderData?.email);
-      formik.setFieldValue('address.city', orderData?.address?.city);
-      formik.setFieldValue('address.district', orderData?.address?.district);
-      formik.setFieldValue('address.ward', orderData?.address?.ward);
-      formik.setFieldValue(
-        'address.specific_address',
-        orderData?.address?.specific_address
-      );
+      formik.setFieldValue('customer.name', orderData?.customer?.name);
+      formik.setFieldValue('customer.phone', orderData?.customer?.phone);
+      formik.setFieldValue('customer.mail', orderData?.customer?.mail);
+
+      const addressArr = orderData?.shipment?.address?.split(', ');
+      // const isValidCity = provinces?.some(
+      //   (province) => province.name === addressArr[3]
+      // );
+      // const isValidWard = districtData?.wards?.some(
+      //   (item) => item.name === addressArr[1]
+      // );
+      // setCity(isValidCity ? addressArr[3] : '');
+      // setDistrict(addressArr[2]);
+      // setWard(isValidWard ? addressArr[1] : '');
+      setCity(addressArr[3]);
+      setDistrict(addressArr[2]);
+      setWard(addressArr[1]);
+      setDetailAddress(addressArr[0]);
+
+      formik.setFieldValue('shipment.method', orderData?.shipment?.method);
+      formik.setFieldValue('note', orderData?.note);
+
+      // formik.setFieldValue('address.city', orderData?.address?.city);
+      // formik.setFieldValue('address.district', orderData?.address?.district);
+      // formik.setFieldValue('address.ward', orderData?.address?.ward);
+      // formik.setFieldValue(
+      //   'address.detail_address',
+      //   orderData?.address?.detail_address
+      // );
       // formik.setFieldValue('stock', modelData?.stock);
       // formik.setFieldValue(
       //   'extinfo.tier_index',
@@ -242,19 +277,30 @@ const OrderUpsert = () => {
       // );
       setOrderItems(orderData?.items);
     }
-  }, [orderData]);
+  }, [orderData, districtData]);
 
-  const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
+  console.log();
+
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     formik.setFieldValue(name, value);
   };
-  const handleSelectChangeValue = (e: SelectChangeEvent<string>) => {
-    const { name, value } = e.target;
-    console.log('o:', name, value);
-    formik.setFieldValue(name, value);
-    if (name === 'address.district') {
-      // setDistrictCode(provinces)
-    }
+  const handleCityChange = (e: SelectChangeEvent<string>) => {
+    setCity(e?.target?.value);
+  };
+
+  const handleDistrictChange = (e: SelectChangeEvent<string>) => {
+    setDistrict(e?.target?.value);
+  };
+
+  const handleWardChange = (e: SelectChangeEvent<string>) => {
+    setWard(e?.target?.value);
+  };
+
+  const handleDetailAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setDetailAddress(e?.target?.value);
   };
 
   // const handleSelectChange = (e: SelectChangeEvent<string>) => {
@@ -304,18 +350,6 @@ const OrderUpsert = () => {
     );
   };
 
-  // const handleVariantChange = (event: SelectChangeEvent, vIndex: number) => {
-  //   const optionIndex = product?.tier_variations[vIndex]?.options?.indexOf(
-  //     event?.target?.value ?? ''
-  //   );
-  //   const updatedSelectedModel = [...selectedModel];
-  //   if (optionIndex !== -1) {
-  //     updatedSelectedModel[vIndex] = optionIndex;
-  //   } else {
-  //     updatedSelectedModel[vIndex] = undefined;
-  //   }
-  //   setSelectedModel(updatedSelectedModel);
-  // };
   const hanleUpsertOrderItem = () => {
     let matchedModel;
     if (!product?.tier_variations?.length) {
@@ -336,10 +370,16 @@ const OrderUpsert = () => {
     ) {
       return showNotification('Sản phẩm đã có trong danh sách!', 'error');
     }
-
-    // if (matchedModel && +quantity > matchedModel?.stock) {
-    //   return showNotification('Số lượng vượt quá hàng trong kho!!', 'error');
-    // }
+    console.log(2, matchedModel && matchedModel?.stock + +quantity);
+    if (
+      matchedModel &&
+      +quantity >
+        (isOrderItemEdit
+          ? matchedModel?.stock + +quantity
+          : matchedModel?.stock)
+    ) {
+      return showNotification('Số lượng vượt quá hàng trong kho!!', 'error');
+    }
 
     const newItem = {
       model_id: matchedModel?._id ?? '',
@@ -431,6 +471,10 @@ const OrderUpsert = () => {
     );
   };
 
+  const handleDateChange = (newValue: Moment | null) => {
+    formik.setFieldValue('shipment.delivery_date', newValue);
+  };
+
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
@@ -460,14 +504,14 @@ const OrderUpsert = () => {
                   </Box>
                 }
                 value={formik?.values?.customer?.name}
-                onChange={handleChangeValue}
+                onChange={handleChange}
               />
             </FormControl>
           </Grid2>
           <Grid2 size={6}>
             <FormControl fullWidth>
               <Input
-                label='Email'
+                label='Mail'
                 name='customer.mail'
                 variant='filled'
                 size='small'
@@ -477,7 +521,7 @@ const OrderUpsert = () => {
                   </Box>
                 }
                 value={formik?.values?.customer?.mail}
-                onChange={handleChangeValue}
+                onChange={handleChange}
               />
             </FormControl>
           </Grid2>
@@ -494,173 +538,282 @@ const OrderUpsert = () => {
                   </Box>
                 }
                 value={formik?.values?.customer?.phone}
-                onChange={handleChangeValue}
+                onChange={handleChange}
               />
             </FormControl>
           </Grid2>
         </Grid2>
-        <Typography mb={1}>Địa chỉ:</Typography>
+        <RadioGroup
+          sx={{ mb: 1 }}
+          row
+          name='shipment.method'
+          onChange={handleChange}
+          value={formik?.values?.shipment?.method}>
+          <FormControlLabel
+            value={1}
+            control={<Radio size='small' />}
+            label={
+              <Typography sx={{ fontSize: 14 }}>Giao hàng tận nơi</Typography>
+            }
+          />
+          <FormControlLabel
+            value={2}
+            control={<Radio size='small' />}
+            label={
+              <Typography sx={{ fontSize: 14 }}>Nhận tại cửa hàng</Typography>
+            }
+          />
+        </RadioGroup>
         <Grid2 mb={4} container rowSpacing={2} columnSpacing={4}>
-          <Grid2 size={6}>
-            <FormControl
-              variant='filled'
-              fullWidth
-              sx={{
-                '& .MuiFilledInput-root': {
-                  overflow: 'hidden',
-                  borderRadius: 1,
-                  backgroundColor: '#fff !important',
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.23)',
-                  '&:hover': {
-                    backgroundColor: 'transparent',
-                  },
-                  '&.Mui-focused': {
-                    backgroundColor: 'transparent',
-                    border: '2px solid',
-                  },
-                },
-                '& .MuiInputLabel-asterisk': {
-                  color: 'red',
-                },
-              }}>
-              <InputLabel>Tỉnh/Thành phố</InputLabel>
-              <Select
-                disableUnderline
-                size='small'
-                name='address.city'
-                onChange={handleSelectChangeValue}
-                value={formik?.values?.address?.city}>
-                {provinces &&
-                  provinces?.map((item) => (
-                    <MenuItem key={item?.code} value={item?.name}>
-                      {item?.name}
-                    </MenuItem>
-                  ))}
-              </Select>
-              <FormHelperText sx={helperTextStyle}>
-                {formik?.errors?.address?.city}
-              </FormHelperText>
-            </FormControl>
-          </Grid2>
-          <Grid2 size={6}>
-            <FormControl
-              variant='filled'
-              fullWidth
-              sx={{
-                '& .MuiFilledInput-root': {
-                  overflow: 'hidden',
-                  borderRadius: 1,
-                  backgroundColor: '#fff !important',
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.23)',
-                  '&:hover': {
-                    backgroundColor: 'transparent',
-                  },
-                  '&.Mui-focused': {
-                    backgroundColor: 'transparent',
-                    border: '2px solid',
-                  },
-                },
-                '& .MuiInputLabel-asterisk': {
-                  color: 'red',
-                },
-                '& .Mui-disabled': {
-                  cursor: 'not-allowed',
-                },
-              }}>
-              <InputLabel>Quận/Huyện</InputLabel>
-              <Select
-                disableUnderline
-                size='small'
-                name='address.district'
-                onChange={handleSelectChangeValue}
-                value={formik?.values?.address?.district}
-                disabled={!formik?.values?.address?.city}>
-                {provinces
-                  ?.find((item) => item?.name === formik?.values?.address.city)
-                  ?.districts?.map((item) => (
-                    <MenuItem key={item?.code} value={item?.name}>
-                      {item?.name}
-                    </MenuItem>
-                  ))}
-              </Select>
-              <FormHelperText sx={helperTextStyle}>
-                {formik?.errors?.address?.district}
-              </FormHelperText>
-            </FormControl>
-          </Grid2>
-          <Grid2 size={6}>
-            <FormControl
-              variant='filled'
-              fullWidth
-              sx={{
-                '& .MuiFilledInput-root': {
-                  overflow: 'hidden',
-                  borderRadius: 1,
-                  backgroundColor: '#fff !important',
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.23)',
-                  '&:hover': {
-                    backgroundColor: 'transparent',
-                  },
-                  '&.Mui-focused': {
-                    backgroundColor: 'transparent',
-                    border: '2px solid',
-                  },
-                },
-                '& .MuiInputLabel-asterisk': {
-                  color: 'red',
-                },
-                '& .Mui-disabled': {
-                  cursor: 'not-allowed',
-                },
-              }}>
-              <InputLabel>Phường/Xã</InputLabel>
-              <Select
-                disableUnderline
-                name='address.ward'
-                size='small'
-                onChange={handleSelectChangeValue}
-                value={formik?.values.address.ward}
-                disabled={!formik?.values?.address?.city}>
-                {district?.wards?.map((item) => (
-                  <MenuItem key={item?.code} value={item?.name}>
-                    {item?.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              <FormHelperText sx={helperTextStyle}>
-                {formik?.errors?.address?.ward}
-              </FormHelperText>
-            </FormControl>
-          </Grid2>
-          <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Input
-                label='Địa chỉ cụ thể'
-                name='address.detail_address'
+          {formik?.values?.shipment?.method === 1 ? (
+            <>
+              <Grid2 size={6}>
+                <FormControl
+                  variant='filled'
+                  fullWidth
+                  sx={{
+                    '& .MuiFilledInput-root': {
+                      overflow: 'hidden',
+                      borderRadius: 1,
+                      backgroundColor: '#fff !important',
+                      border: '1px solid',
+                      borderColor: 'rgba(0,0,0,0.23)',
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                      },
+                      '&.Mui-focused': {
+                        backgroundColor: 'transparent',
+                        border: '2px solid',
+                      },
+                    },
+                    '& .MuiInputLabel-asterisk': {
+                      color: 'red',
+                    },
+                  }}>
+                  <InputLabel>Tỉnh/Thành phố</InputLabel>
+                  <Select
+                    disableUnderline
+                    size='small'
+                    onChange={handleCityChange}
+                    value={city ?? ''}>
+                    {provinces &&
+                      provinces?.map((item) => (
+                        <MenuItem key={item?.code} value={item?.name}>
+                          {item?.name}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              </Grid2>
+              <Grid2 size={6}>
+                <FormControl
+                  variant='filled'
+                  fullWidth
+                  sx={{
+                    '& .MuiFilledInput-root': {
+                      overflow: 'hidden',
+                      borderRadius: 1,
+                      backgroundColor: '#fff !important',
+                      border: '1px solid',
+                      borderColor: 'rgba(0,0,0,0.23)',
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                      },
+                      '&.Mui-focused': {
+                        backgroundColor: 'transparent',
+                        border: '2px solid',
+                      },
+                    },
+                    '& .MuiInputLabel-asterisk': {
+                      color: 'red',
+                    },
+                    '& .Mui-disabled': {
+                      cursor: 'not-allowed',
+                    },
+                  }}>
+                  <InputLabel>Quận/Huyện</InputLabel>
+                  <Select
+                    disableUnderline
+                    size='small'
+                    onChange={handleDistrictChange}
+                    value={district ?? ''}
+                    disabled={!city}>
+                    {provinces
+                      ?.find((item) => item?.name === city)
+                      ?.districts?.map((item) => (
+                        <MenuItem key={item?.code} value={item?.name}>
+                          {item?.name}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              </Grid2>
+              <Grid2 size={6}>
+                <FormControl
+                  variant='filled'
+                  fullWidth
+                  sx={{
+                    '& .MuiFilledInput-root': {
+                      overflow: 'hidden',
+                      borderRadius: 1,
+                      backgroundColor: '#fff !important',
+                      border: '1px solid',
+                      borderColor: 'rgba(0,0,0,0.23)',
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                      },
+                      '&.Mui-focused': {
+                        backgroundColor: 'transparent',
+                        border: '2px solid',
+                      },
+                    },
+                    '& .MuiInputLabel-asterisk': {
+                      color: 'red',
+                    },
+                    '& .Mui-disabled': {
+                      cursor: 'not-allowed',
+                    },
+                  }}>
+                  <InputLabel>Phường/Xã</InputLabel>
+                  <Select
+                    disableUnderline
+                    size='small'
+                    onChange={handleWardChange}
+                    value={ward ?? ''}
+                    disabled={!district}>
+                    {districtData?.wards?.map((item) => (
+                      <MenuItem key={item?.code} value={item?.name}>
+                        {item?.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid2>
+              <Grid2 size={6}>
+                <FormControl fullWidth>
+                  <Input
+                    label='Địa chỉ cụ thể'
+                    variant='filled'
+                    size='small'
+                    rows={3}
+                    onChange={handleDetailAddressChange}
+                    value={detailAddress}
+                  />
+                </FormControl>
+              </Grid2>
+              <Grid2 size={6}>
+                <FormControl fullWidth>
+                  <LocalizationProvider dateAdapter={AdapterMoment}>
+                    <DateTimePicker
+                      name='shipment.delivery_date'
+                      ampm={false}
+                      shouldDisableTime={(timeValue, clockType) => {
+                        if (clockType === 'hours') {
+                          const hour = timeValue.hour();
+                          return hour < 8 || hour > 23;
+                        }
+                        return false;
+                      }}
+                      minDate={moment()}
+                      onChange={handleDateChange}
+                      value={formik?.values?.shipment?.delivery_date}
+                    />
+                  </LocalizationProvider>
+                </FormControl>
+              </Grid2>
+            </>
+          ) : (
+            <Grid2 size={12}>
+              <FormControl
                 variant='filled'
-                size='small'
-                rows={3}
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik?.errors?.address?.detail_address}
-                  </Box>
-                }
-                value={formik?.values?.address?.detail_address}
-                onChange={handleChangeValue}
+                fullWidth
+                sx={{
+                  '& .MuiFilledInput-root': {
+                    overflow: 'hidden',
+                    borderRadius: 1,
+                    backgroundColor: '#fff !important',
+                    border: '1px solid',
+                    borderColor: 'rgba(0,0,0,0.23)',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: 'transparent',
+                      border: '2px solid',
+                    },
+                  },
+                  '& .MuiInputLabel-asterisk': {
+                    color: 'red',
+                  },
+                }}>
+                <InputLabel>Chọn shop có hàng gần nhất</InputLabel>
+                <Select
+                  disableUnderline
+                  size='small'
+                  onChange={(e) => setShopAddress(e?.target?.value)}
+                  value={shopAddress}>
+                  <MenuItem
+                    value={
+                      '39/48 Cù Chính Lan, P.Hòa Khê, Q.Thanh Khê, TP.Đà Nẵng'
+                    }>
+                    39/48 Cù Chính Lan, P.Hòa Khê, Q.Thanh Khê, TP.Đà Nẵng
+                  </MenuItem>
+                  <MenuItem
+                    value={
+                      '02 Tô Hiến Thành, P.Phước Mỹ, Q.Sơn Trà, TP.Đà Nẵng'
+                    }>
+                    02 Tô Hiến Thành, P.Phước Mỹ, Q.Sơn Trà, TP.Đà Nẵng
+                  </MenuItem>
+                </Select>
+              </FormControl>
+            </Grid2>
+          )}
+          <Grid2 size={12}>
+            <FormControl
+              variant='filled'
+              fullWidth
+              sx={{
+                textarea: {
+                  fontFamily: 'Roboto, sans-serif',
+                  '::placeholder': {
+                    fontSize: 14,
+                  },
+                },
+              }}>
+              <textarea
+                placeholder='Ghi chú (Ví dụ: Hãy gọi cho tôi khi chuẩn bị hàng xong)'
+                name='note'
+                rows={4}
+                onChange={handleChange}
+                value={formik?.values?.note}
+                style={{
+                  width: '100%',
+                  padding: '8.5px 14px',
+                  border: '1px solid rgba(0, 0, 0, 0.23)',
+                  borderRadius: '4px',
+                  fontSize: 16,
+                }}
+                onFocus={(e) => (e.target.style.outline = '1px solid #000')}
+                onBlur={(e) => (e.target.style.outline = 'none')}
               />
+              <FormHelperText sx={helperTextStyle}>
+                {formik?.errors?.note}
+              </FormHelperText>
             </FormControl>
           </Grid2>
+        </Grid2>
+        <Grid2 mb={4} container rowSpacing={2} columnSpacing={4}>
           <Grid2 size={6}>
             <FormControl>
               <Typography sx={{ mb: 2, fontWeight: 600 }}>
                 Phương thức thanh toán
               </Typography>
-              <RadioGroup name='payment.method'>
+              <RadioGroup
+                name='payment.method'
+                onChange={handleChange}
+                value={formik?.values?.payment?.method}>
                 <FormControlLabel
-                  value={formik?.values?.payment?.method}
+                  value={payment?._id}
                   control={<Radio size='small' />}
                   label={
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -681,6 +834,7 @@ const OrderUpsert = () => {
                   }
                 />
               </RadioGroup>
+              <>{formik?.errors?.payment?.method}</>
             </FormControl>
           </Grid2>
           <Grid2 size={6} />
@@ -750,7 +904,7 @@ const OrderUpsert = () => {
               }}>
               <InputLabel>Sản phẩm</InputLabel>
               <Select
-                disableUnderline
+                // disableUnderline
                 size='small'
                 name='product'
                 disabled={!categoryId && !isOrderItemEdit}
@@ -760,7 +914,7 @@ const OrderUpsert = () => {
                   setSelectedImage('');
                   setQuantity('');
                 }}
-                value={productId}>
+                value={productId ?? ''}>
                 {productsByCategory?.map((item) => (
                   <MenuItem
                     key={item?._id}

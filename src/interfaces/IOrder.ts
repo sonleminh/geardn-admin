@@ -10,20 +10,22 @@ export interface IOrderItem {
 
 export interface IOrder {
     _id: string;
-    user_id: string;
-    name: string;
-    phone: string;
-    email: string;
-    items: IOrderItem[]
-    total_amount: number;
-    status: string;
-    address: {
-        city: string;
-        district: string;
-        ward: string;
-        specific_address: string;
-    };
-    receive_option: string;
+    user: string;
+    items: IOrderItem[];
+    customer: {
+        name: string,
+        phone: string,
+        mail: string,
+    },
+    shipment: {
+        method: number;
+        address: string;
+        delivery_date: Date;
+    },
+    payment: {
+        method: string;
+    },
+    note: '';
     createdAt: Date;
 }
 

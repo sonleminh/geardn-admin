@@ -132,6 +132,7 @@ const InventoryModelUpsert = () => {
           },
         });
       }
+      console.log('payload:', payload);
     },
   });
   useEffect(() => {
@@ -159,7 +160,7 @@ const InventoryModelUpsert = () => {
     setVariant(updatedVariants);
 
     if (product?.tier_variations) {
-      const updatedTierIndex: number[] = [...(tierIndex || [])];
+      const updatedTierIndex: number[] = [...tierIndex];
       updatedTierIndex[index] =
         product.tier_variations[index]?.options?.indexOf(value) ?? 0;
       setTierIndex(updatedTierIndex);
