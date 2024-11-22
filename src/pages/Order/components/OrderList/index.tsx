@@ -373,7 +373,6 @@ const OrderList = () => {
                                 minHeight: '36px',
                                 fontSize: 14,
                               }}
-                              disableUnderline
                               size='small'
                               onChange={(e) => handleUpdateStatus(e, row._id)}
                               value={row?.status ?? ''}>

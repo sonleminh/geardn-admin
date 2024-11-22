@@ -1,28 +1,32 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import SuspenseLoader from '@/components/SuspenseLoader';
-
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import { useQueryClient } from '@tanstack/react-query';
-import { useFormik } from 'formik';
 import Input from '@/components/Input';
 import { QueryKeys } from '@/constants/query-key';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { useNotificationContext } from '@/contexts/NotificationContext';
 import { ICategory } from '@/interfaces/ICategory';
+import { IModel } from '@/interfaces/IModel';
+import { IOrderItem } from '@/interfaces/IOrder';
+import { useGetInitialForCreate } from '@/services/model';
 import {
-  useCreateModel,
-  useGetInitialForCreate,
-  useGetModelById,
-  useUpdateModel,
-} from '@/services/model';
+  useCreateOrder,
+  useGetDistrict,
+  useGetOrderById,
+  useGetProvinces,
+  useUpdateOrder,
+} from '@/services/order';
+import { useGetPaymentById } from '@/services/payment';
 import { useGetProductByCategory, useGetProductById } from '@/services/product';
+import { formatPrice } from '@/utils/format-price';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Box,
   Button,
   Card,
   CardContent,
   CardHeader,
-  Checkbox,
   Divider,
   FormControl,
   FormControlLabel,
@@ -40,34 +44,19 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableFooter,
   TableHead,
   TableRow,
-  TextField,
   Theme,
   Typography,
 } from '@mui/material';
-import { createSchema, updateSchema } from '../utils/schema/orderSchema';
-import { IOrderItem } from '@/interfaces/IOrder';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import {
-  getProvinces,
-  useCreateOrder,
-  useGetDistrict,
-  useGetDistrictByCode,
-  useGetOrderById,
-  useGetProvinces,
-  useUpdateOrder,
-} from '@/services/order';
-import { formatPrice } from '@/utils/format-price';
-import axios, { AxiosError } from 'axios';
-import { useGetPaymentById } from '@/services/payment';
-import { useAuthContext } from '@/contexts/AuthContext';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
+import { useQueryClient } from '@tanstack/react-query';
+import axios, { AxiosError } from 'axios';
+import { useFormik } from 'formik';
 import moment, { Moment } from 'moment';
-import { IModel } from '@/interfaces/IModel';
+import { createSchema, updateSchema } from '../utils/schema/orderSchema';
+import SuspenseLoader from '@/components/SuspenseLoader';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -90,7 +79,6 @@ const OrderUpsert = () => {
   const [isOrderItemEdit, setIsOrderItemEdit] = useState<boolean>(false);
   const [modelIdEdit, setModelIdEdit] = useState<string>('');
   const [itemIndex, setItemIndex] = useState<number | null>(null);
-  const [editItemStock, setEditItemStock] = useState<number | null>(null);
 
   const [shopAddress, setShopAddress] = useState<string>('');
   const [city, setCity] = useState<string>('');
@@ -98,18 +86,12 @@ const OrderUpsert = () => {
   const [ward, setWard] = useState<string>('');
   const [detailAddress, setDetailAddress] = useState<string>('');
 
-  // console.log('categoryId:', categoryId);
-
   const { data: orderData } = useGetOrderById(id as string);
   const { data: productsByCategory } = useGetProductByCategory(categoryId);
   const { data: product } = useGetProductById(productId);
   const { data: initData } = useGetInitialForCreate();
   const { data: provinces } = useGetProvinces();
   const { data: payment } = useGetPaymentById('673c8947d6a67118f380f4ab');
-
-  // const { data: district } = useGetDistrictByCode(districtCode);
-  // console.log('district:', districtCode);
-  // console.log('provinces:', provinces);
 
   const { mutate: createOrderMutate, isPending: isCreatePending } =
     useCreateOrder();
@@ -125,7 +107,7 @@ const OrderUpsert = () => {
       },
       shipment: {
         method: 1,
-        delivery_date: moment(),
+        delivery_date: isEdit ? null : moment(),
       },
       payment: {
         method: '673c8947d6a67118f380f4ab',
@@ -141,14 +123,10 @@ const OrderUpsert = () => {
         items: orderItems,
         shipment: {
           ...values?.shipment,
-          // method: values?.shipment?.method === 1 ? 1 : 2,
           address:
             values?.shipment?.method === 1
               ? `${detailAddress}, ${ward}, ${district}, ${city}`
               : shopAddress,
-          // receive_name: formik?.values?.customer?.name,
-          // receiver_phone: formik?.values?.customer?.phone,
-          // delivery_date: formik?.values?.shipment?.delivery_date,
         },
         flag: {
           is_online_order: false,
@@ -268,49 +246,28 @@ const OrderUpsert = () => {
     }
   }, [product, selectedModel]);
 
-  console.log('matchedModel:', matchedModel);
-  console.log('quantity:', quantity);
-
   useEffect(() => {
     if (orderData) {
       formik.setFieldValue('customer.name', orderData?.customer?.name);
       formik.setFieldValue('customer.phone', orderData?.customer?.phone);
       formik.setFieldValue('customer.mail', orderData?.customer?.mail);
 
-      const addressArr = orderData?.shipment?.address?.split(', ');
-      // const isValidCity = provinces?.some(
-      //   (province) => province.name === addressArr[3]
-      // );
-      // const isValidWard = districtData?.wards?.some(
-      //   (item) => item.name === addressArr[1]
-      // );
-      // setCity(isValidCity ? addressArr[3] : '');
-      // setDistrict(addressArr[2]);
-      // setWard(isValidWard ? addressArr[1] : '');
-      setCity(addressArr[3]);
-      setDistrict(addressArr[2]);
-      setWard(addressArr[1]);
-      setDetailAddress(addressArr[0]);
+      if (orderData?.shipment?.method === 1) {
+        const addressArr = orderData?.shipment?.address?.split(', ');
+        setCity(addressArr[3]);
+        setDistrict(addressArr[2]);
+        setWard(addressArr[1]);
+        setDetailAddress(addressArr[0]);
+      } else {
+        setShopAddress(orderData?.shipment?.address);
+      }
 
       formik.setFieldValue('shipment.method', orderData?.shipment?.method);
+      formik.setFieldValue(
+        'shipment.delivery_date',
+        orderData?.shipment?.delivery_date
+      );
       formik.setFieldValue('note', orderData?.note);
-
-      // formik.setFieldValue('address.city', orderData?.address?.city);
-      // formik.setFieldValue('address.district', orderData?.address?.district);
-      // formik.setFieldValue('address.ward', orderData?.address?.ward);
-      // formik.setFieldValue(
-      //   'address.detail_address',
-      //   orderData?.address?.detail_address
-      // );
-      // formik.setFieldValue('stock', modelData?.stock);
-      // formik.setFieldValue(
-      //   'extinfo.tier_index',
-      //   modelData?.extinfo?.tier_index
-      // );
-      // formik.setFieldValue(
-      //   'extinfo.is_pre_order',
-      //   modelData?.extinfo?.is_pre_order
-      // );
       setOrderItems(orderData?.items);
     }
   }, [orderData, districtData]);
@@ -336,17 +293,6 @@ const OrderUpsert = () => {
   const handleDetailAddressChange = (e: ChangeEvent<HTMLInputElement>) => {
     setDetailAddress(e?.target?.value);
   };
-
-  // const handleSelectChange = (e: SelectChangeEvent<string>) => {
-  //   const { name, value } = e.target;
-  //   formik.setFieldValue(name, value);
-  //   setProductId(value);
-  // };
-
-  // const handleIsPreOrderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const { name, checked } = e.target;
-  //   formik.setFieldValue(name, checked);
-  // };
 
   const handleVariantChange = (event: SelectChangeEvent, vIndex: number) => {
     const selectedOptionIndex = product?.tier_variations[
@@ -385,17 +331,6 @@ const OrderUpsert = () => {
   };
 
   const hanleUpsertOrderItem = () => {
-    // let matchedModel;
-    // if (!product?.tier_variations?.length) {
-    //   matchedModel = product?.models[0];
-    // } else {
-    //   matchedModel = product?.models?.find(
-    //     (model) =>
-    //       JSON.stringify(model?.extinfo?.tier_index) ===
-    //       JSON.stringify(selectedModel)
-    //   );
-    // }
-
     if (
       !isOrderItemEdit &&
       orderItems?.find((item) => item?.model_id === matchedModel?._id)
@@ -450,28 +385,10 @@ const OrderUpsert = () => {
 
   const handleEditOrderItem = (item: IOrderItem, index: number) => {
     setIsOrderItemEdit(true);
-    // setCategoryId(item?.category_id);
-    // setEditItemStock(item?.quantity + )
     setProductId(item?.product_id);
     setModelIdEdit(item?.model_id);
     setQuantity(`${item?.quantity}`);
     setItemIndex(index);
-    // setIsOrderItemEdit(true); // Set edit mode
-    // setProductId(item.product_id); // Set productId
-    // setCategoryId(item.product_id); // Set categoryId
-    // // Find the model based on item details to pre-fill variant selections
-    // const matchedProduct = product?.models?.find(
-    //   (model) => model._id === item.product_id
-    // );
-    // if (matchedProduct) {
-    //   const selectedModelIndices = matchedProduct.models.find(
-    //     (model) => model._id === item.model_id
-    //   )?.extinfo?.tier_index;
-    //   if (selectedModelIndices) {
-    //     setSelectedModel(selectedModelIndices);
-    //   }
-    // }
-    // setQuantity(item.quantity.toString());
   };
 
   const handleDeleteOrderItem = (index: number) => {
@@ -479,28 +396,6 @@ const OrderUpsert = () => {
     updatedOrderItems.splice(index, 1);
     setOrderItems(updatedOrderItems);
   };
-
-  // function showOrderItemStock() {
-  //   if (product && selectedModel.length > 0) {
-  //     const matchedModel = product?.models?.find(
-  //       (model) =>
-  //         JSON.stringify(model?.extinfo?.tier_index) ===
-  //         JSON.stringify(selectedModel)
-  //     );
-  //     // return matchedModel && isOrderItemEdit
-  //     //   ? matchedModel?.stock
-  //     //   : matchedModel?.stock;
-  //     return matchedModel?.stock;
-  //   } else if (
-  //     product &&
-  //     selectedModel.length === 0 &&
-  //     product?.models?.length === 1
-  //   ) {
-  //     return product?.models?.[0]?.stock;
-  //   } else {
-  //     return 0;
-  //   }
-  // }
 
   const totalAmount = () => {
     return orderItems?.reduce(
@@ -513,19 +408,6 @@ const OrderUpsert = () => {
     formik.setFieldValue('shipment.delivery_date', newValue);
   };
 
-  console.log('orderItems:', !orderData?.items[3]);
-  console.log('itemIndex:', itemIndex);
-  // console.log('itemIndex:', orderData?.items?.[itemIndex ?? 0]);
-  // console.log(
-  //   1,
-  //   orderData &&
-  //     matchedModel &&
-  //     matchedModel?.stock + orderData?.items?.[itemIndex ?? 0]?.quantity
-  // );
-
-  console.log('matched:', matchedModel);
-  console.log('quantity:', quantity);
-
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
@@ -536,10 +418,7 @@ const OrderUpsert = () => {
         }
       />
       <Divider />
-
       <CardContent>
-        {/* {!isEdit && (
-          <> */}
         <Typography mb={1}>Thông tin:</Typography>
         <Grid2 container rowSpacing={2} columnSpacing={4} mb={2}>
           <Grid2 size={6}>
@@ -619,28 +498,7 @@ const OrderUpsert = () => {
           {formik?.values?.shipment?.method === 1 ? (
             <>
               <Grid2 size={6}>
-                <FormControl
-                  variant='filled'
-                  fullWidth
-                  sx={{
-                    '& .MuiFilledInput-root': {
-                      overflow: 'hidden',
-                      borderRadius: 1,
-                      backgroundColor: '#fff !important',
-                      border: '1px solid',
-                      borderColor: 'rgba(0,0,0,0.23)',
-                      '&:hover': {
-                        backgroundColor: 'transparent',
-                      },
-                      '&.Mui-focused': {
-                        backgroundColor: 'transparent',
-                        border: '2px solid',
-                      },
-                    },
-                    '& .MuiInputLabel-asterisk': {
-                      color: 'red',
-                    },
-                  }}>
+                <FormControl sx={selectStyle} variant='filled' fullWidth>
                   <InputLabel>Tỉnh/Thành phố</InputLabel>
                   <Select
                     disableUnderline
@@ -657,31 +515,7 @@ const OrderUpsert = () => {
                 </FormControl>
               </Grid2>
               <Grid2 size={6}>
-                <FormControl
-                  variant='filled'
-                  fullWidth
-                  sx={{
-                    '& .MuiFilledInput-root': {
-                      overflow: 'hidden',
-                      borderRadius: 1,
-                      backgroundColor: '#fff !important',
-                      border: '1px solid',
-                      borderColor: 'rgba(0,0,0,0.23)',
-                      '&:hover': {
-                        backgroundColor: 'transparent',
-                      },
-                      '&.Mui-focused': {
-                        backgroundColor: 'transparent',
-                        border: '2px solid',
-                      },
-                    },
-                    '& .MuiInputLabel-asterisk': {
-                      color: 'red',
-                    },
-                    '& .Mui-disabled': {
-                      cursor: 'not-allowed',
-                    },
-                  }}>
+                <FormControl variant='filled' fullWidth sx={selectStyle}>
                   <InputLabel>Quận/Huyện</InputLabel>
                   <Select
                     disableUnderline
@@ -700,37 +534,18 @@ const OrderUpsert = () => {
                 </FormControl>
               </Grid2>
               <Grid2 size={6}>
-                <FormControl
-                  variant='filled'
-                  fullWidth
-                  sx={{
-                    '& .MuiFilledInput-root': {
-                      overflow: 'hidden',
-                      borderRadius: 1,
-                      backgroundColor: '#fff !important',
-                      border: '1px solid',
-                      borderColor: 'rgba(0,0,0,0.23)',
-                      '&:hover': {
-                        backgroundColor: 'transparent',
-                      },
-                      '&.Mui-focused': {
-                        backgroundColor: 'transparent',
-                        border: '2px solid',
-                      },
-                    },
-                    '& .MuiInputLabel-asterisk': {
-                      color: 'red',
-                    },
-                    '& .Mui-disabled': {
-                      cursor: 'not-allowed',
-                    },
-                  }}>
+                <FormControl variant='filled' fullWidth sx={selectStyle}>
                   <InputLabel>Phường/Xã</InputLabel>
                   <Select
                     disableUnderline
                     size='small'
                     onChange={handleWardChange}
-                    value={ward ?? ''}
+                    value={
+                      district &&
+                      districtData?.wards?.some((item) => item.name === ward)
+                        ? ward
+                        : ''
+                    }
                     disabled={!district}>
                     {districtData?.wards?.map((item) => (
                       <MenuItem key={item?.code} value={item?.name}>
@@ -773,7 +588,7 @@ const OrderUpsert = () => {
                       }}
                       minDate={moment()}
                       onChange={handleDateChange}
-                      value={formik?.values?.shipment?.delivery_date}
+                      value={moment(formik?.values?.shipment?.delivery_date)}
                     />
                   </LocalizationProvider>
                 </FormControl>
@@ -781,28 +596,7 @@ const OrderUpsert = () => {
             </>
           ) : (
             <Grid2 size={12}>
-              <FormControl
-                variant='filled'
-                fullWidth
-                sx={{
-                  '& .MuiFilledInput-root': {
-                    overflow: 'hidden',
-                    borderRadius: 1,
-                    backgroundColor: '#fff !important',
-                    border: '1px solid',
-                    borderColor: 'rgba(0,0,0,0.23)',
-                    '&:hover': {
-                      backgroundColor: 'transparent',
-                    },
-                    '&.Mui-focused': {
-                      backgroundColor: 'transparent',
-                      border: '2px solid',
-                    },
-                  },
-                  '& .MuiInputLabel-asterisk': {
-                    color: 'red',
-                  },
-                }}>
+              <FormControl variant='filled' fullWidth sx={selectStyle}>
                 <InputLabel>Chọn shop có hàng gần nhất</InputLabel>
                 <Select
                   disableUnderline
@@ -896,30 +690,12 @@ const OrderUpsert = () => {
           </Grid2>
           <Grid2 size={6} />
           <Grid2 size={6}>
-            <Typography mb={1}>Thêm sản phẩm:</Typography>
+            <Typography>Thêm sản phẩm:</Typography>
             <FormControl
               variant='filled'
+              margin='dense'
               fullWidth
-              sx={{
-                mb: 2,
-                '& .MuiFilledInput-root': {
-                  overflow: 'hidden',
-                  borderRadius: 1,
-                  backgroundColor: '#fff !important',
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.23)',
-                  '&:hover': {
-                    backgroundColor: 'transparent',
-                  },
-                  '&.Mui-focused': {
-                    backgroundColor: 'transparent',
-                    border: '2px solid',
-                  },
-                },
-                '& .MuiInputLabel-asterisk': {
-                  color: 'red',
-                },
-              }}>
+              sx={selectStyle}>
               <InputLabel>Danh mục</InputLabel>
               <Select
                 disableUnderline
@@ -941,24 +717,9 @@ const OrderUpsert = () => {
             </FormControl>
             <FormControl
               variant='filled'
+              margin='dense'
               fullWidth
-              sx={{
-                mb: 2,
-                '& .MuiFilledInput-root': {
-                  overflow: 'hidden',
-                  borderRadius: 1,
-                  backgroundColor: categoryId ? '#fff' : '',
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.23)',
-
-                  '&.Mui-focused': {
-                    border: '2px solid',
-                  },
-                },
-                '& .MuiInputLabel-asterisk': {
-                  color: 'red',
-                },
-              }}>
+              sx={selectStyle}>
               <InputLabel>Sản phẩm</InputLabel>
               <Select
                 // disableUnderline
@@ -976,48 +737,18 @@ const OrderUpsert = () => {
                   <MenuItem
                     key={item?._id}
                     value={item?._id}
-                    disabled={
-                      !item?.original_price
-                      //  ||
-                      // orderItems?.find((orderItem) =>
-                      //   item?.models?.some(
-                      //     (item) => item._id === orderItem?.model_id
-                      //   )
-                    }>
+                    disabled={!item?.original_price}>
                     {item?.name} {!item?.original_price && '- (Hết hàng)'}
                   </MenuItem>
                 ))}
               </Select>
-              <FormHelperText>
-                <Box component={'span'} sx={helperTextStyle}>
-                  {/* {formik.errors?.product} */}
-                </Box>
-              </FormHelperText>
             </FormControl>
             {product?.tier_variations?.map((item, vIndex) => (
               <FormControl
-                sx={{
-                  mb: 2,
-                  '& .MuiFilledInput-root': {
-                    overflow: 'hidden',
-                    borderRadius: 1,
-                    backgroundColor: '#fff !important',
-                    border: '1px solid',
-                    borderColor: 'rgba(0,0,0,0.23)',
-                    '&:hover': {
-                      backgroundColor: 'transparent',
-                    },
-                    '&.Mui-focused': {
-                      backgroundColor: 'transparent',
-                      border: '2px solid',
-                    },
-                  },
-                  '& .MuiInputLabel-asterisk': {
-                    color: 'red',
-                  },
-                }}
+                sx={selectStyle}
                 key={item?.name}
                 variant='filled'
+                margin='dense'
                 fullWidth>
                 <InputLabel>{item?.name}</InputLabel>
                 <Select
@@ -1085,6 +816,7 @@ const OrderUpsert = () => {
                 label='Số lượng'
                 name='quantity'
                 variant='filled'
+                margin='dense'
                 size='small'
                 type='number'
                 disabled={!isEdit && matchedModel?.stock === 0 ? true : false}
@@ -1245,85 +977,6 @@ const OrderUpsert = () => {
                 <Typography>{formatPrice(totalAmount())}</Typography>
               </Box>
             </TableContainer>
-            {/* <Typography mb={1}>Sản phẩm:</Typography> */}
-            {/* {orderItems?.map((item, index) => (
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  mt: index !== 0 ? 2 : 0,
-                }}
-                key={item?.model_id}>
-                <Box sx={{ display: 'flex' }}>
-                  <img
-                    src={item?.image}
-                    alt='Selected Product'
-                    style={{
-                      width: '50px',
-                      maxWidth: '50px',
-                      height: '50px',
-                      objectFit: 'contain',
-                      marginRight: '12px',
-                      border: '1px solid #ccc',
-                      borderRadius: '2px',
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'center',
-                    }}>
-                    <Typography sx={{ fontSize: 15 }}>
-                      {item?.product_name}
-                    </Typography>
-                    {item?.name && (
-                      <Typography
-                        sx={{
-                          display: 'inline-block',
-                          px: '6px',
-                          py: '2px',
-                          bgcolor: '#f3f4f6',
-                          fontSize: 11,
-                          borderRadius: 0.5,
-                        }}>
-                        {item?.name}
-                      </Typography>
-                    )}
-                  </Box>
-                </Box>
-                <Box sx={{ display: 'flex' }}>
-                  <Typography sx={{ width: 40, mr: 1, fontSize: 14 }}>
-                    x {item?.quantity}
-                  </Typography>
-                  <Typography
-                    sx={{ width: 80, mr: 3, fontSize: 14, textAlign: 'end' }}>
-                    {formatPrice(item?.price)}
-                  </Typography>
-                  <Button
-                    sx={{
-                      minWidth: 40,
-                      width: 40,
-                      height: 30,
-                      mr: 1,
-                    }}
-                    variant='outlined'
-                    onClick={() => {
-                      handleEditOrderItem(item, index);
-                    }}>
-                    <EditOutlinedIcon sx={{ fontSize: 20 }} />
-                  </Button>
-                  <Button
-                    sx={{ minWidth: 40, width: 40, height: 30 }}
-                    variant='outlined'
-                    onClick={() => handleDeleteOrderItem(index)}>
-                    <DeleteOutlineOutlinedIcon sx={{ fontSize: 20 }} />
-                  </Button>
-                </Box>
-              </Box>
-            ))} */}
-            {/* <Divider sx={{ mt: 2 }} /> */}
           </Grid2>
         </Grid2>
         <Box sx={{ textAlign: 'end' }}>
@@ -1336,7 +989,7 @@ const OrderUpsert = () => {
           <Button onClick={() => navigate(-1)}>Trở lại</Button>
         </Box>
       </CardContent>
-      {/* {(isCreatePending || isUpdatePending) && <SuspenseLoader />} */}
+      {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
     </Card>
   );
 };
@@ -1346,4 +999,27 @@ export default OrderUpsert;
 const helperTextStyle: SxProps<Theme> = {
   color: 'red',
   fontSize: 13,
+};
+
+const selectStyle: SxProps<Theme> = {
+  '& .MuiFilledInput-root': {
+    overflow: 'hidden',
+    borderRadius: 1,
+    backgroundColor: '#fff !important',
+    border: '1px solid',
+    borderColor: 'rgba(0,0,0,0.23)',
+    '&:hover': {
+      backgroundColor: 'transparent',
+    },
+    '&.Mui-focused': {
+      backgroundColor: 'transparent',
+      border: '2px solid',
+    },
+  },
+  '& .MuiInputLabel-asterisk': {
+    color: 'red',
+  },
+  '& .Mui-disabled': {
+    cursor: 'not-allowed',
+  },
 };
