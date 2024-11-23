@@ -45,3 +45,29 @@ export interface IUpdateOrderStatus{
     _id: string;
     status: string;
 }
+
+export interface IProvince {
+    name: string;
+    code: number;
+    division_type: string;
+    codename: string;
+    phone_code: number;
+    districts: IDistrict[];
+}
+  
+export interface IDistrict {
+    name: string;
+    code: number;
+    division_type: string;
+    codename: string;
+    province_code: number;
+    wards: IWards[];
+}
+
+export interface IWards {
+    name: string;
+    code: number;
+    division_type: string;
+    codename: string;
+    short_codename: string;
+}

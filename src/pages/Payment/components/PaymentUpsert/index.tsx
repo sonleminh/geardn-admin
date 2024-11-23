@@ -1,20 +1,11 @@
+// React and Router
 import { ChangeEvent, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import Input from '@/components/Input';
-import SuspenseLoader from '@/components/SuspenseLoader';
-
-import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import { useQueryClient } from '@tanstack/react-query';
+// Third-party Libraries
 import { useFormik } from 'formik';
+import { useQueryClient } from '@tanstack/react-query';
 
-import ImageUpload from '@/components/ImageUpload';
-import {
-  useCreatePayment,
-  useGetPaymentById,
-  useUpdatePayment,
-} from '@/services/payment';
 import {
   Box,
   Button,
@@ -29,8 +20,22 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
+
+import Input from '@/components/Input';
+import ImageUpload from '@/components/ImageUpload';
+import SuspenseLoader from '@/components/SuspenseLoader';
+
+import { QueryKeys } from '@/constants/query-key';
+
+import { useNotificationContext } from '@/contexts/NotificationContext';
+
+import {
+  useCreatePayment,
+  useGetPaymentById,
+  useUpdatePayment,
+} from '@/services/payment';
+
 import { createSchema, updateSchema } from '../utils/schema/categorySchema';
-// import { createSchema, updateSchema } from '../utils/schema/PaymentSchema';
 
 const PaymentUpsert = () => {
   const { id } = useParams();
@@ -55,7 +60,6 @@ const PaymentUpsert = () => {
     validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      console.log(values);
       if (isEdit) {
         updatePaymentMutate(
           { _id: id, ...values },

@@ -130,7 +130,6 @@ const InventoryModelUpsert = () => {
           },
         });
       }
-      console.log('payload:', payload);
     },
   });
   useEffect(() => {

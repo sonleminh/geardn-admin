@@ -1,6 +1,7 @@
-import { QueryKeys } from '@/constants/query-key';
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { QueryKeys } from '@/constants/query-key';
+import queryString from 'query-string';
 
 import {
   ICreateOrder,
@@ -9,7 +10,6 @@ import {
   IUpdateOrderStatus,
 } from '@/interfaces/IOrder';
 import { IQuery } from '@/interfaces/IQuery';
-import queryString from 'query-string';
 
 type TOrderRes = {
   orders: IOrder[];
@@ -86,24 +86,43 @@ export const useGetOrderById = (id: string) => {
   });
 };
 
-const getProvince = async () => {
-  const result = await getRequest(
-    'https://provinces.open-api.vn/api/?depth=2',
-    { withCredentials: false }
-  );
+const getProvinceList = async () => {
+  const result = await getRequest('https://provinces.open-api.vn/api', {
+    withCredentials: false,
+  });
   return result.data as IProvince[];
 };
 
-export const useGetProvinces = () => {
+export const useGetProvinceList = () => {
   return useQuery({
     queryKey: ['provinces'],
-    queryFn: () => getProvince(),
+    queryFn: () => getProvinceList(),
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
 };
 
-const getDistrict = async (code: string) => {
+const getProvince = async (code: number | undefined) => {
+  const result = await getRequest(
+    `https://provinces.open-api.vn/api/p/${code}?depth=2`,
+    {
+      withCredentials: false,
+    }
+  );
+  return result.data as IProvince;
+};
+
+export const useGetProvince = (code: number | undefined) => {
+  return useQuery({
+    queryKey: ['province', code],
+    queryFn: () => getProvince(code),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    enabled: !!code,
+  });
+};
+
+const getDistrict = async (code: number | undefined) => {
   const result = await getRequest(
     `https://provinces.open-api.vn/api/d/${code}?depth=2`,
     { withCredentials: false }
@@ -111,9 +130,9 @@ const getDistrict = async (code: string) => {
   return result.data as IDistrict;
 };
 
-export const useGetDistrict = (code: string) => {
+export const useGetDistrict = (code: number | undefined) => {
   return useQuery({
-    queryKey: ['district', code],
+    queryKey: ['district'],
     queryFn: () => getDistrict(code),
     refetchOnWindowFocus: false,
     refetchInterval: false,

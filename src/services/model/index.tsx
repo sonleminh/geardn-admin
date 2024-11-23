@@ -1,16 +1,16 @@
-import { QueryKeys } from '@/constants/query-key';
+import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { ICreateModel, IModel, IUpdateModel } from '@/interfaces/IModel';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 import { ICategory } from '@/interfaces/IProduct';
+import { QueryKeys } from '@/constants/query-key';
 
 type TModelsRes = {
   modelList: IModel[];
   total: number;
 };
 
-type TInitRes = {
+export type TInitRes = {
   categoryList: ICategory[];
 };
 
