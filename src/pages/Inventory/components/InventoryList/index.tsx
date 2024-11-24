@@ -1,15 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-import { useQueryClient } from '@tanstack/react-query';
-
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { IQuery } from '@/interfaces/IQuery';
-import { useGetCategoryList } from '@/services/category';
-import { truncateTextByLine } from '@/utils/css-helper.util';
-import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
+import moment from 'moment';
 import {
   Box,
   Card,
@@ -24,10 +15,15 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import moment from 'moment';
+import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
+
+import { useGetCategoryList } from '@/services/category';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import useConfirmModal from '@/hooks/useModalConfirm';
+import { IQuery } from '@/interfaces/IQuery';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 
 const InventoryList = () => {
-  // const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [query, setQuery] = useState<IQuery>({
     limit: 10,
@@ -35,8 +31,6 @@ const InventoryList = () => {
   });
 
   const { data } = useGetCategoryList();
-
-  const { showNotification } = useNotificationContext();
 
   const { confirmModal } = useConfirmModal();
 

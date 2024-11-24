@@ -14,6 +14,7 @@ import { IQuery } from '@/interfaces/IQuery';
 type TOrderRes = {
   orders: IOrder[];
   total: number;
+  status_counts: { status: string; count: number }[];
 };
 
 interface IProvince {

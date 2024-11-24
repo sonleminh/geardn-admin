@@ -5,8 +5,11 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { AddCircleOutlined } from '@mui/icons-material';
 
+import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import SuspenseLoader from '@/components/SuspenseLoader';
 import { ORDER_STATUS } from '@/constants/order-status';
+import { QueryKeys } from '@/constants/query-key';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
 import { IOrderItem } from '@/interfaces/IOrder';
@@ -17,14 +20,13 @@ import {
   useUpdateOrderStatus,
 } from '@/services/order';
 import { formatPrice } from '@/utils/format-price';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Box,
   Card,
   CardHeader,
-  CircularProgress,
   Divider,
-  FormControl,
-  InputLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -43,21 +45,11 @@ import {
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
 import moment from 'moment';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import ActionButton from '@/components/ActionButton';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import { QueryKeys } from '@/constants/query-key';
 
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: string;
-}
-
-interface EnhancedTableToolbarProps {
-  numSelected: number;
-  selected: string[];
 }
 
 interface Data {
@@ -83,12 +75,10 @@ function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
 }
 
 interface EnhancedTableProps {
-  numSelected: number;
   onRequestSort: (
     event: React.MouseEvent<unknown>,
     property: keyof Data
   ) => void;
-  onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
   order: Order;
   orderBy: string;
   rowCount: number;
@@ -107,14 +97,7 @@ function getComparator<Key extends keyof any>(
 }
 
 function EnhancedTableHead(props: EnhancedTableProps) {
-  const {
-    onSelectAllClick,
-    order,
-    orderBy,
-    numSelected,
-    rowCount,
-    onRequestSort,
-  } = props;
+  const { order, orderBy, onRequestSort } = props;
 
   const createSortHandler =
     (property: keyof Data) => (event: React.MouseEvent<unknown>) => {
@@ -202,19 +185,17 @@ const OrderList = () => {
     limit: 10,
     page: 0,
   });
-  const [selected, setSelected] = useState<string[]>([]);
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof Data>('stt');
   const [tabValue, setTabValue] = useState('');
-  const [updateStatusId, setUpdateStatusId] = useState('');
 
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleChange = (_: React.SyntheticEvent, newValue: string) => {
     setTabValue(newValue);
     setQuery((prev) => ({ ...prev, ...{ status: newValue } }));
   };
 
   const handleRequestSort = (
-    event: React.MouseEvent<unknown>,
+    _: React.MouseEvent<unknown>,
     property: keyof Data
   ) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -228,10 +209,6 @@ const OrderList = () => {
   const { mutate: deleteOrderMutate } = useDeleteOrder();
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
-
-  const handleChangeQuery = (object: Partial<IQuery>) => {
-    setQuery((prev) => ({ ...prev, ...object }));
-  };
 
   const handleDeleteOrder = (id: string) => {
     showNotification('Ok', 'error');
@@ -263,10 +240,8 @@ const OrderList = () => {
               </Box>
               <Table sx={{ minWidth: 750 }} aria-labelledby='tableTitle'>
                 <EnhancedTableHead
-                  numSelected={selected.length}
                   order={order}
                   orderBy={orderBy}
-                  onSelectAllClick={handleSelectAllClick}
                   onRequestSort={handleRequestSort}
                   rowCount={data?.total || 0}
                 />
@@ -480,20 +455,7 @@ const OrderList = () => {
     [order, orderBy, query.limit, rows]
   );
 
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    // if (event.target.checked) {
-    //   const newSelected = (productByCategory ?? data?.productList)?.map(
-    //     (n) => n?._id
-    //   );
-    //   if (newSelected) {
-    //     setSelected(newSelected);
-    //   }
-    //   return;
-    // }
-    setSelected([]);
-  };
-
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setQuery((prev) => ({ ...prev, ...{ page: newPage } }));
   };
 
@@ -516,7 +478,6 @@ const OrderList = () => {
         },
       }
     );
-    // queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
   };
 
   return (
@@ -545,14 +506,32 @@ const OrderList = () => {
               value={tabValue}
               onChange={handleChange}
               aria-label='basic tabs example'>
-              <Tab label='Tất cả' value={''} />\{}
+              <Tab
+                label={`Tất cả ${data?.total ? `(${data?.total})` : '(0)'}`}
+                value={''}
+              />
+              \{}
               {Object.entries(ORDER_STATUS)?.map(([key, label]) => (
-                <Tab key={key} label={label} value={key} />
+                <Tab
+                  key={key}
+                  label={`${label} ${
+                    data?.status_counts?.find((item) => item.status === key)
+                      ?.count
+                      ? ` (${
+                          data?.status_counts?.find(
+                            (item) => item.status === key
+                          )?.count
+                        })`
+                      : `(0)`
+                  }
+                  `}
+                  value={key}
+                />
               ))}
             </Tabs>
           </Box>
           <CustomTabPanel value={''} index={0} />
-          {Object.entries(ORDER_STATUS)?.map(([key, value], index) => (
+          {Object.entries(ORDER_STATUS)?.map(([key, _], index) => (
             <CustomTabPanel key={key} value={key} index={index + 1} />
           ))}
         </Box>
@@ -573,18 +552,9 @@ const OrderList = () => {
             rowsPerPage={query?.limit ?? 10}
             onRowsPerPageChange={handleChangeRowsPerPage}
           />
-          {/* <Pagination
-            count={Math.ceil((data?.total ?? 0) / query.limit!)}
-            page={query.page ?? 1}
-            onChange={(_: React.ChangeEvent<unknown>, newPage) => {
-              handleChangeQuery({ page: newPage });
-            }}
-            defaultPage={query.page ?? 1}
-            showFirstButton
-            showLastButton
-          /> */}
         </Box>
       </Card>
+      {isUpdatePending && <SuspenseLoader />}
       {confirmModal()}
     </Card>
   );

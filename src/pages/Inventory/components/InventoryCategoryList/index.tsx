@@ -1,16 +1,5 @@
-import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-import { useQueryClient } from '@tanstack/react-query';
-
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { IQuery } from '@/interfaces/IQuery';
-import { useGetProductByCategory } from '@/services/product';
-import { truncateTextByLine } from '@/utils/css-helper.util';
-import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
-import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
+import moment from 'moment';
 import {
   Box,
   Card,
@@ -24,7 +13,13 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import moment from 'moment';
+import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
+import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
+
+import { useGetProductByCategory } from '@/services/product';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import useConfirmModal from '@/hooks/useModalConfirm';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 
 const InventoryCategoryList = () => {
   const { id } = useParams();
