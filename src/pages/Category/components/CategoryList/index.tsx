@@ -48,7 +48,6 @@ const CategoryList = () => {
   const { mutate: deleteCategoryMutate } = useDeleteCategory();
 
   const handleDeleteCategory = (id: string) => {
-    showNotification('Ok', 'error');
     deleteCategoryMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });

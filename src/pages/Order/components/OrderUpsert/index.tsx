@@ -52,11 +52,11 @@ const OrderUpsert = () => {
   const { showNotification } = useNotificationContext();
   const [orderItems, setOrderItems] = useState<IOrderItem[]>([]);
 
-  const [shopAddress, setShopAddress] = useState<string>('');
   const [city, setCity] = useState<string>('');
   const [district, setDistrict] = useState<string>('');
   const [ward, setWard] = useState<string>('');
   const [detailAddress, setDetailAddress] = useState<string>('');
+  const [shopAddress, setShopAddress] = useState<string>('');
 
   const { data: orderData } = useGetOrderById(id as string);
   const { data: payment } = useGetPaymentById('673c8947d6a67118f380f4ab');

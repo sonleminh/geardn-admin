@@ -32,10 +32,10 @@ interface IDistrict {
   division_type: string;
   codename: string;
   province_code: number;
-  wards: IWards[];
+  wards: IWard[];
 }
 
-interface IWards {
+interface IWard {
   name: string;
   code: number;
   division_type: string;
