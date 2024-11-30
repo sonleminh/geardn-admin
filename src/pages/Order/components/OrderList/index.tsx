@@ -57,7 +57,7 @@ interface Data {
   _id: string;
   name: string;
   items: IOrderItem[];
-  created_at: string;
+  created_at: Date;
   total_amount: number;
   status: string;
 }
@@ -443,7 +443,7 @@ const OrderList = () => {
         _id: order._id,
         name: order.customer?.name,
         items: order.items,
-        created_at: moment(order?.createdAt)?.format('DD/MM/YYYY'),
+        created_at: moment(order?.createdAt)?.format('lll'),
         total_amount: order.total_amount,
         status: order.status,
       })) || [],
