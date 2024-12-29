@@ -858,7 +858,7 @@ const ProductUpsert = () => {
         )}
         <FormControl>
           <MultipleFileUpload
-            title={'Ảnh:'}
+            title={'Ảnhc:'}
             required
             helperText={
               <Box component={'span'} sx={helperTextStyle}>
