@@ -119,10 +119,16 @@ const CategoryUpsert = () => {
           />
         </FormControl>
         <ImageUpload
-          title={'Ảnh:'}
+          title={'Ảnh icon:'}
           value={formik?.values?.icon}
           onUploadChange={handleIconImage}
         />
+        {isEdit && categoryData && (
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography sx={{ mr: 1 }}>Slug:</Typography>
+            <Typography>{categoryData?.slug}</Typography>
+          </Box>
+        )}
         <Box sx={{ textAlign: 'end' }}>
           <Button onClick={() => navigate('/category')} sx={{ mr: 2 }}>
             Trở lại

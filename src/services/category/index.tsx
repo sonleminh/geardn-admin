@@ -7,7 +7,7 @@ import {
   IUpdateCategoryPayload,
 } from '@/interfaces/ICategory';
 type TCategorysRes = {
-  categoryList: ICategory[];
+  categories: ICategory[];
   total: number;
 };
 
