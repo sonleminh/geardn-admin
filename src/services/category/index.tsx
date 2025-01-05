@@ -11,6 +11,12 @@ type TCategorysRes = {
   total: number;
 };
 
+type TCategoryById = {
+  status: number;
+  message: string;
+  data: ICategory;
+};
+
 const categoryUrl = '/category';
 
 const getCategoryList = async () => {
@@ -29,7 +35,7 @@ export const useGetCategoryList = () => {
 
 const getCategoryById = async (id: string) => {
   const result = await getRequest(`${categoryUrl}/${id}`);
-  return result.data as ICategory;
+  return (result.data as TCategoryById).data;
 };
 
 export const useGetCategoryById = (id: string) => {

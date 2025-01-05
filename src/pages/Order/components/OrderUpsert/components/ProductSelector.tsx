@@ -35,7 +35,7 @@ import { IModel } from '@/interfaces/IModel';
 import { IOrder, IOrderItem } from '@/interfaces/IOrder';
 
 import { useGetInitialForCreate } from '@/services/model';
-import { useGetProductByCategory, useGetProductById } from '@/services/product';
+import { useGetProductByCateId, useGetProductById } from '@/services/product';
 
 import { formatPrice } from '@/utils/format-price';
 
@@ -67,7 +67,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
   const [matchedModel, setMatchedModel] = useState<IModel>();
 
   const { data: initData } = useGetInitialForCreate();
-  const { data: productsByCategory } = useGetProductByCategory(categoryId);
+  const { data: productsByCategory } = useGetProductByCateId(categoryId);
   const { data: product } = useGetProductById(productId);
 
   useEffect(() => {
@@ -254,7 +254,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
               setQuantity('');
             }}
             value={productId ?? ''}>
-            {productsByCategory?.map((item) => (
+            {productsByCategory?.data.map((item) => (
               <MenuItem
                 key={item?._id}
                 value={item?._id}

@@ -5,6 +5,7 @@ import {
   Card,
   CardHeader,
   Divider,
+  Pagination,
   Table,
   TableBody,
   TableCell,
@@ -16,30 +17,31 @@ import {
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
 
-import { useGetProductByCategory } from '@/services/product';
+import { useGetProductByCateId } from '@/services/product';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import useConfirmModal from '@/hooks/useModalConfirm';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import { IQuery } from '@/interfaces/IQuery';
+import { useState } from 'react';
 
 const InventoryCategoryList = () => {
   const { id } = useParams();
   // const queryClient = useQueryClient();
   const navigate = useNavigate();
-  // const [query, setQuery] = useState<IQuery>({
-  //   limit: 10,
-  //   page: 1,
-  // });
+  const [query, setQuery] = useState<IQuery>({
+    limit: 2,
+    page: 1,
+  });
 
-  const { data: productList } = useGetProductByCategory(id ?? '');
+  const { data: productList } = useGetProductByCateId(id ?? '', query);
 
   // const { showNotification } = useNotificationContext();
 
   const { confirmModal } = useConfirmModal();
 
-  // const handleChangeQuery = (object: Partial<IQuery>) => {
-  //   setQuery((prev) => ({ ...prev, ...object }));
-  // };
-
+  const handleChangeQuery = (object: Partial<IQuery>) => {
+    setQuery((prev) => ({ ...prev, ...object }));
+  };
   return (
     <Card sx={{ borderRadius: 2 }}>
       <Card>
@@ -71,14 +73,18 @@ const InventoryCategoryList = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {productList?.map((item, index) => (
+              {productList?.data?.map((item, index) => (
                 <TableRow
                   key={index}
                   sx={{
                     ':hover': { bgcolor: '#F1F1F1', cursor: 'pointer' },
                   }}
                   onClick={() => navigate(`/inventory/model/${item._id}`)}>
-                  <TableCell align='center'>{index + 1}</TableCell>
+                  <TableCell align='center'>
+                    {query?.page === 1
+                      ? index + 1
+                      : index + 1 + (query?.page ?? 1)}
+                  </TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
                       {item.name}
@@ -101,14 +107,14 @@ const InventoryCategoryList = () => {
               ))}
             </TableBody>
           </Table>
-          {productList?.length === 0 && (
+          {productList?.data?.length === 0 && (
             <Box sx={{ my: 2, textAlign: 'center', color: '#696969' }}>
               Empty
             </Box>
           )}
         </TableContainer>
         <Divider />
-        {/* <Box
+        <Box
           p={2}
           sx={{
             ['.MuiPagination-ul']: {
@@ -116,18 +122,18 @@ const InventoryCategoryList = () => {
             },
             textAlign: 'right',
           }}>
-          <Typography>Tổng cộng: {data?.total ?? 0}</Typography>
+          <Typography>Tổng cộng: {productList?.total ?? 0}</Typography>
           <Pagination
-            count={Math.ceil((data?.total ?? 0) / query.limit!)}
+            count={Math.ceil((productList?.total ?? 0) / query.limit!)}
             page={query.page ?? 0}
             onChange={(_: React.ChangeEvent<unknown>, newPage) => {
               handleChangeQuery({ page: newPage });
             }}
-            defaultPage={query.page ?? 0}
+            defaultPage={query.page ?? 1}
             showFirstButton
             showLastButton
           />
-        </Box> */}
+        </Box>
       </Card>
       {confirmModal()}
     </Card>

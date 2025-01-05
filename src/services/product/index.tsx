@@ -43,15 +43,20 @@ export const useGetProductList = (query: IQuery) => {
   });
 };
 
-const getProductByCategory = async (id: string) => {
-  const result = await getRequest(`${productUrl}/category/${id}`);
-  return result.data as IProduct[];
+const getProductByCateId = async (id: string, query: IQuery) => {
+  const newParams = { ...query, page: query.page ?? 1 };
+  // const newParams = { ...query, page: (query.page ?? 0) + 1 };
+  const queryParams = queryString.stringify(newParams ?? {});
+  const result = await getRequest(
+    `${productUrl}/admin/category/${id}?${queryParams}`
+  );
+  return result.data as { data: IProduct[]; total: number };
 };
 
-export const useGetProductByCategory = (id: string) => {
+export const useGetProductByCateId = (id: string, query: IQuery) => {
   return useQuery({
-    queryKey: [QueryKeys.Product, id],
-    queryFn: () => getProductByCategory(id),
+    queryKey: [QueryKeys.Product, id, query],
+    queryFn: () => getProductByCateId(id, query),
     refetchOnWindowFocus: false,
     refetchInterval: false,
     enabled: !!id,

@@ -26,7 +26,7 @@ import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 const InventoryList = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState<IQuery>({
-    limit: 10,
+    limit: 2,
     page: 1,
   });
 
@@ -60,7 +60,7 @@ const InventoryList = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {data?.categoryList?.map((item, index) => (
+              {data?.categories?.map((item, index) => (
                 <TableRow
                   key={index}
                   sx={{ ':hover': { bgcolor: '#F1F1F1', cursor: 'pointer' } }}
@@ -97,16 +97,6 @@ const InventoryList = () => {
             textAlign: 'right',
           }}>
           <Typography>Tổng cộng: {data?.total ?? 0}</Typography>
-          <Pagination
-            count={Math.ceil((data?.total ?? 0) / query.limit!)}
-            page={query.page ?? 0}
-            onChange={(_: React.ChangeEvent<unknown>, newPage) => {
-              handleChangeQuery({ page: newPage });
-            }}
-            defaultPage={query.page ?? 0}
-            showFirstButton
-            showLastButton
-          />
         </Box>
       </Card>
       {confirmModal()}

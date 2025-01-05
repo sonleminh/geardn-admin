@@ -50,7 +50,7 @@ import { IQuery } from '@/interfaces/IQuery';
 
 import {
   useDeleteManyProduct,
-  useGetProductByCategory,
+  useGetProductByCateId,
   useGetProductList,
 } from '@/services/product';
 import { getBgColor } from '@/utils/getTagBgColor';
@@ -351,7 +351,7 @@ export default function ProductList() {
 
   const { data } = useGetProductList({ ...query });
   const { data: productByCategory, isLoading } =
-    useGetProductByCategory(category);
+    useGetProductByCateId(category);
 
   const handleRequestSort = (
     _: React.MouseEvent<unknown> | null,
@@ -364,7 +364,7 @@ export default function ProductList() {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = (productByCategory ?? data?.products)?.map(
+      const newSelected = (productByCategory?.data ?? data?.products)?.map(
         (n) => n?._id
       );
       if (newSelected) {
@@ -421,7 +421,7 @@ export default function ProductList() {
 
   const rows = useMemo(
     () =>
-      (productByCategory ?? data?.products)?.map((product, index) => ({
+      (productByCategory?.data ?? data?.products)?.map((product, index) => ({
         stt: index + 1,
         _id: product._id,
         name: product.name,
