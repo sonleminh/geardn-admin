@@ -37,7 +37,9 @@ const CategoryUpsert = () => {
 
   const isEdit = !!id;
 
-  const { data: categoryData } = useGetCategoryById(id as string);
+  const numericId = id ? Number(id) : undefined;
+
+  const { data: categoryData } = useGetCategoryById(numericId as number);
 
   const { mutate: createCategoryMutate, isPending: isCreatePending } =
     useCreateCategory();
@@ -53,7 +55,7 @@ const CategoryUpsert = () => {
     onSubmit(values) {
       if (isEdit) {
         updateCategoryMutate(
-          { _id: id, ...values },
+          { id: id, ...values },
           {
             onSuccess() {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });

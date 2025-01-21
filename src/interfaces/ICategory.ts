@@ -1,5 +1,5 @@
 export interface ICategory {
-    _id: string;
+    id: number;
     name: string;
     icon: string;
     slug?: string;
@@ -13,7 +13,7 @@ export interface ICreateCategory extends Record<string, unknown>  {
 }
 
 export interface IUpdateCategoryPayload {
-    _id: string;
+    id: number;
     name: string;
     icon: string;
     slug?: string;

@@ -17,7 +17,7 @@ type TCategoryById = {
   data: ICategory;
 };
 
-const categoryUrl = '/category';
+const categoryUrl = '/categories';
 
 const getCategoryList = async () => {
   const result = await getRequest(`${categoryUrl}`);
@@ -33,12 +33,12 @@ export const useGetCategoryList = () => {
   });
 };
 
-const getCategoryById = async (id: string) => {
+const getCategoryById = async (id: number) => {
   const result = await getRequest(`${categoryUrl}/${id}`);
   return (result.data as TCategoryById).data;
 };
 
-export const useGetCategoryById = (id: string) => {
+export const useGetCategoryById = (id: number) => {
   return useQuery({
     queryKey: [QueryKeys.Category, id],
     queryFn: () => getCategoryById(id),
@@ -62,8 +62,8 @@ export const useCreateCategory = () => {
 // Update
 
 const updateCategory = async (payload: IUpdateCategoryPayload) => {
-  const { _id, ...rest } = payload;
-  const result = await patchRequest(`${categoryUrl}/${_id}`, rest);
+  const { id, ...rest } = payload;
+  const result = await patchRequest(`${categoryUrl}/${id}`, rest);
   return result.data as ICategory;
 };
 
@@ -73,7 +73,7 @@ export const useUpdateCategory = () => {
   });
 };
 
-const deleteCategory = async (id: string) => {
+const deleteCategory = async (id: number) => {
   const result = await deleteRequest(`${categoryUrl}/${id}`);
   return result.data;
 };

@@ -40,6 +40,7 @@ const CategoryList = () => {
   });
 
   const { data } = useGetCategoryList();
+  console.log(data);
 
   const { showNotification } = useNotificationContext();
 
@@ -47,7 +48,7 @@ const CategoryList = () => {
 
   const { mutate: deleteCategoryMutate } = useDeleteCategory();
 
-  const handleDeleteCategory = (id: string) => {
+  const handleDeleteCategory = (id: number) => {
     deleteCategoryMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
@@ -106,7 +107,7 @@ const CategoryList = () => {
                       <Box mb={1}>
                         <ButtonWithTooltip
                           color='primary'
-                          onClick={() => navigate(`update/${item?._id}`)}
+                          onClick={() => navigate(`update/${item?.id}`)}
                           variant='outlined'
                           title='Chỉnh sửa'
                           placement='left'>
@@ -120,7 +121,7 @@ const CategoryList = () => {
                             showConfirmModal({
                               title: 'Bạn có muốn xóa danh mục này không?',
                               cancelText: 'Hủy',
-                              onOk: () => handleDeleteCategory(item?._id),
+                              onOk: () => handleDeleteCategory(item?.id),
                               okText: 'Xóa',
                               btnOkColor: 'error',
                             });
