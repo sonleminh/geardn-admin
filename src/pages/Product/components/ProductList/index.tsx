@@ -207,10 +207,10 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 interface EnhancedTableToolbarProps {
   numSelected: number;
   categoryList: ICategory[];
-  onCategoryChange: (event: SelectChangeEvent<string>) => void;
-  categoryValue: string;
+  onCategoryChange: (event: SelectChangeEvent<number>) => void;
+  categoryValue: number | undefined;
   handleDeleteFilter: () => void;
-  selected: string[];
+  selected: number[];
   handleDeleteSelected: () => void;
 }
 function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
@@ -295,7 +295,7 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
               onChange={onCategoryChange}
               value={categoryValue}>
               {categoryList?.map((item) => (
-                <MenuItem key={item._id} value={item?._id}>
+                <MenuItem key={item.id} value={item?.id}>
                   {item.name}
                 </MenuItem>
               ))}
@@ -342,16 +342,18 @@ export default function ProductList() {
 
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof Data>('stt');
-  const [category, setCategory] = useState<string>('');
-  const [selected, setSelected] = useState<string[]>([]);
+  const [category, setCategory] = useState<number>();
+  const [selected, setSelected] = useState<number[]>([]);
   const [query, setQuery] = useState<IQuery>({
     limit: 10,
     page: 0,
   });
 
   const { data } = useGetProductList({ ...query });
-  const { data: productByCategory, isLoading } =
-    useGetProductByCateId(category);
+  const { data: productByCategory, isLoading } = useGetProductByCateId(
+    category,
+    query
+  );
 
   const handleRequestSort = (
     _: React.MouseEvent<unknown> | null,
@@ -365,7 +367,7 @@ export default function ProductList() {
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
       const newSelected = (productByCategory?.data ?? data?.products)?.map(
-        (n) => n?._id
+        (n) => n?.id
       );
       if (newSelected) {
         setSelected(newSelected);
@@ -375,9 +377,9 @@ export default function ProductList() {
     setSelected([]);
   };
 
-  const handleClick = (_: React.MouseEvent<unknown>, id: string) => {
+  const handleClick = (_: React.MouseEvent<unknown>, id: number) => {
     const selectedIndex = selected.indexOf(id);
-    let newSelected: string[] = [];
+    let newSelected: number[] = [];
 
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, id);
@@ -423,7 +425,7 @@ export default function ProductList() {
     () =>
       (productByCategory?.data ?? data?.products)?.map((product, index) => ({
         stt: index + 1,
-        _id: product._id,
+        id: product.id,
         name: product.name,
         category: product.category?.name || '',
         images: product.images[0] || '',
@@ -437,8 +439,8 @@ export default function ProductList() {
     [order, orderBy, query.limit, rows]
   );
 
-  const handleCategoryChange = (event: SelectChangeEvent<string>) => {
-    setCategory(event.target.value);
+  const handleCategoryChange = (event: SelectChangeEvent<number>) => {
+    setCategory(+event.target.value);
   };
 
   const handleDetailClick = (row: Data) => {
@@ -554,7 +556,7 @@ export default function ProductList() {
           onCategoryChange={handleCategoryChange}
           categoryValue={category}
           handleDeleteFilter={() => {
-            setCategory('');
+            setCategory(undefined);
           }}
           selected={selected}
           handleDeleteSelected={() => {
@@ -597,13 +599,13 @@ export default function ProductList() {
                 </Box>
               ) : (
                 visibleRows?.map((row, index) => {
-                  const isItemSelected = selected.includes(row._id);
+                  const isItemSelected = selected.includes(row.id);
                   const labelId = `enhanced-table-checkbox-${index}`;
 
                   return (
                     <TableRow
                       hover
-                      onClick={(event) => handleClick(event, row._id)}
+                      onClick={(event) => handleClick(event, row.id)}
                       role='checkbox'
                       aria-checked={isItemSelected}
                       tabIndex={-1}
@@ -687,7 +689,7 @@ export default function ProductList() {
                             <Box mb={1}>
                               <ButtonWithTooltip
                                 color='primary'
-                                onClick={() => navigate(`update/${row?._id}`)}
+                                onClick={() => navigate(`update/${row?.id}`)}
                                 variant='outlined'
                                 title='Chỉnh sửa'
                                 placement='left'>
@@ -715,7 +717,7 @@ export default function ProductList() {
         <TablePagination
           rowsPerPageOptions={[10, 20]}
           component='div'
-          count={productByCategory?.length ?? data?.total ?? 0}
+          count={productByCategory?.total ?? data?.total ?? 0}
           rowsPerPage={query?.limit ?? 10}
           page={query?.page ?? 0}
           onPageChange={handleChangePage}

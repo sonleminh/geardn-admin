@@ -78,6 +78,8 @@ const ProductUpsert = () => {
   const isEdit = !!id;
 
   const { data: initData } = useGetProductInitial();
+  console.log('init', initData);
+  console.log('tags', tags);
   const { data: productData } = useGetProductById(id as string);
 
   const { mutate: createProductMutate, isPending: isCreatePending } =
@@ -143,7 +145,7 @@ const ProductUpsert = () => {
       // }
       if (isEdit) {
         updateProductMutate(
-          { _id: id, ...payload },
+          { id: +id, ...payload },
           {
             onSuccess() {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
@@ -179,7 +181,7 @@ const ProductUpsert = () => {
       //   formatDateToNormal(productData?.discount?.endDate)
       // );
       formik.setFieldValue('name', productData?.name);
-      formik.setFieldValue('category', productData?.category?._id);
+      formik.setFieldValue('category', productData?.category?.id);
       formik.setFieldValue('tags', productData?.tags);
       formik.setFieldValue('images', productData?.images);
       formik.setFieldValue('brand', productData?.brand);
@@ -383,7 +385,7 @@ const ProductUpsert = () => {
                 onChange={handleSelectChange}
                 value={formik?.values?.category}>
                 {initData?.categories?.map((item) => (
-                  <MenuItem key={item._id} value={item?._id}>
+                  <MenuItem key={item.id} value={item?.id}>
                     {item.name}
                   </MenuItem>
                 ))}
@@ -403,7 +405,7 @@ const ProductUpsert = () => {
                 fullWidth
                 options={initData?.tags ?? []}
                 disableCloseOnSelect
-                value={tags}
+                // value={tags}
                 onChange={(e, val) => handleTagChange(e, val)}
                 isOptionEqualToValue={(option, value) =>
                   option?.value === value?.value
@@ -858,7 +860,7 @@ const ProductUpsert = () => {
         )}
         <FormControl>
           <MultipleFileUpload
-            title={'Ảnhc:'}
+            title={'Ảnh:'}
             required
             helperText={
               <Box component={'span'} sx={helperTextStyle}>

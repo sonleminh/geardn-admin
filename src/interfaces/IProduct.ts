@@ -2,7 +2,7 @@ import { IModel } from "./IModel";
 import { IVariant } from "./IVariant";
 
 export interface ICategory {
-    _id: string;
+    id: number;
     name: string
 }
 
@@ -24,7 +24,7 @@ interface IDetails {
 }
 
 export interface IProduct {
-    _id: string;
+    id: number;
     name: string;
     // discount?: IDiscount;
     category: ICategory;
@@ -55,7 +55,7 @@ export interface ICreateProduct extends Record<string, unknown>  {
 }
 
 export interface IUpdateProductPayload {
-    _id: string;
+    id: number;
     name?: string;
     // discount?: IDiscount;
     category: string;

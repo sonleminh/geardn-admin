@@ -21,11 +21,11 @@ type TProductsRes = {
 };
 
 type TInitDataRes = {
-  categories: { _id: string; name: string }[];
+  categories: { id: number; name: string }[];
   tags: { value: string; label: string }[];
 };
 
-const productUrl = '/product';
+const productUrl = '/products';
 
 const getProductList = async (query: IQuery) => {
   const newParams = { ...query, page: (query.page ?? 0) + 1 };
@@ -43,7 +43,7 @@ export const useGetProductList = (query: IQuery) => {
   });
 };
 
-const getProductByCateId = async (id: string, query: IQuery) => {
+const getProductByCateId = async (id: number | undefined, query: IQuery) => {
   const newParams = { ...query, page: query.page ?? 1 };
   // const newParams = { ...query, page: (query.page ?? 0) + 1 };
   const queryParams = queryString.stringify(newParams ?? {});
@@ -53,7 +53,10 @@ const getProductByCateId = async (id: string, query: IQuery) => {
   return result.data as { data: IProduct[]; total: number };
 };
 
-export const useGetProductByCateId = (id: string, query: IQuery) => {
+export const useGetProductByCateId = (
+  id: number | undefined,
+  query: IQuery
+) => {
   return useQuery({
     queryKey: [QueryKeys.Product, id, query],
     queryFn: () => getProductByCateId(id, query),
@@ -124,8 +127,8 @@ export const useGetProductInitial = () => {
 // Update
 
 const updateProduct = async (payload: IUpdateProductPayload) => {
-  const { _id, ...rest } = payload;
-  const result = await patchRequest(`${productUrl}/${_id}`, rest);
+  const { id, ...rest } = payload;
+  const result = await patchRequest(`${productUrl}/${id}`, rest);
   return result.data as IProduct;
 };
 
@@ -146,7 +149,7 @@ export const useDeleteProduct = () => {
   });
 };
 
-const deleteManyProduct = async (ids: string[]) => {
+const deleteManyProduct = async (ids: number[]) => {
   const result = await deleteRequest(`${productUrl}`, { data: ids });
   return result.data;
 };
