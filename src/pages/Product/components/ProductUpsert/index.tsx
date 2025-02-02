@@ -95,7 +95,7 @@ const ProductUpsert = () => {
       //   startDate: '',
       //   endDate: '',
       // },
-      category: '',
+      categoryId: '',
       tags: [],
       // attributes: [],
       sku_name: '',
@@ -108,7 +108,7 @@ const ProductUpsert = () => {
       },
       description: '',
     },
-    validationSchema: isEdit ? updateSchema : createSchema,
+    // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       // const hasDiscount =
@@ -127,7 +127,8 @@ const ProductUpsert = () => {
         ...values,
         details,
         tags: tags,
-        tier_variations: variants,
+        // tier_variations: variants,
+        categoryId: +values.categoryId,
 
         // discount: hasDiscount
         //   ? {
@@ -181,7 +182,7 @@ const ProductUpsert = () => {
       //   formatDateToNormal(productData?.discount?.endDate)
       // );
       formik.setFieldValue('name', productData?.name);
-      formik.setFieldValue('category', productData?.category?.id);
+      formik.setFieldValue('categoryId', productData?.categoryId);
       formik.setFieldValue('tags', productData?.tags);
       formik.setFieldValue('images', productData?.images);
       formik.setFieldValue('brand', productData?.brand);
@@ -215,7 +216,7 @@ const ProductUpsert = () => {
   // };
 
   const handleSelectChange = (e: SelectChangeEvent<unknown>) => {
-    formik.setFieldValue('category', e.target.value);
+    formik.setFieldValue('categoryId', e.target.value);
   };
 
   const handleUploadResult = (result: string[]) => {
@@ -381,9 +382,9 @@ const ProductUpsert = () => {
               <Select
                 disableUnderline
                 size='small'
-                name='category'
+                name='categoryId'
                 onChange={handleSelectChange}
-                value={formik?.values?.category}>
+                value={formik?.values?.categoryId}>
                 {initData?.categories?.map((item) => (
                   <MenuItem key={item.id} value={item?.id}>
                     {item.name}
@@ -392,7 +393,7 @@ const ProductUpsert = () => {
               </Select>
               <FormHelperText>
                 <Box component={'span'} sx={helperTextStyle}>
-                  {formik.errors?.category}
+                  {formik.errors?.categoryId}
                 </Box>
               </FormHelperText>
             </FormControl>
