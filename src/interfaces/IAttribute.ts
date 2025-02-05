@@ -1,21 +1,18 @@
 export interface IAttribute {
-    _id: string;
-    name: string;
+    id: number;
+    type: string;
     value: string;
-    atb_sku: string;
     createdAt: Date;
 }
 
 export interface ICreateAttribute extends Record<string, unknown>  {
-    name: string;
+    type: string;
     value: string;
-    atb_sku: string;
 }
 
 export interface IUpdateAttributePayload {
-    _id: string;
-    name: string;
+    id: number;
+    type: string;
     value: string;
-    atb_sku: string;
 }
   

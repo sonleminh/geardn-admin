@@ -86,6 +86,7 @@ const CategoryList = () => {
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
                 <TableCell>Tên</TableCell>
+                <TableCell align='center'>Ảnh</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
@@ -98,6 +99,19 @@ const CategoryList = () => {
                     <Typography sx={{ ...truncateTextByLine(2) }}>
                       {item.name}
                     </Typography>
+                  </TableCell>
+                  <TableCell align='center'>
+                    <Box
+                      sx={{
+                        height: 40,
+                        '.thumbnail': {
+                          width: 40,
+                          height: 40,
+                          objectFit: 'contain',
+                        },
+                      }}>
+                      <img src={item?.icon} className='thumbnail' />
+                    </Box>
                   </TableCell>
                   <TableCell align='center'>
                     {moment(item.createdAt).format('DD/MM/YYYY')}

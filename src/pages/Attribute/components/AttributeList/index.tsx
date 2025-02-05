@@ -48,7 +48,7 @@ const AttributeList = () => {
 
   const { mutate: deleteAttributeMutate } = useDeleteAttribute();
 
-  const handleDeleteAttribute = (id: string) => {
+  const handleDeleteAttribute = (id: number) => {
     showNotification('Ok', 'error');
     deleteAttributeMutate(id, {
       onSuccess: () => {
@@ -86,30 +86,24 @@ const AttributeList = () => {
             <TableHead>
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
-                <TableCell>Tên loại</TableCell>
                 <TableCell>Loại</TableCell>
-                <TableCell>Mã</TableCell>
+                <TableCell>Giá trị</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data?.attributeList?.map((item, index) => (
+              {data?.product_attributes?.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.name}
+                      {item.type}
                     </Typography>
                   </TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
                       {item.value}
-                    </Typography>
-                  </TableCell>
-                  <TableCell sx={{ width: '30%' }}>
-                    <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.atb_sku}
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>
@@ -120,7 +114,7 @@ const AttributeList = () => {
                       <Box mb={1}>
                         <ButtonWithTooltip
                           color='primary'
-                          onClick={() => navigate(`update/${item?._id}`)}
+                          onClick={() => navigate(`update/${item?.id}`)}
                           variant='outlined'
                           title='Chỉnh sửa'
                           placement='left'>
@@ -134,7 +128,7 @@ const AttributeList = () => {
                             showConfirmModal({
                               title: 'Bạn có muốn xóa phân loại này không?',
                               cancelText: 'Hủy',
-                              onOk: () => handleDeleteAttribute(item?._id),
+                              onOk: () => handleDeleteAttribute(item?.id),
                               okText: 'Xóa',
                               btnOkColor: 'error',
                             });

@@ -25,7 +25,7 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { TYPE_ATTRIBUTE } from '@/constants/type-attribute';
+import { ATTRIBUTE_TYPE } from '@/constants/attribute-type';
 import {
   useCreateAttribute,
   useGetAttributeById,
@@ -42,6 +42,7 @@ const AttributeUpsert = () => {
   const isEdit = !!id;
 
   const { data: attributeData } = useGetAttributeById(id as string);
+  console.log('att:', attributeData);
 
   const { mutate: createAttributeMutate, isPending: isCreatePending } =
     useCreateAttribute();
@@ -49,16 +50,15 @@ const AttributeUpsert = () => {
     useUpdateAttribute();
   const formik = useFormik({
     initialValues: {
-      name: '',
+      type: '',
       value: '',
-      atb_sku: '',
     },
     validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       if (isEdit) {
         updateAttributeMutate(
-          { _id: id, ...values },
+          { id: +id, ...values },
           {
             onSuccess() {
               queryClient.invalidateQueries({
@@ -83,9 +83,8 @@ const AttributeUpsert = () => {
 
   useEffect(() => {
     if (attributeData) {
-      formik.setFieldValue('name', attributeData?.name);
+      formik.setFieldValue('type', attributeData?.type);
       formik.setFieldValue('value', attributeData?.value);
-      formik.setFieldValue('atb_sku', attributeData?.atb_sku);
     }
   }, [attributeData]);
 
@@ -133,22 +132,23 @@ const AttributeUpsert = () => {
               color: 'red',
             },
           }}>
-          <InputLabel>Danh mục</InputLabel>
+          <InputLabel>Loại</InputLabel>
           <Select
             disableUnderline
+            required
             size='small'
-            name='name'
+            name='type'
             onChange={handleSelectChange}
-            value={formik?.values?.name ?? ''}>
-            {Object.values(TYPE_ATTRIBUTE)?.map((item: string) => (
-              <MenuItem key={item} value={item}>
-                {item}
+            value={formik?.values?.type ?? ''}>
+            {Object.values(ATTRIBUTE_TYPE)?.map((item) => (
+              <MenuItem key={item.value} value={item.value}>
+                {item.label}
               </MenuItem>
             ))}
           </Select>
           <FormHelperText>
             <Box component={'span'} sx={helperTextStyle}>
-              {formik.errors?.name}
+              {formik.errors?.type}
             </Box>
           </FormHelperText>
         </FormControl>
@@ -167,23 +167,8 @@ const AttributeUpsert = () => {
             onChange={handleChangeValue}
           />
         </FormControl>
-        <FormControl>
-          <Input
-            label='Mã thuộc tính'
-            name='atb_sku'
-            variant='filled'
-            required
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.atb_sku}
-              </Box>
-            }
-            value={formik?.values.atb_sku}
-            onChange={handleChangeValue}
-          />
-        </FormControl>
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate('/Attribute')} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate('/attribute')} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>

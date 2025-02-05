@@ -55,7 +55,7 @@ const CategoryUpsert = () => {
     onSubmit(values) {
       if (isEdit) {
         updateCategoryMutate(
-          { id: id, ...values },
+          { id: +id, ...values },
           {
             onSuccess() {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
