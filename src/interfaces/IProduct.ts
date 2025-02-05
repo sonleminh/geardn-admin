@@ -34,7 +34,6 @@ export interface IProduct {
     tier_variations: IVariant[]
     models: IModel[];
     // attributes: string[];
-    sku_name: string;
     brand: string;
     details: IDetails;
     original_price: number;
@@ -50,7 +49,6 @@ export interface ICreateProduct extends Record<string, unknown>  {
     images?: string[];
     brand: string;
     // attributes?: string[];
-    sku_name: string;
     details: IDetails;
     description?: string;
 }
@@ -63,7 +61,6 @@ export interface IUpdateProductPayload {
     tags: ITagOptions[];
     images?: string[];
     // attributes?: string[];
-    sku_name: string;
     brand: string;
     details: IDetails;
     description?: string;
@@ -79,7 +76,6 @@ export interface IProductPayload extends Record<string, unknown>  {
     tags: ITagOptions[];
     categoryId: number;
     images: string[];
-    sku_name: string;
     brand: string;
     // attributes?: string[];  
     // sku_name: string;

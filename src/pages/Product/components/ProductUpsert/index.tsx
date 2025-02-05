@@ -1,11 +1,10 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import MultipleFileUpload from '@/components/MultipleImageUpload';
-import SuspenseLoader from '@/components/SuspenseLoader';
-import ImageUpload from '@/components/ImageUpload';
 import CKEditor from '@/components/CKEditor';
 import Input from '@/components/Input';
+import MultipleFileUpload from '@/components/MultipleImageUpload';
+import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { QueryKeys } from '@/constants/query-key';
 import { useNotificationContext } from '@/contexts/NotificationContext';
@@ -19,6 +18,8 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import {
   Autocomplete,
   Box,
@@ -39,14 +40,6 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import RemoveIcon from '@mui/icons-material/Remove';
-import UploadIcon from '@mui/icons-material/Upload';
-import { createSchema, updateSchema } from '../utils/schema/productSchema';
 
 type DetailKey = 'guarantee' | 'weight' | 'material';
 
@@ -64,22 +57,11 @@ const ProductUpsert = () => {
   // const [attributes, setAttributes] = useState<string[]>([]);
   const [tags, setTags] = useState<ITagOptions[]>([]);
   const [showDetailForm, setShowDetailForm] = useState<boolean>(false);
-  const [showVariantForm, setShowVariantForm] = useState<boolean>(false);
   const [variants, setVariants] = useState<IVariant[]>([]);
-  const [variantName, setVariantName] = useState<string>();
-  const [option, setOption] = useState<string>('');
-  const [optionList, setOptionList] = useState<string[]>([]);
-  const [optionImage, setOptionImage] = useState<string>('');
-  const [optionImageList, setOptionImageList] = useState<string[]>([]);
-  const [optionError, setOptionError] = useState<string>();
-  const [isEditOption, setIsEditOption] = useState<boolean>(false);
-  const [editOptionIndex, setEditOptionIndex] = useState<number | null>(null);
 
   const isEdit = !!id;
 
   const { data: initData } = useGetProductInitial();
-  console.log('init', initData);
-  console.log('tags', tags);
   const { data: productData } = useGetProductById(id as string);
 
   const { mutate: createProductMutate, isPending: isCreatePending } =
@@ -90,15 +72,8 @@ const ProductUpsert = () => {
   const formik = useFormik({
     initialValues: {
       name: '',
-      // discount: {
-      //   discountPrice: '',
-      //   startDate: '',
-      //   endDate: '',
-      // },
       categoryId: '',
       tags: [],
-      // attributes: [],
-      sku_name: '',
       images: [],
       brand: '',
       details: {
@@ -111,11 +86,6 @@ const ProductUpsert = () => {
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      // const hasDiscount =
-      //   values.discount.discountPrice !== '' ||
-      //   values.discount.startDate !== '' ||
-      //   values.discount.endDate !== '';
-
       const details = { ...values.details };
       (Object.keys(details) as DetailKey[]).forEach((key) => {
         if (details[key] === '') {
@@ -125,24 +95,12 @@ const ProductUpsert = () => {
 
       const payload: IProductPayload = {
         ...values,
-        details,
         tags: tags,
-        // tier_variations: variants,
+        tier_variations: variants,
         categoryId: +values.categoryId,
-
-        // discount: hasDiscount
-        //   ? {
-        //       discountPrice: Number(values.discount.discountPrice),
-        //       startDate: formatDateToIOS(values.discount.startDate),
-        //       endDate: formatDateToIOS(values.discount.endDate),
-        //     }
-        //   : undefined,
       };
-      // if (!hasDiscount) {
-      //   delete payload.discount;
-      // }
-      // if (!payload.attributes || payload?.attributes?.length === 0) {
-      //   delete payload.attributes;
+      // if (Object.keys(details).length > 0) {
+      //   payload.details = details;
       // }
       if (isEdit) {
         updateProductMutate(
@@ -169,26 +127,12 @@ const ProductUpsert = () => {
   useEffect(() => {
     if (productData) {
       formik.setFieldValue('name', productData?.name);
-      // formik.setFieldValue(
-      //   'discount.discountPrice',
-      //   productData?.discount?.discountPrice
-      // );
-      // formik.setFieldValue(
-      //   'discount.startDate',
-      //   formatDateToNormal(productData?.discount?.startDate)
-      // );
-      // formik.setFieldValue(
-      //   'discount.endDate',
-      //   formatDateToNormal(productData?.discount?.endDate)
-      // );
       formik.setFieldValue('name', productData?.name);
       formik.setFieldValue('categoryId', productData?.categoryId);
       formik.setFieldValue('tags', productData?.tags);
       formik.setFieldValue('images', productData?.images);
       formik.setFieldValue('brand', productData?.brand);
       formik.setFieldValue('description', productData?.description);
-      formik.setFieldValue('sku_name', productData?.sku_name);
-      // formik.setFieldValue('attributes', productData?.attributes);
       setTags(productData?.tags);
       setVariants(productData?.tier_variations);
     }
@@ -207,14 +151,6 @@ const ProductUpsert = () => {
     formik.setFieldValue('tags', val);
   };
 
-  // const handleAttributeChange = (
-  //   _: React.ChangeEvent<unknown>,
-  //   val: string[]
-  // ) => {
-  //   setAttributes(val);
-  //   formik.setFieldValue('attributes', val);
-  // };
-
   const handleSelectChange = (e: SelectChangeEvent<unknown>) => {
     formik.setFieldValue('categoryId', e.target.value);
   };
@@ -222,107 +158,6 @@ const ProductUpsert = () => {
   const handleUploadResult = (result: string[]) => {
     formik.setFieldValue('images', result);
   };
-
-  const handleAddVariant = () => {
-    setShowVariantForm(!showVariantForm);
-  };
-
-  const handleOptionImageUpload = (result: string) => {
-    setOptionImage(result);
-  };
-
-  const handleAddOption = () => {
-    if (option !== '') {
-      setOptionList((prev) => [...prev, option]);
-      if (optionImage !== '') {
-        setOptionImageList((prev) => [...prev, optionImage]);
-      }
-      setOption('');
-      setOptionImage('');
-    }
-  };
-
-  const handleRemoveOption = (index: number) => {
-    setOptionList((prev) => prev.filter((_, i) => i !== index));
-    setOptionImageList((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleDelBtn = () => {
-    setVariantName('');
-    setOption('');
-    setOptionImage('');
-    setOptionList([]);
-    setOptionImageList([]);
-  };
-
-  const handleSaveVariant = () => {
-    if (option) {
-      setOptionError('Thêm hoặc xoá tuỳ chọn trước khi lưu biến thể!');
-    } else {
-      if (isEditOption && editOptionIndex !== null) {
-        setOptionError('');
-        if (variantName && optionList.length > 0) {
-          const updatedVariant: IVariant = {
-            name: variantName,
-            options: optionList,
-            ...(optionImageList &&
-              optionImageList.length > 0 && { images: optionImageList }),
-          };
-
-          // Update existing variant
-          setVariants((prev) => {
-            const newVariants = [...prev];
-            newVariants[editOptionIndex] = updatedVariant;
-            return newVariants;
-          });
-        }
-
-        setVariantName('');
-        setOptionList([]);
-        setOptionImageList([]);
-        setEditOptionIndex(null);
-      } else {
-        setOptionError('');
-        if (variantName && optionList.length > 0) {
-          const newVariant: IVariant = {
-            name: variantName,
-            options: optionList,
-            ...(optionImageList &&
-              optionImageList.length > 0 && { images: optionImageList }),
-          };
-
-          // Add new variant
-          setVariants((prev) => [...prev, newVariant]);
-        }
-
-        setVariantName('');
-        setOptionList([]);
-        setOptionImageList([]);
-        setEditOptionIndex(null);
-      }
-    }
-  };
-
-  const handleEditVariant = (variant: IVariant, index: number) => {
-    setIsEditOption(true);
-    setEditOptionIndex(index);
-    setVariantName(variant?.name);
-    setOptionList(variant?.options);
-    if (variant?.images) {
-      setOptionImageList(variant?.images);
-    }
-  };
-
-  const handleDelAllVariant = () => {
-    setVariants([]);
-    setShowVariantForm(false);
-  };
-
-  const handleDeleteVariant = (variantIndex: number) => {
-    setShowVariantForm(true);
-    setVariants(variants?.filter((_, index) => index !== variantIndex));
-  };
-
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
@@ -453,7 +288,6 @@ const ProductUpsert = () => {
             </FormControl>
           </Grid2>
         </Grid2>
-
         <Box sx={{ display: 'flex' }}>
           <Typography sx={{ width: 80, mr: 2 }}>Chi tiết:</Typography>
           <Button
@@ -531,12 +365,7 @@ const ProductUpsert = () => {
           />
         </FormControl>
         <FormControl>
-          <Typography mb={1}>
-            Mô tả:
-            <Typography component={'span'} color='red'>
-              *
-            </Typography>
-          </Typography>
+          <Typography mb={1}>Mô tả:</Typography>
           <CKEditor
             onChange={(value: string) =>
               formik.setFieldValue('description', value)
