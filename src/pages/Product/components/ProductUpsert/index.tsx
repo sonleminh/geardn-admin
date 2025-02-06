@@ -43,25 +43,19 @@ import {
 
 type DetailKey = 'guarantee' | 'weight' | 'material';
 
-interface IVariant {
-  name: string;
-  options: string[];
-  images?: string[];
-}
-
 const ProductUpsert = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
-  // const [attributes, setAttributes] = useState<string[]>([]);
   const [tags, setTags] = useState<ITagOptions[]>([]);
   const [showDetailForm, setShowDetailForm] = useState<boolean>(false);
-  const [variants, setVariants] = useState<IVariant[]>([]);
 
   const isEdit = !!id;
 
   const { data: initData } = useGetProductInitial();
+  console.log('init', initData);
+  console.log('tags', tags);
   const { data: productData } = useGetProductById(id as string);
 
   const { mutate: createProductMutate, isPending: isCreatePending } =
@@ -86,22 +80,30 @@ const ProductUpsert = () => {
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      const details = { ...values.details };
-      (Object.keys(details) as DetailKey[]).forEach((key) => {
-        if (details[key] === '') {
-          delete details[key];
-        }
-      });
+      // const details = { ...values.details };
+      // (Object.keys(details) as DetailKey[]).forEach((key) => {
+      //   if (details[key] === '') {
+      //     delete details[key];
+      //   }
+      // });
+
+      // const payload: IProductPayload = {
+      //   ...values,
+      //   tags: tags,
+      //   categoryId: +values.categoryId,
+      // };
+      const { details, ...rest } = values;
+
+      // Kiểm tra nếu tất cả các trường trong details đều rỗng
+      const isDetailsEmpty = Object.values(details).every((value) => !value);
 
       const payload: IProductPayload = {
-        ...values,
-        tags: tags,
-        tier_variations: variants,
+        ...rest,
+        ...(isDetailsEmpty ? {} : { details }), // Nếu không rỗng thì thêm details
+        tags,
         categoryId: +values.categoryId,
-      };
-      // if (Object.keys(details).length > 0) {
-      //   payload.details = details;
-      // }
+      } as IProductPayload;
+
       if (isEdit) {
         updateProductMutate(
           { id: +id, ...payload },
@@ -134,7 +136,6 @@ const ProductUpsert = () => {
       formik.setFieldValue('brand', productData?.brand);
       formik.setFieldValue('description', productData?.description);
       setTags(productData?.tags);
-      setVariants(productData?.tier_variations);
     }
   }, [productData, initData]);
 
@@ -288,6 +289,7 @@ const ProductUpsert = () => {
             </FormControl>
           </Grid2>
         </Grid2>
+
         <Box sx={{ display: 'flex' }}>
           <Typography sx={{ width: 80, mr: 2 }}>Chi tiết:</Typography>
           <Button
@@ -365,7 +367,12 @@ const ProductUpsert = () => {
           />
         </FormControl>
         <FormControl>
-          <Typography mb={1}>Mô tả:</Typography>
+          <Typography mb={1}>
+            Mô tả:
+            <Typography component={'span'} color='red'>
+              *
+            </Typography>
+          </Typography>
           <CKEditor
             onChange={(value: string) =>
               formik.setFieldValue('description', value)
