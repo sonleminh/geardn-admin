@@ -54,8 +54,6 @@ const ProductUpsert = () => {
   const isEdit = !!id;
 
   const { data: initData } = useGetProductInitial();
-  console.log('init', initData);
-  console.log('tags', tags);
   const { data: productData } = useGetProductById(id as string);
 
   const { mutate: createProductMutate, isPending: isCreatePending } =
@@ -80,26 +78,13 @@ const ProductUpsert = () => {
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      // const details = { ...values.details };
-      // (Object.keys(details) as DetailKey[]).forEach((key) => {
-      //   if (details[key] === '') {
-      //     delete details[key];
-      //   }
-      // });
-
-      // const payload: IProductPayload = {
-      //   ...values,
-      //   tags: tags,
-      //   categoryId: +values.categoryId,
-      // };
       const { details, ...rest } = values;
 
-      // Kiểm tra nếu tất cả các trường trong details đều rỗng
       const isDetailsEmpty = Object.values(details).every((value) => !value);
 
       const payload: IProductPayload = {
         ...rest,
-        ...(isDetailsEmpty ? {} : { details }), // Nếu không rỗng thì thêm details
+        ...(isDetailsEmpty ? {} : { details }),
         tags,
         categoryId: +values.categoryId,
       } as IProductPayload;

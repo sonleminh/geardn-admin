@@ -2,6 +2,7 @@ import { useRoutes } from 'react-router-dom';
 import ProductLayout from './components/ProductLayout';
 import ProductList from './components/ProductList';
 import ProductUpsert from './components/ProductUpsert';
+import ProductInventory from './components/ProductInventory';
 
 const Product = () => {
   const router = useRoutes([
@@ -21,6 +22,11 @@ const Product = () => {
         {
           path: '/create',
           element: <ProductUpsert />,
+        },
+        {
+          path: '/inventory/:id',
+          element: <ProductInventory />,
+          index: true,
         },
       ],
     },

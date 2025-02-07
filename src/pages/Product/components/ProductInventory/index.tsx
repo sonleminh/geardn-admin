@@ -339,7 +339,7 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
     </Toolbar>
   );
 }
-export default function ProductList() {
+export default function ProductInventory() {
   const navigate = useNavigate();
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
@@ -705,10 +705,7 @@ export default function ProductList() {
                       <TableCell align='center'>
                         <Button
                           variant='contained'
-                          onClick={(e) => {
-                            navigate(`inventory/${row?.id}`);
-                            e.stopPropagation();
-                          }}>
+                          onClick={(e) => e.stopPropagation()}>
                           <KeyboardReturnIcon />
                         </Button>
                       </TableCell>
