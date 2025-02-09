@@ -20,6 +20,12 @@ type TProductsRes = {
   total: number;
 };
 
+type TProductRes = {
+  status: number;
+  message: string;
+  data: IProduct;
+};
+
 type TInitDataRes = {
   categories: { id: number; name: string }[];
   tags: { value: string; label: string }[];
@@ -68,7 +74,7 @@ export const useGetProductByCateId = (
 
 const getProductById = async (id: string) => {
   const result = await getRequest(`${productUrl}/${id}`);
-  return result.data as IProduct;
+  return (result.data as TProductRes).data;
 };
 
 export const useGetProductById = (id: string) => {

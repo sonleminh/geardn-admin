@@ -1,40 +1,40 @@
-import { IAttribute } from "./IAttribute";
+export interface IProductSkuAttribute {
+    id: number;
+    attribute: {
+        id: number;
+        type: string;
+        value: string;
+    };
+}
 
 export interface IProductSku {
-    _id: string;
-    product_id: string;
-    product_name: string;
-    product_sku: string;
-    sku_image: string;
-    attributes: IAttribute[];
+    id: number;
+    productId: string;
+    imageUrl: string;
     sku: string;
     price: number;
     quantity: number;
-    status: string;
     createdAt: Date;
+    productSkuAttributes: IProductSkuAttribute[]
+    product: {
+        id: number;
+        name: string;
+    }
 }
 
 export interface ICreateProductSku extends Record<string, unknown>  {
-    product_id: string;
-    product_name: string;
-    product_sku: string;
-    sku_image: string;
-    attributes: string[];
+    productId: string;
+    imageUrl: string;
     sku: string;
     price: number;
     quantity: number;
-    status: string;
 }
 export interface IUpdateProductSkuPayload {
-    _id: string;
-    product_id: string;
-    product_name: string;
-    product_sku: string;
-    sku_image: string;
-    attributes: string[];
+    id: number;
+    productId: string;
+    imageUrl: string;
     sku: string;
     price: number;
     quantity: number;
-    status: string;
 }
   
