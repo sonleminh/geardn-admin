@@ -20,17 +20,14 @@ type TAttributeRes = {
 
 const attributeUrl = '/product-attributes';
 
-const getAttributeList = async () => {
-  const result = await getRequest(`${attributeUrl}`);
-  return result.data as TAttributeListRes;
+const createAttribute = async (payload: ICreateAttribute) => {
+  const result = await postRequest(`${attributeUrl}`, payload);
+  return result.data as IAttribute;
 };
 
-export const useGetAttributeList = () => {
-  return useQuery({
-    queryKey: [QueryKeys.Attribute],
-    queryFn: () => getAttributeList(),
-    refetchOnWindowFocus: false,
-    refetchInterval: false,
+export const useCreateAttribute = () => {
+  return useMutation({
+    mutationFn: createAttribute,
   });
 };
 
@@ -49,14 +46,32 @@ export const useGetAttributeById = (id: string) => {
   });
 };
 
-const createAttribute = async (payload: ICreateAttribute) => {
-  const result = await postRequest(`${attributeUrl}`, payload);
-  return result.data as IAttribute;
+const getAttributesByType = async (type: string) => {
+  const result = await getRequest(`product-attributes/type/${type}`);
+  return (result.data as TAttributeRes).data;
 };
 
-export const useCreateAttribute = () => {
-  return useMutation({
-    mutationFn: createAttribute,
+export const useGetAttributesByType = (type: string) => {
+  return useQuery({
+    queryKey: [QueryKeys.Product, type],
+    queryFn: () => getAttributesByType(type),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    enabled: !!type,
+  });
+};
+
+const getAttributeList = async () => {
+  const result = await getRequest(`product-attributes`);
+  return (result.data as TAttributeRes).data;
+};
+
+export const useGetAttributeList = () => {
+  return useQuery({
+    queryKey: [QueryKeys.Product],
+    queryFn: () => getAttributeList(),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 };
 

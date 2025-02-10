@@ -33,18 +33,3 @@ export const useGetSkusByProductId = (id: number) => {
     enabled: !!id,
   });
 };
-
-const getAttributesByType = async (type: string) => {
-  const result = await getRequest(`product-attributes/type/${type}`);
-  return (result.data as TAttributeRes).data;
-};
-
-export const useGetAttributesByType = (type: string) => {
-  return useQuery({
-    queryKey: [QueryKeys.Product, type],
-    queryFn: () => getAttributesByType(type),
-    refetchOnWindowFocus: false,
-    refetchInterval: false,
-    enabled: !!type,
-  });
-};

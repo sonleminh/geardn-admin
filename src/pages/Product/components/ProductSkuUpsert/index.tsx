@@ -15,7 +15,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 
 import { ProductAttributeType } from '@/constants/attribuite-type';
-import { useGetAttributesByType } from '@/services/sku';
 import {
   Box,
   Button,
@@ -35,6 +34,10 @@ import {
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import {
+  useGetAttributeList,
+  useGetAttributesByType,
+} from '@/services/attribute';
 
 const ProductSkuUpsert = () => {
   const { id } = useParams();
@@ -52,7 +55,8 @@ const ProductSkuUpsert = () => {
   const isEdit = location?.pathname.includes('update');
 
   const { data: productData } = useGetProductById(id as string);
-  const { data: attributesData } = useGetAttributesByType(attributeType);
+  const { data: attributesByTypeData } = useGetAttributesByType(attributeType);
+  const { data: attributesData } = useGetAttributeList();
   console.log('att:', attributesData);
   const { mutate: createProductMutate, isPending: isCreatePending } =
     useCreateProduct();
@@ -143,11 +147,18 @@ const ProductSkuUpsert = () => {
   };
 
   const handleSaveAttribute = () => {
-    if (attributeId) {
+    if (
+      attributeId &&
+      !attributeList.some((attr) => attr.attributeId === attributeId)
+    ) {
       setAttributeList((prev) => [...prev, { attributeId: attributeId }]);
     }
   };
   console.log('attributes:', attributeList);
+  console.log(
+    'existed:',
+    attributeList.some((attr) => attr.attributeId === 1)
+  );
   const handleDelBtn = () => {
     setAttributeType('');
   };
@@ -167,7 +178,7 @@ const ProductSkuUpsert = () => {
           <Grid2 size={12}>
             <Box display={'flex'}>
               <Typography sx={{ width: 80, mr: 2, mb: 2 }}>
-                Biến thể:
+                Loại hàng:
               </Typography>
               {!showAttributeForm && (
                 <Button
@@ -251,8 +262,8 @@ const ProductSkuUpsert = () => {
                     size='small'
                     onChange={handleAttributeValueChange}
                     value={attributeId ?? ''}
-                    disabled={!attributesData}>
-                    {attributesData?.map((item) => (
+                    disabled={!attributesByTypeData}>
+                    {attributesByTypeData?.map((item) => (
                       <MenuItem key={item.id} value={item.id}>
                         {item.value}
                       </MenuItem>
@@ -273,6 +284,7 @@ const ProductSkuUpsert = () => {
                     //     ? true
                     //     : false
                     // }
+                    disabled={!attributeId}
                     onClick={handleSaveAttribute}>
                     Lưu
                   </Button>
