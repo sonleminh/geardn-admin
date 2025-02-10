@@ -1,7 +1,6 @@
 import { ChangeEvent, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import Input from '@/components/Input';
 import MultipleFileUpload from '@/components/MultipleImageUpload';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
@@ -15,6 +14,13 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 
 import { ProductAttributeType } from '@/constants/attribuite-type';
+import { IAttribute } from '@/interfaces/IAttribute';
+import {
+  useGetAttributeList,
+  useGetAttributesByType,
+} from '@/services/attribute';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import {
   Box,
   Button,
@@ -33,11 +39,6 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import {
-  useGetAttributeList,
-  useGetAttributesByType,
-} from '@/services/attribute';
 
 const ProductSkuUpsert = () => {
   const { id } = useParams();
@@ -50,6 +51,9 @@ const ProductSkuUpsert = () => {
   const [attributeList, setAttributeList] = useState<{ attributeId: number }[]>(
     []
   );
+  const [mappedAttributeList, setMappedAttributeList] = useState<IAttribute[]>(
+    []
+  );
   const [showAttributeForm, setShowAttributeForm] = useState<boolean>(false);
 
   const isEdit = location?.pathname.includes('update');
@@ -58,6 +62,7 @@ const ProductSkuUpsert = () => {
   const { data: attributesByTypeData } = useGetAttributesByType(attributeType);
   const { data: attributesData } = useGetAttributeList();
   console.log('att:', attributesData);
+  console.log('attributeList:', attributeList);
   const { mutate: createProductMutate, isPending: isCreatePending } =
     useCreateProduct();
   const { mutate: updateProductMutate, isPending: isUpdatePending } =
@@ -113,17 +118,6 @@ const ProductSkuUpsert = () => {
       // }
     },
   });
-  // useEffect(() => {
-  //   if (productData) {
-  //     formik.setFieldValue('name', productData?.name);
-  //     formik.setFieldValue('name', productData?.name);
-  //     formik.setFieldValue('categoryId', productData?.categoryId);
-  //     formik.setFieldValue('tags', productData?.tags);
-  //     formik.setFieldValue('images', productData?.images);
-  //     formik.setFieldValue('brand', productData?.brand);
-  //     formik.setFieldValue('description', productData?.description);
-  //   }
-  // }, [productData, initData]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -154,14 +148,50 @@ const ProductSkuUpsert = () => {
       setAttributeList((prev) => [...prev, { attributeId: attributeId }]);
     }
   };
-  console.log('attributes:', attributeList);
-  console.log(
-    'existed:',
-    attributeList.some((attr) => attr.attributeId === 1)
-  );
   const handleDelBtn = () => {
     setAttributeType('');
   };
+
+  // function renderAttributeList() {
+  //   const mappedAttributeList = attributeList
+  //     .map((attr, index) => {
+  //       return attributesData?.find((p) => p.id === attr.attributeId);
+  //     })
+  //     .filter(Boolean) as IAttribute[];
+  //   if (mappedAttributeList?.length) {
+  //     setMappedAttributeList(mappedAttributeList);
+  //   }
+  //   return mappedAttributeList.map((attr, index) => {
+  //     return (
+  //       <Box
+  //         sx={{
+  //           display: 'flex',
+  //           justifyContent: 'space-between',
+  //           alignItems: 'center',
+  //           my: 1.5,
+  //         }}>
+  //         <Box sx={{ width: '180px' }}>
+  //           {attr?.type} - {attr?.value}
+  //         </Box>
+  //         <Button
+  //           sx={{ minWidth: 40, width: 40, height: 30, ml: 2 }}
+  //           variant='outlined'
+  //           onClick={() => handleDeleteVariant(index)}>
+  //           <DeleteOutlineOutlinedIcon sx={{ fontSize: 20 }} />
+  //         </Button>
+  //       </Box>
+  //     );
+  //   });
+  // }
+
+  console.log('c:', mappedAttributeList);
+
+  const handleDeleteVariant = (attributeIndex: number) => {
+    setAttributeList(
+      attributeList?.filter((_, index) => index !== attributeIndex)
+    );
+  };
+
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
@@ -193,6 +223,17 @@ const ProductSkuUpsert = () => {
           </Grid2>
           {showAttributeForm && (
             <>
+              <Grid2 size={12}>
+                <Box
+                  sx={{
+                    width: '300px',
+                    p: '12px 20px',
+                    border: '1px solid #ccc',
+                    borderRadius: 1,
+                  }}>
+                  {/* {renderAttributeList()} */}
+                </Box>
+              </Grid2>
               <Grid2 size={4}>
                 <FormControl
                   variant='filled'

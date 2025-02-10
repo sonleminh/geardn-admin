@@ -12,6 +12,11 @@ type TAttributeListRes = {
   total: number;
 };
 
+type TAttributeListByTypeRes = {
+  data: IAttribute[];
+  total: number;
+};
+
 type TAttributeRes = {
   data: IAttribute;
   status: number;
@@ -48,7 +53,7 @@ export const useGetAttributeById = (id: string) => {
 
 const getAttributesByType = async (type: string) => {
   const result = await getRequest(`product-attributes/type/${type}`);
-  return (result.data as TAttributeRes).data;
+  return (result.data as TAttributeListByTypeRes).data;
 };
 
 export const useGetAttributesByType = (type: string) => {
@@ -63,7 +68,7 @@ export const useGetAttributesByType = (type: string) => {
 
 const getAttributeList = async () => {
   const result = await getRequest(`product-attributes`);
-  return (result.data as TAttributeRes).data;
+  return (result.data as TAttributeListRes).product_attributes;
 };
 
 export const useGetAttributeList = () => {
