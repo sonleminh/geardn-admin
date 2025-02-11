@@ -39,6 +39,9 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import Input from '@/components/Input';
+import ImageUpload from '@/components/ImageUpload';
 
 const ProductSkuUpsert = () => {
   const { id } = useParams();
@@ -46,8 +49,11 @@ const ProductSkuUpsert = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
+  const [isEditAttribute, setIsEditAttribute] = useState<boolean>(false);
+  const [editAttIndex, setEditAttIndex] = useState<number | null>(null);
+
   const [attributeType, setAttributeType] = useState<string>('');
-  const [attributeId, setAttributeId] = useState<number | ''>('');
+  const [attributeId, setAttributeId] = useState<number | null>(null);
   const [attributeList, setAttributeList] = useState<{ attributeId: number }[]>(
     []
   );
@@ -61,8 +67,6 @@ const ProductSkuUpsert = () => {
   const { data: productData } = useGetProductById(id as string);
   const { data: attributesByTypeData } = useGetAttributesByType(attributeType);
   const { data: attributesData } = useGetAttributeList();
-  console.log('att:', attributesData);
-  console.log('attributeList:', attributeList);
   const { mutate: createProductMutate, isPending: isCreatePending } =
     useCreateProduct();
   const { mutate: updateProductMutate, isPending: isUpdatePending } =
@@ -70,17 +74,9 @@ const ProductSkuUpsert = () => {
 
   const formik = useFormik({
     initialValues: {
-      name: '',
-      categoryId: '',
-      tags: [],
-      images: [],
-      brand: '',
-      details: {
-        guarantee: '',
-        weight: '',
-        material: '',
-      },
-      description: '',
+      price: '',
+      quantity: '',
+      imageUrl: '',
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -132,8 +128,8 @@ const ProductSkuUpsert = () => {
     setAttributeId(+e?.target?.value);
   };
 
-  const handleUploadResult = (result: string[]) => {
-    formik.setFieldValue('images', result);
+  const handleUploadResult = (result: string) => {
+    formik.setFieldValue('imageUrl', result);
   };
 
   const handleAddAttribute = () => {
@@ -141,55 +137,80 @@ const ProductSkuUpsert = () => {
   };
 
   const handleSaveAttribute = () => {
-    if (
-      attributeId &&
-      !attributeList.some((attr) => attr.attributeId === attributeId)
-    ) {
-      setAttributeList((prev) => [...prev, { attributeId: attributeId }]);
+    const selectedAttribute = attributesData?.find(
+      (attr) => attr.id === attributeId
+    );
+    if (!selectedAttribute) return;
+    const isAlreadySelected = attributeList.some((id) => {
+      const existingAttribute = attributesData?.find(
+        (attr) => attr.id === id.attributeId
+      );
+      return existingAttribute?.type === selectedAttribute.type;
+    });
+
+    if (isAlreadySelected && !isEditAttribute) {
+      return showNotification('Bạn đã chọn loại thuộc tính này!', 'error');
+    }
+
+    // if (
+    //   attributeId &&
+    //   !attributeList.some((attr) => attr.attributeId === attributeId) &&
+    //   !isEditAttribute
+    // ) {
+    //   setAttributeList((prev) => [...prev, { attributeId: attributeId }]);
+    //   setAttributeId(null);
+    //   setAttributeType('');
+    // } else {
+    //   console.log('3:', editAttIndex);
+    //   console.log('4:', attributeId);
+
+    //   if (editAttIndex !== null && attributeId) {
+    //     const updatedAttributeList = attributeList;
+    //     console.log('2');
+    //     updatedAttributeList[editAttIndex] = { attributeId: attributeId };
+    //     setAttributeList(updatedAttributeList);
+    //   }
+    // }
+    if (editAttIndex !== null && attributeId) {
+      const updatedAttributeList = attributeList;
+      console.log('2');
+      updatedAttributeList[editAttIndex] = { attributeId: attributeId };
+      setAttributeList(updatedAttributeList);
+      setAttributeId(null);
+      setAttributeType('');
+    } else {
+      if (attributeId) {
+        setAttributeList((prev) => [...prev, { attributeId: attributeId }]);
+      }
+      setAttributeId(null);
+      setAttributeType('');
     }
   };
+  console.log('attributeList:', attributeList);
   const handleDelBtn = () => {
+    setAttributeId(null);
     setAttributeType('');
   };
 
-  // function renderAttributeList() {
-  //   const mappedAttributeList = attributeList
-  //     .map((attr, index) => {
-  //       return attributesData?.find((p) => p.id === attr.attributeId);
-  //     })
-  //     .filter(Boolean) as IAttribute[];
-  //   if (mappedAttributeList?.length) {
-  //     setMappedAttributeList(mappedAttributeList);
-  //   }
-  //   return mappedAttributeList.map((attr, index) => {
-  //     return (
-  //       <Box
-  //         sx={{
-  //           display: 'flex',
-  //           justifyContent: 'space-between',
-  //           alignItems: 'center',
-  //           my: 1.5,
-  //         }}>
-  //         <Box sx={{ width: '180px' }}>
-  //           {attr?.type} - {attr?.value}
-  //         </Box>
-  //         <Button
-  //           sx={{ minWidth: 40, width: 40, height: 30, ml: 2 }}
-  //           variant='outlined'
-  //           onClick={() => handleDeleteVariant(index)}>
-  //           <DeleteOutlineOutlinedIcon sx={{ fontSize: 20 }} />
-  //         </Button>
-  //       </Box>
-  //     );
-  //   });
-  // }
-
-  console.log('c:', mappedAttributeList);
-
-  const handleDeleteVariant = (attributeIndex: number) => {
+  const handleDeleteAttribute = (attributeIndex: number) => {
     setAttributeList(
       attributeList?.filter((_, index) => index !== attributeIndex)
     );
+  };
+
+  const getAttributeLabel = (attributeId: number) => {
+    const attribute = attributesData?.find((attr) => attr.id === attributeId);
+    return attribute;
+  };
+
+  const handleEditAttribute = (attributeId: number, index: number) => {
+    setIsEditAttribute(true);
+    setEditAttIndex(index);
+    setAttributeId(attributeId);
+    const attr = attributesData?.find((attr) => attr.id === attributeId);
+    if (attr) {
+      setAttributeType(attr.type);
+    }
   };
 
   return (
@@ -224,15 +245,60 @@ const ProductSkuUpsert = () => {
           {showAttributeForm && (
             <>
               <Grid2 size={12}>
-                <Box
-                  sx={{
-                    width: '300px',
-                    p: '12px 20px',
-                    border: '1px solid #ccc',
-                    borderRadius: 1,
-                  }}>
-                  {/* {renderAttributeList()} */}
-                </Box>
+                {attributeList.length > 0 && (
+                  <Box
+                    sx={{
+                      width: '300px',
+                      p: '12px 20px',
+                      border: '1px solid #ccc',
+                      borderRadius: 1,
+                    }}>
+                    {attributeList.map((item, index) => {
+                      const attributeItem = getAttributeLabel(item.attributeId);
+                      return (
+                        <Box
+                          key={item.attributeId}
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            my: 1.5,
+                          }}>
+                          <Typography key={item.attributeId}>
+                            {attributeItem?.type} - {attributeItem?.value}
+                          </Typography>
+                          <Box>
+                            <Button
+                              sx={{
+                                minWidth: 40,
+                                width: 40,
+                                height: 30,
+                              }}
+                              variant='outlined'
+                              onClick={() =>
+                                handleEditAttribute(item.attributeId, index)
+                              }>
+                              <EditOutlinedIcon sx={{ fontSize: 20 }} />
+                            </Button>
+                            <Button
+                              sx={{
+                                minWidth: 40,
+                                width: 40,
+                                height: 30,
+                                ml: 2,
+                              }}
+                              variant='outlined'
+                              onClick={() => handleDeleteAttribute(index)}>
+                              <DeleteOutlineOutlinedIcon
+                                sx={{ fontSize: 20 }}
+                              />
+                            </Button>
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                )}
               </Grid2>
               <Grid2 size={4}>
                 <FormControl
@@ -333,7 +399,7 @@ const ProductSkuUpsert = () => {
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='outlined'
                     onClick={handleDelBtn}>
-                    Xoá
+                    Xóa
                   </Button>
                   <Button
                     sx={{
@@ -345,120 +411,59 @@ const ProductSkuUpsert = () => {
                     variant='outlined'
                     // onClick={handleDelAllVariant}
                   >
-                    Xoá tất cả
+                    Xóa tất cả
                   </Button>
                 </Box>
               </Grid2>
             </>
           )}
-          {/* <Grid2 size={12}>
+          <Grid2 size={6}>
             <FormControl fullWidth>
               <Input
                 label='Tên'
-                name='name'
+                name='price'
                 variant='filled'
                 size='small'
                 required
                 helperText={
                   <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.name}
+                    {formik.errors.price}
                   </Box>
                 }
-                value={formik?.values.name}
+                value={formik?.values.price}
                 onChange={handleChangeValue}
               />
             </FormControl>
-          </Grid2> */}
-
-          {/* <Grid2 size={6}>
-            <FormControl
-              variant='filled'
-              fullWidth
-              sx={{
-                '& .MuiFilledInput-root': {
-                  overflow: 'hidden',
-                  borderRadius: 1,
-                  backgroundColor: '#fff !important',
-                  border: '1px solid',
-                  borderColor: 'rgba(0,0,0,0.23)',
-                  '&:hover': {
-                    backgroundColor: 'transparent',
-                  },
-                  '&.Mui-focused': {
-                    backgroundColor: 'transparent',
-                    border: '2px solid',
-                  },
-                },
-                '& .MuiInputLabel-asterisk': {
-                  color: 'red',
-                },
-              }}>
-              <InputLabel>Loại</InputLabel>
-              <Select
-                disableUnderline
-                size='small'
-                onChange={handleSelectChange}
-                value={attributeType}>
-                {Object.values(ProductAttributeType)?.map((item) => (
-                  <MenuItem key={item} value={item}>
-                    {item}
-                  </MenuItem>
-                ))}
-              </Select>
-              <FormHelperText>
-                <Box component={'span'} sx={helperTextStyle}>
-                  {formik.errors?.categoryId}
-                </Box>
-              </FormHelperText>
-            </FormControl>
-          </Grid2> */}
-
+          </Grid2>
           <Grid2 size={6}>
             <FormControl fullWidth>
-              {/* <Autocomplete
-                multiple
-                fullWidth
-                options={initData?.tags ?? []}
-                disableCloseOnSelect
-                // value={tags}
-                onChange={(e, val) => handleTagChange(e, val)}
-                isOptionEqualToValue={(option, value) =>
-                  option?.value === value?.value
-                }
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder='Tag ...'
-                    InputLabelProps={{
-                      shrink: true,
-                    }}
-                    sx={{
-                      bgcolor: '#fff',
-                      color: 'red',
-                      borderRadius: '10px',
-                    }}
-                  />
-                )}
+              <Input
+                label='Số lượng'
+                name='quantity'
+                variant='filled'
                 size='small'
-              /> */}
-              <FormHelperText>
-                <Box component={'span'} sx={helperTextStyle}>
-                  {formik.errors?.tags}
-                </Box>
-              </FormHelperText>
+                required
+                helperText={
+                  <Box component={'span'} sx={helperTextStyle}>
+                    {formik.errors.quantity}
+                  </Box>
+                }
+                value={formik?.values.quantity}
+                onChange={handleChangeValue}
+              />
             </FormControl>
           </Grid2>
         </Grid2>
         <FormControl>
-          <MultipleFileUpload
+          <ImageUpload
             title={'Ảnh:'}
             required
             helperText={
               <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.images}
+                {formik.errors.imageUrl}
               </Box>
             }
-            value={formik?.values?.images}
+            value={formik?.values?.imageUrl}
             onUploadChange={handleUploadResult}
           />
         </FormControl>
