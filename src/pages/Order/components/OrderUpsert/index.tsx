@@ -39,7 +39,7 @@ import { createSchema, updateSchema } from '../utils/schema/orderSchema';
 
 import SuspenseLoader from '@/components/SuspenseLoader';
 import CustomerForm from './components/CustomerForm';
-import ProductSelector from './components/ProductSelector';
+// import ProductSelector from './components/ProductSelector';
 import ShipmentForm from './components/ShipmentForm';
 
 const OrderUpsert = () => {
@@ -249,12 +249,12 @@ const OrderUpsert = () => {
             </FormControl>
           </Grid2>
           <Grid2 size={6} />
-          <ProductSelector
+          {/* <ProductSelector
             isEdit={isEdit}
             orderData={orderData}
             orderItems={orderItems}
             setOrderItems={setOrderItems}
-          />
+          /> */}
         </Grid2>
         <Box sx={{ textAlign: 'end' }}>
           <Button

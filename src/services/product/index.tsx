@@ -72,12 +72,12 @@ export const useGetProductByCateId = (
   });
 };
 
-const getProductById = async (id: string) => {
+const getProductById = async (id: number) => {
   const result = await getRequest(`${productUrl}/${id}`);
   return (result.data as TProductRes).data;
 };
 
-export const useGetProductById = (id: string) => {
+export const useGetProductById = (id: number) => {
   return useQuery({
     queryKey: [QueryKeys.Product, id],
     queryFn: () => getProductById(id),

@@ -9,7 +9,6 @@ import Dashboard from '@/pages/Dashboard';
 import Product from '@/pages/Product';
 import Category from '@/pages/Category';
 import Attribute from '@/pages/Attribute';
-import Inventory from '@/pages/Inventory';
 import Order from '@/pages/Order';
 import Payment from '@/pages/Payment';
 
@@ -67,10 +66,6 @@ const routes = [
           {
             path: 'attribute/*',
             element: <Attribute />,
-          },
-          {
-            path: 'inventory/*',
-            element: <Inventory />,
           },
           {
             path: 'order/*',

@@ -1,18 +1,25 @@
-import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from '@/constants/query-key';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { AddCircleOutlined } from '@mui/icons-material';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 
+import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import useConfirmModal from '@/hooks/useModalConfirm';
+import { useDeleteCategory } from '@/services/category';
+import { useGetProductById } from '@/services/product';
+import { useGetSkusByProductId } from '@/services/sku';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import {
   Box,
   Card,
   CardHeader,
   Divider,
-  Pagination,
   Table,
   TableBody,
   TableCell,
@@ -21,16 +28,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { truncateTextByLine } from '@/utils/css-helper.util';
 import moment from 'moment';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import ActionButton from '@/components/ActionButton';
-import { useDeleteCategory, useGetCategoryList } from '@/services/category';
-import { IQuery } from '@/interfaces/IQuery';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import { useGetSkusByProductId } from '@/services/sku';
 
 const ProductInventory = () => {
   const { id } = useParams();
@@ -38,8 +36,8 @@ const ProductInventory = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  const { data: product } = useGetProductById(numericId as number);
   const { data: skusData } = useGetSkusByProductId(numericId as number);
-
   const { showNotification } = useNotificationContext();
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
@@ -69,7 +67,7 @@ const ProductInventory = () => {
           }
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Danh sách mã hàng: {skusData?.[0]?.product?.name}
+              Danh sách mã hàng: {product?.name}
             </Typography>
           }
         />

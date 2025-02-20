@@ -41,8 +41,6 @@ import {
   Typography,
 } from '@mui/material';
 
-type DetailKey = 'guarantee' | 'weight' | 'material';
-
 const ProductUpsert = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -54,7 +52,7 @@ const ProductUpsert = () => {
   const isEdit = !!id;
 
   const { data: initData } = useGetProductInitial();
-  const { data: productData } = useGetProductById(id as string);
+  const { data: productData } = useGetProductById(id ? +id : 0);
 
   const { mutate: createProductMutate, isPending: isCreatePending } =
     useCreateProduct();

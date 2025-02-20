@@ -1,32 +1,29 @@
 export interface ISku {
-    _id: string;
+    id: number;
     product_id: string;
-    product_name: string;
-    attributes: string[];
-    sku: string;
     price: number;
     quantity: number;
-    status: string;
+    imageUrl: string;
     createdAt: Date;
 }
 
 export interface ICreateSku extends Record<string, unknown>  {
-    product_id: string;
-    product_name?: string;
-    attributes: string[];
-    sku: string;
+    productId: number;
     price: number;
     quantity: number;
-    status?: string;
+    imageUrl: string;
+    attributes: {
+        attributeId: number
+    }[];
 }
 export interface IUpdateSkuPayload {
-    _id: string;
-    product_id: string;
-    product_name?: string;
-    attributes: string[];
-    sku: string;
-    price?: number;
-    quantity?: number;
-    status?: string;
+    id: number;
+    productId: number;
+    price: number;
+    quantity: number;
+    imageUrl: string;
+    attributes: {
+        attributeId: number
+    }[];
 }
   

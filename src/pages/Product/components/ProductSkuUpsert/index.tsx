@@ -1,26 +1,25 @@
 import { ChangeEvent, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
-import MultipleFileUpload from '@/components/MultipleImageUpload';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
-import {
-  useCreateProduct,
-  useGetProductById,
-  useUpdateProduct,
-} from '@/services/product';
+import { useGetProductById } from '@/services/product';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 
+import ImageUpload from '@/components/ImageUpload';
+import Input from '@/components/Input';
 import { ProductAttributeType } from '@/constants/attribuite-type';
-import { IAttribute } from '@/interfaces/IAttribute';
+import { QueryKeys } from '@/constants/query-key';
 import {
   useGetAttributeList,
   useGetAttributesByType,
 } from '@/services/attribute';
+import { useCreateSku, useUpdateSku } from '@/services/sku';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Box,
   Button,
@@ -29,7 +28,6 @@ import {
   CardHeader,
   Divider,
   FormControl,
-  FormHelperText,
   Grid2,
   InputLabel,
   MenuItem,
@@ -39,14 +37,13 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import Input from '@/components/Input';
-import ImageUpload from '@/components/ImageUpload';
 
 const ProductSkuUpsert = () => {
-  const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const { id } = useParams<{ id: string }>();
+
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
   const [isEditAttribute, setIsEditAttribute] = useState<boolean>(false);
@@ -57,20 +54,17 @@ const ProductSkuUpsert = () => {
   const [attributeList, setAttributeList] = useState<{ attributeId: number }[]>(
     []
   );
-  const [mappedAttributeList, setMappedAttributeList] = useState<IAttribute[]>(
-    []
-  );
   const [showAttributeForm, setShowAttributeForm] = useState<boolean>(false);
 
   const isEdit = location?.pathname.includes('update');
 
-  const { data: productData } = useGetProductById(id as string);
+  const { data: productData } = useGetProductById(id ? +id : 0);
   const { data: attributesByTypeData } = useGetAttributesByType(attributeType);
   const { data: attributesData } = useGetAttributeList();
-  const { mutate: createProductMutate, isPending: isCreatePending } =
-    useCreateProduct();
-  const { mutate: updateProductMutate, isPending: isUpdatePending } =
-    useUpdateProduct();
+  const { mutate: createSkuMutate, isPending: isCreatePending } =
+    useCreateSku();
+  const { mutate: updateSkuMutate, isPending: isUpdatePending } =
+    useUpdateSku();
 
   const formik = useFormik({
     initialValues: {
@@ -81,37 +75,38 @@ const ProductSkuUpsert = () => {
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      const { details, ...rest } = values;
+      if (!id) {
+        throw new Error('Product ID is missing');
+      }
+      const payload = {
+        ...values,
+        productId: +id,
+        price: +values.price,
+        quantity: +values.quantity,
+        attributes: attributeList,
+      };
+      console.log('payload:', payload);
 
-      const isDetailsEmpty = Object.values(details).every((value) => !value);
-
-      // const payload: IProductPayload = {
-      //   ...rest,
-      //   ...(isDetailsEmpty ? {} : { details }),
-      //   tags,
-      //   categoryId: +values.categoryId,
-      // } as IProductPayload;
-
-      // if (isEdit) {
-      //   updateProductMutate(
-      //     { id: +id, ...payload },
-      //     {
-      //       onSuccess() {
-      //         queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-      //         showNotification('Cập nhật sản phẩm thành công', 'success');
-      //         navigate('/product');
-      //       },
-      //     }
-      //   );
-      // } else {
-      //   createProductMutate(payload, {
-      //     onSuccess() {
-      //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-      //       showNotification('Tạo sản phẩm thành công', 'success');
-      //       navigate('/product');
-      //     },
-      //   });
-      // }
+      if (isEdit) {
+        updateSkuMutate(
+          { id: +id, ...payload },
+          {
+            onSuccess() {
+              queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
+              showNotification('Cập nhật sản phẩm thành công', 'success');
+              navigate(-1);
+            },
+          }
+        );
+      } else {
+        createSkuMutate(payload, {
+          onSuccess() {
+            queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
+            showNotification('Tạo sản phẩm thành công', 'success');
+            navigate(-1);
+          },
+        });
+      }
     },
   });
 
@@ -420,7 +415,7 @@ const ProductSkuUpsert = () => {
           <Grid2 size={6}>
             <FormControl fullWidth>
               <Input
-                label='Tên'
+                label='Giá'
                 name='price'
                 variant='filled'
                 size='small'
@@ -468,7 +463,7 @@ const ProductSkuUpsert = () => {
           />
         </FormControl>
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate('/product')} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate(-1)} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>

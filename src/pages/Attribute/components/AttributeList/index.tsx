@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { QueryKeys } from '@/constants/query-key';
@@ -16,7 +15,6 @@ import {
   Card,
   CardHeader,
   Divider,
-  Pagination,
   Table,
   TableBody,
   TableCell,
@@ -27,7 +25,6 @@ import {
 } from '@mui/material';
 import moment from 'moment';
 // import { useDeleteAttribute, useGetAttributeList } from '@/services/attribute';
-import { IQuery } from '@/interfaces/IQuery';
 import { useDeleteAttribute, useGetAttributeList } from '@/services/attribute';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -35,10 +32,10 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 const AttributeList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [query, setQuery] = useState<IQuery>({
-    limit: 10,
-    page: 1,
-  });
+  // const [query, setQuery] = useState<IQuery>({
+  //   limit: 10,
+  //   page: 1,
+  // });
 
   const { data } = useGetAttributeList();
 
@@ -58,9 +55,9 @@ const AttributeList = () => {
     });
   };
 
-  const handleChangeQuery = (object: Partial<IQuery>) => {
-    setQuery((prev) => ({ ...prev, ...object }));
-  };
+  // const handleChangeQuery = (object: Partial<IQuery>) => {
+  //   setQuery((prev) => ({ ...prev, ...object }));
+  // };
 
   return (
     <Card sx={{ borderRadius: 2 }}>
@@ -93,7 +90,7 @@ const AttributeList = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {data?.product_attributes?.map((item, index) => (
+              {data?.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
@@ -147,7 +144,7 @@ const AttributeList = () => {
           </Table>
         </TableContainer>
         <Divider />
-        <Box
+        {/* <Box
           p={2}
           sx={{
             ['.MuiPagination-ul']: {
@@ -166,7 +163,7 @@ const AttributeList = () => {
             showFirstButton
             showLastButton
           />
-        </Box>
+        </Box> */}
       </Card>
       {confirmModal()}
     </Card>
