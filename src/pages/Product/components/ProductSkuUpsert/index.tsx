@@ -37,6 +37,7 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
+import { truncateTextByLine } from '@/utils/css-helper.util';
 
 const ProductSkuUpsert = () => {
   const location = useLocation();
@@ -212,7 +213,8 @@ const ProductSkuUpsert = () => {
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
         title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+          <Typography
+            sx={{ fontSize: 20, fontWeight: 500, ...truncateTextByLine(1) }}>
             {isEdit ? 'Sửa mã hàng' : 'Thêm mã hàng'}: {productData?.name}
           </Typography>
         }
@@ -452,7 +454,6 @@ const ProductSkuUpsert = () => {
         <FormControl>
           <ImageUpload
             title={'Ảnh:'}
-            required
             helperText={
               <Box component={'span'} sx={helperTextStyle}>
                 {formik.errors.imageUrl}

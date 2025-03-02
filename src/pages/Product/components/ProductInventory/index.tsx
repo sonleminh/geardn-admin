@@ -66,7 +66,8 @@ const ProductInventory = () => {
             </ButtonWithTooltip>
           }
           title={
-            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+            <Typography
+              sx={{ fontSize: 20, fontWeight: 500, ...truncateTextByLine(1) }}>
               Danh sách mã hàng: {product?.name}
             </Typography>
           }
@@ -93,17 +94,21 @@ const ProductInventory = () => {
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>
-                    <Box
-                      sx={{
-                        height: 40,
-                        '.thumbnail': {
-                          width: 40,
+                    {item?.imageUrl ? (
+                      <Box
+                        sx={{
                           height: 40,
-                          objectFit: 'contain',
-                        },
-                      }}>
-                      <img src={item?.imageUrl} className='thumbnail' />
-                    </Box>
+                          '.thumbnail': {
+                            width: 40,
+                            height: 40,
+                            objectFit: 'contain',
+                          },
+                        }}>
+                        <img src={item?.imageUrl} className='thumbnail' />
+                      </Box>
+                    ) : (
+                      'Không có'
+                    )}
                   </TableCell>
                   <TableCell align='center'>
                     {moment(item.createdAt).format('DD/MM/YYYY')}
