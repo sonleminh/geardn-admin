@@ -26,18 +26,15 @@ interface IDetails {
 export interface IProduct {
     id: number;
     name: string;
-    // discount?: IDiscount;
     categoryId: number;
     category: ICategory;
     tags: ITagOptions[];
     images: string[];
-    tier_variations: IVariant[]
-    models: IModel[];
-    // attributes: string[];
     brand: string;
     details: IDetails;
-    original_price: number;
     description: string;
+    slug: string;
+    skus: ISku[]
     createdAt: string;
 }
 

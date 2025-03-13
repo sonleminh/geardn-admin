@@ -12,11 +12,11 @@ import {
 import { ErrorResponse } from '@/interfaces/IError';
 import { IQuery } from '@/interfaces/IQuery';
 import queryString from 'query-string';
-import { ICategory } from '@/interfaces/ICategory';
 
 type TProductsRes = {
-  products: IProduct[];
-  categories: ICategory[];
+  success: boolean;
+  message: string;
+  data: IProduct[];
   total: number;
 };
 
@@ -31,7 +31,24 @@ type TInitDataRes = {
   tags: { value: string; label: string }[];
 };
 
+type TUploadImageResponse = {
+  success: boolean;
+  message: string;
+  data: { images: string[] };
+};
+
 const productUrl = '/products';
+
+const createProduct = async (payload: ICreateProduct) => {
+  const result = await postRequest(`${productUrl}`, payload);
+  return result.data as IProduct;
+};
+
+export const useCreateProduct = () => {
+  return useMutation({
+    mutationFn: createProduct,
+  });
+};
 
 const getProductList = async (query: IQuery) => {
   const newParams = { ...query, page: (query.page ?? 0) + 1 };
@@ -87,14 +104,18 @@ export const useGetProductById = (id: number) => {
   });
 };
 
-const createProduct = async (payload: ICreateProduct) => {
-  const result = await postRequest(`${productUrl}`, payload);
-  return result.data as IProduct;
+const getProductBySlug = async (slug: string) => {
+  const result = await getRequest(`${productUrl}/slug/${slug}`);
+  return result.data as TProductRes;
 };
 
-export const useCreateProduct = () => {
-  return useMutation({
-    mutationFn: createProduct,
+export const useGetProductBySlug = (slug: string) => {
+  return useQuery({
+    queryKey: [QueryKeys.Product, slug],
+    queryFn: () => getProductBySlug(slug),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    enabled: !!slug,
   });
 };
 
@@ -188,7 +209,7 @@ const uploadImage = async (
       }
     },
   });
-  return result.data as { images: string[] };
+  return result.data as TUploadImageResponse;
 };
 
 export const useUploadImage = () => {

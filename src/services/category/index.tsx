@@ -7,7 +7,9 @@ import {
   IUpdateCategoryPayload,
 } from '@/interfaces/ICategory';
 type TCategorysRes = {
-  categories: ICategory[];
+  success: boolean;
+  message: string;
+  data: ICategory[];
   total: number;
 };
 

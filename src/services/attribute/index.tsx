@@ -8,7 +8,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 
 type TAttributeListRes = {
-  product_attributes: IAttribute[];
+  data: IAttribute[];
   total: number;
 };
 
@@ -68,7 +68,7 @@ export const useGetAttributesByType = (type: string) => {
 
 const getAttributeList = async () => {
   const result = await getRequest(`product-attributes`);
-  return (result.data as TAttributeListRes).product_attributes;
+  return result.data as TAttributeListRes;
 };
 
 export const useGetAttributeList = () => {

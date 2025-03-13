@@ -35,7 +35,7 @@ const ImageUpload = ({
         { files, onProgress: setProgress },
         {
           onSuccess(data) {
-            setImage(data.images[0]);
+            setImage(data.data.images[0]);
             setProgress(null);
           },
         }

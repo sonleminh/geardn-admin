@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
-import { useGetProductById } from '@/services/product';
+import { useGetProductById, useGetProductBySlug } from '@/services/product';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 
@@ -16,7 +16,12 @@ import {
   useGetAttributeList,
   useGetAttributesByType,
 } from '@/services/attribute';
-import { useCreateSku, useUpdateSku } from '@/services/sku';
+import {
+  useCreateSku,
+  useGetSkuByProductSku,
+  useGetSkusByProductSku,
+  useUpdateSku,
+} from '@/services/sku';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -43,7 +48,7 @@ const ProductSkuUpsert = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { id } = useParams<{ id: string }>();
+  const { sku } = useParams<{ sku: string }>();
 
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
@@ -52,6 +57,7 @@ const ProductSkuUpsert = () => {
 
   const [attributeType, setAttributeType] = useState<string>('');
   const [attributeId, setAttributeId] = useState<number | null>(null);
+  console.log('attributeId', attributeId);
   const [attributeList, setAttributeList] = useState<{ attributeId: number }[]>(
     []
   );
@@ -59,9 +65,15 @@ const ProductSkuUpsert = () => {
 
   const isEdit = location?.pathname.includes('update');
 
-  const { data: productData } = useGetProductById(id ? +id : 0);
+  const { data: productData } = useGetProductBySlug(
+    !isEdit ? (sku as string) : ''
+  );
+  const { data: skusData } = useGetSkuByProductSku(
+    isEdit ? (sku as string) : ''
+  );
   const { data: attributesByTypeData } = useGetAttributesByType(attributeType);
   const { data: attributesData } = useGetAttributeList();
+  console.log('attributesData', attributesData);
   const { mutate: createSkuMutate, isPending: isCreatePending } =
     useCreateSku();
   const { mutate: updateSkuMutate, isPending: isUpdatePending } =
@@ -76,18 +88,18 @@ const ProductSkuUpsert = () => {
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      if (!id) {
-        throw new Error('Product ID is missing');
+      if (!sku) {
+        throw new Error('sku is missing');
       }
       const payload = {
         ...values,
-        productId: +id,
+        productId: isEdit
+          ? (skusData?.data?.productid as number)
+          : (productData?.data?.id as number),
         price: +values.price,
         quantity: +values.quantity,
         attributes: attributeList,
       };
-      console.log('payload:', payload);
-
       if (isEdit) {
         updateSkuMutate(
           { id: +id, ...payload },
@@ -133,12 +145,12 @@ const ProductSkuUpsert = () => {
   };
 
   const handleSaveAttribute = () => {
-    const selectedAttribute = attributesData?.find(
+    const selectedAttribute = attributesData?.data?.find(
       (attr) => attr.id === attributeId
     );
     if (!selectedAttribute) return;
     const isAlreadySelected = attributeList.some((id) => {
-      const existingAttribute = attributesData?.find(
+      const existingAttribute = attributesData?.data?.find(
         (attr) => attr.id === id.attributeId
       );
       return existingAttribute?.type === selectedAttribute.type;
@@ -195,7 +207,9 @@ const ProductSkuUpsert = () => {
   };
 
   const getAttributeLabel = (attributeId: number) => {
-    const attribute = attributesData?.find((attr) => attr.id === attributeId);
+    const attribute = attributesData?.data?.find(
+      (attr) => attr.id === attributeId
+    );
     return attribute;
   };
 
@@ -203,7 +217,7 @@ const ProductSkuUpsert = () => {
     setIsEditAttribute(true);
     setEditAttIndex(index);
     setAttributeId(attributeId);
-    const attr = attributesData?.find((attr) => attr.id === attributeId);
+    const attr = attributesData?.data?.find((attr) => attr.id === attributeId);
     if (attr) {
       setAttributeType(attr.type);
     }
@@ -215,7 +229,8 @@ const ProductSkuUpsert = () => {
         title={
           <Typography
             sx={{ fontSize: 20, fontWeight: 500, ...truncateTextByLine(1) }}>
-            {isEdit ? 'Sửa mã hàng' : 'Thêm mã hàng'}: {productData?.name}
+            {isEdit ? 'Sửa mã hàng' : 'Thêm mã hàng'}:{' '}
+            {productData?.data?.name ?? sku}
           </Typography>
         }
       />

@@ -2,8 +2,11 @@ import { QueryKeys } from '@/constants/query-key';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { getRequest, postRequest } from '../axios';
 
-import { IProductSku } from '@/interfaces/IProductSku';
-import { ICreateSku, ISku, IUpdateSkuPayload } from '@/interfaces/ISku';
+import {
+  ICreateProductSku,
+  IProductSku,
+  IUpdateProductSkuPayload,
+} from '@/interfaces/IProductSku';
 
 type TSkusRes = {
   status: number;
@@ -11,11 +14,28 @@ type TSkusRes = {
   data: IProductSku[];
 };
 
+type TSkuRes = {
+  status: number;
+  message: string;
+  data: IProductSku;
+};
+
 const productSkuUrl = '/product-skus';
+
+const createSku = async (payload: ICreateProductSku) => {
+  const result = await postRequest(`${productSkuUrl}`, payload);
+  return result.data as IProductSku;
+};
+
+export const useCreateSku = () => {
+  return useMutation({
+    mutationFn: createSku,
+  });
+};
 
 const getSkusByProductId = async (id: number) => {
   const result = await getRequest(`products/${id}/skus`);
-  return (result.data as TSkusRes).data;
+  return result.data as TSkusRes;
 };
 
 export const useGetSkusByProductId = (id: number) => {
@@ -28,21 +48,25 @@ export const useGetSkusByProductId = (id: number) => {
   });
 };
 
-const createSku = async (payload: ICreateSku) => {
-  const result = await postRequest(`${productSkuUrl}`, payload);
-  return result.data as ISku;
+const getSkuByProductSku = async (sku: string) => {
+  const result = await getRequest(`${productSkuUrl}/sku/${sku}`);
+  return result.data as TSkuRes;
 };
 
-export const useCreateSku = () => {
-  return useMutation({
-    mutationFn: createSku,
+export const useGetSkuByProductSku = (sku: string) => {
+  return useQuery({
+    queryKey: [QueryKeys.Sku, sku],
+    queryFn: () => getSkuByProductSku(sku),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    enabled: !!sku,
   });
 };
 
-const updateSku = async (payload: IUpdateSkuPayload) => {
+const updateSku = async (payload: IUpdateProductSkuPayload) => {
   const { id, ...rest } = payload;
   const result = await postRequest(`${productSkuUrl}/${id}`, rest);
-  return result.data as ISku;
+  return result.data as IProductSku;
 };
 
 export const useUpdateSku = () => {

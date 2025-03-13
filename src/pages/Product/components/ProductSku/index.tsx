@@ -11,7 +11,7 @@ import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
 import { useDeleteCategory } from '@/services/category';
-import { useGetProductById } from '@/services/product';
+import { useGetProductBySlug } from '@/services/product';
 import { useGetSkusByProductId } from '@/services/sku';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
@@ -30,14 +30,14 @@ import {
 } from '@mui/material';
 import moment from 'moment';
 
-const ProductInventory = () => {
-  const { id } = useParams();
-  const numericId = id ? Number(id) : undefined;
+const ProductSku = () => {
+  const { slug } = useParams();
+  // const numericId = slug ? Number(id) : undefined;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: product } = useGetProductById(numericId as number);
-  const { data: skusData } = useGetSkusByProductId(numericId as number);
+  const { data: product } = useGetProductBySlug(slug as string);
+  const { data: skusData } = useGetSkusByProductId(product?.data?.id as number);
   const { showNotification } = useNotificationContext();
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
@@ -60,7 +60,7 @@ const ProductInventory = () => {
           action={
             <ButtonWithTooltip
               variant='contained'
-              onClick={() => navigate(`/product/inventory/create/${id}`)}
+              onClick={() => navigate(`/product/sku/create/${slug}`)}
               title='Thêm mã hàng'>
               <AddCircleOutlined />
             </ButtonWithTooltip>
@@ -68,7 +68,7 @@ const ProductInventory = () => {
           title={
             <Typography
               sx={{ fontSize: 20, fontWeight: 500, ...truncateTextByLine(1) }}>
-              Danh sách mã hàng: {product?.name}
+              Danh sách mã hàng: {product?.data?.name}
             </Typography>
           }
         />
@@ -85,7 +85,7 @@ const ProductInventory = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {skusData?.map((item, index) => (
+              {skusData?.data?.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
@@ -118,7 +118,9 @@ const ProductInventory = () => {
                       <Box mb={1}>
                         <ButtonWithTooltip
                           color='primary'
-                          onClick={() => navigate(`update/${item?.id}`)}
+                          onClick={() =>
+                            navigate(`/product/sku/update/${item?.sku}`)
+                          }
                           variant='outlined'
                           title='Chỉnh sửa'
                           placement='left'>
@@ -130,9 +132,9 @@ const ProductInventory = () => {
                           color='error'
                           onClick={() => {
                             showConfirmModal({
-                              title: 'Bạn có muốn xóa danh mục này không?',
+                              title: 'Bạn có muốn xóa mã hàng này không?',
                               cancelText: 'Hủy',
-                              onOk: () => handleDeleteCategory(item?.id),
+                              // onOk: () => handleDeleteCategory(item?.sku),
                               okText: 'Xóa',
                               btnOkColor: 'error',
                             });
@@ -157,4 +159,4 @@ const ProductInventory = () => {
   );
 };
 
-export default ProductInventory;
+export default ProductSku;

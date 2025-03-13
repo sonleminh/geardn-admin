@@ -56,6 +56,7 @@ import {
   useGetProductList,
 } from '@/services/product';
 import { getBgColor } from '@/utils/getTagBgColor';
+import { useGetCategoryList } from '@/services/category';
 
 interface Data {
   stt: number;
@@ -352,7 +353,8 @@ export default function ProductList() {
     page: 0,
   });
 
-  const { data } = useGetProductList({ ...query });
+  const { data: categoriesData } = useGetCategoryList();
+  const { data: productsData } = useGetProductList({ ...query });
   const { data: productByCategory, isLoading } = useGetProductByCateId(
     category,
     query
@@ -369,7 +371,7 @@ export default function ProductList() {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = (productByCategory?.data ?? data?.products)?.map(
+      const newSelected = (productByCategory?.data ?? productsData?.data)?.map(
         (n) => n?.id
       );
       if (newSelected) {
@@ -420,21 +422,25 @@ export default function ProductList() {
     (query?.page ?? 0) > 0
       ? Math.max(
           0,
-          (1 + (query.page ?? 0)) * (query.limit ?? 10) - (data?.total ?? 0)
+          (1 + (query.page ?? 0)) * (query.limit ?? 10) -
+            (productsData?.total ?? 0)
         )
       : 0;
 
   const rows = useMemo(
     () =>
-      (productByCategory?.data ?? data?.products)?.map((product, index) => ({
-        stt: index + 1,
-        id: product.id,
-        name: product.name,
-        category: product.category?.name || '',
-        images: product.images[0] || '',
-        created_at: moment(product?.createdAt)?.format('DD/MM/YYYY'),
-      })) || [],
-    [data, productByCategory]
+      (productByCategory?.data ?? productsData?.data)?.map(
+        (product, index) => ({
+          stt: index + 1,
+          id: product.id,
+          name: product.name,
+          category: product.category?.name || '',
+          images: product.images[0] || '',
+          created_at: moment(product?.createdAt)?.format('DD/MM/YYYY'),
+          slug: product.slug,
+        })
+      ) || [],
+    [productsData, productByCategory]
   );
 
   const visibleRows = useMemo(
@@ -447,7 +453,7 @@ export default function ProductList() {
   };
 
   const handleDetailClick = (row: Data) => {
-    const detailPrd = data?.products?.find((prd) => prd.name === row.name);
+    const detailPrd = productsData?.data?.find((prd) => prd.name === row.name);
     showConfirmModal({
       title: (
         <Typography sx={{ fontSize: 20, fontWeight: 'bold' }}>
@@ -555,7 +561,7 @@ export default function ProductList() {
       <Paper sx={{ width: '100%', mb: 2 }}>
         <EnhancedTableToolbar
           numSelected={selected.length}
-          categoryList={data?.categories ?? []}
+          categoryList={categoriesData?.data ?? []}
           onCategoryChange={handleCategoryChange}
           categoryValue={category}
           handleDeleteFilter={() => {
@@ -574,15 +580,15 @@ export default function ProductList() {
               orderBy={orderBy}
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
-              rowCount={data?.total || 0}
+              rowCount={productsData?.total || 0}
             />
             <TableBody
               sx={{
                 position: 'relative',
                 height: !productByCategory
                   ? 80 *
-                    ((data?.total ?? 0) < (query?.limit ?? 2)
-                      ? data?.total ?? 10
+                    ((productsData?.total ?? 0) < (query?.limit ?? 2)
+                      ? productsData?.total ?? 10
                       : query?.limit ?? 10)
                   : '',
                 // + 1 *
@@ -706,7 +712,7 @@ export default function ProductList() {
                         <Button
                           variant='contained'
                           onClick={(e) => {
-                            navigate(`inventory/${row?.id}`);
+                            navigate(`/product/${row?.slug}`);
                             e.stopPropagation();
                           }}>
                           <KeyboardReturnIcon />
@@ -716,7 +722,7 @@ export default function ProductList() {
                   );
                 })
               )}
-              {emptyRows > 0 && data && (
+              {emptyRows > 0 && productsData && (
                 <TableRow
                   style={{
                     height: 80 * emptyRows + 1 * emptyRows,
@@ -730,7 +736,7 @@ export default function ProductList() {
         <TablePagination
           rowsPerPageOptions={[10, 20]}
           component='div'
-          count={productByCategory?.total ?? data?.total ?? 0}
+          count={productByCategory?.total ?? productsData?.total ?? 0}
           rowsPerPage={query?.limit ?? 10}
           page={query?.page ?? 0}
           onPageChange={handleChangePage}
