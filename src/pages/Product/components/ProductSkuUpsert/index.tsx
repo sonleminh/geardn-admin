@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import SuspenseLoader from '@/components/SuspenseLoader';
@@ -57,7 +57,6 @@ const ProductSkuUpsert = () => {
 
   const [attributeType, setAttributeType] = useState<string>('');
   const [attributeId, setAttributeId] = useState<number | null>(null);
-  console.log('attributeId', attributeId);
   const [attributeList, setAttributeList] = useState<{ attributeId: number }[]>(
     []
   );
@@ -68,16 +67,28 @@ const ProductSkuUpsert = () => {
   const { data: productData } = useGetProductBySlug(
     !isEdit ? (sku as string) : ''
   );
-  const { data: skusData } = useGetSkuByProductSku(
+  const { data: skuData } = useGetSkuByProductSku(
     isEdit ? (sku as string) : ''
   );
   const { data: attributesByTypeData } = useGetAttributesByType(attributeType);
   const { data: attributesData } = useGetAttributeList();
-  console.log('attributesData', attributesData);
   const { mutate: createSkuMutate, isPending: isCreatePending } =
     useCreateSku();
   const { mutate: updateSkuMutate, isPending: isUpdatePending } =
     useUpdateSku();
+
+  useEffect(() => {
+    if (skuData) {
+      formik.setFieldValue('price', skuData?.data?.price);
+      formik.setFieldValue('quantity', skuData?.data?.quantity);
+      formik.setFieldValue('imageUrl', skuData?.data?.imageUrl);
+      setAttributeList(
+        skuData?.data?.productSkuAttributes?.map((item) => ({
+          attributeId: item?.attribute?.id,
+        }))
+      );
+    }
+  }, [sku, skuData]);
 
   const formik = useFormik({
     initialValues: {
@@ -94,15 +105,15 @@ const ProductSkuUpsert = () => {
       const payload = {
         ...values,
         productId: isEdit
-          ? (skusData?.data?.productid as number)
+          ? (skuData?.data?.productId as number)
           : (productData?.data?.id as number),
         price: +values.price,
         quantity: +values.quantity,
         attributes: attributeList,
       };
-      if (isEdit) {
+      if (isEdit && skuData) {
         updateSkuMutate(
-          { id: +id, ...payload },
+          { id: skuData?.data?.id, ...payload },
           {
             onSuccess() {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
@@ -181,7 +192,6 @@ const ProductSkuUpsert = () => {
     // }
     if (editAttIndex !== null && attributeId) {
       const updatedAttributeList = attributeList;
-      console.log('2');
       updatedAttributeList[editAttIndex] = { attributeId: attributeId };
       setAttributeList(updatedAttributeList);
       setAttributeId(null);
@@ -196,8 +206,8 @@ const ProductSkuUpsert = () => {
   };
   console.log('attributeList:', attributeList);
   const handleDelBtn = () => {
-    setAttributeId(null);
-    setAttributeType('');
+    // setAttributeId(null);
+    // setAttributeType('');
   };
 
   const handleDeleteAttribute = (attributeIndex: number) => {
@@ -222,6 +232,9 @@ const ProductSkuUpsert = () => {
       setAttributeType(attr.type);
     }
   };
+
+  console.log('attributeType:', attributeType);
+  console.log('editAttIndex:', editAttIndex);
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -254,13 +267,13 @@ const ProductSkuUpsert = () => {
               )}
             </Box>
           </Grid2>
-          {showAttributeForm && (
+          {(showAttributeForm || isEdit) && (
             <>
               <Grid2 size={12}>
                 {attributeList.length > 0 && (
                   <Box
                     sx={{
-                      width: '300px',
+                      width: '400px',
                       p: '12px 20px',
                       border: '1px solid #ccc',
                       borderRadius: 1,
@@ -330,6 +343,9 @@ const ProductSkuUpsert = () => {
                         backgroundColor: 'transparent',
                         border: '2px solid',
                       },
+                      '& .Mui-disabled': {
+                        backgroundColor: '#eee',
+                      },
                     },
                     '& .MuiInputLabel-asterisk': {
                       color: 'red',
@@ -340,7 +356,8 @@ const ProductSkuUpsert = () => {
                     disableUnderline
                     size='small'
                     onChange={handleAttributeTypeChange}
-                    value={attributeType}>
+                    value={attributeType}
+                    disabled={isEditAttribute}>
                     {Object.values(ProductAttributeType)?.map((item) => (
                       <MenuItem key={item} value={item}>
                         {item}
@@ -410,7 +427,7 @@ const ProductSkuUpsert = () => {
                   <Button
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='outlined'
-                    onClick={handleDelBtn}>
+                    onClick={() => handleDelBtn}>
                     Xóa
                   </Button>
                   <Button

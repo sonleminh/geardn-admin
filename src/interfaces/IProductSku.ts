@@ -9,15 +9,12 @@ export interface IProductSkuAttribute {
 
 export interface IProductSku {
     id: number;
-    productid: number;
+    productId: number;
     sku: string;
     price: number;
     quantity: number;
     imageUrl: string;
-    productSkuAttributes: {
-        id: number;
-        attribute: IProductSkuAttribute
-    }[]
+    productSkuAttributes: IProductSkuAttribute[]
     createdAt: Date;
 }
 
