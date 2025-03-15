@@ -43,6 +43,7 @@ import {
   Typography,
 } from '@mui/material';
 import { truncateTextByLine } from '@/utils/css-helper.util';
+import { ICreateProductSku } from '@/interfaces/IProductSku';
 
 const ProductSkuUpsert = () => {
   const location = useLocation();
@@ -104,12 +105,10 @@ const ProductSkuUpsert = () => {
       }
       const payload = {
         ...values,
-        productId: isEdit
-          ? (skuData?.data?.productId as number)
-          : (productData?.data?.id as number),
         price: +values.price,
         quantity: +values.quantity,
         attributes: attributeList,
+        productId: isEdit ? skuData?.data?.productId : productData?.data?.id,
       };
       if (isEdit && skuData) {
         updateSkuMutate(
@@ -119,6 +118,9 @@ const ProductSkuUpsert = () => {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
               showNotification('Cập nhật sản phẩm thành công', 'success');
               navigate(-1);
+            },
+            onError() {
+              showNotification('Đã có lỗi xảy ra', 'error');
             },
           }
         );
@@ -170,26 +172,6 @@ const ProductSkuUpsert = () => {
     if (isAlreadySelected && !isEditAttribute) {
       return showNotification('Bạn đã chọn loại thuộc tính này!', 'error');
     }
-
-    // if (
-    //   attributeId &&
-    //   !attributeList.some((attr) => attr.attributeId === attributeId) &&
-    //   !isEditAttribute
-    // ) {
-    //   setAttributeList((prev) => [...prev, { attributeId: attributeId }]);
-    //   setAttributeId(null);
-    //   setAttributeType('');
-    // } else {
-    //   console.log('3:', editAttIndex);
-    //   console.log('4:', attributeId);
-
-    //   if (editAttIndex !== null && attributeId) {
-    //     const updatedAttributeList = attributeList;
-    //     console.log('2');
-    //     updatedAttributeList[editAttIndex] = { attributeId: attributeId };
-    //     setAttributeList(updatedAttributeList);
-    //   }
-    // }
     if (editAttIndex !== null && attributeId) {
       const updatedAttributeList = attributeList;
       updatedAttributeList[editAttIndex] = { attributeId: attributeId };
@@ -204,11 +186,10 @@ const ProductSkuUpsert = () => {
       setAttributeType('');
     }
   };
-  console.log('attributeList:', attributeList);
-  const handleDelBtn = () => {
-    // setAttributeId(null);
-    // setAttributeType('');
-  };
+  // const handleDelBtn = () => {
+  //   setAttributeId(null);
+  //   setAttributeType('');
+  // };
 
   const handleDeleteAttribute = (attributeIndex: number) => {
     setAttributeList(
@@ -232,9 +213,6 @@ const ProductSkuUpsert = () => {
       setAttributeType(attr.type);
     }
   };
-
-  console.log('attributeType:', attributeType);
-  console.log('editAttIndex:', editAttIndex);
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -424,13 +402,13 @@ const ProductSkuUpsert = () => {
                     onClick={handleSaveAttribute}>
                     Lưu
                   </Button>
-                  <Button
+                  {/* <Button
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='outlined'
                     onClick={() => handleDelBtn}>
                     Xóa
-                  </Button>
-                  <Button
+                  </Button> */}
+                  {/* <Button
                     sx={{
                       ml: 2,
                       textTransform: 'initial',
@@ -438,10 +416,10 @@ const ProductSkuUpsert = () => {
                       border: '1px solid #D03739',
                     }}
                     variant='outlined'
-                    // onClick={handleDelAllVariant}
+                    onClick={handleDelAllVariant}
                   >
                     Xóa tất cả
-                  </Button>
+                  </Button> */}
                 </Box>
               </Grid2>
             </>

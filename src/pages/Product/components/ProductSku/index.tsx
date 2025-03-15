@@ -12,7 +12,7 @@ import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
 import { useDeleteCategory } from '@/services/category';
 import { useGetProductBySlug } from '@/services/product';
-import { useGetSkusByProductId } from '@/services/sku';
+import { useDeleteSku, useGetSkusByProductId } from '@/services/sku';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import {
@@ -42,13 +42,13 @@ const ProductSku = () => {
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
-  const { mutate: deleteCategoryMutate } = useDeleteCategory();
+  const { mutate: deteleteSkuMutate } = useDeleteSku();
 
-  const handleDeleteCategory = (id: number) => {
-    deleteCategoryMutate(id, {
+  const handleDeleteSku = (id: number) => {
+    deteleteSkuMutate(id, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
-        showNotification('Xóa danh mục thành công', 'success');
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
+        showNotification('Xóa mã hàng thành công', 'success');
       },
     });
   };
@@ -134,7 +134,7 @@ const ProductSku = () => {
                             showConfirmModal({
                               title: 'Bạn có muốn xóa mã hàng này không?',
                               cancelText: 'Hủy',
-                              // onOk: () => handleDeleteCategory(item?.sku),
+                              onOk: () => handleDeleteSku(item?.id),
                               okText: 'Xóa',
                               btnOkColor: 'error',
                             });

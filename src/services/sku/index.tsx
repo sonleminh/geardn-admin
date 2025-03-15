@@ -1,6 +1,6 @@
 import { QueryKeys } from '@/constants/query-key';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { getRequest, postRequest } from '../axios';
+import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 
 import {
   ICreateProductSku,
@@ -65,12 +65,23 @@ export const useGetSkuByProductSku = (sku: string) => {
 
 const updateSku = async (payload: IUpdateProductSkuPayload) => {
   const { id, ...rest } = payload;
-  const result = await postRequest(`${productSkuUrl}/${id}`, rest);
+  const result = await patchRequest(`${productSkuUrl}/${id}`, rest);
   return result.data as IProductSku;
 };
 
 export const useUpdateSku = () => {
   return useMutation({
     mutationFn: updateSku,
+  });
+};
+
+const deleteSku = async (id: number) => {
+  const result = await deleteRequest(`${productSkuUrl}/${id}`);
+  return result.data as IProductSku;
+};
+
+export const useDeleteSku = () => {
+  return useMutation({
+    mutationFn: deleteSku,
   });
 };

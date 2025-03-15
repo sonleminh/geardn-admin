@@ -19,7 +19,7 @@ export interface IProductSku {
 }
 
 export interface ICreateProductSku extends Record<string, unknown>  {
-    productId: number;
+    productId?: number;
     price: number;
     quantity: number;
     imageUrl: string;
@@ -29,7 +29,6 @@ export interface ICreateProductSku extends Record<string, unknown>  {
 }
 export interface IUpdateProductSkuPayload {
     id: number;
-    productId: number;
     price: number;
     quantity: number;
     imageUrl: string;
