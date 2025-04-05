@@ -42,7 +42,6 @@ const AttributeUpsert = () => {
   const isEdit = !!id;
 
   const { data: attributeData } = useGetAttributeById(id as string);
-  console.log('att:', attributeData);
 
   const { mutate: createAttributeMutate, isPending: isCreatePending } =
     useCreateAttribute();

@@ -44,7 +44,10 @@ const PaymentUpsert = () => {
   const { showNotification } = useNotificationContext();
 
   const isEdit = !!id;
-  const { data: paymentData } = useGetPaymentById(id as string);
+
+  const numericId = id ? Number(id) : undefined;
+
+  const { data: paymentData } = useGetPaymentById(numericId as number);
 
   const { mutate: createPaymentMutate, isPending: isCreatePending } =
     useCreatePayment();
@@ -55,19 +58,19 @@ const PaymentUpsert = () => {
       key: '',
       name: '',
       image: '',
-      is_disabled: false,
+      isDisabled: false,
     },
-    validationSchema: isEdit ? updateSchema : createSchema,
+    // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       if (isEdit) {
         updatePaymentMutate(
-          { _id: id, ...values },
+          { id: +id, ...values },
           {
             onSuccess() {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Payment] });
               showNotification('Cập nhật danh mục thành công', 'success');
-              navigate('/Payment');
+              navigate('/payment');
             },
           }
         );
@@ -88,7 +91,7 @@ const PaymentUpsert = () => {
       formik.setFieldValue('key', paymentData?.key);
       formik.setFieldValue('name', paymentData?.name);
       formik.setFieldValue('image', paymentData?.image);
-      formik.setFieldValue('is_disabled', paymentData?.is_disabled);
+      formik.setFieldValue('is_disabled', paymentData?.isDisabled);
     }
   }, [paymentData]);
 
@@ -157,7 +160,7 @@ const PaymentUpsert = () => {
           <Checkbox
             id='is_disable'
             name='is_disable'
-            checked={formik?.values?.is_disabled ?? false}
+            checked={formik?.values?.isDisabled ?? false}
             onChange={handleChangeValue}
             inputProps={{ 'aria-label': 'controlled' }}
           />

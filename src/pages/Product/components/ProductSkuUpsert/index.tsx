@@ -103,6 +103,9 @@ const ProductSkuUpsert = () => {
       if (!sku) {
         throw new Error('sku is missing');
       }
+      if (attributeType || attributeId) {
+        return showNotification('Chưa lưu phân loại hàng', 'error');
+      }
       const payload = {
         ...values,
         price: +values.price,

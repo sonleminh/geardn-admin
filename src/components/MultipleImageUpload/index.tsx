@@ -34,7 +34,7 @@ const MultipleImageUpload = ({
         { files, onProgress: setProgress },
         {
           onSuccess(data) {
-            setImages((prev) => [...prev, ...data.images]);
+            setImages((prev) => [...prev, ...data.data]);
             setProgress(null);
           },
         }

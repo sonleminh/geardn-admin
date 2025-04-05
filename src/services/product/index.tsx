@@ -27,14 +27,18 @@ type TProductRes = {
 };
 
 type TInitDataRes = {
-  categories: { id: number; name: string }[];
-  tags: { value: string; label: string }[];
+  success: boolean;
+  message: string;
+  data: {
+    categories: { id: number; name: string }[];
+    tags: { value: string; label: string }[];
+  };
 };
 
 type TUploadImageResponse = {
   success: boolean;
   message: string;
-  data: { images: string[] };
+  data: string[];
 };
 
 const productUrl = '/products';
@@ -194,7 +198,7 @@ const uploadImage = async (
 ) => {
   const formData = new FormData();
   for (let i = 0; i < files.length; i++) {
-    formData.append('images', files[i]);
+    formData.append('files', files[i]);
   }
   const result = await postRequest(`upload`, formData, {
     headers: {
@@ -223,6 +227,7 @@ export const useUploadImage = () => {
       onProgress: (progress: number) => void;
     }) => uploadImage(files, onProgress),
     onError(error: AxiosError<ErrorResponse>) {
+      console.log('error', error);
       showNotification(
         error?.response?.data?.message || 'Upload failed',
         'error'

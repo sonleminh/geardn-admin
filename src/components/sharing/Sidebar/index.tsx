@@ -21,12 +21,11 @@ const Sidebar = () => {
       label: 'Đơn hàng',
       icon: <ShoppingBagOutlinedIcon />,
     },
-    {
-      link: '/inventory',
-      label: 'Kho hàng',
-      icon: <WarehouseOutlinedIcon />,
-    },
-
+    // {
+    //   link: '/inventory',
+    //   label: 'Kho hàng',
+    //   icon: <WarehouseOutlinedIcon />,
+    // },
     {
       link: '/product',
       label: 'Sản phẩm',

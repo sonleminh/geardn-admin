@@ -204,7 +204,7 @@ const ProductUpsert = () => {
                 name='categoryId'
                 onChange={handleSelectChange}
                 value={formik?.values?.categoryId}>
-                {initData?.categories?.map((item) => (
+                {initData?.data?.categories?.map((item) => (
                   <MenuItem key={item.id} value={item?.id}>
                     {item.name}
                   </MenuItem>
@@ -223,7 +223,7 @@ const ProductUpsert = () => {
               <Autocomplete
                 multiple
                 fullWidth
-                options={initData?.tags ?? []}
+                options={initData?.data?.tags ?? []}
                 disableCloseOnSelect
                 // value={tags}
                 onChange={(e, val) => handleTagChange(e, val)}

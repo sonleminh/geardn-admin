@@ -92,7 +92,7 @@ const CategoryList = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {data?.categories?.map((item, index) => (
+              {data?.data?.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>

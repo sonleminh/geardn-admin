@@ -8,6 +8,8 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 
 type TAttributeListRes = {
+  status: number;
+  message: string;
   data: IAttribute[];
   total: number;
 };

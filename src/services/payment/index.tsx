@@ -12,7 +12,7 @@ type TPaymentsRes = {
   data: IPayment[];
 };
 
-const paymentUrl = '/payment-method';
+const paymentUrl = '/payment-methods';
 
 const getPaymentList = async () => {
   const result = await getRequest(`${paymentUrl}`);
@@ -28,12 +28,12 @@ export const useGetPaymentList = () => {
   });
 };
 
-const getPaymentById = async (id: string) => {
+const getPaymentById = async (id: number) => {
   const result = await getRequest(`${paymentUrl}/${id}`);
   return result.data as IPayment;
 };
 
-export const useGetPaymentById = (id: string) => {
+export const useGetPaymentById = (id: number) => {
   return useQuery({
     queryKey: [QueryKeys.Payment, id],
     queryFn: () => getPaymentById(id),
@@ -57,8 +57,8 @@ export const useCreatePayment = () => {
 // Update
 
 const updatePayment = async (payload: IUpdatePaymentPayload) => {
-  const { _id, ...rest } = payload;
-  const result = await patchRequest(`${paymentUrl}/${_id}`, rest);
+  const { id, ...rest } = payload;
+  const result = await patchRequest(`${paymentUrl}/${id}`, rest);
   return result.data as IPayment;
 };
 
@@ -68,7 +68,7 @@ export const useUpdatePayment = () => {
   });
 };
 
-const deletePayment = async (id: string) => {
+const deletePayment = async (id: number) => {
   const result = await deleteRequest(`${paymentUrl}/${id}`);
   return result.data;
 };

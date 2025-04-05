@@ -10,7 +10,6 @@ import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
-import { useDeleteCategory } from '@/services/category';
 import { useGetProductBySlug } from '@/services/product';
 import { useDeleteSku, useGetSkusByProductId } from '@/services/sku';
 import { truncateTextByLine } from '@/utils/css-helper.util';
