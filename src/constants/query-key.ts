@@ -1,10 +1,11 @@
 export const QueryKeys = {
-    Product: 'PRODUCT',
-    Sku: 'SKU',
-    Order: 'ORDER',
+    AttributeType: 'ATTRIBUTE_TYPE',
     Category: 'CATEGORY',
-    Attribute: 'ATTRIBUTE',
-    Model: 'MODEL',
     Inventory: 'INVENTORY',
+    Model: 'MODEL',
+    Order: 'ORDER',
     Payment: 'PAYMENT',
+    Product: 'PRODUCT',
+    ProductAttribute: 'PRODUCT_ATTRIBUTE',
+    Sku: 'SKU',
 }

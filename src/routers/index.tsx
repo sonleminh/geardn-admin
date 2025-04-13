@@ -1,16 +1,21 @@
+import { Suspense, lazy } from 'react';
+import { Navigate } from 'react-router-dom';
+
+import { ROUTES } from '@/constants/route';
+
 import AdminLayout from '../layouts/AdminLayout';
 import BaseLayout from '../layouts/BaseLayout';
-import { Suspense, lazy } from 'react';
+
 import SuspenseLoader from '../components/SuspenseLoader';
-import PublicRoute from './PublicRoute';
+import AttributeType from '@/pages/AttributeType';
+import Attribute from '@/pages/ProductAttribute';
 import PrivateRoute from './PrivateRoute';
-import { Navigate } from 'react-router-dom';
 import Dashboard from '@/pages/Dashboard';
-import Product from '@/pages/Product';
+import PublicRoute from './PublicRoute';
 import Category from '@/pages/Category';
-import Attribute from '@/pages/Attribute';
-import Order from '@/pages/Order';
 import Payment from '@/pages/Payment';
+import Product from '@/pages/Product';
+import Order from '@/pages/Order';
 
 const Loader =
   <P extends object>(Component: React.ComponentType<P>): React.FC<P> =>
@@ -34,7 +39,7 @@ const routes = [
         element: <BaseLayout />,
         children: [
           {
-            path: 'login',
+            path: ROUTES.LOGIN,
             element: <Login />,
           },
         ],
@@ -49,30 +54,34 @@ const routes = [
         children: [
           {
             path: '/',
-            element: <Navigate to={'/dashboard'} replace />,
+            element: <Navigate to={ROUTES.DASHBOARD} replace />,
           },
           {
-            path: 'dashboard',
+            path: `${ROUTES.DASHBOARD}`,
             element: <Dashboard />,
           },
           {
-            path: 'product/*',
+            path: `${ROUTES.PRODUCT}/*`,
             element: <Product />,
           },
           {
-            path: 'category/*',
+            path: `${ROUTES.CATEGORY}/*`,
             element: <Category />,
           },
           {
-            path: 'attribute/*',
+            path: `${ROUTES.ATTRIBUTE_TYPE}/*`,
+            element: <AttributeType />,
+          },
+          {
+            path: `${ROUTES.PRODUCT_ATTRIBUTE}/*`,
             element: <Attribute />,
           },
           {
-            path: 'order/*',
+            path: `${ROUTES.ORDER}/*`,
             element: <Order />,
           },
           {
-            path: 'payment/*',
+            path: `${ROUTES.PAYMENT}/*`,
             element: <Payment />,
           },
         ],

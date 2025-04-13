@@ -1,30 +1,8 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-
-import SuspenseLoader from '@/components/SuspenseLoader';
-
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import { useGetProductById, useGetProductBySlug } from '@/services/product';
-import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
+import { useQueryClient } from '@tanstack/react-query';
 
-import ImageUpload from '@/components/ImageUpload';
-import Input from '@/components/Input';
-import { ProductAttributeType } from '@/constants/attribuite-type';
-import { QueryKeys } from '@/constants/query-key';
-import {
-  useGetAttributeList,
-  useGetAttributesByType,
-} from '@/services/attribute';
-import {
-  useCreateSku,
-  useGetSkuByProductSku,
-  useGetSkusByProductSku,
-  useUpdateSku,
-} from '@/services/sku';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Box,
   Button,
@@ -42,8 +20,30 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import AddIcon from '@mui/icons-material/Add';
+
+import { QueryKeys } from '@/constants/query-key';
+
+import SuspenseLoader from '@/components/SuspenseLoader';
+import ImageUpload from '@/components/ImageUpload';
+import Input from '@/components/Input';
+
+import { useNotificationContext } from '@/contexts/NotificationContext';
+
 import { truncateTextByLine } from '@/utils/css-helper.util';
-import { ICreateProductSku } from '@/interfaces/IProductSku';
+
+import {
+  useGetAttributesByType,
+  useGetProductAttributeList,
+} from '@/services/product-attribute';
+import {
+  useCreateSku,
+  useGetSkuByProductSku,
+  useUpdateSku,
+} from '@/services/sku';
+import { useGetProductBySlug } from '@/services/product';
 
 const ProductSkuUpsert = () => {
   const location = useLocation();
@@ -72,7 +72,7 @@ const ProductSkuUpsert = () => {
     isEdit ? (sku as string) : ''
   );
   const { data: attributesByTypeData } = useGetAttributesByType(attributeType);
-  const { data: attributesData } = useGetAttributeList();
+  const { data: productAttributesData } = useGetProductAttributeList();
   const { mutate: createSkuMutate, isPending: isCreatePending } =
     useCreateSku();
   const { mutate: updateSkuMutate, isPending: isUpdatePending } =
@@ -110,6 +110,7 @@ const ProductSkuUpsert = () => {
         ...values,
         price: +values.price,
         quantity: +values.quantity,
+        imageUrl: values.imageUrl === '' ? null : values.imageUrl,
         attributes: attributeList,
         productId: isEdit ? skuData?.data?.productId : productData?.data?.id,
       };
@@ -161,12 +162,12 @@ const ProductSkuUpsert = () => {
   };
 
   const handleSaveAttribute = () => {
-    const selectedAttribute = attributesData?.data?.find(
+    const selectedAttribute = productAttributesData?.data?.find(
       (attr) => attr.id === attributeId
     );
     if (!selectedAttribute) return;
     const isAlreadySelected = attributeList.some((id) => {
-      const existingAttribute = attributesData?.data?.find(
+      const existingAttribute = productAttributesData?.data?.find(
         (attr) => attr.id === id.attributeId
       );
       return existingAttribute?.type === selectedAttribute.type;
@@ -201,7 +202,7 @@ const ProductSkuUpsert = () => {
   };
 
   const getAttributeLabel = (attributeId: number) => {
-    const attribute = attributesData?.data?.find(
+    const attribute = productAttributesData?.data?.find(
       (attr) => attr.id === attributeId
     );
     return attribute;
@@ -211,7 +212,9 @@ const ProductSkuUpsert = () => {
     setIsEditAttribute(true);
     setEditAttIndex(index);
     setAttributeId(attributeId);
-    const attr = attributesData?.data?.find((attr) => attr.id === attributeId);
+    const attr = productAttributesData?.data?.find(
+      (attr) => attr.id === attributeId
+    );
     if (attr) {
       setAttributeType(attr.type);
     }
@@ -307,7 +310,7 @@ const ProductSkuUpsert = () => {
                 )}
               </Grid2>
               <Grid2 size={4}>
-                <FormControl
+                {/* <FormControl
                   variant='filled'
                   fullWidth
                   sx={{
@@ -340,12 +343,12 @@ const ProductSkuUpsert = () => {
                     value={attributeType}
                     disabled={isEditAttribute}>
                     {Object.values(ProductAttributeType)?.map((item) => (
-                      <MenuItem key={item} value={item}>
+                      <MenuItem key={item} >
                         {item}
                       </MenuItem>
                     ))}
                   </Select>
-                </FormControl>
+                </FormControl> */}
               </Grid2>
               <Grid2 size={4}>
                 <FormControl

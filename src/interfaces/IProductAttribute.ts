@@ -1,16 +1,16 @@
-export interface IAttribute {
+export interface IProductAttribute {
     id: number;
     type: string;
     value: string;
     createdAt: Date;
 }
 
-export interface ICreateAttribute extends Record<string, unknown>  {
+export interface ICreateProductAttribute extends Record<string, unknown>  {
     type: string;
     value: string;
 }
 
-export interface IUpdateAttributePayload {
+export interface IUpdateProductAttributePayload {
     id: number;
     type: string;
     value: string;

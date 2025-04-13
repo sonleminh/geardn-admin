@@ -224,7 +224,7 @@ const OrderUpsert = () => {
                 onChange={handleChange}
                 value={formik?.values?.payment?.method}>
                 <FormControlLabel
-                  value={payment?._id}
+                  value={payment?.id}
                   control={<Radio size='small' />}
                   label={
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>

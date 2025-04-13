@@ -1,13 +1,8 @@
 import { ChangeEvent, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-import Input from '@/components/Input';
-import SuspenseLoader from '@/components/SuspenseLoader';
-
-import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
+
 import {
   Box,
   Button,
@@ -25,15 +20,24 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
+
 import { ATTRIBUTE_TYPE } from '@/constants/attribute-type';
-import {
-  useCreateAttribute,
-  useGetAttributeById,
-  useUpdateAttribute,
-} from '@/services/attribute';
+import { QueryKeys } from '@/constants/query-key';
+
+import SuspenseLoader from '@/components/SuspenseLoader';
+import Input from '@/components/Input';
+
+import { useNotificationContext } from '@/contexts/NotificationContext';
+
 import { createSchema, updateSchema } from '../utils/schema/attributeSchema';
 
-const AttributeUpsert = () => {
+import {
+  useCreateProductAttribute,
+  useGetProductAttributeById,
+  useUpdateProductAttribute,
+} from '@/services/product-attribute';
+
+const ProductAttributeUpsert = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -41,12 +45,12 @@ const AttributeUpsert = () => {
 
   const isEdit = !!id;
 
-  const { data: attributeData } = useGetAttributeById(id as string);
+  const { data: attributeData } = useGetProductAttributeById(id as string);
 
-  const { mutate: createAttributeMutate, isPending: isCreatePending } =
-    useCreateAttribute();
-  const { mutate: updateAttributeMutate, isPending: isUpdatePending } =
-    useUpdateAttribute();
+  const { mutate: createProductAttributeMutate, isPending: isCreatePending } =
+    useCreateProductAttribute();
+  const { mutate: updateProductAttributeMutate, isPending: isUpdatePending } =
+    useUpdateProductAttribute();
   const formik = useFormik({
     initialValues: {
       type: '',
@@ -56,12 +60,12 @@ const AttributeUpsert = () => {
     validateOnChange: false,
     onSubmit(values) {
       if (isEdit) {
-        updateAttributeMutate(
+        updateProductAttributeMutate(
           { id: +id, ...values },
           {
             onSuccess() {
               queryClient.invalidateQueries({
-                queryKey: [QueryKeys.Attribute],
+                queryKey: [QueryKeys.ProductAttribute],
               });
               showNotification('Cập nhật phân loại thành công', 'success');
               navigate('/attribute');
@@ -69,9 +73,11 @@ const AttributeUpsert = () => {
           }
         );
       } else {
-        createAttributeMutate(values, {
+        createProductAttributeMutate(values, {
           onSuccess() {
-            queryClient.invalidateQueries({ queryKey: [QueryKeys.Attribute] });
+            queryClient.invalidateQueries({
+              queryKey: [QueryKeys.ProductAttribute],
+            });
             showNotification('Tạo phân loại thành công', 'success');
             navigate('/attribute');
           },
@@ -180,7 +186,7 @@ const AttributeUpsert = () => {
   );
 };
 
-export default AttributeUpsert;
+export default ProductAttributeUpsert;
 
 const helperTextStyle: SxProps<Theme> = {
   color: 'red',

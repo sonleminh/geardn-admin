@@ -181,7 +181,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
                 />
               </FormControl>
             </Grid2>
-            <Grid2 size={6}>
+            {/* <Grid2 size={6}>
               <FormControl
                 fullWidth
                 sx={{
@@ -208,7 +208,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
                   />
                 </LocalizationProvider>
               </FormControl>
-            </Grid2>
+            </Grid2> */}
           </>
         ) : (
           <Grid2 size={12}>

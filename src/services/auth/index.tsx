@@ -29,7 +29,7 @@ export const useLoginMutate = () => {
     mutationKey: ['user'],
     mutationFn: loginApi,
     onSuccess: (data) => {
-      auth?.login(data);
+      auth?.login(data?.data);
       showNotification('Đăng nhập thành công', 'success');
       navigate('/dashboard');
     },
@@ -61,8 +61,8 @@ export const useLogoutMutate = () => {
 };
 
 const whoAmI = async () => {
-  const result = await getRequest<IUser>(`${authUrl}/whoami`);
-  return result.data;
+  const result = await getRequest(`${authUrl}/whoami`);
+  return result.data as ILoginResponse;
 };
 
 export const useWhoAmI = () => {

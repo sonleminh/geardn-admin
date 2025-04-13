@@ -4,9 +4,13 @@ export interface ILoginPayload {
 }
 
 export interface ILoginResponse {
-  _id?: string;
-  email: string;
-  name: string;
+  data: {
+    id: number;
+    email: string;
+    name: string;
+  },
+  success: boolean;
+  message: string;
 }
 
 

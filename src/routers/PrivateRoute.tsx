@@ -17,7 +17,7 @@ const PrivateRoute = () => {
   useEffect(() => {
     if (!isFetching) {
       if (data && !isError) {
-        auth?.login(data);
+        auth?.login(data?.data);
       } else if (isError) {
         refetch();
         if (rt?.accessToken) {

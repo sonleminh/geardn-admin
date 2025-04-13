@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-
-import { QueryKeys } from '@/constants/query-key';
 import { useQueryClient } from '@tanstack/react-query';
+import moment from 'moment';
 
 import { AddCircleOutlined } from '@mui/icons-material';
+
+import { QueryKeys } from '@/constants/query-key';
 
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
@@ -23,13 +24,15 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import moment from 'moment';
-// import { useDeleteAttribute, useGetAttributeList } from '@/services/attribute';
-import { useDeleteAttribute, useGetAttributeList } from '@/services/attribute';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 
-const AttributeList = () => {
+import {
+  useDeleteProductAttribute,
+  useGetProductAttributeList,
+} from '@/services/product-attribute';
+
+const ProductAttributeList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   // const [query, setQuery] = useState<IQuery>({
@@ -37,13 +40,13 @@ const AttributeList = () => {
   //   page: 1,
   // });
 
-  const { data } = useGetAttributeList();
+  const { data } = useGetProductAttributeList();
 
   const { showNotification } = useNotificationContext();
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
-  const { mutate: deleteAttributeMutate } = useDeleteAttribute();
+  const { mutate: deleteAttributeMutate } = useDeleteProductAttribute();
 
   const handleDeleteAttribute = (id: number) => {
     showNotification('Ok', 'error');
@@ -170,4 +173,4 @@ const AttributeList = () => {
   );
 };
 
-export default AttributeList;
+export default ProductAttributeList;
