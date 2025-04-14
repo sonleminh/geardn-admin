@@ -78,7 +78,7 @@ const getProductAttributeList = async () => {
 
 export const useGetProductAttributeList = () => {
   return useQuery({
-    queryKey: [QueryKeys.Product],
+    queryKey: [QueryKeys.ProductAttribute],
     queryFn: () => getProductAttributeList(),
     refetchOnWindowFocus: false,
     refetchInterval: false,

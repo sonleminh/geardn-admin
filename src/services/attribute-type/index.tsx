@@ -41,7 +41,7 @@ const getAttributeTypeById = async (id: string) => {
 
 export const useGetAttributeTypeById = (id: string) => {
   return useQuery({
-    queryKey: [QueryKeys.Attribute, id],
+    queryKey: [QueryKeys.AttributeType, id],
     queryFn: () => getAttributeTypeById(id),
     refetchOnWindowFocus: false,
     refetchInterval: false,
