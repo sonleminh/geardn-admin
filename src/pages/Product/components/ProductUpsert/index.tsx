@@ -40,6 +40,7 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
+import { ROUTES } from '@/constants/route';
 
 const ProductUpsert = () => {
   const { id } = useParams();
@@ -366,7 +367,7 @@ const ProductUpsert = () => {
         </FormControl>
 
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate('/product')} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate(ROUTES.PRODUCT)} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>

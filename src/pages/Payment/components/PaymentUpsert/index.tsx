@@ -36,6 +36,7 @@ import {
 } from '@/services/payment';
 
 import { createSchema, updateSchema } from '../utils/schema/categorySchema';
+import { ROUTES } from '@/constants/route';
 
 const PaymentUpsert = () => {
   const { id } = useParams();
@@ -167,7 +168,7 @@ const PaymentUpsert = () => {
         </Box>
 
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate('/payment')} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate(ROUTES.PAYMENT)} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>

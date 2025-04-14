@@ -12,6 +12,7 @@ import {
   Button,
   ListSubheader,
 } from '@mui/material';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListAltIcon from '@mui/icons-material/ListAlt';
@@ -31,6 +32,7 @@ import LOGO from '@/assets/geardn-logo.png';
 import { DrawerMenuWrapper } from '../styled';
 import { ROUTES } from '@/constants/route';
 import MultipleListItem from '@/components/MultipleListItem';
+import React from 'react';
 
 const menuList = [
   {
@@ -38,7 +40,6 @@ const menuList = [
       <ListItem>
         <ListItemButton component={NavLink} to={ROUTES.ORDER}>
           <ListItemIcon>
-            {' '}
             <ShoppingBagOutlinedIcon />
           </ListItemIcon>
           <ListItemText primary={'Đơn hàng'} />
@@ -85,7 +86,7 @@ const menuList = [
   {
     item: (
       <MultipleListItem
-        mainIcon={<StyleIcon />}
+        mainIcon={<FilterAltOutlinedIcon />}
         mainLabel='Phân loại'
         active={location.pathname.includes('attribute')}
         options={[
@@ -96,7 +97,7 @@ const menuList = [
           },
           {
             to: ROUTES.PRODUCT_ATTRIBUTE,
-            icon: <StyleIcon />,
+            icon: <LocalOfferIcon />,
             label: 'Giá trị thuộc tính',
           },
         ]}
@@ -134,6 +135,8 @@ const DashboardDrawer = ({
   handleDrawerToggle: () => void;
 }) => {
   const theme = useTheme();
+
+  console.log('attribute', location.pathname.includes('attribute'));
   return (
     <Drawer
       sx={{
@@ -205,9 +208,9 @@ const DashboardDrawer = ({
               </ListItemButton>
             </ListItem>
           }>
-          {menuList?.map((item) => {
-            return item.item;
-          })}
+          {menuList?.map((item, index) => (
+            <React.Fragment key={index}>{item.item}</React.Fragment>
+          ))}
         </List>
       </DrawerMenuWrapper>
     </Drawer>

@@ -2,13 +2,14 @@ import { Box, styled } from "@mui/material";
 
 export const DrawerMenuWrapper = styled(Box)(
     ({ theme }) => `
-    .MuiList-root {
+    .MuiList-root > {
         .MuiListItem-root {
             padding: 0;
             margin: 8px 0;
             color: #fff;
             .MuiButtonBase-root {
-                &.active {
+                &.active,
+                &:hover {
                     background-color: #333;
                     color: #fff;
                 }
@@ -19,7 +20,20 @@ export const DrawerMenuWrapper = styled(Box)(
         },
         .MuiCollapse-root {
             .MuiListItem-root {
+                padding: 0;
+                margin: 8px 0;
                 color: #fff;
+                .MuiListItemIcon-root {
+                    color: #fff;
+                },
+                .MuiButtonBase-root {
+                    padding-left: 36px;
+                    &.active,
+                    &:hover {
+                        background-color: #333;
+                        color: #fff;
+                    }
+                }
             }
         }
     }

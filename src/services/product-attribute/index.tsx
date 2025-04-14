@@ -18,7 +18,8 @@ type TProductAttributeListRes = {
 
 type TProductAttributeListByTypeRes = {
   data: IProductAttribute[];
-  total: number;
+  status: number;
+  message: string;
 };
 
 type TProductAttributeRes = {
@@ -40,14 +41,14 @@ export const useCreateProductAttribute = () => {
   });
 };
 
-const getProductAttributeById = async (id: string) => {
+const getProductAttributeById = async (id: number) => {
   const result = await getRequest(`${attributeUrl}/${id}`);
-  return (result.data as TProductAttributeRes).data;
+  return result.data as TProductAttributeRes;
 };
 
-export const useGetProductAttributeById = (id: string) => {
+export const useGetProductAttributeById = (id: number) => {
   return useQuery({
-    queryKey: [QueryKeys.Attribute, id],
+    queryKey: [QueryKeys.ProductAttribute, id],
     queryFn: () => getProductAttributeById(id),
     refetchOnWindowFocus: false,
     refetchInterval: false,
@@ -55,18 +56,18 @@ export const useGetProductAttributeById = (id: string) => {
   });
 };
 
-const getProductAttributesByType = async (type: string) => {
-  const result = await getRequest(`product-attributes/type/${type}`);
-  return (result.data as TProductAttributeListByTypeRes).data;
+const getProductAttributesByType = async (typeId: number | undefined) => {
+  const result = await getRequest(`product-attributes/type/${typeId}`);
+  return result.data as TProductAttributeListByTypeRes;
 };
 
-export const useGetAttributesByType = (type: string) => {
+export const useGetProductAttributesByType = (typeId: number | undefined) => {
   return useQuery({
-    queryKey: [QueryKeys.Product, type],
-    queryFn: () => getProductAttributesByType(type),
+    queryKey: [QueryKeys.Product, typeId],
+    queryFn: () => getProductAttributesByType(typeId),
     refetchOnWindowFocus: false,
     refetchInterval: false,
-    enabled: !!type,
+    enabled: !!typeId,
   });
 };
 

@@ -98,7 +98,7 @@ const ProductAttributeList = () => {
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.type}
+                      {item?.attributeType?.label}
                     </Typography>
                   </TableCell>
                   <TableCell sx={{ width: '30%' }}>

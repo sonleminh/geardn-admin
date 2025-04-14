@@ -28,6 +28,7 @@ import {
 } from '@mui/material';
 import { createSchema, updateSchema } from '../utils/schema/categorySchema';
 import ImageUpload from '@/components/ImageUpload';
+import { ROUTES } from '@/constants/route';
 
 const CategoryUpsert = () => {
   const { id } = useParams();
@@ -132,7 +133,7 @@ const CategoryUpsert = () => {
           </Box>
         )}
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate('/category')} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate(ROUTES.CATEGORY)} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>

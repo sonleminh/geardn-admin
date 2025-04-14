@@ -41,6 +41,7 @@ import SuspenseLoader from '@/components/SuspenseLoader';
 import CustomerForm from './components/CustomerForm';
 // import ProductSelector from './components/ProductSelector';
 import ShipmentForm from './components/ShipmentForm';
+import { ROUTES } from '@/constants/route';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -263,7 +264,7 @@ const OrderUpsert = () => {
             onClick={() => formik.handleSubmit()}>
             {isEdit ? 'Lưu' : 'Thêm'}
           </Button>
-          <Button onClick={() => navigate(-1)}>Trở lại</Button>
+          <Button onClick={() => navigate(ROUTES.ORDER)}>Trở lại</Button>
         </Box>
       </CardContent>
       {(isCreatePending || isUpdatePending) && <SuspenseLoader />}

@@ -37,6 +37,7 @@ import { truncateTextByLine } from '@/utils/css-helper.util';
 import {
   useGetAttributesByType,
   useGetProductAttributeList,
+  useGetProductAttributesByType,
 } from '@/services/product-attribute';
 import {
   useCreateSku,
@@ -44,6 +45,7 @@ import {
   useUpdateSku,
 } from '@/services/sku';
 import { useGetProductBySlug } from '@/services/product';
+import { useGetAttributeTypeList } from '@/services/attribute-type';
 
 const ProductSkuUpsert = () => {
   const location = useLocation();
@@ -56,13 +58,13 @@ const ProductSkuUpsert = () => {
   const [isEditAttribute, setIsEditAttribute] = useState<boolean>(false);
   const [editAttIndex, setEditAttIndex] = useState<number | null>(null);
 
-  const [attributeType, setAttributeType] = useState<string>('');
+  const [attributeTypeId, setAttributeTypeId] = useState<string>('');
   const [attributeId, setAttributeId] = useState<number | null>(null);
   const [attributeList, setAttributeList] = useState<{ attributeId: number }[]>(
     []
   );
   const [showAttributeForm, setShowAttributeForm] = useState<boolean>(false);
-
+  console.log('showAttributeForm', showAttributeForm);
   const isEdit = location?.pathname.includes('update');
 
   const { data: productData } = useGetProductBySlug(
@@ -71,7 +73,10 @@ const ProductSkuUpsert = () => {
   const { data: skuData } = useGetSkuByProductSku(
     isEdit ? (sku as string) : ''
   );
-  const { data: attributesByTypeData } = useGetAttributesByType(attributeType);
+  const { data: attributeTypeList } = useGetAttributeTypeList();
+  const { data: productAttributeByTypeList } = useGetProductAttributesByType(
+    +attributeTypeId
+  );
   const { data: productAttributesData } = useGetProductAttributeList();
   const { mutate: createSkuMutate, isPending: isCreatePending } =
     useCreateSku();
@@ -146,7 +151,7 @@ const ProductSkuUpsert = () => {
   };
 
   const handleAttributeTypeChange = (e: SelectChangeEvent<string>) => {
-    setAttributeType(e?.target?.value);
+    setAttributeTypeId(e?.target?.value);
   };
 
   const handleAttributeValueChange = (e: SelectChangeEvent<number>) => {
@@ -162,33 +167,32 @@ const ProductSkuUpsert = () => {
   };
 
   const handleSaveAttribute = () => {
-    const selectedAttribute = productAttributesData?.data?.find(
-      (attr) => attr.id === attributeId
-    );
-    if (!selectedAttribute) return;
-    const isAlreadySelected = attributeList.some((id) => {
-      const existingAttribute = productAttributesData?.data?.find(
-        (attr) => attr.id === id.attributeId
-      );
-      return existingAttribute?.type === selectedAttribute.type;
-    });
-
-    if (isAlreadySelected && !isEditAttribute) {
-      return showNotification('Bạn đã chọn loại thuộc tính này!', 'error');
-    }
-    if (editAttIndex !== null && attributeId) {
-      const updatedAttributeList = attributeList;
-      updatedAttributeList[editAttIndex] = { attributeId: attributeId };
-      setAttributeList(updatedAttributeList);
-      setAttributeId(null);
-      setAttributeType('');
-    } else {
-      if (attributeId) {
-        setAttributeList((prev) => [...prev, { attributeId: attributeId }]);
-      }
-      setAttributeId(null);
-      setAttributeType('');
-    }
+    // const selectedAttribute = productAttributesData?.data?.find(
+    //   (attr) => attr.id === attributeId
+    // );
+    // if (!selectedAttribute) return;
+    // const isAlreadySelected = attributeList.some((id) => {
+    //   const existingAttribute = productAttributesData?.data?.find(
+    //     (attr) => attr.id === id.attributeId
+    //   );
+    //   return existingAttribute?.type === selectedAttribute.type;
+    // });
+    // if (isAlreadySelected && !isEditAttribute) {
+    //   return showNotification('Bạn đã chọn loại thuộc tính này!', 'error');
+    // }
+    // if (editAttIndex !== null && attributeId) {
+    //   const updatedAttributeList = attributeList;
+    //   updatedAttributeList[editAttIndex] = { attributeId: attributeId };
+    //   setAttributeList(updatedAttributeList);
+    //   setAttributeId(null);
+    //   setAttributeType('');
+    // } else {
+    //   if (attributeId) {
+    //     setAttributeList((prev) => [...prev, { attributeId: attributeId }]);
+    //   }
+    //   setAttributeId(null);
+    //   setAttributeType('');
+    // }
   };
   // const handleDelBtn = () => {
   //   setAttributeId(null);
@@ -209,15 +213,15 @@ const ProductSkuUpsert = () => {
   };
 
   const handleEditAttribute = (attributeId: number, index: number) => {
-    setIsEditAttribute(true);
-    setEditAttIndex(index);
-    setAttributeId(attributeId);
-    const attr = productAttributesData?.data?.find(
-      (attr) => attr.id === attributeId
-    );
-    if (attr) {
-      setAttributeType(attr.type);
-    }
+    // setIsEditAttribute(true);
+    // setEditAttIndex(index);
+    // setAttributeId(attributeId);
+    // const attr = productAttributesData?.data?.find(
+    //   (attr) => attr.id === attributeId
+    // );
+    // if (attr) {
+    //   setAttributeType(attr.type);
+    // }
   };
 
   return (
@@ -253,8 +257,8 @@ const ProductSkuUpsert = () => {
           </Grid2>
           {(showAttributeForm || isEdit) && (
             <>
-              <Grid2 size={12}>
-                {attributeList.length > 0 && (
+              {attributeList.length > 0 && (
+                <Grid2 size={12} className='attribute-list'>
                   <Box
                     sx={{
                       width: '400px',
@@ -274,7 +278,7 @@ const ProductSkuUpsert = () => {
                             my: 1.5,
                           }}>
                           <Typography key={item.attributeId}>
-                            {attributeItem?.type} - {attributeItem?.value}
+                            {/* {attributeItem?.type} - {attributeItem?.value} */}
                           </Typography>
                           <Box>
                             <Button
@@ -307,10 +311,10 @@ const ProductSkuUpsert = () => {
                       );
                     })}
                   </Box>
-                )}
-              </Grid2>
+                </Grid2>
+              )}
               <Grid2 size={4}>
-                {/* <FormControl
+                <FormControl
                   variant='filled'
                   fullWidth
                   sx={{
@@ -340,15 +344,15 @@ const ProductSkuUpsert = () => {
                     disableUnderline
                     size='small'
                     onChange={handleAttributeTypeChange}
-                    value={attributeType}
+                    value={attributeTypeId ?? ''}
                     disabled={isEditAttribute}>
-                    {Object.values(ProductAttributeType)?.map((item) => (
-                      <MenuItem key={item} >
-                        {item}
+                    {attributeTypeList?.data?.map((item) => (
+                      <MenuItem key={item?.id} value={String(item.id)}>
+                        {item?.label}
                       </MenuItem>
                     ))}
                   </Select>
-                </FormControl> */}
+                </FormControl>
               </Grid2>
               <Grid2 size={4}>
                 <FormControl
@@ -382,8 +386,8 @@ const ProductSkuUpsert = () => {
                     size='small'
                     onChange={handleAttributeValueChange}
                     value={attributeId ?? ''}
-                    disabled={!attributesByTypeData}>
-                    {attributesByTypeData?.map((item) => (
+                    disabled={!productAttributeByTypeList}>
+                    {productAttributeByTypeList?.data?.map((item) => (
                       <MenuItem key={item.id} value={item.id}>
                         {item.value}
                       </MenuItem>

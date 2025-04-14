@@ -36,6 +36,8 @@ import {
   useGetProductAttributeById,
   useUpdateProductAttribute,
 } from '@/services/product-attribute';
+import { useGetAttributeTypeList } from '@/services/attribute-type';
+import { ROUTES } from '@/constants/route';
 
 const ProductAttributeUpsert = () => {
   const { id } = useParams();
@@ -45,7 +47,10 @@ const ProductAttributeUpsert = () => {
 
   const isEdit = !!id;
 
-  const { data: attributeData } = useGetProductAttributeById(id as string);
+  const { data: productAttributeList } = useGetProductAttributeById(
+    id as string
+  );
+  const { data: attributeTypeList } = useGetAttributeTypeList();
 
   const { mutate: createProductAttributeMutate, isPending: isCreatePending } =
     useCreateProductAttribute();
@@ -61,37 +66,40 @@ const ProductAttributeUpsert = () => {
     onSubmit(values) {
       if (isEdit) {
         updateProductAttributeMutate(
-          { id: +id, ...values },
+          { id: +id, typeId: +values.typeId, value: values.value },
           {
             onSuccess() {
               queryClient.invalidateQueries({
                 queryKey: [QueryKeys.ProductAttribute],
               });
               showNotification('Cập nhật phân loại thành công', 'success');
-              navigate('/attribute');
+              navigate(ROUTES.PRODUCT_ATTRIBUTE);
             },
           }
         );
       } else {
-        createProductAttributeMutate(values, {
-          onSuccess() {
-            queryClient.invalidateQueries({
-              queryKey: [QueryKeys.ProductAttribute],
-            });
-            showNotification('Tạo phân loại thành công', 'success');
-            navigate('/attribute');
-          },
-        });
+        createProductAttributeMutate(
+          { typeId: +values.typeId, value: values.value },
+          {
+            onSuccess() {
+              queryClient.invalidateQueries({
+                queryKey: [QueryKeys.ProductAttribute],
+              });
+              showNotification('Tạo phân loại thành công', 'success');
+              navigate(ROUTES.PRODUCT_ATTRIBUTE);
+            },
+          }
+        );
       }
     },
   });
 
   useEffect(() => {
-    if (attributeData) {
-      formik.setFieldValue('type', attributeData?.type);
-      formik.setFieldValue('value', attributeData?.value);
+    if (productAttributeList) {
+      formik.setFieldValue('typeId', productAttributeList?.typeId);
+      formik.setFieldValue('value', productAttributeList?.value);
     }
-  }, [attributeData]);
+  }, [productAttributeList]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -142,18 +150,18 @@ const ProductAttributeUpsert = () => {
             disableUnderline
             required
             size='small'
-            name='type'
+            name='typeId'
             onChange={handleSelectChange}
-            value={formik?.values?.type ?? ''}>
-            {Object.values(ATTRIBUTE_TYPE)?.map((item) => (
-              <MenuItem key={item.value} value={item.value}>
+            value={formik?.values?.typeId ?? ''}>
+            {attributeTypeList?.data?.map((item) => (
+              <MenuItem key={item.name} value={item.id}>
                 {item.label}
               </MenuItem>
             ))}
           </Select>
           <FormHelperText>
             <Box component={'span'} sx={helperTextStyle}>
-              {formik.errors?.type}
+              {formik.errors?.typeId}
             </Box>
           </FormHelperText>
         </FormControl>
@@ -173,7 +181,9 @@ const ProductAttributeUpsert = () => {
           />
         </FormControl>
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate('/attribute')} sx={{ mr: 2 }}>
+          <Button
+            onClick={() => navigate(ROUTES.PRODUCT_ATTRIBUTE)}
+            sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>
