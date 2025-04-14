@@ -5,7 +5,13 @@ import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import { IconButton, Link, useTheme } from '@mui/material';
+import {
+  IconButton,
+  Link,
+  useTheme,
+  Button,
+  ListSubheader,
+} from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListAltIcon from '@mui/icons-material/ListAlt';
@@ -22,50 +28,92 @@ import List from '@mui/material/List';
 import Box from '@mui/material/Box';
 
 import LOGO from '@/assets/geardn-logo.png';
+import { DrawerMenuWrapper } from '../styled';
+import { ROUTES } from '@/constants/route';
+import MultipleListItem from '@/components/MultipleListItem';
 
-const menuList1 = [
+const menuList = [
   {
-    link: '/dashboard',
-    label: 'Dashboard',
-    icon: <DashboardIcon />,
+    item: (
+      <ListItem>
+        <ListItemButton component={NavLink} to={ROUTES.ORDER}>
+          <ListItemIcon>
+            {' '}
+            <ShoppingBagOutlinedIcon />
+          </ListItemIcon>
+          <ListItemText primary={'Đơn hàng'} />
+        </ListItemButton>
+      </ListItem>
+    ),
   },
   {
-    link: '/order',
-    label: 'Đơn hàng',
-    icon: <ShoppingBagOutlinedIcon />,
+    item: (
+      <ListItem>
+        <ListItemButton component={NavLink} to={ROUTES.DASHBOARD}>
+          <ListItemIcon>
+            <WarehouseOutlinedIcon />
+          </ListItemIcon>
+          <ListItemText primary={'Kho hàng'} />
+        </ListItemButton>
+      </ListItem>
+    ),
   },
   {
-    link: '/',
-    label: 'Kho hàng',
-    icon: <WarehouseOutlinedIcon />,
-  },
-];
-
-const menuList2 = [
-  {
-    link: '/product',
-    label: 'Sản phẩm',
-    icon: <MonitorIcon />,
-  },
-  {
-    link: '/category',
-    label: 'Danh mục',
-    icon: <ListAltIcon />,
+    item: (
+      <ListItem>
+        <ListItemButton component={NavLink} to={ROUTES.PRODUCT}>
+          <ListItemIcon>
+            <MonitorIcon />
+          </ListItemIcon>
+          <ListItemText primary={'Sản phẩm'} />
+        </ListItemButton>
+      </ListItem>
+    ),
   },
   {
-    link: '/attribute-type',
-    label: 'Loại thuộc tính',
-    icon: <StyleIcon />,
+    item: (
+      <ListItem>
+        <ListItemButton component={NavLink} to={ROUTES.CATEGORY}>
+          <ListItemIcon>
+            <ListAltIcon />
+          </ListItemIcon>
+          <ListItemText primary={'Danh mục'} />
+        </ListItemButton>
+      </ListItem>
+    ),
   },
   {
-    link: '/product-attribute',
-    label: 'Phân loại',
-    icon: <FilterAltOutlinedIcon />,
+    item: (
+      <MultipleListItem
+        mainIcon={<StyleIcon />}
+        mainLabel='Phân loại'
+        active={location.pathname.includes('attribute')}
+        options={[
+          {
+            to: ROUTES.ATTRIBUTE_TYPE,
+            icon: <StyleIcon />,
+            label: 'Loại thuộc tính',
+          },
+          {
+            to: ROUTES.PRODUCT_ATTRIBUTE,
+            icon: <StyleIcon />,
+            label: 'Giá trị thuộc tính',
+          },
+        ]}
+      />
+    ),
   },
   {
-    link: '/payment',
-    label: 'Thanh toán',
-    icon: <PaymentIcon />,
+    item: (
+      <ListItem>
+        <ListItemButton component={NavLink} to={ROUTES.PAYMENT}>
+          <ListItemIcon>
+            <PaymentIcon />
+          </ListItemIcon>
+          <ListItemText primary={'Thanh toán'} />
+        </ListItemButton>
+      </ListItem>
+    ),
   },
 ];
 
@@ -86,7 +134,6 @@ const DashboardDrawer = ({
   handleDrawerToggle: () => void;
 }) => {
   const theme = useTheme();
-
   return (
     <Drawer
       sx={{
@@ -128,59 +175,41 @@ const DashboardDrawer = ({
         </IconButton>
       </DrawerHeader>
       <Divider sx={{ bgcolor: '#434343' }} />
-      <List>
-        {menuList1?.map((item) => (
-          <ListItem key={item?.label} sx={{ p: 0, m: '8px 0' }}>
-            <Box
-              component={NavLink}
-              to={item?.link}
-              sx={{
-                width: '100%',
-                color: '#eeeeee',
-                justifyContent: 'start',
-                textTransform: 'none',
-                fontSize: 16,
-                fontWeight: 500,
-                textDecoration: 'none',
-                '&.active': {
-                  background: '#3f3f3f',
-                },
-              }}>
-              <ListItemButton>
-                <ListItemIcon sx={{ color: '#fff' }}>{item?.icon}</ListItemIcon>
-                <ListItemText primary={item?.label} />
+      <DrawerMenuWrapper>
+        <List
+          subheader={
+            <ListItem sx={{ p: 0, m: '8px 0' }}>
+              <ListItemButton
+                component={NavLink}
+                to='/'
+                sx={{
+                  justifyContent: 'start',
+                  width: '100%',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: location.pathname.includes('/dashboard')
+                    ? '#fff'
+                    : 'rgba(255, 255, 255, 0.7)',
+                  background: location.pathname.includes('/dashboard')
+                    ? '#333'
+                    : '',
+                  ':hover': {
+                    bgcolor: '#333',
+                    color: '#fff',
+                  },
+                }}>
+                <ListItemIcon sx={{ color: '#fff' }}>
+                  <DashboardIcon />
+                </ListItemIcon>
+                <ListItemText primary={'Dashboard'} />
               </ListItemButton>
-            </Box>
-          </ListItem>
-        ))}
-      </List>
-      <Divider sx={{ bgcolor: '#333333' }} />
-      <List>
-        {menuList2?.map((item) => (
-          <ListItem key={item?.label} sx={{ p: 0, m: '8px 0' }}>
-            <Box
-              component={NavLink}
-              to={item?.link}
-              sx={{
-                width: '100%',
-                color: '#eeeeee',
-                justifyContent: 'start',
-                textTransform: 'none',
-                fontSize: 16,
-                fontWeight: 500,
-                textDecoration: 'none',
-                '&.active': {
-                  background: '#3f3f3f',
-                },
-              }}>
-              <ListItemButton>
-                <ListItemIcon sx={{ color: '#fff' }}>{item?.icon}</ListItemIcon>
-                <ListItemText primary={item?.label} />
-              </ListItemButton>
-            </Box>
-          </ListItem>
-        ))}
-      </List>
+            </ListItem>
+          }>
+          {menuList?.map((item) => {
+            return item.item;
+          })}
+        </List>
+      </DrawerMenuWrapper>
     </Drawer>
   );
 };

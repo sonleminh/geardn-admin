@@ -53,7 +53,7 @@ const ProductAttributeUpsert = () => {
     useUpdateProductAttribute();
   const formik = useFormik({
     initialValues: {
-      type: '',
+      typeId: '',
       value: '',
     },
     validationSchema: isEdit ? updateSchema : createSchema,
