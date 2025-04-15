@@ -12,7 +12,7 @@ const PrivateRoute = () => {
   const { showNotification } = useNotificationContext();
 
   const { data, refetch: whoAmIRefetch, isFetching, isError } = useWhoAmI();
-  const { data: rt, refetch } = useRefreshToken();
+  const { data: refreshToken, refetch } = useRefreshToken();
 
   useEffect(() => {
     if (!isFetching) {
@@ -20,8 +20,8 @@ const PrivateRoute = () => {
         auth?.login(data?.data);
       } else if (isError) {
         refetch();
-        if (rt?.accessToken) {
-          Cookies.set('at', rt?.accessToken, { path: '/' });
+        if (refreshToken?.accessToken) {
+          Cookies.set('access_token', refreshToken?.accessToken, { path: '/' });
           whoAmIRefetch();
         } else {
           navigate('/login');
@@ -31,7 +31,7 @@ const PrivateRoute = () => {
         navigate('/login');
       }
     }
-  }, [data, isFetching, rt]);
+  }, [data, isFetching, refreshToken]);
   return auth?.user ? <Outlet></Outlet> : <LoadingBackdrop />;
 };
 

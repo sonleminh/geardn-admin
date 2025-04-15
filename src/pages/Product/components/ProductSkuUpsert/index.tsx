@@ -245,10 +245,16 @@ const ProductSkuUpsert = () => {
     };
   };
 
-  const handleEditAttribute = (attributeValueId: string, index: number) => {
+  const handleEditAttribute = (
+    attributeId: string,
+    attributeValueId: string,
+    index: number
+  ) => {
+    // const handleEditAttribute = (attributeValueId: string, index: number) => {
     setIsEditAttribute(true);
     setEditAttIndex(index);
-    // setAttributeValueId(attributeValueId);
+    setAttributeId(attributeId);
+    setAttributeValueId(attributeValueId);
     // const attributeValue = attributeValuesData?.data?.find(
     //   (prdAttr) => prdAttr.id === +attributeValueId
     // );
@@ -327,6 +333,7 @@ const ProductSkuUpsert = () => {
                               variant='outlined'
                               onClick={() =>
                                 handleEditAttribute(
+                                  String(item.attributeId),
                                   String(item.attributeValueId),
                                   index
                                 )

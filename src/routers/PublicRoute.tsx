@@ -9,7 +9,7 @@ const PublicRoute = () => {
   const navigate = useNavigate();
   const auth = useAuthContext();
   const { data, refetch: whoAmIRefetch, isFetching, isError } = useWhoAmI();
-  const { data: rt, refetch } = useRefreshToken();
+  const { data: refreshToken, refetch } = useRefreshToken();
 
   useEffect(() => {
     if (!isFetching && !isError) {
@@ -19,13 +19,13 @@ const PublicRoute = () => {
     }
     if (isError) {
       refetch();
-      if (rt?.accessToken) {
-        Cookies.set('at', rt?.accessToken, { path: '/' });
+      if (refreshToken?.accessToken) {
+        Cookies.set('access_token', refreshToken?.accessToken, { path: '/' });
         whoAmIRefetch();
         navigate('dashboard');
       }
     }
-  }, [data, isFetching, isError, rt]);
+  }, [data, isFetching, isError, refreshToken]);
 
   return !auth?.user ? <Outlet /> : <LoadingBackdrop />;
 };

@@ -86,6 +86,10 @@ const routes = [
             path: `${ROUTES.PAYMENT}/*`,
             element: <Payment />,
           },
+          {
+            path: `*`,
+            element: <Dashboard />,
+          },
         ],
       },
     ],
