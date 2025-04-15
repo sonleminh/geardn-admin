@@ -1,11 +1,4 @@
-export interface IProductSkuAttribute {
-    id: number;
-    attribute: {
-        id: number;
-        type: string;
-        value: string;
-    };
-}
+import { IProductSkuAttribute } from "./IProductSkuAttribute";
 
 export interface IProductSku {
     id: number;
@@ -23,8 +16,8 @@ export interface ICreateProductSku extends Record<string, unknown>  {
     price: number;
     quantity: number;
     imageUrl: string | null;
-    attributes: {
-        attributeId: number
+    attributeValues: {
+        attributeValueId: number
     }[];
 }
 export interface IUpdateProductSkuPayload {
@@ -32,8 +25,8 @@ export interface IUpdateProductSkuPayload {
     price: number;
     quantity: number;
     imageUrl: string | null;
-    attributes: {
-        attributeId: number
+    attributeValues: {
+        attributeValueId: number
     }[];
 }
   

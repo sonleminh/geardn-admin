@@ -21,7 +21,6 @@ import {
   Typography,
 } from '@mui/material';
 
-import { ATTRIBUTE_TYPE } from '@/constants/attribute-type';
 import { QueryKeys } from '@/constants/query-key';
 
 import SuspenseLoader from '@/components/SuspenseLoader';
@@ -32,61 +31,60 @@ import { useNotificationContext } from '@/contexts/NotificationContext';
 import { createSchema, updateSchema } from '../utils/schema/attributeSchema';
 
 import {
-  useCreateProductAttribute,
-  useGetProductAttributeById,
-  useUpdateProductAttribute,
-} from '@/services/product-attribute';
-import { useGetAttributeTypeList } from '@/services/attribute-type';
+  useCreateAttributeValue,
+  useGetAttributeValueById,
+  useUpdateAttributeValue,
+} from '@/services/attribute-value';
+import { useGetAttributeList } from '@/services/attribute';
 import { ROUTES } from '@/constants/route';
 
-const ProductAttributeUpsert = () => {
+const AttributeValueUpsert = () => {
   const { id } = useParams();
+  const isEdit = !!id;
+  const numericId = id ? Number(id) : undefined;
+
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
 
-  const isEdit = !!id;
+  const { data: attributeValuesData } = useGetAttributeValueById(numericId);
+  const { data: attributesData } = useGetAttributeList();
 
-  const { data: productAttributeList } = useGetProductAttributeById(
-    id as string
-  );
-  const { data: attributeTypeList } = useGetAttributeTypeList();
-
-  const { mutate: createProductAttributeMutate, isPending: isCreatePending } =
-    useCreateProductAttribute();
-  const { mutate: updateProductAttributeMutate, isPending: isUpdatePending } =
-    useUpdateProductAttribute();
+  const { mutate: createAttributeValueMutate, isPending: isCreatePending } =
+    useCreateAttributeValue();
+  const { mutate: updateAttributeValueMutate, isPending: isUpdatePending } =
+    useUpdateAttributeValue();
   const formik = useFormik({
     initialValues: {
-      typeId: '',
+      attributeId: '',
       value: '',
     },
     validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
       if (isEdit) {
-        updateProductAttributeMutate(
-          { id: +id, typeId: +values.typeId, value: values.value },
+        updateAttributeValueMutate(
+          { id: +id, attributeId: +values.attributeId, value: values.value },
           {
             onSuccess() {
               queryClient.invalidateQueries({
-                queryKey: [QueryKeys.ProductAttribute],
+                queryKey: [QueryKeys.AttributeValue],
               });
               showNotification('Cập nhật phân loại thành công', 'success');
-              navigate(ROUTES.PRODUCT_ATTRIBUTE);
+              navigate(ROUTES.ATTRIBUTE_VALUE);
             },
           }
         );
       } else {
-        createProductAttributeMutate(
-          { typeId: +values.typeId, value: values.value },
+        createAttributeValueMutate(
+          { attributeId: +values.attributeId, value: values.value },
           {
             onSuccess() {
               queryClient.invalidateQueries({
-                queryKey: [QueryKeys.ProductAttribute],
+                queryKey: [QueryKeys.AttributeValue],
               });
               showNotification('Tạo phân loại thành công', 'success');
-              navigate(ROUTES.PRODUCT_ATTRIBUTE);
+              navigate(ROUTES.ATTRIBUTE_VALUE);
             },
           }
         );
@@ -95,11 +93,14 @@ const ProductAttributeUpsert = () => {
   });
 
   useEffect(() => {
-    if (productAttributeList) {
-      formik.setFieldValue('typeId', productAttributeList?.typeId);
-      formik.setFieldValue('value', productAttributeList?.value);
+    if (attributeValuesData) {
+      formik.setFieldValue(
+        'attributeId',
+        attributeValuesData?.data?.attributeId
+      );
+      formik.setFieldValue('value', attributeValuesData?.data?.value);
     }
-  }, [productAttributeList]);
+  }, [attributeValuesData]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -116,7 +117,7 @@ const ProductAttributeUpsert = () => {
       <CardHeader
         title={
           <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            {isEdit ? 'Sửa thuộc tính' : 'Thêm thuộc tính'}
+            {isEdit ? 'Sửa giá trị thuộc tính' : 'Thêm giá trị thuộc tính'}
           </Typography>
         }
       />
@@ -150,10 +151,10 @@ const ProductAttributeUpsert = () => {
             disableUnderline
             required
             size='small'
-            name='typeId'
+            name='attributeId'
             onChange={handleSelectChange}
-            value={formik?.values?.typeId ?? ''}>
-            {attributeTypeList?.data?.map((item) => (
+            value={formik?.values?.attributeId ?? ''}>
+            {attributesData?.data?.map((item) => (
               <MenuItem key={item.name} value={item.id}>
                 {item.label}
               </MenuItem>
@@ -161,7 +162,7 @@ const ProductAttributeUpsert = () => {
           </Select>
           <FormHelperText>
             <Box component={'span'} sx={helperTextStyle}>
-              {formik.errors?.typeId}
+              {formik.errors?.attributeId}
             </Box>
           </FormHelperText>
         </FormControl>
@@ -182,7 +183,7 @@ const ProductAttributeUpsert = () => {
         </FormControl>
         <Box sx={{ textAlign: 'end' }}>
           <Button
-            onClick={() => navigate(ROUTES.PRODUCT_ATTRIBUTE)}
+            onClick={() => navigate(ROUTES.ATTRIBUTE_VALUE)}
             sx={{ mr: 2 }}>
             Trở lại
           </Button>
@@ -196,7 +197,7 @@ const ProductAttributeUpsert = () => {
   );
 };
 
-export default ProductAttributeUpsert;
+export default AttributeValueUpsert;
 
 const helperTextStyle: SxProps<Theme> = {
   color: 'red',

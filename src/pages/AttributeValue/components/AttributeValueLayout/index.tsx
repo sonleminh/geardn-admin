@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Container } from '@mui/material';
 
-const AttributeTypeLayout = () => {
+const AttributeValueLayout = () => {
   return (
     <>
       <Container maxWidth='lg'>
@@ -11,4 +11,4 @@ const AttributeTypeLayout = () => {
   );
 };
 
-export default AttributeTypeLayout;
+export default AttributeValueLayout;

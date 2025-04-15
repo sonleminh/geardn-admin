@@ -91,12 +91,12 @@ const menuList = [
         active={location.pathname.includes('attribute')}
         options={[
           {
-            to: ROUTES.ATTRIBUTE_TYPE,
+            to: ROUTES.ATTRIBUTE,
             icon: <StyleIcon />,
             label: 'Loại thuộc tính',
           },
           {
-            to: ROUTES.PRODUCT_ATTRIBUTE,
+            to: ROUTES.ATTRIBUTE_VALUE,
             icon: <LocalOfferIcon />,
             label: 'Giá trị thuộc tính',
           },

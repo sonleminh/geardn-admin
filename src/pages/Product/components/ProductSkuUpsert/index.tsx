@@ -36,17 +36,18 @@ import { truncateTextByLine } from '@/utils/css-helper.util';
 
 import {
   useGetAttributesByType,
-  useGetProductAttributeList,
-  useGetProductAttributesByType,
-} from '@/services/product-attribute';
+  useGeta,
+  useGetAttributeValuesByType,
+  useGetAttributeValueList,
+} from '@/services/attribute-value';
 import {
   useCreateSku,
   useGetSkuByProductSku,
   useUpdateSku,
 } from '@/services/sku';
 import { useGetProductBySlug } from '@/services/product';
-import { useGetAttributeTypeList } from '@/services/attribute-type';
-import { IProductAttribute } from '@/interfaces/IProductAttribute';
+import { useGetAttributeList } from '@/services/attribute';
+import { IAttributeValue } from '@/interfaces/IAttributeValue';
 
 const ProductSkuUpsert = () => {
   const location = useLocation();
@@ -59,12 +60,13 @@ const ProductSkuUpsert = () => {
   const [isEditAttribute, setIsEditAttribute] = useState<boolean>(false);
   const [editAttIndex, setEditAttIndex] = useState<number | null>(null);
 
-  const [attributeTypeId, setAttributeTypeId] = useState<string>('');
-  const [productAttributeId, setProductAttributeId] = useState<string>('');
-  const [productAttribute, setProductAttribute] =
-    useState<IProductAttribute | null>(null);
-  const [productAttributeList, setProductAttributeList] = useState<
-    { productAttributeId: number }[]
+  const [attributeId, setAttributeId] = useState<string>('');
+  const [attributeValueId, setAttributeValueId] = useState<string>('');
+  const [attributeValue, setAttributeValue] = useState<IAttributeValue | null>(
+    null
+  );
+  const [attributeList, setAttributeList] = useState<
+    { attributeId: string; attributeValueId: string }[]
   >([]);
   const [showAttributeForm, setShowAttributeForm] = useState<boolean>(true);
 
@@ -74,10 +76,11 @@ const ProductSkuUpsert = () => {
   const { data: skuData } = useGetSkuByProductSku(
     isEdit ? (sku as string) : ''
   );
-  const { data: attributeTypeListData } = useGetAttributeTypeList();
-  const { data: productAttributeByTypeListData } =
-    useGetProductAttributesByType(+attributeTypeId);
-  const { data: productAttributesData } = useGetProductAttributeList();
+  const { data: attributeListData } = useGetAttributeList();
+  const { data: attributeValueByTypeListData } = useGetAttributeValuesByType(
+    +attributeId
+  );
+  const { data: attributeValuesData } = useGetAttributeValueList();
   const { mutate: createSkuMutate, isPending: isCreatePending } =
     useCreateSku();
   const { mutate: updateSkuMutate, isPending: isUpdatePending } =
@@ -88,11 +91,12 @@ const ProductSkuUpsert = () => {
       formik.setFieldValue('price', skuData?.data?.price);
       formik.setFieldValue('quantity', skuData?.data?.quantity);
       formik.setFieldValue('imageUrl', skuData?.data?.imageUrl);
-      // setProductAttributeList(
-      //   skuData?.data?.productSkuAttributes?.map((item) => ({
-      //     attributeId: item?.attribute?.id,
-      //   }))
-      // );
+      setAttributeList(
+        skuData?.data?.productSkuAttributes?.map((item) => ({
+          attributeId: String(item?.attribute?.id),
+          attributeValueId: String(item?.attributeValueId),
+        }))
+      );
     }
   }, [sku, skuData]);
 
@@ -108,7 +112,7 @@ const ProductSkuUpsert = () => {
       if (!sku) {
         throw new Error('sku is missing');
       }
-      if (attributeTypeId || productAttributeId) {
+      if (attributeId || attributeValueId) {
         return showNotification('Chưa lưu phân loại hàng', 'error');
       }
       const payload = {
@@ -116,33 +120,34 @@ const ProductSkuUpsert = () => {
         price: +values.price,
         quantity: +values.quantity,
         imageUrl: values.imageUrl === '' ? null : values.imageUrl,
-        attributes: productAttributeList,
+        attributeValues: attributeList?.map((item) => ({
+          attributeValueId: +item.attributeValueId,
+        })),
         productId: isEdit ? skuData?.data?.productId : productData?.data?.id,
       };
-      console.log('payload', payload);
-      // if (isEdit && skuData) {
-      //   updateSkuMutate(
-      //     { id: skuData?.data?.id, ...payload },
-      //     {
-      //       onSuccess() {
-      //         queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
-      //         showNotification('Cập nhật sản phẩm thành công', 'success');
-      //         navigate(-1);
-      //       },
-      //       onError() {
-      //         showNotification('Đã có lỗi xảy ra', 'error');
-      //       },
-      //     }
-      //   );
-      // } else {
-      //   createSkuMutate(payload, {
-      //     onSuccess() {
-      //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
-      //       showNotification('Tạo sản phẩm thành công', 'success');
-      //       navigate(-1);
-      //     },
-      //   });
-      // }
+      if (isEdit && skuData) {
+        updateSkuMutate(
+          { id: skuData?.data?.id, ...payload },
+          {
+            onSuccess() {
+              queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
+              showNotification('Cập nhật sản phẩm thành công', 'success');
+              navigate(-1);
+            },
+            onError() {
+              showNotification('Đã có lỗi xảy ra', 'error');
+            },
+          }
+        );
+      } else {
+        createSkuMutate(payload, {
+          onSuccess() {
+            queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
+            showNotification('Tạo sản phẩm thành công', 'success');
+            navigate(-1);
+          },
+        });
+      }
     },
   });
 
@@ -151,17 +156,17 @@ const ProductSkuUpsert = () => {
     formik.setFieldValue(name, value);
   };
 
-  const handleAttributeTypeChange = (e: SelectChangeEvent<string>) => {
-    setAttributeTypeId(e?.target?.value);
+  const handleAttributeChange = (e: SelectChangeEvent<string>) => {
+    setAttributeId(e?.target?.value);
   };
 
-  const handleProductAttributeValueChange = (e: SelectChangeEvent<string>) => {
-    setProductAttributeId(e?.target?.value);
-    const selectedProductAttribute = productAttributesData?.data?.find(
+  const handleAttributeValueValueChange = (e: SelectChangeEvent<string>) => {
+    setAttributeValueId(e?.target?.value);
+    const selectedAttributeValue = attributeValuesData?.data?.find(
       (attr) => attr.id === +e?.target?.value
     );
-    if (selectedProductAttribute) {
-      setProductAttribute(selectedProductAttribute);
+    if (selectedAttributeValue) {
+      setAttributeValue(selectedAttributeValue);
     }
   };
 
@@ -174,69 +179,82 @@ const ProductSkuUpsert = () => {
   };
 
   const handleSaveAttribute = () => {
-    const selectedProductAttribute = productAttributesData?.data?.find(
-      (attr) => attr.id === +productAttributeId
+    const selectedAttributeValue = attributeValuesData?.data?.find(
+      (attr) => attr.id === +attributeValueId
     );
 
-    if (!selectedProductAttribute) return;
-    const isAlreadySelected = productAttributeList.some((item) => {
-      const existingAttribute = productAttributesData?.data?.find(
-        (attr) => attr.id === item.productAttributeId
+    if (!selectedAttributeValue) return;
+    const isAlreadySelected = attributeList.some((item) => {
+      const existingAttribute = attributeValuesData?.data?.find(
+        (attr) => attr.id === +item.attributeValueId
       );
-      return existingAttribute?.typeId === selectedProductAttribute.typeId;
+      return (
+        existingAttribute?.attributeId === selectedAttributeValue.attributeId
+      );
     });
 
     if (isAlreadySelected && !isEditAttribute) {
       return showNotification('Bạn đã chọn loại thuộc tính này!', 'error');
     }
 
-    if (editAttIndex !== null && productAttributeId) {
-      const updatedAttributeList = productAttributeList;
+    if (editAttIndex !== null && attributeValueId) {
+      const updatedAttributeList = attributeList;
       updatedAttributeList[editAttIndex] = {
-        productAttributeId: +productAttributeId,
+        attributeId: attributeId,
+        attributeValueId: attributeValueId,
       };
-      setProductAttributeList(updatedAttributeList);
-      setProductAttributeId('');
-      setAttributeTypeId('');
+      setAttributeList(updatedAttributeList);
+      setAttributeValueId('');
+      setAttributeId('');
     } else {
-      if (productAttributeId) {
-        setProductAttributeList((prev) => [
+      if (attributeValueId) {
+        setAttributeList((prev) => [
           ...prev,
-          { productAttributeId: +productAttributeId },
+          { attributeId: attributeId, attributeValueId: attributeValueId },
         ]);
       }
-      setProductAttributeId('');
-      setAttributeTypeId('');
+      setAttributeValueId('');
+      setAttributeId('');
     }
   };
-  // const handleDelBtn = () => {
-  //   setAttributeId(null);
-  //   setAttributeType('');
-  // };
+
+  const handleDelBtn = () => {
+    setAttributeId('');
+    setAttributeValueId('');
+  };
+
+  console.log('attId', attributeId);
+  console.log('attId2', !!attributeValueId?.length);
 
   const handleDeleteAttribute = (attributeIndex: number) => {
-    setProductAttributeList(
-      productAttributeList?.filter((_, index) => index !== attributeIndex)
+    setAttributeList(
+      attributeList?.filter((_, index) => index !== attributeIndex)
     );
   };
 
-  const getProductAttributeLabel = (attributeId: number) => {
-    const attribute = productAttributesData?.data?.find(
-      (attr) => attr.id === attributeId
+  const getAttributeLabel = (attributeId: string, attributeValueId: string) => {
+    const attribute = attributeListData?.data?.find(
+      (attr) => attr.id === +attributeId
     );
-    return attribute;
+    const attributeValue = attributeValuesData?.data?.find(
+      (attr) => attr.id === +attributeValueId
+    );
+    return {
+      attribute: attribute?.label,
+      attributeValue: attributeValue?.value,
+    };
   };
 
-  const handleEditAttribute = (productAttributeId: string, index: number) => {
+  const handleEditAttribute = (attributeValueId: string, index: number) => {
     setIsEditAttribute(true);
     setEditAttIndex(index);
-    setProductAttributeId(productAttributeId);
-    const productAttribute = productAttributesData?.data?.find(
-      (prdAttr) => prdAttr.id === +productAttributeId
-    );
-    if (productAttribute) {
-      setProductAttributeId(String(productAttribute.typeId));
-    }
+    // setAttributeValueId(attributeValueId);
+    // const attributeValue = attributeValuesData?.data?.find(
+    //   (prdAttr) => prdAttr.id === +attributeValueId
+    // );
+    // if (attributeValue) {
+    //   setAttributeValueId(String(attributeValue.attributeId));
+    // }
   };
 
   return (
@@ -272,7 +290,7 @@ const ProductSkuUpsert = () => {
           </Grid2>
           {(showAttributeForm || isEdit) && (
             <>
-              {productAttributeList.length > 0 && (
+              {attributeList.length > 0 && (
                 <Grid2 size={12} className='attribute-list'>
                   <Box
                     sx={{
@@ -281,22 +299,23 @@ const ProductSkuUpsert = () => {
                       border: '1px solid #ccc',
                       borderRadius: 1,
                     }}>
-                    {productAttributeList.map((item, index) => {
-                      const productAttributeItem = getProductAttributeLabel(
-                        item.productAttributeId
+                    {attributeList.map((item, index) => {
+                      const attributeValueItem = getAttributeLabel(
+                        item.attributeId,
+                        item.attributeValueId
                       );
                       return (
                         <Box
-                          key={item.productAttributeId}
+                          key={item.attributeValueId}
                           sx={{
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
                             my: 1.5,
                           }}>
-                          <Typography key={item.productAttributeId}>
-                            {productAttributeItem?.typeId} -{' '}
-                            {productAttributeItem?.value}
+                          <Typography key={item?.attributeValueId}>
+                            {attributeValueItem?.attribute ?? ''} -{' '}
+                            {attributeValueItem?.attributeValue ?? ''}
                           </Typography>
                           <Box>
                             <Button
@@ -308,7 +327,7 @@ const ProductSkuUpsert = () => {
                               variant='outlined'
                               onClick={() =>
                                 handleEditAttribute(
-                                  String(item.productAttributeId),
+                                  String(item.attributeValueId),
                                   index
                                 )
                               }>
@@ -364,10 +383,10 @@ const ProductSkuUpsert = () => {
                   <Select
                     disableUnderline
                     size='small'
-                    onChange={handleAttributeTypeChange}
-                    value={attributeTypeId ?? ''}
+                    onChange={handleAttributeChange}
+                    value={attributeId ?? ''}
                     disabled={isEditAttribute}>
-                    {attributeTypeListData?.data?.map((item) => (
+                    {attributeListData?.data?.map((item) => (
                       <MenuItem key={item?.id} value={String(item.id)}>
                         {item?.label}
                       </MenuItem>
@@ -405,10 +424,10 @@ const ProductSkuUpsert = () => {
                   <Select
                     disableUnderline
                     size='small'
-                    onChange={handleProductAttributeValueChange}
-                    value={productAttributeId ?? ''}
-                    disabled={!productAttributeByTypeListData}>
-                    {productAttributeByTypeListData?.data?.map((item) => (
+                    onChange={handleAttributeValueValueChange}
+                    value={attributeValueId ?? ''}
+                    disabled={!attributeValueByTypeListData}>
+                    {attributeValueByTypeListData?.data?.map((item) => (
                       <MenuItem key={item.id} value={item.id}>
                         {item.value}
                       </MenuItem>
@@ -429,16 +448,17 @@ const ProductSkuUpsert = () => {
                     //     ? true
                     //     : false
                     // }
-                    disabled={!productAttributeId}
+                    disabled={!attributeValueId}
                     onClick={handleSaveAttribute}>
                     Lưu
                   </Button>
-                  {/* <Button
+                  <Button
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='outlined'
-                    onClick={() => handleDelBtn}>
+                    onClick={handleDelBtn}
+                    disabled={attributeValueId?.length <= 0}>
                     Xóa
-                  </Button> */}
+                  </Button>
                   {/* <Button
                     sx={{
                       ml: 2,
@@ -461,6 +481,7 @@ const ProductSkuUpsert = () => {
                 label='Giá'
                 name='price'
                 variant='filled'
+                type='number'
                 size='small'
                 required
                 helperText={
@@ -479,6 +500,7 @@ const ProductSkuUpsert = () => {
                 label='Số lượng'
                 name='quantity'
                 variant='filled'
+                type='number'
                 size='small'
                 required
                 helperText={

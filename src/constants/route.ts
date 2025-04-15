@@ -1,5 +1,6 @@
 export const ROUTES = {
-    ATTRIBUTE_TYPE: '/attribute-type',
+    ATTRIBUTE: '/attribute',
+    ATTRIBUTE_VALUE: '/attribute-value',
     CATEGORY: '/category',
     DASHBOARD: '/dashboard',
     HOME: '/',
@@ -7,5 +8,4 @@ export const ROUTES = {
     ORDER: '/order',
     PAYMENT: '/payment',
     PRODUCT: '/product',
-    PRODUCT_ATTRIBUTE: '/product-attribute',
   };

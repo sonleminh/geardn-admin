@@ -6,12 +6,14 @@ import { ROUTES } from '@/constants/route';
 import AdminLayout from '../layouts/AdminLayout';
 import BaseLayout from '../layouts/BaseLayout';
 
-import SuspenseLoader from '../components/SuspenseLoader';
-import AttributeType from '@/pages/AttributeType';
-import Attribute from '@/pages/ProductAttribute';
 import PrivateRoute from './PrivateRoute';
-import Dashboard from '@/pages/Dashboard';
 import PublicRoute from './PublicRoute';
+
+import SuspenseLoader from '../components/SuspenseLoader';
+
+import AttributeValue from '@/pages/AttributeValue';
+import Attribute from '@/pages/Attribute';
+import Dashboard from '@/pages/Dashboard';
 import Category from '@/pages/Category';
 import Payment from '@/pages/Payment';
 import Product from '@/pages/Product';
@@ -69,12 +71,12 @@ const routes = [
             element: <Category />,
           },
           {
-            path: `${ROUTES.ATTRIBUTE_TYPE}/*`,
-            element: <AttributeType />,
+            path: `${ROUTES.ATTRIBUTE}/*`,
+            element: <Attribute />,
           },
           {
-            path: `${ROUTES.PRODUCT_ATTRIBUTE}/*`,
-            element: <Attribute />,
+            path: `${ROUTES.ATTRIBUTE_VALUE}/*`,
+            element: <AttributeValue />,
           },
           {
             path: `${ROUTES.ORDER}/*`,

@@ -1,16 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
 import moment from 'moment';
 
-import { AddCircleOutlined } from '@mui/icons-material';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { QueryKeys } from '@/constants/query-key';
-
-import ActionButton from '@/components/ActionButton';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { truncateTextByLine } from '@/utils/css-helper.util';
 import {
   Box,
   Card,
@@ -26,13 +18,23 @@ import {
 } from '@mui/material';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import { AddCircleOutlined } from '@mui/icons-material';
 
-import {
-  useDeleteProductAttribute,
-  useGetProductAttributeList,
-} from '@/services/product-attribute';
+import { QueryKeys } from '@/constants/query-key';
 
-const ProductAttributeList = () => {
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import ActionButton from '@/components/ActionButton';
+
+import { useNotificationContext } from '@/contexts/NotificationContext';
+
+import useConfirmModal from '@/hooks/useModalConfirm';
+
+import { truncateTextByLine } from '@/utils/css-helper.util';
+
+import { useDeleteAttributeValue } from '@/services/attribute-value';
+import { useGetAttributeList } from '@/services/attribute';
+
+const AttributeList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   // const [query, setQuery] = useState<IQuery>({
@@ -40,13 +42,13 @@ const ProductAttributeList = () => {
   //   page: 1,
   // });
 
-  const { data } = useGetProductAttributeList();
+  const { data } = useGetAttributeList();
 
   const { showNotification } = useNotificationContext();
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
-  const { mutate: deleteAttributeMutate } = useDeleteProductAttribute();
+  const { mutate: deleteAttributeMutate } = useDeleteAttributeValue();
 
   const handleDeleteAttribute = (id: number) => {
     showNotification('Ok', 'error');
@@ -70,13 +72,13 @@ const ProductAttributeList = () => {
             <ButtonWithTooltip
               variant='contained'
               onClick={() => navigate('create')}
-              title='Thêm danh mục'>
+              title='Thêm loại thuộc tính'>
               <AddCircleOutlined />
             </ButtonWithTooltip>
           }
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Danh sách phân loại
+              Danh sách loại thuộc tính
             </Typography>
           }
         />
@@ -86,8 +88,8 @@ const ProductAttributeList = () => {
             <TableHead>
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
-                <TableCell>Loại</TableCell>
-                <TableCell>Giá trị</TableCell>
+                <TableCell>Tên</TableCell>
+                <TableCell>Nhãn</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
@@ -98,12 +100,12 @@ const ProductAttributeList = () => {
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item?.attributeType?.label}
+                      {item.name}
                     </Typography>
                   </TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.value}
+                      {item.label}
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>
@@ -173,4 +175,4 @@ const ProductAttributeList = () => {
   );
 };
 
-export default ProductAttributeList;
+export default AttributeList;

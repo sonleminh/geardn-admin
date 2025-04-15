@@ -25,14 +25,14 @@ import SuspenseLoader from '@/components/SuspenseLoader';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 
 import {
-  useCreateAttributeType,
-  useGetAttributeTypeById,
-  useUpdateAttributeType,
-} from '@/services/attribute-type';
+  useCreateAttribute,
+  useGetAttributeById,
+  useUpdateAttribute,
+} from '@/services/attribute';
 
 import { createSchema, updateSchema } from '../utils/schema/attributeSchema';
 
-const AttributeTypeUpsert = () => {
+const AttributeUpsert = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -40,12 +40,12 @@ const AttributeTypeUpsert = () => {
 
   const isEdit = !!id;
 
-  const { data: attributeTypeData } = useGetAttributeTypeById(id as string);
+  const { data: AttributeData } = useGetAttributeById(id as string);
 
-  const { mutate: createAttributeTypeMutate, isPending: isCreatePending } =
-    useCreateAttributeType();
-  const { mutate: updateAttributeTypeMutate, isPending: isUpdatePending } =
-    useUpdateAttributeType();
+  const { mutate: createAttributeMutate, isPending: isCreatePending } =
+    useCreateAttribute();
+  const { mutate: updateAttributeMutate, isPending: isUpdatePending } =
+    useUpdateAttribute();
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -55,29 +55,29 @@ const AttributeTypeUpsert = () => {
     validateOnChange: false,
     onSubmit(values) {
       if (isEdit) {
-        updateAttributeTypeMutate(
+        updateAttributeMutate(
           { id: +id, ...values },
           {
             onSuccess() {
               queryClient.invalidateQueries({
-                queryKey: [QueryKeys.AttributeType],
+                queryKey: [QueryKeys.Attribute],
               });
               showNotification(
                 'Cập nhật loại thuộc tính thành công',
                 'success'
               );
-              navigate(ROUTES.ATTRIBUTE_TYPE);
+              navigate(ROUTES.ATTRIBUTE);
             },
           }
         );
       } else {
-        createAttributeTypeMutate(values, {
+        createAttributeMutate(values, {
           onSuccess() {
             queryClient.invalidateQueries({
-              queryKey: [QueryKeys.AttributeType],
+              queryKey: [QueryKeys.Attribute],
             });
             showNotification('Tạo loại thuộc tính thành công', 'success');
-            navigate(ROUTES.ATTRIBUTE_TYPE);
+            navigate(ROUTES.ATTRIBUTE);
           },
         });
       }
@@ -85,11 +85,11 @@ const AttributeTypeUpsert = () => {
   });
 
   useEffect(() => {
-    if (attributeTypeData) {
-      formik.setFieldValue('name', attributeTypeData?.name);
-      formik.setFieldValue('label', attributeTypeData?.label);
+    if (AttributeData) {
+      formik.setFieldValue('name', AttributeData?.name);
+      formik.setFieldValue('label', AttributeData?.label);
     }
-  }, [attributeTypeData]);
+  }, [AttributeData]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -139,9 +139,7 @@ const AttributeTypeUpsert = () => {
           />
         </FormControl>
         <Box sx={{ textAlign: 'end' }}>
-          <Button
-            onClick={() => navigate(ROUTES.ATTRIBUTE_TYPE)}
-            sx={{ mr: 2 }}>
+          <Button onClick={() => navigate(ROUTES.ATTRIBUTE)} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>
@@ -154,7 +152,7 @@ const AttributeTypeUpsert = () => {
   );
 };
 
-export default AttributeTypeUpsert;
+export default AttributeUpsert;
 
 const helperTextStyle: SxProps<Theme> = {
   color: 'red',

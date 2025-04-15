@@ -1,8 +1,16 @@
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import moment from 'moment';
 
-import { useQueryClient } from '@tanstack/react-query';
+import { AddCircleOutlined } from '@mui/icons-material';
 
+import { QueryKeys } from '@/constants/query-key';
+
+import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import useConfirmModal from '@/hooks/useModalConfirm';
+import { truncateTextByLine } from '@/utils/css-helper.util';
 import {
   Box,
   Card,
@@ -18,23 +26,13 @@ import {
 } from '@mui/material';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import { AddCircleOutlined } from '@mui/icons-material';
 
-import { QueryKeys } from '@/constants/query-key';
+import {
+  useDeleteAttributeValue,
+  useGetAttributeValueList,
+} from '@/services/attribute-value';
 
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import ActionButton from '@/components/ActionButton';
-
-import { useNotificationContext } from '@/contexts/NotificationContext';
-
-import useConfirmModal from '@/hooks/useModalConfirm';
-
-import { truncateTextByLine } from '@/utils/css-helper.util';
-
-import { useDeleteProductAttribute } from '@/services/product-attribute';
-import { useGetAttributeTypeList } from '@/services/attribute-type';
-
-const AttributeTypeList = () => {
+const AttributeValueList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   // const [query, setQuery] = useState<IQuery>({
@@ -42,19 +40,19 @@ const AttributeTypeList = () => {
   //   page: 1,
   // });
 
-  const { data } = useGetAttributeTypeList();
+  const { data } = useGetAttributeValueList();
 
   const { showNotification } = useNotificationContext();
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
-  const { mutate: deleteAttributeMutate } = useDeleteProductAttribute();
+  const { mutate: deleteAttributeMutate } = useDeleteAttributeValue();
 
   const handleDeleteAttribute = (id: number) => {
     showNotification('Ok', 'error');
     deleteAttributeMutate(id, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.AttributeType] });
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Attribute] });
         showNotification('Xóa phân loại thành công', 'success');
       },
     });
@@ -72,13 +70,13 @@ const AttributeTypeList = () => {
             <ButtonWithTooltip
               variant='contained'
               onClick={() => navigate('create')}
-              title='Thêm loại thuộc tính'>
+              title='Thêm danh mục'>
               <AddCircleOutlined />
             </ButtonWithTooltip>
           }
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Danh sách loại thuộc tính
+              Danh sách phân loại
             </Typography>
           }
         />
@@ -88,8 +86,8 @@ const AttributeTypeList = () => {
             <TableHead>
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
-                <TableCell>Tên</TableCell>
-                <TableCell>Nhãn</TableCell>
+                <TableCell>Loại</TableCell>
+                <TableCell>Giá trị</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
@@ -100,12 +98,12 @@ const AttributeTypeList = () => {
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.name}
+                      {item?.attribute?.label}
                     </Typography>
                   </TableCell>
                   <TableCell sx={{ width: '30%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.label}
+                      {item.value}
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>
@@ -175,4 +173,4 @@ const AttributeTypeList = () => {
   );
 };
 
-export default AttributeTypeList;
+export default AttributeValueList;
