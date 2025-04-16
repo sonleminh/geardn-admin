@@ -56,19 +56,21 @@ export const useGetAttributeValueById = (id: number | undefined) => {
   });
 };
 
-const getAttributeValuesByType = async (attributeId: number | undefined) => {
+const getAttributeValuesByAttributeId = async (
+  attributeId: number | undefined
+) => {
   const result = await getRequest(
     `${attributeValueUrl}/attribute/${attributeId}`
   );
   return result.data as TAttributeValueListByTypeRes;
 };
 
-export const useGetAttributeValuesByType = (
+export const useGetAttributeValuesByAttributeId = (
   attributeId: number | undefined
 ) => {
   return useQuery({
     queryKey: [QueryKeys.Product, attributeId],
-    queryFn: () => getAttributeValuesByType(attributeId),
+    queryFn: () => getAttributeValuesByAttributeId(attributeId),
     refetchOnWindowFocus: false,
     refetchInterval: false,
     enabled: !!attributeId,

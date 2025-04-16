@@ -1,8 +1,11 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { useFormik } from 'formik';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useFormik } from 'formik';
-import { useQueryClient } from '@tanstack/react-query';
 
+import AddIcon from '@mui/icons-material/Add';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Box,
   Button,
@@ -20,34 +23,29 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import AddIcon from '@mui/icons-material/Add';
 
 import { QueryKeys } from '@/constants/query-key';
 
-import SuspenseLoader from '@/components/SuspenseLoader';
 import ImageUpload from '@/components/ImageUpload';
 import Input from '@/components/Input';
+import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
 
 import { truncateTextByLine } from '@/utils/css-helper.util';
 
+import { IAttributeValue } from '@/interfaces/IAttributeValue';
+import { useGetAttributeList } from '@/services/attribute';
 import {
-  useGetAttributesByType,
-  useGeta,
-  useGetAttributeValuesByType,
   useGetAttributeValueList,
+  useGetAttributeValuesByAttributeId,
 } from '@/services/attribute-value';
+import { useGetProductBySlug } from '@/services/product';
 import {
   useCreateSku,
   useGetSkuByProductSku,
   useUpdateSku,
 } from '@/services/sku';
-import { useGetProductBySlug } from '@/services/product';
-import { useGetAttributeList } from '@/services/attribute';
-import { IAttributeValue } from '@/interfaces/IAttributeValue';
 
 const ProductSkuUpsert = () => {
   const location = useLocation();
@@ -77,8 +75,11 @@ const ProductSkuUpsert = () => {
     isEdit ? (sku as string) : ''
   );
   const { data: attributeListData } = useGetAttributeList();
-  const { data: attributeValueByTypeListData } = useGetAttributeValuesByType(
-    +attributeId
+  const { data: attributeValueByAttIdListData } =
+    useGetAttributeValuesByAttributeId(+attributeId);
+  console.log(
+    'attributeValueByTypattributeValueByAttIdListDataeListData',
+    attributeValueByAttIdListData
   );
   const { data: attributeValuesData } = useGetAttributeValueList();
   const { mutate: createSkuMutate, isPending: isCreatePending } =
@@ -93,8 +94,8 @@ const ProductSkuUpsert = () => {
       formik.setFieldValue('imageUrl', skuData?.data?.imageUrl);
       setAttributeList(
         skuData?.data?.productSkuAttributes?.map((item) => ({
-          attributeId: String(item?.attribute?.id),
-          attributeValueId: String(item?.attributeValueId),
+          attributeId: String(item?.attributeValue?.attributeId),
+          attributeValueId: String(item?.attributeValue?.id),
         }))
       );
     }
@@ -216,6 +217,7 @@ const ProductSkuUpsert = () => {
       setAttributeValueId('');
       setAttributeId('');
     }
+    setIsEditAttribute(false);
   };
 
   const handleDelBtn = () => {
@@ -227,9 +229,14 @@ const ProductSkuUpsert = () => {
   console.log('attId2', !!attributeValueId?.length);
 
   const handleDeleteAttribute = (attributeIndex: number) => {
-    setAttributeList(
-      attributeList?.filter((_, index) => index !== attributeIndex)
+    const updAttributeList = attributeList?.filter(
+      (_, index) => index !== attributeIndex
     );
+    console.log('updAttributeList', updAttributeList);
+    if (updAttributeList?.length === 0) {
+      setIsEditAttribute(false);
+    }
+    setAttributeList(updAttributeList);
   };
 
   const getAttributeLabel = (attributeId: string, attributeValueId: string) => {
@@ -296,7 +303,7 @@ const ProductSkuUpsert = () => {
           </Grid2>
           {(showAttributeForm || isEdit) && (
             <>
-              {attributeList.length > 0 && (
+              {attributeList?.length > 0 && (
                 <Grid2 size={12} className='attribute-list'>
                   <Box
                     sx={{
@@ -305,14 +312,14 @@ const ProductSkuUpsert = () => {
                       border: '1px solid #ccc',
                       borderRadius: 1,
                     }}>
-                    {attributeList.map((item, index) => {
+                    {attributeList?.map((item, index) => {
                       const attributeValueItem = getAttributeLabel(
-                        item.attributeId,
-                        item.attributeValueId
+                        item?.attributeId,
+                        item?.attributeValueId
                       );
                       return (
                         <Box
-                          key={item.attributeValueId}
+                          key={item?.attributeValueId}
                           sx={{
                             display: 'flex',
                             justifyContent: 'space-between',
@@ -433,9 +440,9 @@ const ProductSkuUpsert = () => {
                     size='small'
                     onChange={handleAttributeValueValueChange}
                     value={attributeValueId ?? ''}
-                    disabled={!attributeValueByTypeListData}>
-                    {attributeValueByTypeListData?.data?.map((item) => (
-                      <MenuItem key={item.id} value={item.id}>
+                    disabled={!attributeValueByAttIdListData}>
+                    {attributeValueByAttIdListData?.data?.map((item) => (
+                      <MenuItem key={item?.id} value={String(item?.id)}>
                         {item.value}
                       </MenuItem>
                     ))}
