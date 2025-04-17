@@ -8,4 +8,5 @@ export const ROUTES = {
     ORDER: '/order',
     PAYMENT: '/payment',
     PRODUCT: '/product',
+    WAREHOUSE: '/warehouse',
   };

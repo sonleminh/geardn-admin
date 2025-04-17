@@ -3,9 +3,11 @@ export const QueryKeys = {
     AttributeValue: 'ATTRIBUTE_VALUE',
     Category: 'CATEGORY',
     Inventory: 'INVENTORY',
+    ImportLog: 'IMPORT_LOG',
     Model: 'MODEL',
     Order: 'ORDER',
     Payment: 'PAYMENT',
     Product: 'PRODUCT',
     Sku: 'SKU',
+    Warehouse: 'WAREHOUSE'
 }

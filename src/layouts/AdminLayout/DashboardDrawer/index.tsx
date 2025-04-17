@@ -50,7 +50,7 @@ const menuList = [
   {
     item: (
       <ListItem>
-        <ListItemButton component={NavLink} to={ROUTES.DASHBOARD}>
+        <ListItemButton component={NavLink} to={ROUTES.WAREHOUSE}>
           <ListItemIcon>
             <WarehouseOutlinedIcon />
           </ListItemIcon>

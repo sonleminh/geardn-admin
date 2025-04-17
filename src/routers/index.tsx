@@ -18,6 +18,7 @@ import Category from '@/pages/Category';
 import Payment from '@/pages/Payment';
 import Product from '@/pages/Product';
 import Order from '@/pages/Order';
+import Warehouse from '@/pages/Warehouse';
 
 const Loader =
   <P extends object>(Component: React.ComponentType<P>): React.FC<P> =>
@@ -59,18 +60,6 @@ const routes = [
             element: <Navigate to={ROUTES.DASHBOARD} replace />,
           },
           {
-            path: `${ROUTES.DASHBOARD}`,
-            element: <Dashboard />,
-          },
-          {
-            path: `${ROUTES.PRODUCT}/*`,
-            element: <Product />,
-          },
-          {
-            path: `${ROUTES.CATEGORY}/*`,
-            element: <Category />,
-          },
-          {
             path: `${ROUTES.ATTRIBUTE}/*`,
             element: <Attribute />,
           },
@@ -79,12 +68,28 @@ const routes = [
             element: <AttributeValue />,
           },
           {
+            path: `${ROUTES.CATEGORY}/*`,
+            element: <Category />,
+          },
+          {
+            path: `${ROUTES.DASHBOARD}`,
+            element: <Dashboard />,
+          },
+          {
             path: `${ROUTES.ORDER}/*`,
             element: <Order />,
           },
           {
             path: `${ROUTES.PAYMENT}/*`,
             element: <Payment />,
+          },
+          {
+            path: `${ROUTES.PRODUCT}/*`,
+            element: <Product />,
+          },
+          {
+            path: `${ROUTES.WAREHOUSE}/*`,
+            element: <Warehouse />,
           },
           {
             path: `*`,

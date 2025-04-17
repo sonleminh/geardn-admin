@@ -90,7 +90,6 @@ const ProductSkuUpsert = () => {
   useEffect(() => {
     if (skuData) {
       formik.setFieldValue('price', skuData?.data?.price);
-      formik.setFieldValue('quantity', skuData?.data?.quantity);
       formik.setFieldValue('imageUrl', skuData?.data?.imageUrl);
       setAttributeList(
         skuData?.data?.productSkuAttributes?.map((item) => ({
@@ -104,7 +103,6 @@ const ProductSkuUpsert = () => {
   const formik = useFormik({
     initialValues: {
       price: '',
-      quantity: '',
       imageUrl: '',
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
@@ -119,7 +117,6 @@ const ProductSkuUpsert = () => {
       const payload = {
         ...values,
         price: +values.price,
-        quantity: +values.quantity,
         imageUrl: values.imageUrl === '' ? null : values.imageUrl,
         attributeValues: attributeList?.map((item) => ({
           attributeValueId: +item.attributeValueId,
@@ -504,25 +501,6 @@ const ProductSkuUpsert = () => {
                   </Box>
                 }
                 value={formik?.values.price}
-                onChange={handleChangeValue}
-              />
-            </FormControl>
-          </Grid2>
-          <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Input
-                label='Số lượng'
-                name='quantity'
-                variant='filled'
-                type='number'
-                size='small'
-                required
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.quantity}
-                  </Box>
-                }
-                value={formik?.values.quantity}
                 onChange={handleChangeValue}
               />
             </FormControl>
