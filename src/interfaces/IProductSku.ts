@@ -1,3 +1,4 @@
+import { IProduct } from "./IProduct";
 import { IProductSkuAttribute } from "./IProductSkuAttribute";
 
 export interface IProductSku {
@@ -6,7 +7,8 @@ export interface IProductSku {
     sku: string;
     price: number;
     imageUrl: string;
-    productSkuAttributes: IProductSkuAttribute[]
+    productSkuAttribute: IProductSkuAttribute[]
+    product: IProduct;
     createdAt: Date;
 }
 

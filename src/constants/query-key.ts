@@ -9,5 +9,6 @@ export const QueryKeys = {
     Payment: 'PAYMENT',
     Product: 'PRODUCT',
     Sku: 'SKU',
+    Stock: 'STOCK',
     Warehouse: 'WAREHOUSE'
 }

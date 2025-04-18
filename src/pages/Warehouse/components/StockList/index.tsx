@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { QueryKeys } from '@/constants/query-key';
@@ -32,8 +32,11 @@ import { useDeleteWarehouse, useGetWarehouseList } from '@/services/warehouse';
 import { IQuery } from '@/interfaces/IQuery';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import { useGetStocksByWarehouse } from '@/services/stock';
 
 const StockList = () => {
+  const { id } = useParams();
+
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [query, setQuery] = useState<IQuery>({
@@ -41,7 +44,11 @@ const StockList = () => {
     page: 1,
   });
 
-  const { data } = useGetWarehouseList();
+  const numericId = id ? Number(id) : undefined;
+
+  const { data: stocksData } = useGetStocksByWarehouse(numericId);
+
+  console.log('c:', stocksData?.data?.[0]?.sku?.productSkuAttributes);
 
   const { showNotification } = useNotificationContext();
 
@@ -86,23 +93,47 @@ const StockList = () => {
             <TableHead>
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
-                <TableCell>Tên</TableCell>
+                <TableCell>Sản phẩm</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
-                <TableCell align='center'>Xem kho hàng</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data?.data?.map((item, index) => (
+              {stocksData?.data?.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell align='center'>{index + 1}</TableCell>
                   <TableCell sx={{ width: '30%' }}>
-                    <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.name}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Box
+                        sx={{
+                          height: 60,
+                          '.thumbnail': {
+                            width: 60,
+                            height: 60,
+                            objectFit: 'contain',
+                          },
+                        }}>
+                        <img src={item?.sku?.imageUrl} className='thumbnail' />
+                      </Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          ml: 2,
+                        }}>
+                        <Typography sx={{ ...truncateTextByLine(2) }}>
+                          {item?.sku?.product?.name}
+                        </Typography>
+                        <Box>
+                          <Typography sx={{ ...truncateTextByLine(2) }}>
+                            {item?.sku?.productSkuAttributes?.length} variants
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
                   </TableCell>
                   <TableCell align='center'>
-                    {moment(item.createdAt).format('DD/MM/YYYY')}
+                    {moment(item?.createdAt).format('DD/MM/YYYY')}
                   </TableCell>
                   <TableCell align='center'>
                     <IconButton>
@@ -155,9 +186,9 @@ const StockList = () => {
             },
             textAlign: 'right',
           }}>
-          <Typography>Tổng cộng: {data?.total ?? 0}</Typography>
+          <Typography>Tổng cộng: {stocksData?.total ?? 0}</Typography>
           <Pagination
-            count={Math.ceil((data?.total ?? 0) / query.limit!)}
+            count={Math.ceil((stocksData?.total ?? 0) / query.limit!)}
             page={query.page ?? 0}
             onChange={(_: React.ChangeEvent<unknown>, newPage) => {
               handleChangeQuery({ page: newPage });
