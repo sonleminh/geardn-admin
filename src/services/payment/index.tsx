@@ -12,6 +12,12 @@ type TPaymentsRes = {
   data: IPayment[];
 };
 
+type TPaymentById = {
+  status: number;
+  message: string;
+  data: IPayment;
+};
+
 const paymentUrl = '/payment-methods';
 
 const getPaymentList = async () => {
@@ -30,7 +36,7 @@ export const useGetPaymentList = () => {
 
 const getPaymentById = async (id: number) => {
   const result = await getRequest(`${paymentUrl}/${id}`);
-  return result.data as IPayment;
+  return result.data as TPaymentById;
 };
 
 export const useGetPaymentById = (id: number) => {

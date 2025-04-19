@@ -35,12 +35,12 @@ export const useGetWarehouseList = () => {
   });
 };
 
-const getWarehouseById = async (id: number) => {
+const getWarehouseById = async (id: number | undefined) => {
   const result = await getRequest(`${warehouseUrl}/${id}`);
-  return (result.data as TWarehouseById).data;
+  return result.data as TWarehouseById;
 };
 
-export const useGetWarehouseById = (id: number) => {
+export const useGetWarehouseById = (id: number | undefined) => {
   return useQuery({
     queryKey: [QueryKeys.Warehouse, id],
     queryFn: () => getWarehouseById(id),

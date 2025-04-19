@@ -7,7 +7,7 @@ export interface IProductSku {
     sku: string;
     price: number;
     imageUrl: string;
-    productSkuAttribute: IProductSkuAttribute[]
+    productSkuAttributes: IProductSkuAttribute[]
     product: IProduct;
     createdAt: Date;
 }

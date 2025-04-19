@@ -2,6 +2,7 @@ export const QueryKeys = {
     Attribute: 'ATTRIBUTE',
     AttributeValue: 'ATTRIBUTE_VALUE',
     Category: 'CATEGORY',
+    Enum: 'ENUM',
     Inventory: 'INVENTORY',
     ImportLog: 'IMPORT_LOG',
     Model: 'MODEL',

@@ -28,11 +28,14 @@ import moment from 'moment';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ActionButton from '@/components/ActionButton';
-import { useDeleteWarehouse, useGetWarehouseList } from '@/services/warehouse';
+import { useDeleteWarehouse, useGetWarehouseById } from '@/services/warehouse';
 import { IQuery } from '@/interfaces/IQuery';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { useGetStocksByWarehouse } from '@/services/stock';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import AddBusinessOutlinedIcon from '@mui/icons-material/AddBusinessOutlined';
+import { ROUTES } from '@/constants/route';
 
 const StockList = () => {
   const { id } = useParams();
@@ -47,8 +50,7 @@ const StockList = () => {
   const numericId = id ? Number(id) : undefined;
 
   const { data: stocksData } = useGetStocksByWarehouse(numericId);
-
-  console.log('c:', stocksData?.data?.[0]?.sku?.productSkuAttributes);
+  const { data: warehouseData } = useGetWarehouseById(numericId);
 
   const { showNotification } = useNotificationContext();
 
@@ -76,14 +78,14 @@ const StockList = () => {
           action={
             <ButtonWithTooltip
               variant='contained'
-              onClick={() => navigate('create')}
+              onClick={() => navigate(`${ROUTES.WAREHOUSE}/import`)}
               title='Thêm kho hàng'>
-              <AddCircleOutlined />
+              <AddBusinessOutlinedIcon />
             </ButtonWithTooltip>
           }
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Danh sách kho hàng
+              Kho hàng: {warehouseData?.data?.name}
             </Typography>
           }
         />
@@ -99,81 +101,92 @@ const StockList = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {stocksData?.data?.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell align='center'>{index + 1}</TableCell>
-                  <TableCell sx={{ width: '30%' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Box
-                        sx={{
-                          height: 60,
-                          '.thumbnail': {
-                            width: 60,
+              {stocksData?.data?.length ? (
+                stocksData?.data?.map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell align='center'>{index + 1}</TableCell>
+                    <TableCell sx={{ width: '30%' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Box
+                          sx={{
                             height: 60,
-                            objectFit: 'contain',
-                          },
-                        }}>
-                        <img src={item?.sku?.imageUrl} className='thumbnail' />
-                      </Box>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          ml: 2,
-                        }}>
-                        <Typography sx={{ ...truncateTextByLine(2) }}>
-                          {item?.sku?.product?.name}
-                        </Typography>
-                        <Box>
+                            '.thumbnail': {
+                              width: 60,
+                              height: 60,
+                              objectFit: 'contain',
+                            },
+                          }}>
+                          <img
+                            src={item?.sku?.imageUrl}
+                            className='thumbnail'
+                          />
+                        </Box>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            ml: 2,
+                          }}>
                           <Typography sx={{ ...truncateTextByLine(2) }}>
-                            {item?.sku?.productSkuAttributes?.length} variants
+                            {item?.sku?.product?.name}
                           </Typography>
+                          <Box>
+                            <Typography sx={{ ...truncateTextByLine(2) }}>
+                              {item?.sku?.productSkuAttributes?.length} variants
+                            </Typography>
+                          </Box>
                         </Box>
                       </Box>
-                    </Box>
-                  </TableCell>
-                  <TableCell align='center'>
-                    {moment(item?.createdAt).format('DD/MM/YYYY')}
-                  </TableCell>
-                  <TableCell align='center'>
-                    <IconButton>
-                      <VisibilityOutlinedIcon />
-                    </IconButton>
-                  </TableCell>
-                  <TableCell align='center'>
-                    <ActionButton>
-                      <Box mb={1}>
-                        <ButtonWithTooltip
-                          color='primary'
-                          onClick={() => navigate(`update/${item?.id}`)}
-                          variant='outlined'
-                          title='Chỉnh sửa'
-                          placement='left'>
-                          <EditOutlinedIcon />
-                        </ButtonWithTooltip>
-                      </Box>
-                      <Box>
-                        <ButtonWithTooltip
-                          color='error'
-                          onClick={() => {
-                            showConfirmModal({
-                              title: 'Bạn có muốn xóa danh mục này không?',
-                              cancelText: 'Hủy',
-                              onOk: () => handleDeleteCategory(item?.id),
-                              okText: 'Xóa',
-                              btnOkColor: 'error',
-                            });
-                          }}
-                          variant='outlined'
-                          title='Xoá'
-                          placement='left'>
-                          <DeleteOutlineOutlinedIcon />
-                        </ButtonWithTooltip>
-                      </Box>
-                    </ActionButton>
+                    </TableCell>
+                    <TableCell align='center'>
+                      {moment(item?.createdAt).format('DD/MM/YYYY')}
+                    </TableCell>
+                    <TableCell align='center'>
+                      <IconButton>
+                        <VisibilityOutlinedIcon />
+                      </IconButton>
+                    </TableCell>
+                    <TableCell align='center'>
+                      <ActionButton>
+                        <Box mb={1}>
+                          <ButtonWithTooltip
+                            color='primary'
+                            onClick={() => navigate(`update/${item?.id}`)}
+                            variant='outlined'
+                            title='Chỉnh sửa'
+                            placement='left'>
+                            <EditOutlinedIcon />
+                          </ButtonWithTooltip>
+                        </Box>
+                        <Box>
+                          <ButtonWithTooltip
+                            color='error'
+                            onClick={() => {
+                              showConfirmModal({
+                                title: 'Bạn có muốn xóa danh mục này không?',
+                                cancelText: 'Hủy',
+                                onOk: () => handleDeleteCategory(item?.id),
+                                okText: 'Xóa',
+                                btnOkColor: 'error',
+                              });
+                            }}
+                            variant='outlined'
+                            title='Xoá'
+                            placement='left'>
+                            <DeleteOutlineOutlinedIcon />
+                          </ButtonWithTooltip>
+                        </Box>
+                      </ActionButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell align='center' colSpan={6}>
+                    Empty
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>

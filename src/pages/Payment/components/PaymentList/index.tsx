@@ -47,7 +47,7 @@ const PaymentList = () => {
 
   const { mutate: deletePaymentMutate } = useDeletePayment();
 
-  const handleDeletePayment = (id: string) => {
+  const handleDeletePayment = (id: number) => {
     showNotification('Ok', 'error');
     deletePaymentMutate(id, {
       onSuccess: () => {
@@ -127,14 +127,14 @@ const PaymentList = () => {
                     {moment(item.createdAt).format('DD/MM/YYYY')}
                   </TableCell>
                   <TableCell align='center'>
-                    {item?.is_disabled ? 'Có' : 'Không'}
+                    {item?.isDisabled ? 'Có' : 'Không'}
                   </TableCell>
                   <TableCell align='center'>
                     <ActionButton>
                       <Box mb={1}>
                         <ButtonWithTooltip
                           color='primary'
-                          onClick={() => navigate(`update/${item?._id}`)}
+                          onClick={() => navigate(`update/${item?.id}`)}
                           variant='outlined'
                           title='Chỉnh sửa'
                           placement='left'>
@@ -149,7 +149,7 @@ const PaymentList = () => {
                               title:
                                 'Bạn có muốn xóa hình thức thanh toán này không?',
                               cancelText: 'Hủy',
-                              onOk: () => handleDeletePayment(item?._id),
+                              onOk: () => handleDeletePayment(item?.id),
                               okText: 'Xóa',
                               btnOkColor: 'error',
                             });

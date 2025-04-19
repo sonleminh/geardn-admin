@@ -3,6 +3,7 @@ import WarehouseLayout from './components/WarehouseLayout';
 import WarehouseList from './components/WarehouseList';
 import WarehouseUpsert from './components/WarehouseUpsert';
 import StockList from './components/StockList';
+import ImportPage from './components/ImportPage';
 
 const Warehouse = () => {
   const router = useRoutes([
@@ -22,6 +23,10 @@ const Warehouse = () => {
         {
           path: '/create',
           element: <WarehouseUpsert />,
+        },
+        {
+          path: '/import',
+          element: <ImportPage />,
         },
         {
           path: '/:id',

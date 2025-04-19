@@ -77,7 +77,7 @@ const WarehouseList = () => {
           }
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Danh sách kho hàng
+              Danh sách các kho hàng
             </Typography>
           }
         />

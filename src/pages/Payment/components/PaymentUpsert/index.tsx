@@ -49,7 +49,7 @@ const PaymentUpsert = () => {
   const numericId = id ? Number(id) : undefined;
 
   const { data: paymentData } = useGetPaymentById(numericId as number);
-
+  console.log('paymentData', paymentData);
   const { mutate: createPaymentMutate, isPending: isCreatePending } =
     useCreatePayment();
   const { mutate: updatePaymentMutate, isPending: isUpdatePending } =
@@ -89,10 +89,10 @@ const PaymentUpsert = () => {
 
   useEffect(() => {
     if (paymentData) {
-      formik.setFieldValue('key', paymentData?.key);
-      formik.setFieldValue('name', paymentData?.name);
-      formik.setFieldValue('image', paymentData?.image);
-      formik.setFieldValue('is_disabled', paymentData?.isDisabled);
+      formik.setFieldValue('key', paymentData?.data?.key);
+      formik.setFieldValue('name', paymentData?.data?.name);
+      formik.setFieldValue('image', paymentData?.data?.image);
+      formik.setFieldValue('isDisabled', paymentData?.data?.isDisabled);
     }
   }, [paymentData]);
 
@@ -142,10 +142,10 @@ const PaymentUpsert = () => {
             required
             helperText={
               <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.name}
+                {formik?.errors?.name}
               </Box>
             }
-            value={formik?.values.name}
+            value={formik?.values?.name}
             onChange={handleChangeValue}
           />
         </FormControl>
@@ -155,12 +155,12 @@ const PaymentUpsert = () => {
           onUploadChange={handleMethodImage}
         />
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <InputLabel htmlFor='is_disable' sx={{ cursor: 'pointer' }}>
+          <InputLabel htmlFor='isDisabled' sx={{ cursor: 'pointer' }}>
             Vô hiệu hoá:
           </InputLabel>
           <Checkbox
-            id='is_disable'
-            name='is_disable'
+            id='isDisabled'
+            name='isDisabled'
             checked={formik?.values?.isDisabled ?? false}
             onChange={handleChangeValue}
             inputProps={{ 'aria-label': 'controlled' }}

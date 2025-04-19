@@ -222,9 +222,6 @@ const ProductSkuUpsert = () => {
     setAttributeValueId('');
   };
 
-  console.log('attId', attributeId);
-  console.log('attId2', !!attributeValueId?.length);
-
   const handleDeleteAttribute = (attributeIndex: number) => {
     const updAttributeList = attributeList?.filter(
       (_, index) => index !== attributeIndex
@@ -266,6 +263,9 @@ const ProductSkuUpsert = () => {
     //   setAttributeValueId(String(attributeValue.attributeId));
     // }
   };
+
+  console.log('attributeId', attributeId?.length <= 0);
+  console.log('attributeValueId', attributeValueId?.length <= 0);
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -467,7 +467,9 @@ const ProductSkuUpsert = () => {
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='outlined'
                     onClick={handleDelBtn}
-                    disabled={attributeValueId?.length <= 0}>
+                    disabled={
+                      attributeId?.length <= 0 && attributeValueId?.length <= 0
+                    }>
                     Xóa
                   </Button>
                   {/* <Button
