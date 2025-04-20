@@ -1,6 +1,6 @@
-import { QueryKeys } from '@/constants/query-key';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
+import { axiosInstance } from '../axiosInstance';
+import { QueryKeys } from '@/constants/query-key';
 
 import {
   ICreateProductSku,
@@ -23,7 +23,7 @@ type TSkuRes = {
 const productSkuUrl = '/product-skus';
 
 const createSku = async (payload: ICreateProductSku) => {
-  const result = await postRequest(`${productSkuUrl}`, payload);
+  const result = await axiosInstance.post(`${productSkuUrl}`, payload);
   return result.data as IProductSku;
 };
 
@@ -33,12 +33,12 @@ export const useCreateSku = () => {
   });
 };
 
-const getSkusByProductId = async (id: number) => {
-  const result = await getRequest(`products/${id}/skus`);
+const getSkusByProductId = async (id: number | undefined) => {
+  const result = await axiosInstance.get(`products/${id}/skus`);
   return result.data as TSkusRes;
 };
 
-export const useGetSkusByProductId = (id: number) => {
+export const useGetSkusByProductId = (id: number | undefined) => {
   return useQuery({
     queryKey: [QueryKeys.Sku, id],
     queryFn: () => getSkusByProductId(id),
@@ -49,7 +49,7 @@ export const useGetSkusByProductId = (id: number) => {
 };
 
 const getSkuByProductSku = async (sku: string) => {
-  const result = await getRequest(`${productSkuUrl}/sku/${sku}`);
+  const result = await axiosInstance.get(`${productSkuUrl}/sku/${sku}`);
   return result.data as TSkuRes;
 };
 
@@ -65,7 +65,7 @@ export const useGetSkuByProductSku = (sku: string) => {
 
 const updateSku = async (payload: IUpdateProductSkuPayload) => {
   const { id, ...rest } = payload;
-  const result = await patchRequest(`${productSkuUrl}/${id}`, rest);
+  const result = await axiosInstance.patch(`${productSkuUrl}/${id}`, rest);
   return result.data as IProductSku;
 };
 
@@ -76,7 +76,7 @@ export const useUpdateSku = () => {
 };
 
 const deleteSku = async (id: number) => {
-  const result = await deleteRequest(`${productSkuUrl}/${id}`);
+  const result = await axiosInstance.delete(`${productSkuUrl}/${id}`);
   return result.data as IProductSku;
 };
 

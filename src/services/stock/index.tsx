@@ -1,7 +1,8 @@
 import { QueryKeys } from '@/constants/query-key';
-import { IStock } from '@/interfaces/IStock';
+import { axiosInstance } from '../axiosInstance';
 import { useQuery } from '@tanstack/react-query';
-import { getRequest } from '../axios';
+
+import { IStock } from '@/interfaces/IStock';
 type TStocksRes = {
   success: boolean;
   message: string;
@@ -12,7 +13,7 @@ type TStocksRes = {
 const stockeUrl = '/stocks';
 
 const getStocksByWarehouse = async (id: number | undefined) => {
-  const result = await getRequest(`${stockeUrl}/${id}/warehouses`);
+  const result = await axiosInstance.get(`${stockeUrl}/${id}/warehouses`);
   return result.data as TStocksRes;
 };
 

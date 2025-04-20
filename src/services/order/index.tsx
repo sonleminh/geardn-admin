@@ -1,7 +1,7 @@
-import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { QueryKeys } from '@/constants/query-key';
 import queryString from 'query-string';
+import { axiosInstance } from '../axiosInstance';
+import { QueryKeys } from '@/constants/query-key';
 
 import {
   ICreateOrder,
@@ -46,7 +46,7 @@ interface IWard {
 const orderUrl = '/order';
 
 const createOrder = async (payload: ICreateOrder) => {
-  const result = await postRequest(`${orderUrl}`, payload);
+  const result = await axiosInstance.post(`${orderUrl}`, payload);
   return result.data as IOrder;
 };
 
@@ -59,7 +59,7 @@ export const useCreateOrder = () => {
 const getOrderList = async (query: IQuery) => {
   const newParams = { ...query, page: query.page ? query.page + 1 : 1 };
   const queryParams = queryString.stringify(newParams ?? {});
-  const result = await getRequest(`${orderUrl}?${queryParams}`);
+  const result = await axiosInstance.get(`${orderUrl}?${queryParams}`);
   return result.data as TOrderRes;
 };
 
@@ -73,7 +73,7 @@ export const useGetOrderList = (query: IQuery) => {
 };
 
 const getOrderById = async (id: string) => {
-  const result = await getRequest(`${orderUrl}/admin/${id}`);
+  const result = await axiosInstance.get(`${orderUrl}/admin/${id}`);
   return result.data as IOrder;
 };
 
@@ -88,7 +88,7 @@ export const useGetOrderById = (id: string) => {
 };
 
 const getProvinceList = async () => {
-  const result = await getRequest('https://provinces.open-api.vn/api', {
+  const result = await axiosInstance.get('https://provinces.open-api.vn/api', {
     withCredentials: false,
   });
   return result.data as IProvince[];
@@ -104,7 +104,7 @@ export const useGetProvinceList = () => {
 };
 
 const getProvince = async (code: number | undefined) => {
-  const result = await getRequest(
+  const result = await axiosInstance.get(
     `https://provinces.open-api.vn/api/p/${code}?depth=2`,
     {
       withCredentials: false,
@@ -124,7 +124,7 @@ export const useGetProvince = (code: number | undefined) => {
 };
 
 const getDistrict = async (code: number | undefined) => {
-  const result = await getRequest(
+  const result = await axiosInstance.get(
     `https://provinces.open-api.vn/api/d/${code}?depth=2`,
     { withCredentials: false }
   );
@@ -143,7 +143,7 @@ export const useGetDistrict = (code: number | undefined) => {
 
 const updateOrder = async (payload: IUpdateOrder) => {
   const { _id, ...rest } = payload;
-  const result = await patchRequest(`${orderUrl}/${_id}`, rest);
+  const result = await axiosInstance.patch(`${orderUrl}/${_id}`, rest);
   return result.data as IOrder;
 };
 
@@ -155,7 +155,7 @@ export const useUpdateOrder = () => {
 
 const updateOrderStatus = async (payload: IUpdateOrderStatus) => {
   const { _id, ...rest } = payload;
-  const result = await patchRequest(`${orderUrl}/${_id}/status`, rest);
+  const result = await axiosInstance.patch(`${orderUrl}/${_id}/status`, rest);
   return result.data as IOrder;
 };
 
@@ -166,7 +166,7 @@ export const useUpdateOrderStatus = () => {
 };
 
 const deleteOrder = async (id: string) => {
-  const result = await deleteRequest(`${orderUrl}/${id}`);
+  const result = await axiosInstance.delete(`${orderUrl}/${id}`);
   return result.data;
 };
 

@@ -1,6 +1,7 @@
-import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { axiosInstance } from '../axiosInstance';
 import { QueryKeys } from '@/constants/query-key';
+
 import {
   IWarehouse,
   ICreateWarehouse,
@@ -22,7 +23,7 @@ type TWarehouseById = {
 const warehouseUrl = '/warehouses';
 
 const getWarehouseList = async () => {
-  const result = await getRequest(`${warehouseUrl}`);
+  const result = await axiosInstance.get(`${warehouseUrl}`);
   return result.data as TWarehousesRes;
 };
 
@@ -36,7 +37,7 @@ export const useGetWarehouseList = () => {
 };
 
 const getWarehouseById = async (id: number | undefined) => {
-  const result = await getRequest(`${warehouseUrl}/${id}`);
+  const result = await axiosInstance.get(`${warehouseUrl}/${id}`);
   return result.data as TWarehouseById;
 };
 
@@ -51,7 +52,7 @@ export const useGetWarehouseById = (id: number | undefined) => {
 };
 
 const createWarehouse = async (payload: ICreateWarehouse) => {
-  const result = await postRequest(`${warehouseUrl}`, payload);
+  const result = await axiosInstance.post(`${warehouseUrl}`, payload);
   return result.data as IWarehouse;
 };
 
@@ -63,7 +64,7 @@ export const useCreateWarehouse = () => {
 
 const updateWarehouse = async (payload: IUpdateWarehousePayload) => {
   const { id, ...rest } = payload;
-  const result = await patchRequest(`${warehouseUrl}/${id}`, rest);
+  const result = await axiosInstance.patch(`${warehouseUrl}/${id}`, rest);
   return result.data as IWarehouse;
 };
 
@@ -74,7 +75,7 @@ export const useUpdateWarehouse = () => {
 };
 
 const deleteWarehouse = async (id: number) => {
-  const result = await deleteRequest(`${warehouseUrl}/${id}`);
+  const result = await axiosInstance.delete(`${warehouseUrl}/${id}`);
   return result.data;
 };
 

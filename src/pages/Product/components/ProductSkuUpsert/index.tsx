@@ -75,12 +75,10 @@ const ProductSkuUpsert = () => {
     isEdit ? (sku as string) : ''
   );
   const { data: attributeListData } = useGetAttributeList();
+  console.log('attributeListData', attributeListData?.data);
   const { data: attributeValueByAttIdListData } =
     useGetAttributeValuesByAttributeId(+attributeId);
-  console.log(
-    'attributeValueByTypattributeValueByAttIdListDataeListData',
-    attributeValueByAttIdListData
-  );
+
   const { data: attributeValuesData } = useGetAttributeValueList();
   const { mutate: createSkuMutate, isPending: isCreatePending } =
     useCreateSku();
@@ -264,9 +262,6 @@ const ProductSkuUpsert = () => {
     // }
   };
 
-  console.log('attributeId', attributeId?.length <= 0);
-  console.log('attributeValueId', attributeValueId?.length <= 0);
-
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
@@ -365,31 +360,7 @@ const ProductSkuUpsert = () => {
                 </Grid2>
               )}
               <Grid2 size={4}>
-                <FormControl
-                  variant='filled'
-                  fullWidth
-                  sx={{
-                    '& .MuiFilledInput-root': {
-                      overflow: 'hidden',
-                      borderRadius: 1,
-                      backgroundColor: '#fff !important',
-                      border: '1px solid',
-                      borderColor: 'rgba(0,0,0,0.23)',
-                      '&:hover': {
-                        backgroundColor: 'transparent',
-                      },
-                      '&.Mui-focused': {
-                        backgroundColor: 'transparent',
-                        border: '2px solid',
-                      },
-                      '& .Mui-disabled': {
-                        backgroundColor: '#eee',
-                      },
-                    },
-                    '& .MuiInputLabel-asterisk': {
-                      color: 'red',
-                    },
-                  }}>
+                <FormControl variant='filled' fullWidth>
                   <InputLabel>Loại</InputLabel>
                   <Select
                     disableUnderline
@@ -397,40 +368,19 @@ const ProductSkuUpsert = () => {
                     onChange={handleAttributeChange}
                     value={attributeId ?? ''}
                     disabled={isEditAttribute}>
-                    {attributeListData?.data?.map((item) => (
-                      <MenuItem key={item?.id} value={String(item.id)}>
-                        {item?.label}
-                      </MenuItem>
-                    ))}
+                    {attributeListData?.data?.map(
+                      (item) =>
+                        (
+                          <MenuItem key={item?.id} value={String(item.id)}>
+                            {item?.label}
+                          </MenuItem>
+                        ) ?? []
+                    )}
                   </Select>
                 </FormControl>
               </Grid2>
               <Grid2 size={4}>
-                <FormControl
-                  variant='filled'
-                  fullWidth
-                  sx={{
-                    '& .MuiFilledInput-root': {
-                      overflow: 'hidden',
-                      borderRadius: 1,
-                      backgroundColor: '#fff !important',
-                      border: '1px solid',
-                      borderColor: 'rgba(0,0,0,0.23)',
-                      '&:hover': {
-                        backgroundColor: 'transparent',
-                      },
-                      '&.Mui-focused': {
-                        backgroundColor: 'transparent',
-                        border: '2px solid',
-                      },
-                      '& .Mui-disabled': {
-                        backgroundColor: '#eee',
-                      },
-                    },
-                    '& .MuiInputLabel-asterisk': {
-                      color: 'red',
-                    },
-                  }}>
+                <FormControl variant='filled' fullWidth>
                   <InputLabel>Giá trị</InputLabel>
                   <Select
                     disableUnderline

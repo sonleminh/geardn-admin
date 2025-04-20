@@ -1,5 +1,5 @@
-import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { axiosInstance } from '../axiosInstance';
 import { QueryKeys } from '@/constants/query-key';
 import {
   ICategory,
@@ -22,7 +22,7 @@ type TCategoryById = {
 const categoryUrl = '/categories';
 
 const getCategoryList = async () => {
-  const result = await getRequest(`${categoryUrl}`);
+  const result = await axiosInstance.get(`${categoryUrl}`);
   return result.data as TCategorysRes;
 };
 
@@ -36,7 +36,7 @@ export const useGetCategoryList = () => {
 };
 
 const getCategoryById = async (id: number) => {
-  const result = await getRequest(`${categoryUrl}/${id}`);
+  const result = await axiosInstance.get(`${categoryUrl}/${id}`);
   return (result.data as TCategoryById).data;
 };
 
@@ -51,7 +51,7 @@ export const useGetCategoryById = (id: number) => {
 };
 
 const createCategory = async (payload: ICreateCategory) => {
-  const result = await postRequest(`${categoryUrl}`, payload);
+  const result = await axiosInstance.post(`${categoryUrl}`, payload);
   return result.data as ICategory;
 };
 
@@ -65,7 +65,7 @@ export const useCreateCategory = () => {
 
 const updateCategory = async (payload: IUpdateCategoryPayload) => {
   const { id, ...rest } = payload;
-  const result = await patchRequest(`${categoryUrl}/${id}`, rest);
+  const result = await axiosInstance.patch(`${categoryUrl}/${id}`, rest);
   return result.data as ICategory;
 };
 
@@ -76,7 +76,7 @@ export const useUpdateCategory = () => {
 };
 
 const deleteCategory = async (id: number) => {
-  const result = await deleteRequest(`${categoryUrl}/${id}`);
+  const result = await axiosInstance.delete(`${categoryUrl}/${id}`);
   return result.data;
 };
 

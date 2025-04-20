@@ -124,28 +124,7 @@ const AttributeValueUpsert = () => {
       <Divider />
 
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <FormControl
-          variant='filled'
-          fullWidth
-          sx={{
-            '& .MuiFilledInput-root': {
-              overflow: 'hidden',
-              borderRadius: 1,
-              backgroundColor: '#fff !important',
-              border: '1px solid',
-              borderColor: 'rgba(0,0,0,0.23)',
-              '&:hover': {
-                backgroundColor: 'transparent',
-              },
-              '&.Mui-focused': {
-                backgroundColor: 'transparent',
-                border: '2px solid',
-              },
-            },
-            '& .MuiInputLabel-asterisk': {
-              color: 'red',
-            },
-          }}>
+        <FormControl variant='filled' fullWidth>
           <InputLabel>Loại</InputLabel>
           <Select
             disableUnderline

@@ -276,23 +276,6 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
 export default ShipmentForm;
 
 const selectStyle: SxProps<Theme> = {
-  '& .MuiFilledInput-root': {
-    overflow: 'hidden',
-    borderRadius: 1,
-    backgroundColor: '#fff !important',
-    border: '1px solid',
-    borderColor: 'rgba(0,0,0,0.23)',
-    '&:hover': {
-      backgroundColor: 'transparent',
-    },
-    '&.Mui-focused': {
-      backgroundColor: 'transparent',
-      border: '2px solid',
-    },
-  },
-  '& .MuiInputLabel-asterisk': {
-    color: 'red',
-  },
   '& .Mui-disabled': {
     cursor: 'not-allowed',
   },

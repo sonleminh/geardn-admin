@@ -1,7 +1,7 @@
-import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
-
+import { axiosInstance } from '../axiosInstance';
 import { QueryKeys } from '@/constants/query-key';
+
 import {
   IAttribute,
   ICreateAttribute,
@@ -24,7 +24,7 @@ type TAttributeRes = {
 const attributeUrl = '/attributes';
 
 const createAttribute = async (payload: ICreateAttribute) => {
-  const result = await postRequest(`${attributeUrl}`, payload);
+  const result = await axiosInstance.post(`${attributeUrl}`, payload);
   return result.data as IAttribute;
 };
 
@@ -35,7 +35,7 @@ export const useCreateAttribute = () => {
 };
 
 const getAttributeById = async (id: string) => {
-  const result = await getRequest(`${attributeUrl}/${id}`);
+  const result = await axiosInstance.get(`${attributeUrl}/${id}`);
   return (result.data as TAttributeRes).data;
 };
 
@@ -50,7 +50,7 @@ export const useGetAttributeById = (id: string) => {
 };
 
 const getAttributeList = async () => {
-  const result = await getRequest(`${attributeUrl}`);
+  const result = await axiosInstance.get(`${attributeUrl}`);
   return result.data as TAttributeListRes;
 };
 
@@ -65,7 +65,7 @@ export const useGetAttributeList = () => {
 
 const updateAttribute = async (payload: IUpdateAttributePayload) => {
   const { id, ...rest } = payload;
-  const result = await patchRequest(`${attributeUrl}/${id}`, rest);
+  const result = await axiosInstance.patch(`${attributeUrl}/${id}`, rest);
   return result.data as IAttribute;
 };
 
@@ -76,7 +76,7 @@ export const useUpdateAttribute = () => {
 };
 
 const deleteAttribute = async (id: number) => {
-  const result = await deleteRequest(`${attributeUrl}/${id}`);
+  const result = await axiosInstance.delete(`${attributeUrl}/${id}`);
   return result.data;
 };
 

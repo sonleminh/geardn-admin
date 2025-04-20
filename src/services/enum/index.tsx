@@ -1,7 +1,8 @@
 import { QueryKeys } from '@/constants/query-key';
-import { IEnum } from '@/interfaces/IEnum';
+import { axiosInstance } from '../axiosInstance';
 import { useQuery } from '@tanstack/react-query';
-import { getRequest } from '../axios';
+
+import { IEnum } from '@/interfaces/IEnum';
 
 type TEnumRes = {
   status: number;
@@ -12,7 +13,7 @@ type TEnumRes = {
 const categoryUrl = '/enums';
 
 const getEnumByContext = async (context: string | undefined) => {
-  const result = await getRequest(`${categoryUrl}/${context}`);
+  const result = await axiosInstance.get(`${categoryUrl}/${context}`);
   return result.data as TEnumRes;
 };
 

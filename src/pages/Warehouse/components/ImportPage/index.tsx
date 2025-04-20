@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect } from 'react';
+import { ChangeEvent, useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import Input from '@/components/Input';
@@ -17,6 +17,7 @@ import {
   useUpdateWarehouse,
 } from '@/services/warehouse';
 import {
+  Autocomplete,
   Box,
   Button,
   Card,
@@ -25,16 +26,21 @@ import {
   Divider,
   FormControl,
   FormHelperText,
+  Grid2,
   InputLabel,
   MenuItem,
+  Popper,
   Select,
   SelectChangeEvent,
   SxProps,
+  TextField,
   Theme,
   Typography,
 } from '@mui/material';
 import { createSchema, updateSchema } from '../utils/schema/warehouseSchema';
 import { useGetEnumByContext } from '@/services/enum';
+import { useGetProductList } from '@/services/product';
+import { useGetSkusByProductId } from '@/services/sku';
 
 const ImportPage = () => {
   const { id } = useParams();
@@ -46,17 +52,30 @@ const ImportPage = () => {
 
   const numericId = id ? Number(id) : undefined;
 
+  const [productId, setProductId] = useState<number>();
+  const [skuId, setSkuId] = useState<number>();
+  const [price, setPrice] = useState<number>();
+  const [quantity, setQuantity] = useState<number>();
+  const [isEditItem, setIsEditItem] = useState<boolean>(false);
+  const [editItemIndex, setEditItemIndex] = useState<number>();
+  const [importItems, setImportItems] =
+    useState<{ skuId: number; quantity: number; price: number }[]>();
+
   const { data: warehousesData } = useGetWarehouseList();
   const { data: warehouseData } = useGetWarehouseById(numericId as number);
   const { data: enumData } = useGetEnumByContext('import-type');
 
+  const { data: productsData } = useGetProductList();
+  const { data: skusData } = useGetSkusByProductId(productId);
+
   const { mutate: createImportMutate, isPending: isCreatePending } =
     useCreateWarehouse();
+
   const formik = useFormik({
     initialValues: {
       warehouseId: '',
       type: '',
-      items: [],
+      note: '',
     },
     validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -96,6 +115,45 @@ const ImportPage = () => {
     formik.setFieldValue(name, value);
   };
 
+  const handleSaveItem = () => {
+    if (importItems?.find((item) => item.skuId === skuId)) {
+      return showNotification('Sku đã tồn tại', 'error');
+    }
+
+    if (editAttIndex !== null && attributeValueId) {
+      const updatedAttributeList = attributeList;
+      updatedAttributeList[editAttIndex] = {
+        attributeId: attributeId,
+        attributeValueId: attributeValueId,
+      };
+      setAttributeList(updatedAttributeList);
+      setAttributeValueId('');
+      setAttributeId('');
+    } else {
+      if (attributeValueId) {
+        setAttributeList((prev) => [
+          ...prev,
+          { attributeId: attributeId, attributeValueId: attributeValueId },
+        ]);
+      }
+      setAttributeValueId('');
+      setAttributeId('');
+    }
+    setImportItems([
+      ...importItems,
+      {
+        skuId: skuId as number,
+        quantity: quantity as number,
+        price: price as number,
+      },
+    ]);
+    setSkuId(undefined);
+    setQuantity(undefined);
+    setPrice(undefined);
+  };
+
+  console.log('skusData:', skusData?.data?.[0]);
+
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
@@ -106,30 +164,8 @@ const ImportPage = () => {
         }
       />
       <Divider />
-
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <FormControl
-          variant='filled'
-          fullWidth
-          sx={{
-            '& .MuiFilledInput-root': {
-              overflow: 'hidden',
-              borderRadius: 1,
-              backgroundColor: '#fff !important',
-              border: '1px solid',
-              borderColor: 'rgba(0,0,0,0.23)',
-              '&:hover': {
-                backgroundColor: 'transparent',
-              },
-              '&.Mui-focused': {
-                backgroundColor: 'transparent',
-                border: '2px solid',
-              },
-            },
-            '& .MuiInputLabel-asterisk': {
-              color: 'red',
-            },
-          }}>
+        <FormControl variant='filled' fullWidth>
           <InputLabel>Kho hàng</InputLabel>
           <Select
             disableUnderline
@@ -150,28 +186,7 @@ const ImportPage = () => {
             </Box>
           </FormHelperText>
         </FormControl>
-        <FormControl
-          variant='filled'
-          fullWidth
-          sx={{
-            '& .MuiFilledInput-root': {
-              overflow: 'hidden',
-              borderRadius: 1,
-              backgroundColor: '#fff !important',
-              border: '1px solid',
-              borderColor: 'rgba(0,0,0,0.23)',
-              '&:hover': {
-                backgroundColor: 'transparent',
-              },
-              '&.Mui-focused': {
-                backgroundColor: 'transparent',
-                border: '2px solid',
-              },
-            },
-            '& .MuiInputLabel-asterisk': {
-              color: 'red',
-            },
-          }}>
+        <FormControl variant='filled' fullWidth>
           <InputLabel>Loại nhập</InputLabel>
           <Select
             disableUnderline
@@ -192,6 +207,175 @@ const ImportPage = () => {
             </Box>
           </FormHelperText>
         </FormControl>
+        <Grid2 container spacing={2}>
+          <Grid2 size={6}>
+            <Box>
+              <Typography sx={{ mb: 2 }}>Thêm loại hàng:</Typography>
+              <Grid2 container spacing={2}>
+                <Grid2 size={12}>
+                  <FormControl variant='filled' fullWidth>
+                    <Autocomplete
+                      disablePortal
+                      options={productsData?.data ?? []}
+                      renderInput={(params) => (
+                        <TextField {...params} label='Sản phẩm' />
+                      )}
+                      onChange={(e, value) => setProductId(value?.id)}
+                      value={
+                        productsData?.data.find(
+                          (item) => item.id === productId
+                        ) ?? null
+                      }
+                      getOptionLabel={(option) => option?.name ?? ''}
+                      PopperComponent={(props) => (
+                        <Popper
+                          {...props}
+                          placement='bottom-start'
+                          modifiers={[
+                            {
+                              name: 'flip',
+                              enabled: false,
+                            },
+                          ]}
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid2>
+                <Grid2 size={12}>
+                  <FormControl variant='filled' fullWidth>
+                    <InputLabel>Loại sản phấm</InputLabel>
+                    <Select
+                      disableUnderline
+                      required
+                      size='small'
+                      name='type'
+                      onChange={handleSelectChange}
+                      value={formik?.values?.type ?? ''}
+                      disabled={!productId || !skusData}>
+                      {skusData?.data?.map((item) => (
+                        <MenuItem key={item?.id} value={item?.id}>
+                          <Typography
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              width: '100%',
+                              fontSize: 14,
+                            }}>
+                            <Typography component={'span'}>
+                              {item?.productSkuAttributes?.length
+                                ? item?.productSkuAttributes
+                                    ?.map(
+                                      (item) =>
+                                        `${item?.attributeValue?.attribute?.label}:
+                                  ${item?.attributeValue?.value}
+                                `
+                                    )
+                                    .join('- ')
+                                : ''}
+                            </Typography>
+                            <Typography
+                              component={'span'}
+                              sx={{ fontWeight: 500 }}>
+                              {item?.sku}
+                            </Typography>
+                          </Typography>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText>
+                      <Box component={'span'} sx={helperTextStyle}>
+                        {formik.errors?.type}
+                      </Box>
+                    </FormHelperText>
+                  </FormControl>
+                </Grid2>
+                <Grid2 size={12}>
+                  <FormControl fullWidth>
+                    <Input
+                      id='price'
+                      label='Giá nhập'
+                      name='name'
+                      variant='filled'
+                      required
+                      // helperText={
+                      //   <Box component={'span'} sx={helperTextStyle}>
+                      //     {formik.errors.price}
+                      //   </Box>
+                      // }
+                      value={price}
+                      onChange={() => setQuantity(price)}
+                    />
+                  </FormControl>
+                </Grid2>
+                <Grid2 size={12}>
+                  <FormControl fullWidth>
+                    <Input
+                      id='quantity'
+                      label='Số lượng'
+                      name='quantity'
+                      variant='filled'
+                      required
+                      // helperText={
+                      //   <Box component={'span'} sx={helperTextStyle}>
+                      //     {formik.errors.price}
+                      //   </Box>
+                      // }
+                      value={quantity}
+                      onChange={() => setQuantity(quantity)}
+                    />
+                  </FormControl>
+                </Grid2>
+                <Box sx={{ display: 'flex', ml: 'auto' }}>
+                  <Typography sx={helperTextStyle}>
+                    {/* {optionError} */}
+                  </Typography>
+                  <Button
+                    sx={{ ml: 2, textTransform: 'initial' }}
+                    variant='contained'
+                    // disabled={
+                    //   !variantName || attributeList?.length === 0
+                    //     ? true
+                    //     : false
+                    // }
+                    // disabled={!attributeValueId}
+                    onClick={() => handleSaveItem}>
+                    Lưu
+                  </Button>
+                  <Button
+                    sx={{ ml: 2, textTransform: 'initial' }}
+                    variant='outlined'
+                    // onClick={handleDelBtn}
+                    // disabled={
+                    //   attributeId?.length <= 0 && attributeValueId?.length <= 0
+                    // }
+                  >
+                    Xóa
+                  </Button>
+                  {/* <Button
+                      sx={{
+                        ml: 2,
+                        textTransform: 'initial',
+                        color: '#D03739',
+                        border: '1px solid #D03739',
+                      }}
+                      variant='outlined'
+                      onClick={handleDelAllVariant}
+                    >
+                      Xóa tất cả
+                    </Button> */}
+                </Box>
+              </Grid2>
+            </Box>
+          </Grid2>
+          <Grid2 size={6}>
+            <Box>
+              <Typography sx={{ mb: 2 }}>Danh sách hàng:</Typography>
+            </Box>
+          </Grid2>
+        </Grid2>
+
         <Box sx={{ textAlign: 'end' }}>
           <Button onClick={() => navigate(ROUTES.WAREHOUSE)} sx={{ mr: 2 }}>
             Trở lại

@@ -1,6 +1,7 @@
-import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import queryString from 'query-string';
 import { AxiosError } from 'axios';
+import { axiosInstance } from '../axiosInstance';
 import { QueryKeys } from '@/constants/query-key';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
@@ -11,7 +12,6 @@ import {
 } from '@/interfaces/IProduct';
 import { ErrorResponse } from '@/interfaces/IError';
 import { IQuery } from '@/interfaces/IQuery';
-import queryString from 'query-string';
 
 type TProductsRes = {
   success: boolean;
@@ -44,7 +44,7 @@ type TUploadImageResponse = {
 const productUrl = '/products';
 
 const createProduct = async (payload: ICreateProduct) => {
-  const result = await postRequest(`${productUrl}`, payload);
+  const result = await axiosInstance.post(`${productUrl}`, payload);
   return result.data as IProduct;
 };
 
@@ -54,14 +54,14 @@ export const useCreateProduct = () => {
   });
 };
 
-const getProductList = async (query: IQuery) => {
-  const newParams = { ...query, page: (query.page ?? 0) + 1 };
+const getProductList = async (query?: IQuery) => {
+  const newParams = { ...query, page: (query?.page ?? 0) + 1 };
   const queryParams = queryString.stringify(newParams ?? {});
-  const result = await getRequest(`${productUrl}?${queryParams}`);
+  const result = await axiosInstance.get(`${productUrl}?${queryParams}`);
   return result.data as TProductsRes;
 };
 
-export const useGetProductList = (query: IQuery) => {
+export const useGetProductList = (query?: IQuery) => {
   return useQuery({
     queryKey: [QueryKeys.Product, query],
     queryFn: () => getProductList(query),
@@ -74,7 +74,7 @@ const getProductByCateId = async (id: number | undefined, query: IQuery) => {
   const newParams = { ...query, page: query.page ?? 1 };
   // const newParams = { ...query, page: (query.page ?? 0) + 1 };
   const queryParams = queryString.stringify(newParams ?? {});
-  const result = await getRequest(
+  const result = await axiosInstance.get(
     `${productUrl}/admin/category/${id}?${queryParams}`
   );
   return result.data as { data: IProduct[]; total: number };
@@ -94,7 +94,7 @@ export const useGetProductByCateId = (
 };
 
 const getProductById = async (id: number) => {
-  const result = await getRequest(`${productUrl}/${id}`);
+  const result = await axiosInstance.get(`${productUrl}/${id}`);
   return (result.data as TProductRes).data;
 };
 
@@ -109,7 +109,7 @@ export const useGetProductById = (id: number) => {
 };
 
 const getProductBySlug = async (slug: string) => {
-  const result = await getRequest(`${productUrl}/slug/${slug}`);
+  const result = await axiosInstance.get(`${productUrl}/slug/${slug}`);
   return result.data as TProductRes;
 };
 
@@ -127,7 +127,7 @@ const uploadProductsFile = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const result = await postRequest(`${productUrl}/upload`, formData, {
+  const result = await axiosInstance.post(`${productUrl}/upload`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -142,7 +142,7 @@ export const useUploadProductsFile = () => {
 };
 
 const getProductInitial = async () => {
-  const result = await getRequest(`${productUrl}/initial-to-create`);
+  const result = await axiosInstance.get(`${productUrl}/initial-to-create`);
   return result.data as TInitDataRes;
 };
 
@@ -159,7 +159,7 @@ export const useGetProductInitial = () => {
 
 const updateProduct = async (payload: IUpdateProductPayload) => {
   const { id, ...rest } = payload;
-  const result = await patchRequest(`${productUrl}/${id}`, rest);
+  const result = await axiosInstance.patch(`${productUrl}/${id}`, rest);
   return result.data as IProduct;
 };
 
@@ -170,7 +170,7 @@ export const useUpdateProduct = () => {
 };
 
 const deleteProduct = async (id: string) => {
-  const result = await deleteRequest(`${productUrl}/${id}`);
+  const result = await axiosInstance.delete(`${productUrl}/${id}`);
   return result.data;
 };
 
@@ -181,7 +181,7 @@ export const useDeleteProduct = () => {
 };
 
 const deleteManyProduct = async (ids: number[]) => {
-  const result = await deleteRequest(`${productUrl}`, { data: ids });
+  const result = await axiosInstance.delete(`${productUrl}`, { data: ids });
   return result.data;
 };
 
@@ -200,7 +200,7 @@ const uploadImage = async (
   for (let i = 0; i < files.length; i++) {
     formData.append('files', files[i]);
   }
-  const result = await postRequest(`upload`, formData, {
+  const result = await axiosInstance.post(`upload`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },

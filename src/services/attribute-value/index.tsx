@@ -1,8 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-
-import { deleteRequest, getRequest, patchRequest, postRequest } from '../axios';
-
+import { axiosInstance } from '../axiosInstance';
 import { QueryKeys } from '@/constants/query-key';
+
 import {
   IAttributeValue,
   ICreateAttributeValue,
@@ -31,7 +30,7 @@ type TAttributeValueRes = {
 const attributeValueUrl = '/attribute-values';
 
 const createAttribute = async (payload: ICreateAttributeValue) => {
-  const result = await postRequest(`${attributeValueUrl}`, payload);
+  const result = await axiosInstance.post(`${attributeValueUrl}`, payload);
   return result.data as IAttributeValue;
 };
 
@@ -42,7 +41,7 @@ export const useCreateAttributeValue = () => {
 };
 
 const getAttributeValueById = async (id: number | undefined) => {
-  const result = await getRequest(`${attributeValueUrl}/${id}`);
+  const result = await axiosInstance.get(`${attributeValueUrl}/${id}`);
   return result.data as TAttributeValueRes;
 };
 
@@ -59,7 +58,7 @@ export const useGetAttributeValueById = (id: number | undefined) => {
 const getAttributeValuesByAttributeId = async (
   attributeId: number | undefined
 ) => {
-  const result = await getRequest(
+  const result = await axiosInstance.get(
     `${attributeValueUrl}/attribute/${attributeId}`
   );
   return result.data as TAttributeValueListByTypeRes;
@@ -78,7 +77,7 @@ export const useGetAttributeValuesByAttributeId = (
 };
 
 const getAttributeValueList = async () => {
-  const result = await getRequest(`${attributeValueUrl}`);
+  const result = await axiosInstance.get(`${attributeValueUrl}`);
   return result.data as TAttributeValueListRes;
 };
 
@@ -95,7 +94,7 @@ export const useGetAttributeValueList = () => {
 
 const updateAttributeValue = async (payload: IUpdateAttributeValuePayload) => {
   const { id, ...rest } = payload;
-  const result = await patchRequest(`${attributeValueUrl}/${id}`, rest);
+  const result = await axiosInstance.patch(`${attributeValueUrl}/${id}`, rest);
   return result.data as IAttributeValue;
 };
 
@@ -106,7 +105,7 @@ export const useUpdateAttributeValue = () => {
 };
 
 const deleteAttributeValue = async (id: number) => {
-  const result = await deleteRequest(`${attributeValueUrl}/${id}`);
+  const result = await axiosInstance.delete(`${attributeValueUrl}/${id}`);
   return result.data;
 };
 

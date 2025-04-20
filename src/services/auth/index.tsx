@@ -2,21 +2,22 @@ import { useNavigate } from 'react-router-dom';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { getRequest, postRequest } from '../axios';
 import { AxiosError } from 'axios';
 
-import { IUser } from '@/interfaces/IUser';
+import { axiosInstance } from '../axiosInstance';
+
 import { ErrorResponse } from '@/interfaces/IError';
 import {
   ILoginPayload,
   ILoginResponse,
   IRefreshTokenResponse,
 } from '@/interfaces/IAuth';
+import { ROUTES } from '@/constants/route';
 
 const authUrl = 'admin/auth';
 
 const loginApi = async (payload: ILoginPayload) => {
-  const result = await postRequest(`${authUrl}/login`, payload);
+  const result = await axiosInstance.post(`${authUrl}/login`, payload);
   return result.data as ILoginResponse;
 };
 
@@ -40,7 +41,7 @@ export const useLoginMutate = () => {
 };
 
 const logoutApi = async () => {
-  const result = await postRequest(`${authUrl}/logout`, {});
+  const result = await axiosInstance.post(`${authUrl}/logout`, {});
   return result.data;
 };
 
@@ -55,13 +56,13 @@ export const useLogoutMutate = () => {
     onSuccess: () => {
       auth?.logout();
       showNotification('Đăng xuất thành công', 'success');
-      navigate('/login');
+      navigate(ROUTES.LOGIN);
     },
   });
 };
 
 const whoAmI = async () => {
-  const result = await getRequest(`${authUrl}/whoami`);
+  const result = await axiosInstance.get(`${authUrl}/whoami`);
   return result.data as ILoginResponse;
 };
 
@@ -76,7 +77,7 @@ export const useWhoAmI = () => {
 };
 
 export const refreshToken = async () => {
-  const result = await getRequest(`${authUrl}/refresh-token`);
+  const result = await axiosInstance.get(`${authUrl}/refresh-token`);
   return result.data as IRefreshTokenResponse;
 };
 
