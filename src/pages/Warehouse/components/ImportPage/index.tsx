@@ -53,13 +53,14 @@ const ImportPage = () => {
   const numericId = id ? Number(id) : undefined;
 
   const [productId, setProductId] = useState<number>();
-  const [skuId, setSkuId] = useState<number>();
-  const [price, setPrice] = useState<number>();
-  const [quantity, setQuantity] = useState<number>();
+  const [skuId, setSkuId] = useState<string>('');
+  const [price, setPrice] = useState<string>('');
+  const [quantity, setQuantity] = useState<string>('');
   const [isEditItem, setIsEditItem] = useState<boolean>(false);
   const [editItemIndex, setEditItemIndex] = useState<number>();
-  const [importItems, setImportItems] =
-    useState<{ skuId: number; quantity: number; price: number }[]>();
+  const [importItems, setImportItems] = useState<
+    { skuId: string; quantity: string; price: string }[]
+  >([]);
 
   const { data: warehousesData } = useGetWarehouseList();
   const { data: warehouseData } = useGetWarehouseById(numericId as number);
@@ -105,6 +106,8 @@ const ImportPage = () => {
     },
   });
 
+  console.log('price, quantity:', price, quantity);
+
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     formik.setFieldValue(name, value);
@@ -115,44 +118,38 @@ const ImportPage = () => {
     formik.setFieldValue(name, value);
   };
 
+  const handleSkuSelect = (event: SelectChangeEvent<string>) => {
+    setSkuId(event.target.value);
+  };
+
   const handleSaveItem = () => {
     if (importItems?.find((item) => item.skuId === skuId)) {
       return showNotification('Sku đã tồn tại', 'error');
     }
 
-    if (editAttIndex !== null && attributeValueId) {
-      const updatedAttributeList = attributeList;
-      updatedAttributeList[editAttIndex] = {
-        attributeId: attributeId,
-        attributeValueId: attributeValueId,
-      };
-      setAttributeList(updatedAttributeList);
-      setAttributeValueId('');
-      setAttributeId('');
-    } else {
-      if (attributeValueId) {
-        setAttributeList((prev) => [
-          ...prev,
-          { attributeId: attributeId, attributeValueId: attributeValueId },
-        ]);
-      }
-      setAttributeValueId('');
-      setAttributeId('');
+    // if (editAttIndex !== null && attributeValueId) {
+    //   const updatedAttributeList = attributeList;
+    //   updatedAttributeList[editAttIndex] = {
+    //     attributeId: attributeId,
+    //     attributeValueId: attributeValueId,
+    //   };
+    //   setAttributeList(updatedAttributeList);
+    //   setAttributeValueId('');
+    //   setAttributeId('');
+    // } else {
+
+    if (skuId && quantity && price) {
+      setImportItems((prev) => [
+        ...prev,
+        { skuId: skuId, quantity: quantity, price: price },
+      ]);
     }
-    setImportItems([
-      ...importItems,
-      {
-        skuId: skuId as number,
-        quantity: quantity as number,
-        price: price as number,
-      },
-    ]);
-    setSkuId(undefined);
-    setQuantity(undefined);
-    setPrice(undefined);
+    setSkuId('');
+    setPrice('');
+    setQuantity('');
   };
 
-  console.log('skusData:', skusData?.data?.[0]);
+  console.log('importItems:', importItems);
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -249,9 +246,9 @@ const ImportPage = () => {
                       disableUnderline
                       required
                       size='small'
-                      name='type'
-                      onChange={handleSelectChange}
-                      value={formik?.values?.type ?? ''}
+                      name='skuId'
+                      onChange={handleSkuSelect}
+                      value={skuId ?? ''}
                       disabled={!productId || !skusData}>
                       {skusData?.data?.map((item) => (
                         <MenuItem key={item?.id} value={item?.id}>
@@ -298,6 +295,7 @@ const ImportPage = () => {
                       label='Giá nhập'
                       name='name'
                       variant='filled'
+                      type='number'
                       required
                       // helperText={
                       //   <Box component={'span'} sx={helperTextStyle}>
@@ -305,7 +303,7 @@ const ImportPage = () => {
                       //   </Box>
                       // }
                       value={price}
-                      onChange={() => setQuantity(price)}
+                      onChange={(e) => setPrice(e?.target?.value)}
                     />
                   </FormControl>
                 </Grid2>
@@ -316,6 +314,7 @@ const ImportPage = () => {
                       label='Số lượng'
                       name='quantity'
                       variant='filled'
+                      type='number'
                       required
                       // helperText={
                       //   <Box component={'span'} sx={helperTextStyle}>
@@ -323,7 +322,7 @@ const ImportPage = () => {
                       //   </Box>
                       // }
                       value={quantity}
-                      onChange={() => setQuantity(quantity)}
+                      onChange={(e) => setQuantity(e?.target?.value)}
                     />
                   </FormControl>
                 </Grid2>
@@ -340,7 +339,7 @@ const ImportPage = () => {
                     //     : false
                     // }
                     // disabled={!attributeValueId}
-                    onClick={() => handleSaveItem}>
+                    onClick={handleSaveItem}>
                     Lưu
                   </Button>
                   <Button
