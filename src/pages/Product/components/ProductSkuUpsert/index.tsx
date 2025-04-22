@@ -368,14 +368,11 @@ const ProductSkuUpsert = () => {
                     onChange={handleAttributeChange}
                     value={attributeId ?? ''}
                     disabled={isEditAttribute}>
-                    {attributeListData?.data?.map(
-                      (item) =>
-                        (
-                          <MenuItem key={item?.id} value={String(item.id)}>
-                            {item?.label}
-                          </MenuItem>
-                        ) ?? []
-                    )}
+                    {attributeListData?.data?.map((item) => (
+                      <MenuItem key={item?.id} value={String(item.id)}>
+                        {item?.label}
+                      </MenuItem>
+                    )) ?? []}
                   </Select>
                 </FormControl>
               </Grid2>

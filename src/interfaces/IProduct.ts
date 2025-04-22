@@ -1,4 +1,5 @@
 import { IModel } from "./IModel";
+import { IProductSku } from "./IProductSku";
 import { IVariant } from "./IVariant";
 
 export interface ICategory {
@@ -34,7 +35,7 @@ export interface IProduct {
     details: IDetails;
     description: string;
     slug: string;
-    skus: ISku[]
+    skus: IProductSku[]
     createdAt: string;
 }
 
