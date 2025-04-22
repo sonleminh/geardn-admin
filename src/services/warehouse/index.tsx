@@ -7,6 +7,7 @@ import {
   ICreateWarehouse,
   IUpdateWarehousePayload,
 } from '@/interfaces/IWarehouse';
+import { ICreateImportLog } from '@/interfaces/IImportLog';
 type TWarehousesRes = {
   success: boolean;
   message: string;
@@ -82,5 +83,16 @@ const deleteWarehouse = async (id: number) => {
 export const useDeleteWarehouse = () => {
   return useMutation({
     mutationFn: deleteWarehouse,
+  });
+};
+
+const createImportLog = async (payload: ICreateImportLog) => {
+  const result = await axiosInstance.post('import-logs', payload);
+  return result.data;
+};
+
+export const useCreateImportLog = () => {
+  return useMutation({
+    mutationFn: createImportLog,
   });
 };

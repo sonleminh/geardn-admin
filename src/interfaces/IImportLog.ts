@@ -21,15 +21,20 @@ export interface IImportLog {
 }
 
 
-export interface ICreateWarehouse extends Record<string, unknown>  {
+export interface ICreateImportLog extends Record<string, unknown>  {
     warehouseId: number;
+    type: string;
     note?: string;
-    items: IImportLogItem[];
+    items: {
+        skuId: number;
+        quantity: number;
+        price: number;
+    }[];
 }
 
-export interface IUpdateWarehousePayload {
-    warehouseId: number;
-    note?: string;
-    items: IImportLogItem[];
-}
+// export interface IUpdateWarehousePayload {
+//     warehouseId: number;
+//     note?: string;
+//     items: IImportLogItem[];
+// }
   

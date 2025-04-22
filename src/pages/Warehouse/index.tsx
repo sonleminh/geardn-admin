@@ -13,9 +13,13 @@ const Warehouse = () => {
       children: [
         {
           path: '',
-          element: <WarehouseList />,
-          index: true,
+          element: <StockList />,
         },
+        // {
+        //   path: '',
+        //   element: <WarehouseList />,
+        //   index: true,
+        // },
         {
           path: '/update/:id',
           element: <WarehouseUpsert />,
@@ -27,10 +31,6 @@ const Warehouse = () => {
         {
           path: '/import',
           element: <ImportPage />,
-        },
-        {
-          path: '/:id',
-          element: <StockList />,
         },
       ],
     },

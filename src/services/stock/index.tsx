@@ -19,7 +19,7 @@ const getStocksByWarehouse = async (id: number | undefined) => {
 
 export const useGetStocksByWarehouse = (id: number | undefined) => {
   return useQuery({
-    queryKey: [QueryKeys.Stock],
+    queryKey: [QueryKeys.Stock, id],
     queryFn: () => getStocksByWarehouse(id),
     refetchOnWindowFocus: false,
     refetchInterval: false,

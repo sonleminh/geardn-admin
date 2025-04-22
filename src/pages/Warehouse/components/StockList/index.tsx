@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,8 +12,13 @@ import {
   Card,
   CardHeader,
   Divider,
+  FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
   Pagination,
+  Select,
+  SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
@@ -28,7 +33,11 @@ import moment from 'moment';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ActionButton from '@/components/ActionButton';
-import { useDeleteWarehouse, useGetWarehouseById } from '@/services/warehouse';
+import {
+  useDeleteWarehouse,
+  useGetWarehouseById,
+  useGetWarehouseList,
+} from '@/services/warehouse';
 import { IQuery } from '@/interfaces/IQuery';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
@@ -42,21 +51,25 @@ const StockList = () => {
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { showNotification } = useNotificationContext();
+  const { confirmModal, showConfirmModal } = useConfirmModal();
+
   const [query, setQuery] = useState<IQuery>({
     limit: 10,
     page: 1,
   });
 
-  const numericId = id ? Number(id) : undefined;
-
-  const { data: stocksData } = useGetStocksByWarehouse(numericId);
-  const { data: warehouseData } = useGetWarehouseById(numericId);
-
-  const { showNotification } = useNotificationContext();
-
-  const { confirmModal, showConfirmModal } = useConfirmModal();
+  const { data: warehousesData } = useGetWarehouseList();
+  const [warehouseId, setWarehouseId] = useState<number>();
 
   const { mutate: deleteWarehouseMutate } = useDeleteWarehouse();
+  const { data: stocksData } = useGetStocksByWarehouse(warehouseId);
+
+  useEffect(() => {
+    if (!warehouseId && warehousesData?.data?.length) {
+      setWarehouseId(warehousesData.data[0].id);
+    }
+  }, [warehousesData, warehouseId]);
 
   const handleDeleteCategory = (id: number) => {
     deleteWarehouseMutate(id, {
@@ -71,6 +84,12 @@ const StockList = () => {
     setQuery((prev) => ({ ...prev, ...object }));
   };
 
+  const handleWarehouseIdChange = (event: SelectChangeEvent<number>) => {
+    setWarehouseId(+event.target.value);
+  };
+
+  console.log('warehouseId', warehouseId);
+
   return (
     <Card sx={{ borderRadius: 2 }}>
       <Card>
@@ -84,9 +103,48 @@ const StockList = () => {
             </ButtonWithTooltip>
           }
           title={
-            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Kho hàng: {warehouseData?.data?.name}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography sx={{ mr: 2, fontSize: 20, fontWeight: 500 }}>
+                Kho hàng:
+              </Typography>
+              <FormControl
+                size='small'
+                sx={{
+                  width: 250,
+                  mr: 2,
+                  '& .MuiInputBase-root': {
+                    minHeight: 40,
+                  },
+                }}>
+                {/* <InputLabel>Kho hàng</InputLabel> */}
+                <Select
+                  onChange={handleWarehouseIdChange}
+                  value={warehouseId ?? ''}>
+                  {warehousesData?.data?.map((item) => (
+                    <MenuItem key={item.id} value={item?.id}>
+                      {item.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                {/* {categoryValue && (
+                  <ClearIcon
+                    sx={{
+                      position: 'absolute',
+                      right: 30,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      p: '2px',
+                      ':hover': {
+                        bgcolor: '#eee',
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                      },
+                    }}
+                    onClick={handleDeleteFilter}
+                  />
+                )} */}
+              </FormControl>
+            </Box>
           }
         />
         <Divider />
@@ -96,6 +154,9 @@ const StockList = () => {
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
                 <TableCell>Sản phẩm</TableCell>
+                <TableCell>Phân loại</TableCell>
+                <TableCell align='center'>Tổn kho</TableCell>
+                <TableCell align='center'>Mã sản phẩm</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
@@ -117,7 +178,10 @@ const StockList = () => {
                             },
                           }}>
                           <img
-                            src={item?.sku?.imageUrl}
+                            src={
+                              item?.sku?.imageUrl ??
+                              item?.sku?.product?.images?.[0]
+                            }
                             className='thumbnail'
                           />
                         </Box>
@@ -130,14 +194,29 @@ const StockList = () => {
                           <Typography sx={{ ...truncateTextByLine(2) }}>
                             {item?.sku?.product?.name}
                           </Typography>
-                          <Box>
-                            <Typography sx={{ ...truncateTextByLine(2) }}>
-                              {item?.sku?.productSkuAttributes?.length} variants
-                            </Typography>
-                          </Box>
                         </Box>
                       </Box>
                     </TableCell>
+                    <TableCell>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                        }}>
+                        {item?.sku?.productSkuAttributes?.length
+                          ? item?.sku?.productSkuAttributes
+                              ?.map(
+                                (item) =>
+                                  `${item?.attributeValue?.attribute?.label}:
+                                            ${item?.attributeValue?.value}
+                                          `
+                              )
+                              .join('- ')
+                          : 'Không có'}
+                      </Box>
+                    </TableCell>
+                    <TableCell align='center'>{item?.quantity}</TableCell>
+                    <TableCell align='center'>{item?.sku?.sku}</TableCell>
                     <TableCell align='center'>
                       {moment(item?.createdAt).format('DD/MM/YYYY')}
                     </TableCell>
