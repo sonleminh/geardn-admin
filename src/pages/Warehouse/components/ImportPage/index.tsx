@@ -1,22 +1,6 @@
-import { ChangeEvent, useState, useEffect } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import Input from '@/components/Input';
-import SuspenseLoader from '@/components/SuspenseLoader';
-
-import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import { useQueryClient } from '@tanstack/react-query';
-import { useFormik } from 'formik';
-
-import { ROUTES } from '@/constants/route';
-import {
-  useCreateImportLog,
-  useCreateWarehouse,
-  useGetWarehouseById,
-  useGetWarehouseList,
-  useUpdateWarehouse,
-} from '@/services/warehouse';
 import {
   Autocomplete,
   Box,
@@ -45,15 +29,32 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { createSchema, updateSchema } from '../utils/schema/warehouseSchema';
-import { useGetEnumByContext } from '@/services/enum';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import { useQueryClient } from '@tanstack/react-query';
+import { useFormik } from 'formik';
+
+import { QueryKeys } from '@/constants/query-key';
+import { ROUTES } from '@/constants/route';
+
+import { useNotificationContext } from '@/contexts/NotificationContext';
+
+import { IProductSku } from '@/interfaces/IProductSku';
+
+import {
+  useCreateImportLog,
+  useGetWarehouseById,
+  useGetWarehouseList,
+} from '@/services/warehouse';
 import { useGetProductList } from '@/services/product';
 import { useGetSkusByProductId } from '@/services/sku';
-import { IProductSku } from '@/interfaces/IProductSku';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import { formatPrice } from '@/utils/format-price';
+import { useGetEnumByContext } from '@/services/enum';
+
+import SuspenseLoader from '@/components/SuspenseLoader';
+import Input from '@/components/Input';
+
 import { truncateTextByLine } from '@/utils/css-helper.util';
+import { formatPrice } from '@/utils/format-price';
 
 interface IImportItem {
   sku: IProductSku;

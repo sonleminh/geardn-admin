@@ -1,24 +1,10 @@
-import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-import { useQueryClient } from '@tanstack/react-query';
-import { QueryKeys } from '@/constants/query-key';
-
-import { AddCircleOutlined } from '@mui/icons-material';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 
 import {
   Box,
   Card,
   CardHeader,
   Divider,
-  FormControl,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Pagination,
-  Select,
-  SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
@@ -27,29 +13,25 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { truncateTextByLine } from '@/utils/css-helper.util';
-import moment from 'moment';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import ActionButton from '@/components/ActionButton';
-import {
-  useDeleteWarehouse,
-  useGetWarehouseById,
-  useGetWarehouseList,
-} from '@/services/warehouse';
-import { IQuery } from '@/interfaces/IQuery';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import {
-  useGetStockByProduct,
-  useGetStocksByWarehouse,
-} from '@/services/stock';
-import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import AddBusinessOutlinedIcon from '@mui/icons-material/AddBusinessOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+
 import { ROUTES } from '@/constants/route';
 
-const StockByProduct = () => {
+import { useNotificationContext } from '@/contexts/NotificationContext';
+
+import useConfirmModal from '@/hooks/useModalConfirm';
+
+import { useGetStockByProduct } from '@/services/stock';
+import { useGetWarehouseList } from '@/services/warehouse';
+
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import ActionButton from '@/components/ActionButton';
+
+import { truncateTextByLine } from '@/utils/css-helper.util';
+
+const InventoryByProduct = () => {
   const { id } = useParams();
   const numericId = id ? Number(id) : undefined;
 
@@ -192,4 +174,4 @@ const StockByProduct = () => {
   );
 };
 
-export default StockByProduct;
+export default InventoryByProduct;

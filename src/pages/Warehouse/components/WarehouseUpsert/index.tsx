@@ -80,8 +80,8 @@ const WarehouseUpsert = () => {
 
   useEffect(() => {
     if (warehouseData) {
-      formik.setFieldValue('name', warehouseData?.name);
-      formik.setFieldValue('address', warehouseData?.address);
+      formik.setFieldValue('name', warehouseData?.data?.name);
+      formik.setFieldValue('address', warehouseData?.data?.address);
     }
   }, [warehouseData]);
 

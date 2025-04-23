@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
-import { useQueryClient } from '@tanstack/react-query';
-import { QueryKeys } from '@/constants/query-key';
-
-import { AddCircleOutlined } from '@mui/icons-material';
+import AddBusinessOutlinedIcon from '@mui/icons-material/AddBusinessOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import {
   Box,
   Card,
@@ -14,7 +12,6 @@ import {
   Divider,
   FormControl,
   IconButton,
-  InputLabel,
   MenuItem,
   Pagination,
   Select,
@@ -27,32 +24,23 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { truncateTextByLine } from '@/utils/css-helper.util';
-import moment from 'moment';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import ActionButton from '@/components/ActionButton';
-import {
-  useDeleteWarehouse,
-  useGetWarehouseById,
-  useGetWarehouseList,
-} from '@/services/warehouse';
-import { IQuery } from '@/interfaces/IQuery';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import { useGetStocksByWarehouse } from '@/services/stock';
-import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
-import AddBusinessOutlinedIcon from '@mui/icons-material/AddBusinessOutlined';
+
 import { ROUTES } from '@/constants/route';
 
-const Inventory = () => {
-  const { id } = useParams();
-  const numericId = id ? Number(id) : undefined;
+import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 
-  const queryClient = useQueryClient();
+import useConfirmModal from '@/hooks/useModalConfirm';
+
+import { IQuery } from '@/interfaces/IQuery';
+
+import { useGetStocksByWarehouse } from '@/services/stock';
+import { useGetWarehouseList } from '@/services/warehouse';
+
+import { truncateTextByLine } from '@/utils/css-helper.util';
+
+const InventoryPage = () => {
   const navigate = useNavigate();
-  const { showNotification } = useNotificationContext();
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const [query, setQuery] = useState<IQuery>({
@@ -63,25 +51,13 @@ const Inventory = () => {
   const { data: warehousesData } = useGetWarehouseList();
   const [warehouseId, setWarehouseId] = useState<number>();
 
-  const { mutate: deleteWarehouseMutate } = useDeleteWarehouse();
   const { data: stocksData } = useGetStocksByWarehouse(warehouseId);
-
-  console.log('stocksData', stocksData?.data);
 
   useEffect(() => {
     if (!warehouseId && warehousesData?.data?.length) {
       setWarehouseId(warehousesData.data[0].id);
     }
   }, [warehousesData, warehouseId]);
-
-  const handleDeleteCategory = (id: number) => {
-    deleteWarehouseMutate(id, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
-        showNotification('Xóa danh mục thành công', 'success');
-      },
-    });
-  };
 
   const handleChangeQuery = (object: Partial<IQuery>) => {
     setQuery((prev) => ({ ...prev, ...object }));
@@ -90,8 +66,6 @@ const Inventory = () => {
   const handleWarehouseIdChange = (event: SelectChangeEvent<number>) => {
     setWarehouseId(+event.target.value);
   };
-
-  console.log('warehouseId', warehouseId);
 
   return (
     <Card sx={{ borderRadius: 2 }}>
@@ -129,23 +103,6 @@ const Inventory = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                {/* {categoryValue && (
-                  <ClearIcon
-                    sx={{
-                      position: 'absolute',
-                      right: 30,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      p: '2px',
-                      ':hover': {
-                        bgcolor: '#eee',
-                        borderRadius: '50%',
-                        cursor: 'pointer',
-                      },
-                    }}
-                    onClick={handleDeleteFilter}
-                  />
-                )} */}
               </FormControl>
             </Box>
           }
@@ -273,4 +230,4 @@ const Inventory = () => {
   );
 };
 
-export default Inventory;
+export default InventoryPage;

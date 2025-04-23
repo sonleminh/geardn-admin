@@ -12,13 +12,14 @@ import PublicRoute from './PublicRoute';
 import SuspenseLoader from '../components/SuspenseLoader';
 
 import AttributeValue from '@/pages/AttributeValue';
+import Warehouse from '@/pages/Warehouse';
+import Inventory from '@/pages/Inventory';
 import Attribute from '@/pages/Attribute';
 import Dashboard from '@/pages/Dashboard';
 import Category from '@/pages/Category';
 import Payment from '@/pages/Payment';
 import Product from '@/pages/Product';
 import Order from '@/pages/Order';
-import Warehouse from '@/pages/Warehouse';
 
 const Loader =
   <P extends object>(Component: React.ComponentType<P>): React.FC<P> =>

@@ -2,17 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { QueryKeys } from '@/constants/query-key';
-
-import { AddCircleOutlined } from '@mui/icons-material';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-
 import {
   Box,
   Card,
   CardHeader,
   Divider,
-  IconButton,
   Pagination,
   Table,
   TableBody,
@@ -22,19 +16,27 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { truncateTextByLine } from '@/utils/css-helper.util';
+import { AddCircleOutlined } from '@mui/icons-material';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import moment from 'moment';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+
+import { QueryKeys } from '@/constants/query-key';
+
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ActionButton from '@/components/ActionButton';
-import { useDeleteWarehouse, useGetWarehouseList } from '@/services/warehouse';
-import { IQuery } from '@/interfaces/IQuery';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import { ROUTES } from '@/constants/route';
 
-const WarehouseList = () => {
+import { useNotificationContext } from '@/contexts/NotificationContext';
+
+import useConfirmModal from '@/hooks/useModalConfirm';
+
+import { IQuery } from '@/interfaces/IQuery';
+
+import { useDeleteWarehouse, useGetWarehouseList } from '@/services/warehouse';
+
+import { truncateTextByLine } from '@/utils/css-helper.util';
+
+const WarehousePage = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [query, setQuery] = useState<IQuery>({
@@ -88,8 +90,8 @@ const WarehouseList = () => {
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
                 <TableCell>Tên</TableCell>
+                <TableCell>Địa chỉ</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
-                <TableCell align='center'>Xem kho hàng</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
@@ -97,22 +99,18 @@ const WarehouseList = () => {
               {data?.data?.map((item, index) => (
                 <TableRow key={index}>
                   <TableCell align='center'>{index + 1}</TableCell>
-                  <TableCell sx={{ width: '30%' }}>
+                  <TableCell sx={{ width: '10%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.name}
+                      {item?.name}
+                    </Typography>
+                  </TableCell>
+                  <TableCell sx={{ width: '50%' }}>
+                    <Typography sx={{ ...truncateTextByLine(2) }}>
+                      {item?.address}
                     </Typography>
                   </TableCell>
                   <TableCell align='center'>
-                    {/* {moment(item.createdAt).format('DD/MM/YYYY')} */}
-                  </TableCell>
-                  <TableCell align='center'>
-                    <IconButton
-                    // onClick={() =>
-                    //   navigate(`${ROUTES.WAREHOUSE}/${item?.}/stocks`)
-                    // }
-                    >
-                      <VisibilityOutlinedIcon />
-                    </IconButton>
+                    {moment(item.createdAt).format('DD/MM/YYYY')}
                   </TableCell>
                   <TableCell align='center'>
                     <ActionButton>
@@ -178,4 +176,4 @@ const WarehouseList = () => {
   );
 };
 
-export default WarehouseList;
+export default WarehousePage;

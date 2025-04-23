@@ -1,38 +1,34 @@
 import { NavLink } from 'react-router-dom';
 
+import StoreMallDirectoryOutlinedIcon from '@mui/icons-material/StoreMallDirectoryOutlined';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
-import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import {
-  IconButton,
-  Link,
-  useTheme,
-  Button,
-  ListSubheader,
-} from '@mui/material';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import ListItemButton from '@mui/material/ListItemButton';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import MonitorIcon from '@mui/icons-material/Monitor';
 import PaymentIcon from '@mui/icons-material/Payment';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
 import StyleIcon from '@mui/icons-material/Style';
-import ListItem from '@mui/material/ListItem';
-import { styled } from '@mui/material/styles';
+
+import { IconButton, Link, useTheme } from '@mui/material';
+import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
-import Box from '@mui/material/Box';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import { styled } from '@mui/material/styles';
 
-import LOGO from '@/assets/geardn-logo.png';
-import { DrawerMenuWrapper } from '../styled';
-import { ROUTES } from '@/constants/route';
 import MultipleListItem from '@/components/MultipleListItem';
+import { ROUTES } from '@/constants/route';
 import React from 'react';
+import { DrawerMenuWrapper } from '../styled';
+import LOGO from '@/assets/geardn-logo.png';
 
 const menuList = [
   {
@@ -50,9 +46,21 @@ const menuList = [
   {
     item: (
       <ListItem>
-        <ListItemButton component={NavLink} to={ROUTES.WAREHOUSE}>
+        <ListItemButton component={NavLink} to={ROUTES.INVENTORY}>
           <ListItemIcon>
             <WarehouseOutlinedIcon />
+          </ListItemIcon>
+          <ListItemText primary={'Tồn kho'} />
+        </ListItemButton>
+      </ListItem>
+    ),
+  },
+  {
+    item: (
+      <ListItem>
+        <ListItemButton component={NavLink} to={ROUTES.WAREHOUSE}>
+          <ListItemIcon>
+            <StoreMallDirectoryOutlinedIcon />
           </ListItemIcon>
           <ListItemText primary={'Kho hàng'} />
         </ListItemButton>

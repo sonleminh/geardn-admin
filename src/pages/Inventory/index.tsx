@@ -1,16 +1,14 @@
 import { useRoutes } from 'react-router-dom';
-import WarehouseLayout from './components/WarehouseLayout';
-import WarehouseList from './components/WarehouseList';
-import WarehouseUpsert from './components/WarehouseUpsert';
-import StockList from './components/InventoryPage';
+import InventoryByProduct from './components/InventoryByProduct';
+import InventoryLayout from './components/InventoryLayout';
+import InventoryPage from './components/InventoryPage';
 import ImportPage from './components/ImportPage';
-import StockByProduct from './components/StockByProduct';
 
 const Inventory = () => {
   const router = useRoutes([
     {
       path: '',
-      element: <WarehouseLayout />,
+      element: <InventoryLayout />,
       children: [
         {
           path: '',
@@ -18,16 +16,8 @@ const Inventory = () => {
         },
         {
           path: ':id/stocks',
-          element: <StockByProduct />,
+          element: <InventoryByProduct />,
           index: true,
-        },
-        {
-          path: '/update/:id',
-          element: <WarehouseUpsert />,
-        },
-        {
-          path: '/create',
-          element: <WarehouseUpsert />,
         },
         {
           path: '/import',

@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Container } from '@mui/material';
 
-const WarehouseLayout = () => {
+const InventoryLayout = () => {
   return (
     <>
       <Container maxWidth='lg'>
@@ -11,4 +11,4 @@ const WarehouseLayout = () => {
   );
 };
 
-export default WarehouseLayout;
+export default InventoryLayout;
