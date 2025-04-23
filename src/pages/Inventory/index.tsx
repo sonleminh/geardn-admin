@@ -2,11 +2,11 @@ import { useRoutes } from 'react-router-dom';
 import WarehouseLayout from './components/WarehouseLayout';
 import WarehouseList from './components/WarehouseList';
 import WarehouseUpsert from './components/WarehouseUpsert';
-import StockList from './components/StockList';
+import StockList from './components/InventoryPage';
 import ImportPage from './components/ImportPage';
 import StockByProduct from './components/StockByProduct';
 
-const Warehouse = () => {
+const Inventory = () => {
   const router = useRoutes([
     {
       path: '',
@@ -14,7 +14,7 @@ const Warehouse = () => {
       children: [
         {
           path: '',
-          element: <StockList />,
+          element: <InventoryPage />,
         },
         {
           path: ':id/stocks',
@@ -39,4 +39,4 @@ const Warehouse = () => {
   return router;
 };
 
-export default Warehouse;
+export default Inventory;

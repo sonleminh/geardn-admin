@@ -92,6 +92,10 @@ const routes = [
             element: <Warehouse />,
           },
           {
+            path: `${ROUTES.INVENTORY}/*`,
+            element: <Inventory />,
+          },
+          {
             path: `*`,
             element: <Dashboard />,
           },

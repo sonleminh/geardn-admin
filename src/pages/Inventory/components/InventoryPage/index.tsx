@@ -46,7 +46,7 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import AddBusinessOutlinedIcon from '@mui/icons-material/AddBusinessOutlined';
 import { ROUTES } from '@/constants/route';
 
-const StockList = () => {
+const Inventory = () => {
   const { id } = useParams();
   const numericId = id ? Number(id) : undefined;
 
@@ -273,4 +273,4 @@ const StockList = () => {
   );
 };
 
-export default StockList;
+export default Inventory;
