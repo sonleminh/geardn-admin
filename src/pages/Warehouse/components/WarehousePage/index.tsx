@@ -91,6 +91,7 @@ const WarehousePage = () => {
                 <TableCell align='center'>STT</TableCell>
                 <TableCell>Tên</TableCell>
                 <TableCell>Địa chỉ</TableCell>
+                <TableCell align='center'>Đang hoạt động</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
@@ -104,10 +105,13 @@ const WarehousePage = () => {
                       {item?.name}
                     </Typography>
                   </TableCell>
-                  <TableCell sx={{ width: '50%' }}>
+                  <TableCell sx={{ width: '40%' }}>
                     <Typography sx={{ ...truncateTextByLine(2) }}>
                       {item?.address}
                     </Typography>
+                  </TableCell>
+                  <TableCell align='center'>
+                    <Typography>{!item?.isDeleted ? 'Có' : 'Không'}</Typography>
                   </TableCell>
                   <TableCell align='center'>
                     {moment(item.createdAt).format('DD/MM/YYYY')}
@@ -129,7 +133,7 @@ const WarehousePage = () => {
                           color='error'
                           onClick={() => {
                             showConfirmModal({
-                              title: 'Bạn có muốn xóa danh mục này không?',
+                              title: 'Bạn có muốn xóa kho hàng này không?',
                               cancelText: 'Hủy',
                               onOk: () => handleDeleteCategory(item?.id),
                               okText: 'Xóa',

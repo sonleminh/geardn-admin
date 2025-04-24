@@ -76,7 +76,7 @@ export const useUpdateWarehouse = () => {
 };
 
 const deleteWarehouse = async (id: number) => {
-  const result = await axiosInstance.delete(`${warehouseUrl}/${id}`);
+  const result = await axiosInstance.patch(`${warehouseUrl}/${id}/soft-delete`);
   return result.data;
 };
 

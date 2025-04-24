@@ -2,6 +2,7 @@ export interface IWarehouse {
     id: number;
     name: string;
     address: string;
+    isDeleted: boolean;
     createdAt?: Date;
 }
 
