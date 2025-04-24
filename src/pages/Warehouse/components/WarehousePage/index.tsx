@@ -19,6 +19,7 @@ import {
 import { AddCircleOutlined } from '@mui/icons-material';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import RestoreIcon from '@mui/icons-material/Restore';
 import moment from 'moment';
 
 import { QueryKeys } from '@/constants/query-key';
@@ -32,7 +33,11 @@ import useConfirmModal from '@/hooks/useModalConfirm';
 
 import { IQuery } from '@/interfaces/IQuery';
 
-import { useDeleteWarehouse, useGetWarehouseList } from '@/services/warehouse';
+import {
+  useDeleteWarehouse,
+  useGetWarehouseList,
+  useRestoreWarehouse,
+} from '@/services/warehouse';
 
 import { truncateTextByLine } from '@/utils/css-helper.util';
 
@@ -51,12 +56,22 @@ const WarehousePage = () => {
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { mutate: deleteWarehouseMutate } = useDeleteWarehouse();
+  const { mutate: restoreWarehouseMutate } = useRestoreWarehouse();
 
-  const handleDeleteCategory = (id: number) => {
+  const handleDeleteWarehouse = (id: number) => {
     deleteWarehouseMutate(id, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
-        showNotification('Xóa danh mục thành công', 'success');
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Warehouse] });
+        showNotification('Xóa kho hàng thành công', 'success');
+      },
+    });
+  };
+
+  const handleRestoreWarehouse = (id: number) => {
+    restoreWarehouseMutate(id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Warehouse] });
+        showNotification('Khôi phục kho hàng thành công', 'success');
       },
     });
   };
@@ -128,14 +143,14 @@ const WarehousePage = () => {
                           <EditOutlinedIcon />
                         </ButtonWithTooltip>
                       </Box>
-                      <Box>
+                      <Box mb={1}>
                         <ButtonWithTooltip
                           color='error'
                           onClick={() => {
                             showConfirmModal({
                               title: 'Bạn có muốn xóa kho hàng này không?',
                               cancelText: 'Hủy',
-                              onOk: () => handleDeleteCategory(item?.id),
+                              onOk: () => handleDeleteWarehouse(item?.id),
                               okText: 'Xóa',
                               btnOkColor: 'error',
                             });
@@ -144,6 +159,25 @@ const WarehousePage = () => {
                           title='Xoá'
                           placement='left'>
                           <DeleteOutlineOutlinedIcon />
+                        </ButtonWithTooltip>
+                      </Box>
+                      <Box>
+                        <ButtonWithTooltip
+                          color='info'
+                          onClick={() => {
+                            showConfirmModal({
+                              title:
+                                'Bạn có muốn khôi phục kho hàng này không?',
+                              cancelText: 'Hủy',
+                              onOk: () => handleRestoreWarehouse(item?.id),
+                              okText: 'Đồng ý',
+                              btnOkColor: 'error',
+                            });
+                          }}
+                          variant='outlined'
+                          title='Khôi phục'
+                          placement='left'>
+                          <RestoreIcon />
                         </ButtonWithTooltip>
                       </Box>
                     </ActionButton>

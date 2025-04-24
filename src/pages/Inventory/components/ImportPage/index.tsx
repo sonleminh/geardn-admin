@@ -623,7 +623,7 @@ const ImportPage = () => {
         </Grid2>
 
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate(ROUTES.WAREHOUSE)} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate(ROUTES.INVENTORY)} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>

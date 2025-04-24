@@ -74,7 +74,7 @@ const InventoryPage = () => {
           action={
             <ButtonWithTooltip
               variant='contained'
-              onClick={() => navigate(`${ROUTES.WAREHOUSE}/import`)}
+              onClick={() => navigate(`${ROUTES.INVENTORY}/import`)}
               title='Thêm kho hàng'>
               <AddBusinessOutlinedIcon />
             </ButtonWithTooltip>

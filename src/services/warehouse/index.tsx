@@ -86,6 +86,17 @@ export const useDeleteWarehouse = () => {
   });
 };
 
+const restoreWarehouse = async (id: number) => {
+  const result = await axiosInstance.patch(`${warehouseUrl}/${id}/restore`);
+  return result.data;
+};
+
+export const useRestoreWarehouse = () => {
+  return useMutation({
+    mutationFn: restoreWarehouse,
+  });
+};
+
 const createImportLog = async (payload: ICreateImportLog) => {
   const result = await axiosInstance.post('import-logs', payload);
   return result.data;
