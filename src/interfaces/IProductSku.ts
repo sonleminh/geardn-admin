@@ -1,5 +1,6 @@
 import { IProduct } from "./IProduct";
 import { IProductSkuAttribute } from "./IProductSkuAttribute";
+import { IStock } from "./IStock";
 
 export interface IProductSku {
     id: number;
@@ -8,6 +9,7 @@ export interface IProductSku {
     price: number;
     imageUrl: string;
     productSkuAttributes: IProductSkuAttribute[]
+    stocks: IStock[]
     product: IProduct;
     createdAt: Date;
 }

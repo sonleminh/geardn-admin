@@ -96,14 +96,3 @@ export const useRestoreWarehouse = () => {
     mutationFn: restoreWarehouse,
   });
 };
-
-const createImportLog = async (payload: ICreateImportLog) => {
-  const result = await axiosInstance.post('import-logs', payload);
-  return result.data;
-};
-
-export const useCreateImportLog = () => {
-  return useMutation({
-    mutationFn: createImportLog,
-  });
-};

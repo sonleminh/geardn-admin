@@ -7,6 +7,8 @@ export interface IStock {
     skuId: number;
     warehouseId: number;
     quantity: number;
+    costPrice: number;
+
     sku: IProductSku;
     warehouse: IWarehouse;
     createdAt: Date;
@@ -24,10 +26,10 @@ export interface IStockByWarehouseItem {
     skus: IStockProductSkuItem[];
 }
 
-interface IProductSkuWithStock extends IProductSku {
-    stocks: IStock[];
-}
+// interface IProductSkuWithStock extends IProductSku {
+//     stocks: IStock[];
+// }
 
-export interface IProductWithStock extends IProduct {
-skus: IProductSkuWithStock[];
-}
+// export interface IProductWithStock extends IProduct {
+// skus: IProductSkuWithStock[];
+// }

@@ -24,6 +24,9 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
+import { LuPackagePlus } from 'react-icons/lu';
+import { LuPackageMinus } from 'react-icons/lu';
+import { TbHomeEdit } from 'react-icons/tb';
 
 import { ROUTES } from '@/constants/route';
 
@@ -72,12 +75,34 @@ const InventoryPage = () => {
       <Card>
         <CardHeader
           action={
-            <ButtonWithTooltip
-              variant='contained'
-              onClick={() => navigate(`${ROUTES.INVENTORY}/import`)}
-              title='Thêm kho hàng'>
-              <AddBusinessOutlinedIcon />
-            </ButtonWithTooltip>
+            <Box
+              sx={{
+                button: {
+                  mx: 0.5,
+                },
+                svg: {
+                  fontSize: 24,
+                },
+              }}>
+              <ButtonWithTooltip
+                variant='contained'
+                onClick={() => navigate(`${ROUTES.INVENTORY}/import`)}
+                title='Nhập hàng'>
+                <LuPackagePlus />
+              </ButtonWithTooltip>
+              <ButtonWithTooltip
+                variant='contained'
+                onClick={() => navigate(`${ROUTES.INVENTORY}/export`)}
+                title='Xuất kho'>
+                <LuPackageMinus />
+              </ButtonWithTooltip>
+              <ButtonWithTooltip
+                variant='contained'
+                onClick={() => navigate(`${ROUTES.INVENTORY}/adjustment`)}
+                title='Điều chỉnh'>
+                <TbHomeEdit />
+              </ButtonWithTooltip>
+            </Box>
           }
           title={
             <Box sx={{ display: 'flex', alignItems: 'center' }}>

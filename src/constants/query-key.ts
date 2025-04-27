@@ -1,10 +1,12 @@
 export const QueryKeys = {
+    Adjustment: 'ADJUSTMENT',
     Attribute: 'ATTRIBUTE',
     AttributeValue: 'ATTRIBUTE_VALUE',
     Category: 'CATEGORY',
     Enum: 'ENUM',
-    Inventory: 'INVENTORY',
+    ExportLog: 'EXPORT_LOG',
     ImportLog: 'IMPORT_LOG',
+    Inventory: 'INVENTORY',
     Model: 'MODEL',
     Order: 'ORDER',
     Payment: 'PAYMENT',

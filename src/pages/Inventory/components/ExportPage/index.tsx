@@ -1,5 +1,5 @@
-import { ChangeEvent, useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { ChangeEvent, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
@@ -10,7 +10,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 
 import { ROUTES } from '@/constants/route';
-
+import { IProductSku } from '@/interfaces/IProductSku';
+import { useGetEnumByContext } from '@/services/enum';
+import { useGetProductList } from '@/services/product';
+import { useGetSkusByProductId } from '@/services/sku';
+import { useGetWarehouseList } from '@/services/warehouse';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Autocomplete,
   Box,
@@ -39,51 +46,42 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { createSchema, updateSchema } from '../utils/schema/warehouseSchema';
-import { useGetEnumByContext } from '@/services/enum';
-import { useGetProductList } from '@/services/product';
-import { useGetSkusByProductId } from '@/services/sku';
-import { IProductSku } from '@/interfaces/IProductSku';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import { useCreateExportLog } from '@/services/inventory';
 import { formatPrice } from '@/utils/format-price';
-import { truncateTextByLine } from '@/utils/css-helper.util';
-import { useGetWarehouseList } from '@/services/warehouse';
-import { useCreateImportLog } from '@/services/inventory';
 
-interface IImportItem {
+interface IExportItem {
   sku: IProductSku;
   quantity: string;
-  price: string;
+  costPrice: string;
 }
 
-const ImportPage = () => {
+const ExportPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
 
   const [productId, setProductId] = useState<number>();
   const [skuId, setSkuId] = useState<string>('');
-  const [price, setPrice] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('');
   const [isEditItem, setIsEditItem] = useState<boolean>(false);
   const [editItemIndex, setEditItemIndex] = useState<number | null>(null);
-  const [importItems, setImportItems] = useState<IImportItem[]>([]);
+  const [exportItems, setExportItems] = useState<IExportItem[]>([]);
 
   const { data: warehousesData } = useGetWarehouseList();
-  const { data: enumData } = useGetEnumByContext('import-type');
+  const { data: enumData } = useGetEnumByContext('export-type');
 
   const { data: productsData } = useGetProductList();
   const { data: skusData } = useGetSkusByProductId(productId);
 
-  const { mutate: createImportLogMutate, isPending: isCreatePending } =
-    useCreateImportLog();
+  const { mutate: createExportLogMutate, isPending: isCreatePending } =
+    useCreateExportLog();
+
+  console.log(exportItems);
 
   const formik = useFormik({
     initialValues: {
       warehouseId: '',
       type: '',
-      note: '',
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -92,18 +90,17 @@ const ImportPage = () => {
       const payload = {
         warehouseId: +values.warehouseId,
         type: values.type,
-        note: values.note,
-        items: importItems?.map((item) => ({
+        items: exportItems?.map((item) => ({
           skuId: +item.sku.id,
-          price: +item.quantity,
           quantity: +item.quantity,
+          costPrice: +item.costPrice,
         })),
       };
 
-      createImportLogMutate(payload, {
+      createExportLogMutate(payload, {
         onSuccess() {
-          queryClient.invalidateQueries({ queryKey: [QueryKeys.ImportLog] });
-          showNotification('Tạo nhập hàng thành công', 'success');
+          queryClient.invalidateQueries({ queryKey: [QueryKeys.ExportLog] });
+          showNotification('Tạo xuất hàng thành công', 'success');
           navigate(ROUTES.INVENTORY);
         },
       });
@@ -125,7 +122,7 @@ const ImportPage = () => {
   };
 
   const handleSaveItem = () => {
-    const isAlreadySelected = importItems.some((item) => {
+    const isAlreadySelected = exportItems.some((item) => {
       return item?.sku?.id === +skuId;
     });
     if (isAlreadySelected && !isEditItem) {
@@ -135,48 +132,55 @@ const ImportPage = () => {
     const sku = skusData?.data?.find((sku) => sku?.id === +skuId);
 
     if (editItemIndex !== null && sku && skuId) {
-      const updatedImportItems = importItems;
-      updatedImportItems[editItemIndex] = {
+      const updatedExportItems = exportItems;
+      updatedExportItems[editItemIndex] = {
         sku: sku,
-        price: price,
         quantity: quantity,
+        costPrice:
+          sku?.stocks
+            ?.find((stock) => stock?.skuId === +skuId)
+            ?.costPrice?.toString() ?? '',
       };
-      setImportItems(updatedImportItems);
+      setExportItems(updatedExportItems);
       setProductId(undefined);
       setSkuId('');
-      setPrice('');
       setQuantity('');
     } else {
-      if (sku && skuId && quantity && price) {
-        setImportItems((prev) => [
+      if (sku && skuId && quantity) {
+        setExportItems((prev) => [
           ...prev,
-          { sku: sku, quantity: quantity, price: price },
+          {
+            sku: sku,
+            quantity: quantity,
+            costPrice:
+              sku?.stocks
+                ?.find((stock) => stock?.skuId === +skuId)
+                ?.costPrice?.toString() ?? '',
+          },
         ]);
       }
       setProductId(undefined);
       setSkuId('');
-      setPrice('');
       setQuantity('');
     }
   };
 
-  const handleEditImportItem = (item: IImportItem, index: number) => {
+  const handleEditImportItem = (item: IExportItem, index: number) => {
     setIsEditItem(true);
     setProductId(item?.sku?.product?.id);
     setSkuId(item?.sku?.id?.toString() ?? '');
-    setPrice(item?.price.toString() ?? '');
     setQuantity(item?.quantity.toString() ?? '');
     setEditItemIndex(index);
   };
 
   const handleDeleteImportItem = (itemIndex: number) => {
-    const updAttributeList = importItems?.filter(
+    const updAttributeList = exportItems?.filter(
       (_, index) => index !== itemIndex
     );
     if (updAttributeList?.length === 0) {
       setIsEditItem(false);
     }
-    setImportItems(updAttributeList);
+    setExportItems(updAttributeList);
   };
 
   return (
@@ -212,7 +216,7 @@ const ImportPage = () => {
           </FormHelperText>
         </FormControl>
         <FormControl variant='filled' fullWidth>
-          <InputLabel>Loại nhập</InputLabel>
+          <InputLabel>Loại xuất</InputLabel>
           <Select
             disableUnderline
             required
@@ -231,6 +235,22 @@ const ImportPage = () => {
               {formik.errors?.type}
             </Box>
           </FormHelperText>
+        </FormControl>
+        <FormControl variant='filled' fullWidth>
+          <Input
+            id='note'
+            label='Ghi chú'
+            name='note'
+            variant='filled'
+            size='small'
+            // helperText={
+            //   <Box component={'span'} sx={helperTextStyle}>
+            //     {formik?.errors?.note}
+            //   </Box>
+            // }
+            // value={formik?.values?.note ?? ''}
+            onChange={handleChangeValue}
+          />
         </FormControl>
         <Grid2 container spacing={2}>
           <Grid2 size={6}>
@@ -319,25 +339,6 @@ const ImportPage = () => {
                 <Grid2 size={12}>
                   <FormControl fullWidth>
                     <Input
-                      id='price'
-                      label='Giá nhập'
-                      name='name'
-                      variant='filled'
-                      type='number'
-                      required
-                      // helperText={
-                      //   <Box component={'span'} sx={helperTextStyle}>
-                      //     {formik.errors.price}
-                      //   </Box>
-                      // }
-                      value={price}
-                      onChange={(e) => setPrice(e?.target?.value)}
-                    />
-                  </FormControl>
-                </Grid2>
-                <Grid2 size={12}>
-                  <FormControl fullWidth>
-                    <Input
                       id='quantity'
                       label='Số lượng'
                       name='quantity'
@@ -351,24 +352,6 @@ const ImportPage = () => {
                       // }
                       value={quantity}
                       onChange={(e) => setQuantity(e?.target?.value)}
-                    />
-                  </FormControl>
-                </Grid2>
-                <Grid2 size={12}>
-                  <FormControl fullWidth>
-                    <Input
-                      id='note'
-                      label='Ghi chú'
-                      name='note'
-                      variant='filled'
-                      required
-                      helperText={
-                        <Box component={'span'} sx={helperTextStyle}>
-                          {formik?.errors?.note}
-                        </Box>
-                      }
-                      value={formik?.values?.note ?? ''}
-                      onChange={handleChangeValue}
                     />
                   </FormControl>
                 </Grid2>
@@ -424,23 +407,23 @@ const ImportPage = () => {
                       <TableCell sx={{ width: '3%', px: 1 }} align='center'>
                         STT
                       </TableCell>
-                      <TableCell sx={{ width: '30%', px: 0 }} align='center'>
+                      <TableCell sx={{ width: '25%', px: 0 }} align='center'>
                         Sản phẩm
                       </TableCell>
-                      <TableCell sx={{ width: '5%', px: 1 }} align='center'>
-                        SL
+                      <TableCell sx={{ width: '14%', px: 1 }} align='center'>
+                        Số lượng
                       </TableCell>
-                      <TableCell sx={{ width: '8%', px: 1 }} align='center'>
-                        Giá
+                      <TableCell sx={{ width: '10%', px: 1 }} align='center'>
+                        Giá vốn
                       </TableCell>
-                      <TableCell sx={{ width: '16%' }} align='center'>
+                      <TableCell sx={{ width: '15%' }} align='center'>
                         Tuỳ chọn
                       </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {importItems?.length ? (
-                      importItems.map((item, index) => (
+                    {exportItems?.length ? (
+                      exportItems.map((item, index) => (
                         <TableRow
                           key={item?.sku?.id}
                           sx={{
@@ -483,10 +466,10 @@ const ImportPage = () => {
                             </Box>
                           </TableCell>
                           <TableCell sx={{ px: 1 }} align='center'>
-                            {item.quantity}
+                            {item?.quantity}
                           </TableCell>
                           <TableCell sx={{ fontSize: 12 }} align='right'>
-                            {formatPrice(+item?.price)}
+                            {formatPrice(+item?.costPrice)}
                           </TableCell>
                           <TableCell align='center'>
                             <Button
@@ -608,7 +591,7 @@ const ImportPage = () => {
   );
 };
 
-export default ImportPage;
+export default ExportPage;
 
 const helperTextStyle: SxProps<Theme> = {
   color: 'red',
