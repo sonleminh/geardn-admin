@@ -85,22 +85,28 @@ const InventoryPage = () => {
                 },
               }}>
               <ButtonWithTooltip
-                variant='contained'
+                variant='outlined'
                 onClick={() => navigate(`${ROUTES.INVENTORY}/import`)}
-                title='Nhập hàng'>
+                title='Nhập hàng'
+                sx={{ textTransform: 'none' }}>
                 <LuPackagePlus />
+                <Typography sx={{ ml: 1 }}>Nhập hàng</Typography>
               </ButtonWithTooltip>
               <ButtonWithTooltip
-                variant='contained'
+                variant='outlined'
                 onClick={() => navigate(`${ROUTES.INVENTORY}/export`)}
-                title='Xuất kho'>
+                title='Xuất kho'
+                sx={{ textTransform: 'none' }}>
                 <LuPackageMinus />
+                <Typography sx={{ ml: 1 }}>Xuất kho</Typography>
               </ButtonWithTooltip>
               <ButtonWithTooltip
-                variant='contained'
+                variant='outlined'
                 onClick={() => navigate(`${ROUTES.INVENTORY}/adjustment`)}
-                title='Điều chỉnh'>
+                title='Điều chỉnh'
+                sx={{ textTransform: 'none' }}>
                 <TbHomeEdit />
+                <Typography sx={{ ml: 1 }}>Điều chỉnh</Typography>
               </ButtonWithTooltip>
             </Box>
           }

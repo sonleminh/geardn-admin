@@ -1,4 +1,4 @@
-import { ChangeEvent, useState, useEffect } from 'react';
+import { ChangeEvent, useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import Input from '@/components/Input';
@@ -53,6 +53,7 @@ import { useCreateImportLog, useGetImportLogList } from '@/services/inventory';
 import moment from 'moment';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ActionButton from '@/components/ActionButton';
+import { AddCircleOutlined } from '@mui/icons-material';
 
 interface IImportItem {
   sku: IProductSku;
@@ -182,6 +183,12 @@ const InventoryImportPage = () => {
     setImportItems(updAttributeList);
   };
 
+  const importTypeMap = useMemo(() => {
+    return Object.fromEntries(
+      enumData?.data?.map((item) => [item.value, item.label]) ?? []
+    );
+  }, [enumData?.data]);
+
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
@@ -189,6 +196,15 @@ const InventoryImportPage = () => {
           <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
             Nhập hàng
           </Typography>
+        }
+        action={
+          <ButtonWithTooltip
+            variant='contained'
+            onClick={() => navigate(`${ROUTES.INVENTORY}/import/create`)}
+            title='Nhập hàng'
+            sx={{ textTransform: 'none' }}>
+            <AddCircleOutlined />
+          </ButtonWithTooltip>
         }
       />
       <Divider />
@@ -201,6 +217,7 @@ const InventoryImportPage = () => {
                 <TableCell>Kho</TableCell>
                 <TableCell>Sản phẩm</TableCell>
                 <TableCell align='center'>Loại nhập</TableCell>
+                <TableCell align='center'>Ngày</TableCell>
                 <TableCell align='center'>Ghi chú</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
@@ -212,24 +229,76 @@ const InventoryImportPage = () => {
                     <TableCell align='center'>{index + 1}</TableCell>
                     <TableCell>{importLog?.warehouse?.name}</TableCell>
                     <TableCell>
-                      <Box>
+                      <Box sx={{}}>
                         {importLog?.items?.map((importLogItem) => (
-                          <Box sx={{ display: 'flex' }}>
-                            <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
-                              {importLogItem?.sku?.product?.name}
-                            </Typography>
-                            {importLogItem?.sku?.productSkuAttributes?.length &&
-                              ' - '}
+                          <Box
+                            my={1}
+                            sx={{
+                              display: 'flex',
+                              p: 1,
+                              bgcolor: '#fafafa',
+                              border: '1px solid #dadada',
+                              borderRadius: 1,
+                            }}>
+                            <Box
+                              sx={{
+                                height: 40,
+                                '.thumbnail': {
+                                  width: 40,
+                                  height: 40,
+                                  mr: 1,
+                                  objectFit: 'contain',
+                                },
+                              }}>
+                              <img
+                                src={
+                                  importLogItem?.sku?.imageUrl ??
+                                  importLogItem?.sku?.product?.images[0]
+                                }
+                                className='thumbnail'
+                              />
+                            </Box>
                             <Box
                               sx={{
                                 display: 'flex',
+                                alignItems: 'center',
+                              }}>
+                              <Typography
+                                sx={{
+                                  width: 80,
+                                  fontSize: 14,
+                                  fontWeight: 500,
+                                  ...truncateTextByLine(1),
+                                }}>
+                                {importLogItem?.sku?.product?.name}
+                              </Typography>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                }}>
+                                <Typography sx={{ fontSize: 13 }}>
+                                  SL: {importLogItem?.quantity}
+                                </Typography>
+                                <Typography sx={{ fontSize: 13 }}>
+                                  Giá nhập:{' '}
+                                  {formatPrice(importLogItem?.costPrice)}
+                                </Typography>
+                              </Box>
+                              {/* {importLogItem?.sku?.productSkuAttributes
+                                ?.length && ':'} */}
+                            </Box>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
                                 flexDirection: 'column',
-                                ml: 0.5,
+                                ml: 2,
                               }}>
                               {importLogItem?.sku?.productSkuAttributes?.length
                                 ? importLogItem?.sku?.productSkuAttributes?.map(
                                     (item) => (
-                                      <Typography sx={{ fontSize: 14 }}>
+                                      <Typography sx={{ fontSize: 13 }}>
                                         {item?.attributeValue?.attribute?.label}
                                         : {item?.attributeValue?.value}
                                       </Typography>
@@ -240,6 +309,9 @@ const InventoryImportPage = () => {
                           </Box>
                         ))}
                       </Box>
+                    </TableCell>
+                    <TableCell align='center'>
+                      {importTypeMap?.[importLog?.type] || 'Không xác định'}
                     </TableCell>
                     <TableCell align='center'>
                       {moment(importLog?.createdAt).format('DD/MM/YYYY')}

@@ -4,6 +4,7 @@ import InventoryLayout from './components/InventoryLayout';
 import InventoryPage from './components/InventoryPage';
 import InventoryImportPage from './components/InventoryImportPage';
 import ExportPage from './components/InventoryExportPage';
+import CreateInventoryImportPage from './components/InventoryImportPage/CreateInventoryImport';
 
 const Inventory = () => {
   const router = useRoutes([
@@ -23,6 +24,10 @@ const Inventory = () => {
         {
           path: '/import',
           element: <InventoryImportPage />,
+        },
+        {
+          path: '/import/create',
+          element: <CreateInventoryImportPage />,
         },
         {
           path: '/export',

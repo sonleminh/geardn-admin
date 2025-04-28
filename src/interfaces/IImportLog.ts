@@ -6,7 +6,7 @@ interface IImportLogItem {
     importLogId: number;
     skuId: number;
     quantity: number;
-    price: number;
+    costPrice: number;
     note?: string;
     sku: IProductSku;
 }
@@ -14,6 +14,7 @@ interface IImportLogItem {
 export interface IImportLog {
     id: number;
     warehouseId: number;
+    type: string;
     note?: string;
     createdBy: number;
     items: IImportLogItem[];

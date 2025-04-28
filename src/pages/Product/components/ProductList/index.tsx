@@ -327,7 +327,7 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
             sx={{ ml: 2 }}
             variant='contained'
             onClick={() => navigate('create')}
-            title='Thêm gói cước'>
+            title='Thêm sản phẩm'>
             <AddCircleOutlined />
           </ButtonWithTooltip>
           {/* <Tooltip title='Filter list'>
