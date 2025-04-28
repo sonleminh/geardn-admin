@@ -7,15 +7,10 @@ import {
   ICreateWarehouse,
   IUpdateWarehousePayload,
 } from '@/interfaces/IWarehouse';
-import { ICreateImportLog } from '@/interfaces/IImportLog';
+import { ICreateImportLog, IImportLog } from '@/interfaces/IImportLog';
 import { ICreateExportLog } from '@/interfaces/IExportLog';
 import { ICreateAdjustmentLog } from '@/interfaces/IAdjustmentLog';
-type TWarehousesRes = {
-  success: boolean;
-  message: string;
-  data: IWarehouse[];
-  total: number;
-};
+import { TPaginatedResponse } from '@/types/response.type';
 
 type TWarehouseById = {
   status: number;
@@ -35,6 +30,20 @@ const createImportLog = async (payload: ICreateImportLog) => {
 export const useCreateImportLog = () => {
   return useMutation({
     mutationFn: createImportLog,
+  });
+};
+
+const getImportLogList = async () => {
+  const result = await axiosInstance.get(`${importLogUrl}`);
+  return result.data as TPaginatedResponse<IImportLog>;
+};
+
+export const useGetImportLogList = () => {
+  return useQuery({
+    queryKey: [QueryKeys.ImportLog],
+    queryFn: () => getImportLogList(),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 };
 

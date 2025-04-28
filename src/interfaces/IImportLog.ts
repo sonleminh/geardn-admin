@@ -16,8 +16,10 @@ export interface IImportLog {
     warehouseId: number;
     note?: string;
     createdBy: number;
-    warehouse: IWarehouse;
     items: IImportLogItem[];
+    createdAt: Date;
+
+    warehouse: IWarehouse;
 }
 
 

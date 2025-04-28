@@ -2,8 +2,8 @@ import { useRoutes } from 'react-router-dom';
 import InventoryByProduct from './components/InventoryByProduct';
 import InventoryLayout from './components/InventoryLayout';
 import InventoryPage from './components/InventoryPage';
-import ImportPage from './components/ImportPage';
-import ExportPage from './components/ExportPage';
+import InventoryImportPage from './components/InventoryImportPage';
+import ExportPage from './components/InventoryExportPage';
 
 const Inventory = () => {
   const router = useRoutes([
@@ -22,7 +22,7 @@ const Inventory = () => {
         },
         {
           path: '/import',
-          element: <ImportPage />,
+          element: <InventoryImportPage />,
         },
         {
           path: '/export',

@@ -57,7 +57,7 @@ interface IImportItem {
   price: string;
 }
 
-const ImportPage = () => {
+const CreateInventoryImportPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
@@ -608,7 +608,7 @@ const ImportPage = () => {
   );
 };
 
-export default ImportPage;
+export default CreateInventoryImportPage;
 
 const helperTextStyle: SxProps<Theme> = {
   color: 'red',
