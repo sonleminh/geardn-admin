@@ -12,6 +12,7 @@ import {
 } from '@/interfaces/IProduct';
 import { ErrorResponse } from '@/interfaces/IError';
 import { IQuery } from '@/interfaces/IQuery';
+import { TPaginatedResponse } from '@/types/response.type';
 
 type TProductsRes = {
   success: boolean;
@@ -58,7 +59,7 @@ const getProductList = async (query?: IQuery) => {
   const newParams = { ...query, page: (query?.page ?? 0) + 1 };
   const queryParams = queryString.stringify(newParams ?? {});
   const result = await axiosInstance.get(`${productUrl}?${queryParams}`);
-  return result.data as TProductsRes;
+  return result.data as TPaginatedResponse<IProduct>;
 };
 
 export const useGetProductList = (query?: IQuery) => {
@@ -77,7 +78,8 @@ const getProductByCateId = async (id: number | undefined, query: IQuery) => {
   const result = await axiosInstance.get(
     `${productUrl}/admin/category/${id}?${queryParams}`
   );
-  return result.data as { data: IProduct[]; total: number };
+  // return result.data as { data: IProduct[]; total: number };
+  return result.data as TPaginatedResponse<IProduct>;
 };
 
 export const useGetProductByCateId = (

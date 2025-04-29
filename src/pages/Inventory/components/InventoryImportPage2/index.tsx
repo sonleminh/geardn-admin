@@ -57,13 +57,14 @@ import {
 } from '@/services/product';
 import { getBgColor } from '@/utils/getTagBgColor';
 import { useGetCategoryList } from '@/services/category';
+import { useGetImportLogList } from '@/services/inventory';
 
 interface Data {
   stt: number;
-  name: string;
-  category: string;
-  images: string;
-  created_at: string;
+  warehouse: string;
+  items: any[];
+  type: string;
+  createdAt: Date;
 }
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
@@ -77,6 +78,14 @@ function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
 }
 
 type Order = 'asc' | 'desc';
+const sortableColumns = [
+  'stt',
+  'id',
+  'warehouse',
+  'type',
+  'createdAt',
+] as const;
+type SortableColumn = (typeof sortableColumns)[number];
 
 function getComparator<Key extends keyof any>(
   order: Order,
@@ -85,9 +94,11 @@ function getComparator<Key extends keyof any>(
   a: { [key in Key]: number | string },
   b: { [key in Key]: number | string }
 ) => number {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
+  return sortableColumns.includes(orderBy as SortableColumn)
+    ? order === 'desc'
+      ? (a, b) => descendingComparator(a, b, orderBy)
+      : (a, b) => -descendingComparator(a, b, orderBy)
+    : () => 0;
 }
 
 interface EnhancedTableProps {
@@ -149,30 +160,34 @@ function EnhancedTableHead(props: EnhancedTableProps) {
         <TableCell
           align={'center'}
           padding={'none'}
-          sortDirection={orderBy === 'name' ? order : false}>
+          sortDirection={orderBy === 'warehouse' ? order : false}>
           <TableSortLabel
-            active={orderBy === 'name'}
-            direction={orderBy === 'name' ? order : 'asc'}
-            onClick={createSortHandler('name')}>
-            Tên sản phẩm
-            {orderBy === 'name' ? (
+            active={orderBy === 'warehouse'}
+            direction={orderBy === 'warehouse' ? order : 'asc'}
+            onClick={createSortHandler('warehouse')}>
+            Kho
+            {orderBy === 'warehouse' ? (
               <Box component='span' sx={visuallyHidden}>
                 {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
               </Box>
             ) : null}
           </TableSortLabel>
+        </TableCell>
+
+        <TableCell align={'center'} padding={'none'} sx={{ width: 80 }}>
+          Sản phẩm
         </TableCell>
         <TableCell
           align={'center'}
           padding={'none'}
           sx={{ width: '18%' }}
-          sortDirection={orderBy === 'category' ? order : false}>
+          sortDirection={orderBy === 'type' ? order : false}>
           <TableSortLabel
-            active={orderBy === 'category'}
-            direction={orderBy === 'category' ? order : 'asc'}
-            onClick={createSortHandler('category')}>
+            active={orderBy === 'type'}
+            direction={orderBy === 'type' ? order : 'asc'}
+            onClick={createSortHandler('type')}>
             Danh mục
-            {orderBy === 'category' ? (
+            {orderBy === 'type' ? (
               <Box component='span' sx={visuallyHidden}>
                 {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
               </Box>
@@ -182,20 +197,13 @@ function EnhancedTableHead(props: EnhancedTableProps) {
         <TableCell
           align={'center'}
           padding={'none'}
-          sx={{ width: 80 }}
-          sortDirection={orderBy === 'images' ? order : false}>
-          Ảnh
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sortDirection={orderBy === 'created_at' ? order : false}>
+          sortDirection={orderBy === 'createdAt' ? order : false}>
           <TableSortLabel
-            active={orderBy === 'created_at'}
-            direction={orderBy === 'created_at' ? order : 'asc'}
-            onClick={createSortHandler('created_at')}>
+            active={orderBy === 'createdAt'}
+            direction={orderBy === 'createdAt' ? order : 'asc'}
+            onClick={createSortHandler('createdAt')}>
             Ngày tạo
-            {orderBy === 'created_at' ? (
+            {orderBy === 'createdAt' ? (
               <Box component='span' sx={visuallyHidden}>
                 {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
               </Box>
@@ -203,7 +211,6 @@ function EnhancedTableHead(props: EnhancedTableProps) {
           </TableSortLabel>
         </TableCell>
         <TableCell align={'center'}>Hành động</TableCell>
-        <TableCell align={'center'}>Kho</TableCell>
       </TableRow>
     </TableHead>
   );
@@ -340,25 +347,25 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
     </Toolbar>
   );
 }
-export default function ProductList() {
+export default function InventoryImportPage2() {
   const navigate = useNavigate();
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<keyof Data>('stt');
-  const [category, setCategory] = useState<number>();
+  //   const [category, setCategory] = useState<number>();
   const [selected, setSelected] = useState<number[]>([]);
   const [query, setQuery] = useState<IQuery>({
-    limit: 2,
+    limit: 5,
     page: 0,
   });
 
   const { data: categoriesData } = useGetCategoryList();
-  const { data: productsData } = useGetProductList({ ...query });
-  const { data: productByCategory, isLoading } = useGetProductByCateId(
-    category,
-    query
-  );
+  const { data: importLogsData, isLoading } = useGetImportLogList();
+  //   const { data: productByCategory, isLoading } = useGetProductByCateId(
+  //     category,
+  //     query
+  //   );
 
   const handleRequestSort = (
     _: React.MouseEvent<unknown> | null,
@@ -371,9 +378,7 @@ export default function ProductList() {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = (productByCategory?.data ?? productsData?.data)?.map(
-        (n) => n?.id
-      );
+      const newSelected = importLogsData?.data?.map((n) => n?.id);
       if (newSelected) {
         setSelected(newSelected);
       }
@@ -423,24 +428,21 @@ export default function ProductList() {
       ? Math.max(
           0,
           (1 + (query.page ?? 0)) * (query.limit ?? 10) -
-            (productsData?.meta?.total ?? 0)
+            (importLogsData?.meta?.total ?? 0)
         )
       : 0;
 
   const rows = useMemo(
     () =>
-      (productByCategory?.data ?? productsData?.data)?.map(
-        (product, index) => ({
-          stt: index + 1,
-          id: product.id,
-          name: product.name,
-          category: product.category?.name || '',
-          images: product.images[0] || '',
-          created_at: moment(product?.createdAt)?.format('DD/MM/YYYY'),
-          slug: product.slug,
-        })
-      ) || [],
-    [productsData, productByCategory]
+      importLogsData?.data?.map((importLog, index) => ({
+        stt: index + 1,
+        id: importLog.id,
+        warehouse: importLog.warehouse.name,
+        items: importLog.items || [],
+        type: importLog.type,
+        createdAt: moment(importLog?.createdAt)?.format('DD/MM/YYYY'),
+      })) || [],
+    [importLogsData]
   );
 
   const visibleRows = useMemo(
@@ -448,113 +450,113 @@ export default function ProductList() {
     [order, orderBy, query.limit, rows]
   );
 
-  const handleCategoryChange = (event: SelectChangeEvent<number>) => {
-    setCategory(+event.target.value);
-  };
+  // const handleCategoryChange = (event: SelectChangeEvent<number>) => {
+  //   setCategory(+event.target.value);
+  // };
 
-  const handleDetailClick = (row: Data) => {
-    const detailPrd = productsData?.data?.find((prd) => prd.name === row.name);
-    showConfirmModal({
-      title: (
-        <Typography sx={{ fontSize: 20, fontWeight: 'bold' }}>
-          Chi tiết sản phẩm
-        </Typography>
-      ),
-      content: (
-        <Grid2 container rowSpacing={1}>
-          <Grid2 size={3.5} fontSize={15}>
-            Tên:
-          </Grid2>
-          <Grid2 size={8.5}> {detailPrd?.name}</Grid2>
-          <Grid2 size={3.5}>Danh mục: </Grid2>
-          <Grid2 size={8.5}> {detailPrd?.category?.name}</Grid2>
-          <Grid2 size={3.5}>Ảnh:</Grid2>
-          <Grid2 size={8.5}>
-            {detailPrd?.images?.map((img) => (
-              <Box
-                sx={{
-                  height: 60,
-                  '.thumbnail': {
-                    width: 60,
-                    height: 60,
-                    objectFit: 'contain',
-                    border: '1px solid #ccc',
-                  },
-                }}
-                key={img}>
-                <img src={img} className='thumbnail' />
-              </Box>
-            ))}
-          </Grid2>
-          {detailPrd?.tags && detailPrd?.tags?.length > 0 && (
-            <Grid2 size={3.5}>Tags: </Grid2>
-          )}
-          {detailPrd?.tags && detailPrd?.tags?.length > 0 && (
-            <Grid2 size={8.5}>
-              {detailPrd?.tags?.map((tag: ITagOptions) => (
-                <Box
-                  key={tag.value}
-                  sx={{
-                    width: 100,
-                    padding: '4px 2px',
-                    my: 1,
-                    bgcolor: getBgColor(tag.value),
-                    color: '#fff',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    textAlign: 'center',
-                    fontSize: 13,
-                  }}>
-                  {tag.label}
-                </Box>
-              ))}
-            </Grid2>
-          )}
-          {/* <Grid2 size={3.5}>Thuộc tính: </Grid2>
-          <Grid2 size={8.5}>
-            {detailPrd?.attributes?.map((att: string) => (
-              <Box key={att}>{att}</Box>
-            ))}
-          </Grid2> */}
-          {/* <Grid2 size={3.5}>Mã sản phẩm: </Grid2>
-          <Grid2 size={8.5}>{detailPrd?.sku_name}</Grid2> */}
-          <Grid2 size={3.5}>Chi tiết: </Grid2>
-          <Grid2 size={8.5}>
-            {Object.keys(detailPrd?.details || {}).length === 0 ? (
-              <>Không có</>
-            ) : (
-              <Grid2 container>
-                {detailPrd?.details.guarantee && (
-                  <>
-                    <Grid2 size={4.5}>- Bảo hành:</Grid2>
-                    <Grid2 size={7.5}>{detailPrd?.details.guarantee}</Grid2>
-                  </>
-                )}
-                {detailPrd?.details.weight && (
-                  <>
-                    <Grid2 size={4.5}>- Trọng lượng:</Grid2>
-                    <Grid2 size={7.5}>{detailPrd?.details.weight}</Grid2>
-                  </>
-                )}
-                {detailPrd?.details.material && (
-                  <>
-                    <Grid2 size={4.5}>- Chất liệu:</Grid2>
-                    <Grid2 size={7.5}>{detailPrd?.details.material}</Grid2>
-                  </>
-                )}
-              </Grid2>
-            )}
-          </Grid2>
-          <Grid2 size={3.5}>Mô tả: </Grid2>
-          <Grid2 size={8.5}>
-            <HtmlRenderBox html={detailPrd?.description ?? ''} />
-          </Grid2>
-        </Grid2>
-      ),
-      showBtnOk: false,
-      cancelText: 'Đóng',
-    });
-  };
+  // const handleDetailClick = (row: Data) => {
+  //   const detailPrd = importLogsData?.data?.find((importLog) => importLog. === row.name);
+  //   showConfirmModal({
+  //     title: (
+  //       <Typography sx={{ fontSize: 20, fontWeight: 'bold' }}>
+  //         Chi tiết sản phẩm
+  //       </Typography>
+  //     ),
+  //     content: (
+  //       <Grid2 container rowSpacing={1}>
+  //         <Grid2 size={3.5} fontSize={15}>
+  //           Tên:
+  //         </Grid2>
+  //         <Grid2 size={8.5}> {detailPrd?.name}</Grid2>
+  //         <Grid2 size={3.5}>Danh mục: </Grid2>
+  //         <Grid2 size={8.5}> {detailPrd?.category?.name}</Grid2>
+  //         <Grid2 size={3.5}>Ảnh:</Grid2>
+  //         <Grid2 size={8.5}>
+  //           {detailPrd?.images?.map((img) => (
+  //             <Box
+  //               sx={{
+  //                 height: 60,
+  //                 '.thumbnail': {
+  //                   width: 60,
+  //                   height: 60,
+  //                   objectFit: 'contain',
+  //                   border: '1px solid #ccc',
+  //                 },
+  //               }}
+  //               key={img}>
+  //               <img src={img} className='thumbnail' />
+  //             </Box>
+  //           ))}
+  //         </Grid2>
+  //         {detailPrd?.tags && detailPrd?.tags?.length > 0 && (
+  //           <Grid2 size={3.5}>Tags: </Grid2>
+  //         )}
+  //         {detailPrd?.tags && detailPrd?.tags?.length > 0 && (
+  //           <Grid2 size={8.5}>
+  //             {detailPrd?.tags?.map((tag: ITagOptions) => (
+  //               <Box
+  //                 key={tag.value}
+  //                 sx={{
+  //                   width: 100,
+  //                   padding: '4px 2px',
+  //                   my: 1,
+  //                   bgcolor: getBgColor(tag.value),
+  //                   color: '#fff',
+  //                   border: '1px solid #ccc',
+  //                   borderRadius: '4px',
+  //                   textAlign: 'center',
+  //                   fontSize: 13,
+  //                 }}>
+  //                 {tag.label}
+  //               </Box>
+  //             ))}
+  //           </Grid2>
+  //         )}
+  //         {/* <Grid2 size={3.5}>Thuộc tính: </Grid2>
+  //         <Grid2 size={8.5}>
+  //           {detailPrd?.attributes?.map((att: string) => (
+  //             <Box key={att}>{att}</Box>
+  //           ))}
+  //         </Grid2> */}
+  //         {/* <Grid2 size={3.5}>Mã sản phẩm: </Grid2>
+  //         <Grid2 size={8.5}>{detailPrd?.sku_name}</Grid2> */}
+  //         <Grid2 size={3.5}>Chi tiết: </Grid2>
+  //         <Grid2 size={8.5}>
+  //           {Object.keys(detailPrd?.details || {}).length === 0 ? (
+  //             <>Không có</>
+  //           ) : (
+  //             <Grid2 container>
+  //               {detailPrd?.details.guarantee && (
+  //                 <>
+  //                   <Grid2 size={4.5}>- Bảo hành:</Grid2>
+  //                   <Grid2 size={7.5}>{detailPrd?.details.guarantee}</Grid2>
+  //                 </>
+  //               )}
+  //               {detailPrd?.details.weight && (
+  //                 <>
+  //                   <Grid2 size={4.5}>- Trọng lượng:</Grid2>
+  //                   <Grid2 size={7.5}>{detailPrd?.details.weight}</Grid2>
+  //                 </>
+  //               )}
+  //               {detailPrd?.details.material && (
+  //                 <>
+  //                   <Grid2 size={4.5}>- Chất liệu:</Grid2>
+  //                   <Grid2 size={7.5}>{detailPrd?.details.material}</Grid2>
+  //                 </>
+  //               )}
+  //             </Grid2>
+  //           )}
+  //         </Grid2>
+  //         <Grid2 size={3.5}>Mô tả: </Grid2>
+  //         <Grid2 size={8.5}>
+  //           <HtmlRenderBox html={detailPrd?.description ?? ''} />
+  //         </Grid2>
+  //       </Grid2>
+  //     ),
+  //     showBtnOk: false,
+  //     cancelText: 'Đóng',
+  //   });
+  // };
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -562,11 +564,11 @@ export default function ProductList() {
         <EnhancedTableToolbar
           numSelected={selected.length}
           categoryList={categoriesData?.data ?? []}
-          onCategoryChange={handleCategoryChange}
-          categoryValue={category}
-          handleDeleteFilter={() => {
-            setCategory(undefined);
-          }}
+          // onCategoryChange={handleCategoryChange}
+          // categoryValue={category}
+          // handleDeleteFilter={() => {
+          //   setCategory(undefined);
+          // }}
           selected={selected}
           handleDeleteSelected={() => {
             setSelected([]);
@@ -580,17 +582,17 @@ export default function ProductList() {
               orderBy={orderBy}
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
-              rowCount={productsData?.meta?.total || 0}
+              rowCount={importLogsData?.meta?.total || 0}
             />
             <TableBody
               sx={{
                 position: 'relative',
-                height: !productByCategory
-                  ? 80 *
-                    ((productsData?.meta?.total ?? 0) < (query?.limit ?? 2)
-                      ? productsData?.meta?.total ?? 10
-                      : query?.limit ?? 10)
-                  : '',
+                // height: !importLogsData
+                //   ? 80 *
+                //     ((importLogsData?.meta?.total ?? 0) < (query?.limit ?? 2)
+                //       ? importLogsData?.meta?.total ?? 10
+                //       : query?.limit ?? 10)
+                //   : '',
                 // + 1 *
                 // ((data?.total ?? 0) < (query?.limit ?? 10)
                 //   ? data?.total ?? 0
@@ -678,7 +680,7 @@ export default function ProductList() {
                         padding='none'
                         align='center'
                         sx={{ height: 80 }}>
-                        {row?.created_at}
+                        {row?.createdAt}
                       </TableCell>
                       <TableCell
                         align='center'
@@ -686,14 +688,14 @@ export default function ProductList() {
                         <Box onClick={(e) => e.stopPropagation()}>
                           <ActionButton>
                             <Box mb={1}>
-                              <ButtonWithTooltip
+                              {/* <ButtonWithTooltip
                                 color='primary'
                                 variant='outlined'
                                 title='Chi tiết'
                                 placement='left'
                                 onClick={() => handleDetailClick(row)}>
                                 <InfoOutlinedIcon />
-                              </ButtonWithTooltip>
+                              </ButtonWithTooltip> */}
                             </Box>
                             <Box mb={1}>
                               <ButtonWithTooltip
@@ -708,21 +710,11 @@ export default function ProductList() {
                           </ActionButton>
                         </Box>
                       </TableCell>
-                      <TableCell align='center'>
-                        <Button
-                          variant='contained'
-                          onClick={(e) => {
-                            navigate(`/product/${row?.slug}`);
-                            e.stopPropagation();
-                          }}>
-                          <KeyboardReturnIcon />
-                        </Button>
-                      </TableCell>
                     </TableRow>
                   );
                 })
               )}
-              {emptyRows > 0 && productsData && (
+              {emptyRows > 0 && importLogsData && (
                 <TableRow
                   style={{
                     height: 80 * emptyRows + 1 * emptyRows,
@@ -737,7 +729,7 @@ export default function ProductList() {
           rowsPerPageOptions={[10, 20]}
           component='div'
           count={
-            productByCategory?.meta?.total ?? productsData?.meta?.total ?? 0
+            importLogsData?.meta?.total ?? importLogsData?.meta?.total ?? 0
           }
           rowsPerPage={query?.limit ?? 2}
           page={query?.page ?? 0}
