@@ -1,68 +1,37 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import moment from 'moment';
-import { useQueryClient } from '@tanstack/react-query';
-import {
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  TableContainer,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TablePagination,
-  TableRow,
-  TableSortLabel,
-  Toolbar,
-  Tooltip,
-  Typography,
-  Paper,
-  Box,
-  Checkbox,
-  IconButton,
-  Grid2,
-  Button,
-} from '@mui/material';
+import * as React from 'react';
 import { alpha } from '@mui/material/styles';
-import { visuallyHidden } from '@mui/utils';
-
-import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import { AddCircleOutlined } from '@mui/icons-material';
+import Box from '@mui/material/Box';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TablePagination from '@mui/material/TablePagination';
+import TableRow from '@mui/material/TableRow';
+import TableSortLabel from '@mui/material/TableSortLabel';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import Checkbox from '@mui/material/Checkbox';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ClearIcon from '@mui/icons-material/Clear';
-
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import HtmlRenderBox from '@/components/HtmlRenderBox';
-import ActionButton from '@/components/ActionButton';
-import ExcelUpload from '@/components/ExcelUpload';
-
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-
-import { ITagOptions } from '@/interfaces/IProduct';
-import { ICategory } from '@/interfaces/ICategory';
-import { QueryKeys } from '@/constants/query-key';
-import { IQuery } from '@/interfaces/IQuery';
-
-import {
-  useDeleteManyProduct,
-  useGetProductByCateId,
-  useGetProductList,
-} from '@/services/product';
-import { getBgColor } from '@/utils/getTagBgColor';
-import { useGetCategoryList } from '@/services/category';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import { visuallyHidden } from '@mui/utils';
 import { useGetImportLogList } from '@/services/inventory';
+import moment from 'moment';
+import { IImportLogItem } from '@/interfaces/IImportLog';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import { formatPrice } from '@/utils/format-price';
+import { useGetEnumByContext } from '@/services/enum';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 
 interface Data {
   stt: number;
   warehouse: string;
-  items: any[];
+  items: IImportLogItem[];
   type: string;
   createdAt: Date;
 }
@@ -78,28 +47,89 @@ function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
 }
 
 type Order = 'asc' | 'desc';
-const sortableColumns = [
-  'stt',
-  'id',
-  'warehouse',
-  'type',
-  'createdAt',
-] as const;
-type SortableColumn = (typeof sortableColumns)[number];
+type OrderByField = Exclude<keyof Data, 'items'>;
 
-function getComparator<Key extends keyof any>(
-  order: Order,
-  orderBy: Key
-): (
-  a: { [key in Key]: number | string },
-  b: { [key in Key]: number | string }
-) => number {
-  return sortableColumns.includes(orderBy as SortableColumn)
-    ? order === 'desc'
-      ? (a, b) => descendingComparator(a, b, orderBy)
-      : (a, b) => -descendingComparator(a, b, orderBy)
-    : () => 0;
+// function getComparator<Key extends keyof any>(
+//   order: Order,
+//   orderBy: Key
+// ): (
+//   a: { [key in Key]: number | string },
+//   b: { [key in Key]: number | string }
+// ) => number {
+//   return order === 'desc'
+//     ? (a, b) => descendingComparator(a, b, orderBy)
+//     : (a, b) => -descendingComparator(a, b, orderBy);
+// }
+
+function getComparator(order: Order, orderBy: OrderByField) {
+  return (a: Data, b: Data) => {
+    const aValue = a[orderBy];
+    const bValue = b[orderBy];
+
+    if (orderBy === 'createdAt') {
+      const aTime = new Date(aValue).getTime();
+      const bTime = new Date(bValue).getTime();
+      return order === 'asc' ? aTime - bTime : bTime - aTime;
+    }
+
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return order === 'asc'
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    }
+
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return order === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+
+    return 0;
+  };
 }
+
+interface HeadCell {
+  align?: 'center' | 'left' | 'right' | 'inherit' | 'justify' | undefined;
+  disablePadding: boolean;
+  id: keyof Data;
+  label: string;
+  isSort: boolean;
+}
+
+const headCells: readonly HeadCell[] = [
+  {
+    align: 'center',
+    id: 'stt',
+    disablePadding: false,
+    label: 'STT',
+    isSort: false,
+  },
+  {
+    align: 'center',
+    id: 'warehouse',
+    disablePadding: false,
+    label: 'Kho',
+    isSort: false,
+  },
+  {
+    id: 'items',
+    disablePadding: false,
+    label: 'Sản phẩm',
+    isSort: false,
+  },
+  {
+    align: 'center',
+    id: 'type',
+    disablePadding: false,
+    label: 'Loại',
+    isSort: false,
+  },
+  {
+    align: 'center',
+    id: 'createdAt',
+    disablePadding: false,
+    label: 'Ngày nhập',
+    isSort: true,
+  },
+];
 
 interface EnhancedTableProps {
   numSelected: number;
@@ -130,7 +160,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
   return (
     <TableHead>
       <TableRow>
-        <TableCell padding='checkbox'>
+        {/* <TableCell padding='checkbox'>
           <Checkbox
             color='primary'
             indeterminate={numSelected > 0 && numSelected < rowCount}
@@ -140,117 +170,46 @@ function EnhancedTableHead(props: EnhancedTableProps) {
               'aria-label': 'select all desserts',
             }}
           />
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sortDirection={orderBy === 'stt' ? order : false}>
-          <TableSortLabel
-            active={orderBy === 'stt'}
-            direction={orderBy === 'stt' ? order : 'asc'}
-            onClick={createSortHandler('stt')}>
-            STT
-            {orderBy === 'stt' ? (
-              <Box component='span' sx={visuallyHidden}>
-                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+        </TableCell> */}
+        {headCells.map((headCell) => (
+          <TableCell
+            key={headCell.id}
+            align={headCell.align ?? 'left'}
+            padding={headCell.disablePadding ? 'none' : 'normal'}
+            // sortDirection={orderBy === headCell.id ? order : false}
+            // sortDirection={orderBy === headCell.id ? order : false}
+          >
+            {headCell.isSort ? (
+              <TableSortLabel
+                active={orderBy === headCell.id}
+                direction={orderBy === headCell.id ? order : 'asc'}
+                onClick={createSortHandler(headCell.id)}>
+                {headCell.label}
+                {orderBy === headCell.id ? (
+                  <Box component='span' sx={visuallyHidden}>
+                    {order === 'desc'
+                      ? 'sorted descending'
+                      : 'sorted ascending'}
+                  </Box>
+                ) : null}
+              </TableSortLabel>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {headCell.label}{' '}
+                <FilterAltOutlinedIcon sx={{ ml: 0.5, fontSize: 14 }} />
               </Box>
-            ) : null}
-          </TableSortLabel>
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sortDirection={orderBy === 'warehouse' ? order : false}>
-          <TableSortLabel
-            active={orderBy === 'warehouse'}
-            direction={orderBy === 'warehouse' ? order : 'asc'}
-            onClick={createSortHandler('warehouse')}>
-            Kho
-            {orderBy === 'warehouse' ? (
-              <Box component='span' sx={visuallyHidden}>
-                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-              </Box>
-            ) : null}
-          </TableSortLabel>
-        </TableCell>
-
-        <TableCell align={'center'} padding={'none'} sx={{ width: 80 }}>
-          Sản phẩm
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sx={{ width: '18%' }}
-          sortDirection={orderBy === 'type' ? order : false}>
-          <TableSortLabel
-            active={orderBy === 'type'}
-            direction={orderBy === 'type' ? order : 'asc'}
-            onClick={createSortHandler('type')}>
-            Danh mục
-            {orderBy === 'type' ? (
-              <Box component='span' sx={visuallyHidden}>
-                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-              </Box>
-            ) : null}
-          </TableSortLabel>
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sortDirection={orderBy === 'createdAt' ? order : false}>
-          <TableSortLabel
-            active={orderBy === 'createdAt'}
-            direction={orderBy === 'createdAt' ? order : 'asc'}
-            onClick={createSortHandler('createdAt')}>
-            Ngày tạo
-            {orderBy === 'createdAt' ? (
-              <Box component='span' sx={visuallyHidden}>
-                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-              </Box>
-            ) : null}
-          </TableSortLabel>
-        </TableCell>
-        <TableCell align={'center'}>Hành động</TableCell>
+            )}
+          </TableCell>
+        ))}
       </TableRow>
     </TableHead>
   );
 }
 interface EnhancedTableToolbarProps {
   numSelected: number;
-  categoryList: ICategory[];
-  onCategoryChange: (event: SelectChangeEvent<number>) => void;
-  categoryValue: number | undefined;
-  handleDeleteFilter: () => void;
-  selected: number[];
-  handleDeleteSelected: () => void;
 }
 function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-  const {
-    numSelected,
-    categoryList,
-    onCategoryChange,
-    categoryValue,
-    handleDeleteFilter,
-    selected,
-    handleDeleteSelected,
-  } = props;
-
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const { showNotification } = useNotificationContext();
-
-  const delManyPrdMutation = useDeleteManyProduct();
-
-  const handleDelete = () => {
-    delManyPrdMutation.mutate(selected, {
-      onSuccess() {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-        handleDeleteSelected();
-        showNotification('Xóa sản phẩm thành công', 'success');
-      },
-    });
-  };
-
+  const { numSelected } = props;
   return (
     <Toolbar
       sx={[
@@ -280,95 +239,50 @@ function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
           variant='h6'
           id='tableTitle'
           component='div'>
-          Danh sách sản phẩm
+          Nutrition
         </Typography>
       )}
       {numSelected > 0 ? (
         <Tooltip title='Delete'>
           <IconButton>
-            <DeleteIcon onClick={handleDelete} />
+            <DeleteIcon />
           </IconButton>
         </Tooltip>
       ) : (
-        <>
-          <FormControl
-            size='small'
-            sx={{
-              width: 250,
-              mr: 2,
-              '& .MuiInputBase-root': {
-                minHeight: 40,
-              },
-            }}>
-            <InputLabel>Danh mục</InputLabel>
-            <Select
-              label='Danh mục'
-              onChange={onCategoryChange}
-              value={categoryValue}>
-              {categoryList?.map((item) => (
-                <MenuItem key={item.id} value={item?.id}>
-                  {item.name}
-                </MenuItem>
-              ))}
-            </Select>
-            {categoryValue && (
-              <ClearIcon
-                sx={{
-                  position: 'absolute',
-                  right: 30,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  p: '2px',
-                  ':hover': {
-                    bgcolor: '#eee',
-                    borderRadius: '50%',
-                    cursor: 'pointer',
-                  },
-                }}
-                onClick={handleDeleteFilter}
-              />
-            )}
-          </FormControl>
-          <ExcelUpload />
-          <ButtonWithTooltip
-            sx={{ ml: 2 }}
-            variant='contained'
-            onClick={() => navigate('create')}
-            title='Thêm sản phẩm'>
-            <AddCircleOutlined />
-          </ButtonWithTooltip>
-          {/* <Tooltip title='Filter list'>
-            <IconButton>
-              <FilterListIcon />
-            </IconButton>
-          </Tooltip> */}
-        </>
+        <Tooltip title='Filter list'>
+          <IconButton>
+            <FilterListIcon />
+          </IconButton>
+        </Tooltip>
       )}
     </Toolbar>
   );
 }
 export default function InventoryImportPage2() {
-  const navigate = useNavigate();
-  const { confirmModal, showConfirmModal } = useConfirmModal();
+  const [order, setOrder] = React.useState<Order>('asc');
+  const [orderBy, setOrderBy] = React.useState<keyof Data>('warehouse');
+  const [selected, setSelected] = React.useState<readonly number[]>([]);
+  const [page, setPage] = React.useState(0);
+  const [dense, setDense] = React.useState(false);
+  const [rowsPerPage, setRowsPerPage] = React.useState(3);
 
-  const [order, setOrder] = useState<Order>('asc');
-  const [orderBy, setOrderBy] = useState<keyof Data>('stt');
-  //   const [category, setCategory] = useState<number>();
-  const [selected, setSelected] = useState<number[]>([]);
-  const [query, setQuery] = useState<IQuery>({
-    limit: 5,
-    page: 0,
-  });
+  const { data: importLogsData } = useGetImportLogList();
+  const { data: enumData } = useGetEnumByContext('import-type');
 
-  const { data: categoriesData } = useGetCategoryList();
-  const { data: importLogsData, isLoading } = useGetImportLogList();
-  //   const { data: productByCategory, isLoading } = useGetProductByCateId(
-  //     category,
-  //     query
-  //   );
+  const rows = React.useMemo(
+    () =>
+      importLogsData?.data?.map((importLog, index) => ({
+        stt: index + 1,
+        warehouse: importLog.warehouse.name,
+        items: importLog.items,
+        type: importLog.type,
+        createdAt: importLog?.createdAt,
+      })) || [],
+    [importLogsData]
+  );
 
   const handleRequestSort = (
-    _: React.MouseEvent<unknown> | null,
+    event: React.MouseEvent<unknown>,
     property: keyof Data
   ) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -378,18 +292,16 @@ export default function InventoryImportPage2() {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = importLogsData?.data?.map((n) => n?.id);
-      if (newSelected) {
-        setSelected(newSelected);
-      }
+      const newSelected = rows?.map((n) => n.stt);
+      setSelected(newSelected);
       return;
     }
     setSelected([]);
   };
 
-  const handleClick = (_: React.MouseEvent<unknown>, id: number) => {
+  const handleClick = (event: React.MouseEvent<unknown>, id: number) => {
     const selectedIndex = selected.indexOf(id);
-    let newSelected: number[] = [];
+    let newSelected: readonly number[] = [];
 
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, id);
@@ -406,338 +318,220 @@ export default function InventoryImportPage2() {
     setSelected(newSelected);
   };
 
-  const handleChangePage = (
-    _: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number
-  ) => {
-    setQuery((prev) => ({ ...prev, page: newPage }));
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setQuery((prev) => ({
-      ...prev,
-      ...{ limit: +event.target.value },
-    }));
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  const handleChangeDense = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setDense(event.target.checked);
   };
 
   // Avoid a layout jump when reaching the last page with empty rows.
   const emptyRows =
-    (query?.page ?? 0) > 0
-      ? Math.max(
-          0,
-          (1 + (query.page ?? 0)) * (query.limit ?? 10) -
-            (importLogsData?.meta?.total ?? 0)
-        )
-      : 0;
+    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows?.length) : 0;
 
-  const rows = useMemo(
-    () =>
-      importLogsData?.data?.map((importLog, index) => ({
-        stt: index + 1,
-        id: importLog.id,
-        warehouse: importLog.warehouse.name,
-        items: importLog.items || [],
-        type: importLog.type,
-        createdAt: moment(importLog?.createdAt)?.format('DD/MM/YYYY'),
-      })) || [],
-    [importLogsData]
-  );
+  const visibleRows = React.useMemo(() => {
+    if (orderBy === 'items') {
+      return [...rows].slice(
+        page * rowsPerPage,
+        page * rowsPerPage + rowsPerPage
+      );
+    }
 
-  const visibleRows = useMemo(
-    () => rows.sort(getComparator(order, orderBy)),
-    [order, orderBy, query.limit, rows]
-  );
+    return [...rows]
+      .sort(getComparator(order, orderBy as OrderByField))
+      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  }, [order, orderBy, page, rowsPerPage, rows]);
 
-  // const handleCategoryChange = (event: SelectChangeEvent<number>) => {
-  //   setCategory(+event.target.value);
-  // };
+  const importTypeMap = React.useMemo(() => {
+    return Object.fromEntries(
+      enumData?.data?.map((item) => [item.value, item.label]) ?? []
+    );
+  }, [enumData?.data]);
 
-  // const handleDetailClick = (row: Data) => {
-  //   const detailPrd = importLogsData?.data?.find((importLog) => importLog. === row.name);
-  //   showConfirmModal({
-  //     title: (
-  //       <Typography sx={{ fontSize: 20, fontWeight: 'bold' }}>
-  //         Chi tiết sản phẩm
-  //       </Typography>
-  //     ),
-  //     content: (
-  //       <Grid2 container rowSpacing={1}>
-  //         <Grid2 size={3.5} fontSize={15}>
-  //           Tên:
-  //         </Grid2>
-  //         <Grid2 size={8.5}> {detailPrd?.name}</Grid2>
-  //         <Grid2 size={3.5}>Danh mục: </Grid2>
-  //         <Grid2 size={8.5}> {detailPrd?.category?.name}</Grid2>
-  //         <Grid2 size={3.5}>Ảnh:</Grid2>
-  //         <Grid2 size={8.5}>
-  //           {detailPrd?.images?.map((img) => (
-  //             <Box
-  //               sx={{
-  //                 height: 60,
-  //                 '.thumbnail': {
-  //                   width: 60,
-  //                   height: 60,
-  //                   objectFit: 'contain',
-  //                   border: '1px solid #ccc',
-  //                 },
-  //               }}
-  //               key={img}>
-  //               <img src={img} className='thumbnail' />
-  //             </Box>
-  //           ))}
-  //         </Grid2>
-  //         {detailPrd?.tags && detailPrd?.tags?.length > 0 && (
-  //           <Grid2 size={3.5}>Tags: </Grid2>
-  //         )}
-  //         {detailPrd?.tags && detailPrd?.tags?.length > 0 && (
-  //           <Grid2 size={8.5}>
-  //             {detailPrd?.tags?.map((tag: ITagOptions) => (
-  //               <Box
-  //                 key={tag.value}
-  //                 sx={{
-  //                   width: 100,
-  //                   padding: '4px 2px',
-  //                   my: 1,
-  //                   bgcolor: getBgColor(tag.value),
-  //                   color: '#fff',
-  //                   border: '1px solid #ccc',
-  //                   borderRadius: '4px',
-  //                   textAlign: 'center',
-  //                   fontSize: 13,
-  //                 }}>
-  //                 {tag.label}
-  //               </Box>
-  //             ))}
-  //           </Grid2>
-  //         )}
-  //         {/* <Grid2 size={3.5}>Thuộc tính: </Grid2>
-  //         <Grid2 size={8.5}>
-  //           {detailPrd?.attributes?.map((att: string) => (
-  //             <Box key={att}>{att}</Box>
-  //           ))}
-  //         </Grid2> */}
-  //         {/* <Grid2 size={3.5}>Mã sản phẩm: </Grid2>
-  //         <Grid2 size={8.5}>{detailPrd?.sku_name}</Grid2> */}
-  //         <Grid2 size={3.5}>Chi tiết: </Grid2>
-  //         <Grid2 size={8.5}>
-  //           {Object.keys(detailPrd?.details || {}).length === 0 ? (
-  //             <>Không có</>
-  //           ) : (
-  //             <Grid2 container>
-  //               {detailPrd?.details.guarantee && (
-  //                 <>
-  //                   <Grid2 size={4.5}>- Bảo hành:</Grid2>
-  //                   <Grid2 size={7.5}>{detailPrd?.details.guarantee}</Grid2>
-  //                 </>
-  //               )}
-  //               {detailPrd?.details.weight && (
-  //                 <>
-  //                   <Grid2 size={4.5}>- Trọng lượng:</Grid2>
-  //                   <Grid2 size={7.5}>{detailPrd?.details.weight}</Grid2>
-  //                 </>
-  //               )}
-  //               {detailPrd?.details.material && (
-  //                 <>
-  //                   <Grid2 size={4.5}>- Chất liệu:</Grid2>
-  //                   <Grid2 size={7.5}>{detailPrd?.details.material}</Grid2>
-  //                 </>
-  //               )}
-  //             </Grid2>
-  //           )}
-  //         </Grid2>
-  //         <Grid2 size={3.5}>Mô tả: </Grid2>
-  //         <Grid2 size={8.5}>
-  //           <HtmlRenderBox html={detailPrd?.description ?? ''} />
-  //         </Grid2>
-  //       </Grid2>
-  //     ),
-  //     showBtnOk: false,
-  //     cancelText: 'Đóng',
-  //   });
-  // };
+  console.log('rows', rows);
 
   return (
     <Box sx={{ width: '100%' }}>
       <Paper sx={{ width: '100%', mb: 2 }}>
-        <EnhancedTableToolbar
-          numSelected={selected.length}
-          categoryList={categoriesData?.data ?? []}
-          // onCategoryChange={handleCategoryChange}
-          // categoryValue={category}
-          // handleDeleteFilter={() => {
-          //   setCategory(undefined);
-          // }}
-          selected={selected}
-          handleDeleteSelected={() => {
-            setSelected([]);
-          }}
-        />
-        <TableContainer sx={{ overflow: 'unset' }}>
-          <Table sx={{ minWidth: 750 }} aria-labelledby='tableTitle'>
+        <EnhancedTableToolbar numSelected={selected.length} />
+        <TableContainer>
+          <Table
+            sx={{ minWidth: 750 }}
+            aria-labelledby='tableTitle'
+            size={dense ? 'small' : 'medium'}>
             <EnhancedTableHead
               numSelected={selected.length}
               order={order}
               orderBy={orderBy}
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
-              rowCount={importLogsData?.meta?.total || 0}
+              rowCount={rows.length}
             />
-            <TableBody
-              sx={{
-                position: 'relative',
-                // height: !importLogsData
-                //   ? 80 *
-                //     ((importLogsData?.meta?.total ?? 0) < (query?.limit ?? 2)
-                //       ? importLogsData?.meta?.total ?? 10
-                //       : query?.limit ?? 10)
-                //   : '',
-                // + 1 *
-                // ((data?.total ?? 0) < (query?.limit ?? 10)
-                //   ? data?.total ?? 0
-                //   : query?.limit ?? 10),
-              }}>
-              {isLoading ? (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    right: '50%',
-                    transform: 'translate(50%, -50%)',
-                  }}>
-                  <CircularProgress size={64} disableShrink thickness={3} />
-                </Box>
-              ) : (
-                visibleRows?.map((row, index) => {
-                  const isItemSelected = selected.includes(row.id);
-                  const labelId = `enhanced-table-checkbox-${index}`;
+            <TableBody>
+              {visibleRows?.map((row, index) => {
+                const isItemSelected = selected.includes(row.stt);
+                const labelId = `enhanced-table-checkbox-${index}`;
 
-                  return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row.id)}
-                      role='checkbox'
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={row.stt}
-                      selected={isItemSelected}
-                      sx={{ cursor: 'pointer' }}>
-                      <TableCell padding='checkbox' sx={{ height: 80 }}>
-                        <Checkbox
-                          color='primary'
-                          checked={isItemSelected}
-                          inputProps={{
-                            'aria-labelledby': labelId,
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell
-                        component='th'
-                        id={labelId}
-                        scope='row'
-                        padding='none'
-                        align='center'
-                        sx={{ height: 80 }}>
-                        {index + 1}
-                      </TableCell>
-                      <TableCell
-                        component='th'
-                        id={labelId}
-                        scope='row'
-                        padding='none'
-                        sx={{ height: 80 }}>
-                        {row.name}
-                      </TableCell>
-                      <TableCell
-                        padding='none'
-                        align='center'
-                        sx={{ width: '16%', height: 80 }}>
-                        {row?.category}
-                      </TableCell>
-                      <TableCell
-                        padding='none'
-                        align='center'
-                        sx={{ width: 80, height: 80 }}>
-                        <Box
-                          sx={{
-                            height: 80,
-                            '.thumbnail': {
-                              width: 80,
-                              height: 80,
-                              objectFit: 'contain',
-                            },
-                          }}>
-                          <img
-                            src={row?.images}
-                            className='thumbnail'
-                            style={{ width: 80, height: 80 }}
-                          />
-                        </Box>
-                      </TableCell>
-
-                      <TableCell
-                        padding='none'
-                        align='center'
-                        sx={{ height: 80 }}>
-                        {row?.createdAt}
-                      </TableCell>
-                      <TableCell
-                        align='center'
-                        sx={{ width: '10%', height: 80 }}>
-                        <Box onClick={(e) => e.stopPropagation()}>
-                          <ActionButton>
-                            <Box mb={1}>
-                              {/* <ButtonWithTooltip
-                                color='primary'
-                                variant='outlined'
-                                title='Chi tiết'
-                                placement='left'
-                                onClick={() => handleDetailClick(row)}>
-                                <InfoOutlinedIcon />
-                              </ButtonWithTooltip> */}
+                return (
+                  <TableRow
+                    hover
+                    role='checkbox'
+                    aria-checked={isItemSelected}
+                    tabIndex={-1}
+                    key={row.stt}
+                    selected={isItemSelected}
+                    sx={{ cursor: 'pointer' }}>
+                    {/* <TableCell padding='checkbox'>
+                      <Checkbox
+                        color='primary'
+                        checked={isItemSelected}
+                        inputProps={{
+                          'aria-labelledby': labelId,
+                        }}
+                      />
+                    </TableCell> */}
+                    <TableCell
+                      component='th'
+                      id={labelId}
+                      scope='row'
+                      // padding='none'
+                      align='center'>
+                      {index + 1}
+                    </TableCell>
+                    <TableCell
+                      component='th'
+                      id={labelId}
+                      scope='row'
+                      padding='none'
+                      align='center'>
+                      {row.warehouse}
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{}}>
+                        {row?.items?.map((importLogItem) => (
+                          <Box
+                            my={1}
+                            sx={{
+                              display: 'flex',
+                              p: 1,
+                              bgcolor: '#fafafa',
+                              border: '1px solid #dadada',
+                              borderRadius: 1,
+                            }}>
+                            <Box
+                              sx={{
+                                height: 40,
+                                '.thumbnail': {
+                                  width: 40,
+                                  height: 40,
+                                  mr: 1,
+                                  objectFit: 'contain',
+                                },
+                              }}>
+                              <img
+                                src={
+                                  importLogItem?.sku?.imageUrl ??
+                                  importLogItem?.sku?.product?.images[0]
+                                }
+                                className='thumbnail'
+                              />
                             </Box>
-                            <Box mb={1}>
-                              <ButtonWithTooltip
-                                color='primary'
-                                onClick={() => navigate(`update/${row?.id}`)}
-                                variant='outlined'
-                                title='Chỉnh sửa'
-                                placement='left'>
-                                <EditOutlinedIcon />
-                              </ButtonWithTooltip>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                              }}>
+                              <Typography
+                                sx={{
+                                  width: 80,
+                                  fontSize: 14,
+                                  fontWeight: 500,
+                                  ...truncateTextByLine(1),
+                                }}>
+                                {importLogItem?.sku?.product?.name}
+                              </Typography>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                }}>
+                                <Typography sx={{ fontSize: 13 }}>
+                                  SL: {importLogItem?.quantity}
+                                </Typography>
+                                <Typography sx={{ fontSize: 13 }}>
+                                  Giá nhập:{' '}
+                                  {formatPrice(importLogItem?.costPrice)}
+                                </Typography>
+                              </Box>
+                              {/* {importLogItem?.sku?.productSkuAttributes
+                                ?.length && ':'} */}
                             </Box>
-                          </ActionButton>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-              {emptyRows > 0 && importLogsData && (
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'center',
+                                flexDirection: 'column',
+                                ml: 2,
+                              }}>
+                              {importLogItem?.sku?.productSkuAttributes?.length
+                                ? importLogItem?.sku?.productSkuAttributes?.map(
+                                    (item) => (
+                                      <Typography
+                                        key={item?.id}
+                                        sx={{ fontSize: 13 }}>
+                                        {item?.attributeValue?.attribute?.label}
+                                        : {item?.attributeValue?.value}
+                                      </Typography>
+                                    )
+                                  )
+                                : ''}
+                            </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    </TableCell>
+                    <TableCell align='center'>
+                      {importTypeMap?.[row?.type] || 'Không xác định'}
+                    </TableCell>
+                    <TableCell align='center'>
+                      {moment(row?.createdAt).format('DD/MM/YYYY')}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+              {emptyRows > 0 && (
                 <TableRow
                   style={{
-                    height: 80 * emptyRows + 1 * emptyRows,
+                    height: (dense ? 33 : 53) * emptyRows,
                   }}>
-                  <TableCell colSpan={12} />
+                  <TableCell colSpan={6} />
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[10, 20]}
+          rowsPerPageOptions={[3, 10, 25]}
           component='div'
-          count={
-            importLogsData?.meta?.total ?? importLogsData?.meta?.total ?? 0
-          }
-          rowsPerPage={query?.limit ?? 2}
-          page={query?.page ?? 0}
+          count={rows.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-      {confirmModal()}
+      <FormControlLabel
+        control={<Switch checked={dense} onChange={handleChangeDense} />}
+        label='Dense padding'
+      />
     </Box>
   );
 }

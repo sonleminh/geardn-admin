@@ -1,7 +1,7 @@
 import { IProductSku } from "./IProductSku";
 import { IWarehouse } from "./IWarehouse";
 
-interface IImportLogItem {
+export interface IImportLogItem {
     id: number;
     importLogId: number;
     skuId: number;
