@@ -91,7 +91,8 @@ interface HeadCell {
   disablePadding: boolean;
   id: keyof Data;
   label: string;
-  isSort: boolean;
+  isSort?: boolean;
+  isFilter?: boolean;
 }
 
 const headCells: readonly HeadCell[] = [
@@ -100,34 +101,34 @@ const headCells: readonly HeadCell[] = [
     id: 'stt',
     disablePadding: false,
     label: 'STT',
-    isSort: false,
+    // isSort: false,
   },
   {
     align: 'center',
     id: 'warehouse',
     disablePadding: false,
     label: 'Kho',
-    isSort: false,
+    // isSort: false,
   },
   {
     id: 'items',
     disablePadding: false,
     label: 'Sản phẩm',
-    isSort: false,
+    // isSort: false,
   },
   {
     align: 'center',
     id: 'type',
     disablePadding: false,
     label: 'Loại',
-    isSort: false,
+    // isSort: false,
   },
   {
     align: 'center',
     id: 'createdAt',
     disablePadding: false,
     label: 'Ngày nhập',
-    isSort: true,
+    // isSort: true,
   },
 ];
 
@@ -179,6 +180,26 @@ function EnhancedTableHead(props: EnhancedTableProps) {
             // sortDirection={orderBy === headCell.id ? order : false}
             // sortDirection={orderBy === headCell.id ? order : false}
           >
+            {headCell.isSort ? (
+              <TableSortLabel
+                active={orderBy === headCell.id}
+                direction={orderBy === headCell.id ? order : 'asc'}
+                onClick={createSortHandler(headCell.id)}>
+                {headCell.label}
+                {orderBy === headCell.id ? (
+                  <Box component='span' sx={visuallyHidden}>
+                    {order === 'desc'
+                      ? 'sorted descending'
+                      : 'sorted ascending'}
+                  </Box>
+                ) : null}
+              </TableSortLabel>
+            ) : (
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {headCell.label}{' '}
+                <FilterAltOutlinedIcon sx={{ ml: 0.5, fontSize: 14 }} />
+              </Box>
+            )}
             {headCell.isSort ? (
               <TableSortLabel
                 active={orderBy === headCell.id}

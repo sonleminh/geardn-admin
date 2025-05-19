@@ -33,15 +33,29 @@ export const useCreateImportLog = () => {
   });
 };
 
-const getImportLogList = async () => {
-  const result = await axiosInstance.get(`${importLogUrl}`);
+interface IGetImportLogListParams {
+  warehouseIds?: string[];
+  types?: string[];
+  startDate?: string;
+  endDate?: string;
+}
+
+const getImportLogList = async (params?: IGetImportLogListParams) => {
+  const result = await axiosInstance.get(`${importLogUrl}`, {
+    params: {
+      warehouseIds: params?.warehouseIds?.join(','),
+      types: params?.types?.join(','),
+      startDate: params?.startDate,
+      endDate: params?.endDate,
+    },
+  });
   return result.data as TPaginatedResponse<IImportLog>;
 };
 
-export const useGetImportLogList = () => {
+export const useGetImportLogList = (params?: IGetImportLogListParams) => {
   return useQuery({
-    queryKey: [QueryKeys.ImportLog],
-    queryFn: () => getImportLogList(),
+    queryKey: [QueryKeys.ImportLog, params],
+    queryFn: () => getImportLogList(params),
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
