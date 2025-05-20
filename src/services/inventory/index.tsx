@@ -35,6 +35,7 @@ export const useCreateImportLog = () => {
 
 interface IGetImportLogListParams {
   warehouseIds?: string[];
+  productIds?: string[];
   types?: string[];
   startDate?: string;
   endDate?: string;
@@ -44,6 +45,7 @@ const getImportLogList = async (params?: IGetImportLogListParams) => {
   const result = await axiosInstance.get(`${importLogUrl}`, {
     params: {
       warehouseIds: params?.warehouseIds?.join(','),
+      productIds: params?.productIds?.join(','),
       types: params?.types?.join(','),
       startDate: params?.startDate,
       endDate: params?.endDate,

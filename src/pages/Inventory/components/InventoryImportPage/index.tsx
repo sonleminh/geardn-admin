@@ -43,6 +43,7 @@ import {
   Checkbox,
   ListItemText,
   DialogActions,
+  Chip,
 } from '@mui/material';
 import { createSchema, updateSchema } from '../utils/schema/warehouseSchema';
 import { useGetEnumByContext } from '@/services/enum';
@@ -51,7 +52,6 @@ import { useGetSkusByProductId } from '@/services/sku';
 import { IProductSku } from '@/interfaces/IProductSku';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import { formatPrice } from '@/utils/format-price';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { useGetWarehouseList } from '@/services/warehouse';
@@ -60,12 +60,83 @@ import moment from 'moment';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ActionButton from '@/components/ActionButton';
 import { AddCircleOutlined } from '@mui/icons-material';
-
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import { IImportLogItem } from '@/interfaces/IImportLog';
+import TableFilter from '@/components/TableFilter';
+import { IEnum } from '@/interfaces/IEnum';
+import { DateRangePicker } from 'react-date-range';
+import { addDays } from 'date-fns';
 interface IImportItem {
   sku: IProductSku;
   quantity: string;
   price: string;
 }
+
+interface Data {
+  stt: number;
+  warehouse: string;
+  items: IImportLogItem[];
+  type: string;
+  createdAt: Date;
+  note: string;
+  action: string;
+}
+
+interface HeadCell {
+  align?: 'center' | 'left' | 'right' | 'inherit' | 'justify' | undefined;
+  disablePadding: boolean;
+  id: keyof Data;
+  label: string;
+  isFilter?: boolean;
+}
+
+const headCells: readonly HeadCell[] = [
+  {
+    align: 'center',
+    id: 'stt',
+    disablePadding: false,
+    label: 'STT',
+    isFilter: false,
+  },
+  {
+    align: 'center',
+    id: 'warehouse',
+    disablePadding: false,
+    label: 'Kho',
+    isFilter: true,
+  },
+  {
+    id: 'items',
+    disablePadding: false,
+    label: 'Sản phẩm',
+    isFilter: true,
+  },
+  {
+    align: 'center',
+    id: 'type',
+    disablePadding: false,
+    label: 'Loại',
+    isFilter: true,
+  },
+  {
+    align: 'center',
+    id: 'createdAt',
+    disablePadding: false,
+    label: 'Ngày nhập',
+  },
+  {
+    align: 'center',
+    id: 'note',
+    disablePadding: false,
+    label: 'Ghi chú',
+  },
+  {
+    align: 'center',
+    id: 'action',
+    disablePadding: false,
+    label: 'Hành động',
+  },
+];
 
 const InventoryImportPage = () => {
   const navigate = useNavigate();
@@ -85,70 +156,41 @@ const InventoryImportPage = () => {
   const [activeFilterColumn, setActiveFilterColumn] = useState<string>('');
   const [columnFilters, setColumnFilters] = useState<{
     warehouse: string[];
+    items: string[];
     type: string[];
-    date: { start: string; end: string };
+    // date: { start: string; end: string };
   }>({
     warehouse: [],
+    items: [],
     type: [],
-    date: { start: '', end: '' },
+    // date: { start: '', end: '' },
   });
 
+  const [state, setState] = useState([
+    {
+      startDate: new Date(),
+      endDate: addDays(new Date(), 7),
+      key: 'selection',
+    },
+  ]);
+
+  console.log('columnFilters', columnFilters);
+
   const { data: warehousesData } = useGetWarehouseList();
+  const { data: productsData } = useGetProductList();
+
   const { data: enumData } = useGetEnumByContext('import-type');
 
   const { data: importLogsData, refetch: refetchImportLogs } =
     useGetImportLogList({
       warehouseIds: columnFilters.warehouse,
+      productIds: columnFilters.items,
       types: columnFilters.type,
-      startDate: columnFilters.date.start,
-      endDate: columnFilters.date.end,
+      // startDate: columnFilters.date.start,
+      // endDate: columnFilters.date.end,
     });
 
   const { data: skusData } = useGetSkusByProductId(productId);
-
-  const { mutate: createImportLogMutate, isPending: isCreatePending } =
-    useCreateImportLog();
-
-  const formik = useFormik({
-    initialValues: {
-      warehouseId: '',
-      type: '',
-      note: '',
-    },
-    // validationSchema: isEdit ? updateSchema : createSchema,
-    validateOnChange: false,
-    onSubmit(values) {
-      console.log('values', values);
-      const payload = {
-        warehouseId: +values.warehouseId,
-        type: values.type,
-        note: values.note,
-        items: importItems?.map((item) => ({
-          skuId: +item.sku.id,
-          price: +item.quantity,
-          quantity: +item.quantity,
-        })),
-      };
-
-      createImportLogMutate(payload, {
-        onSuccess() {
-          queryClient.invalidateQueries({ queryKey: [QueryKeys.ImportLog] });
-          showNotification('Tạo nhập hàng thành công', 'success');
-          navigate(ROUTES.INVENTORY);
-        },
-      });
-    },
-  });
-
-  const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    formik.setFieldValue(name, value);
-  };
-
-  const handleSelectChange = (event: SelectChangeEvent<string>) => {
-    const { name, value } = event.target;
-    formik.setFieldValue(name, value);
-  };
 
   const handleSkuSelect = (event: SelectChangeEvent<string>) => {
     setSkuId(event.target.value);
@@ -246,95 +288,55 @@ const InventoryImportPage = () => {
     switch (activeFilterColumn) {
       case 'warehouse':
         return (
-          <Box sx={{ p: 2, minWidth: 200 }}>
-            <Typography variant='subtitle2' sx={{ mb: 1 }}>
-              Lọc theo kho
-            </Typography>
-            <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-              {warehousesData?.data?.map((warehouse) => (
-                <Box
-                  key={warehouse.id}
-                  sx={{ display: 'flex', alignItems: 'center', py: 0.5 }}>
-                  <Checkbox
-                    checked={columnFilters.warehouse.includes(
-                      warehouse.id.toString()
-                    )}
-                    onChange={(e) => {
-                      const newValue = e.target.checked
-                        ? [...columnFilters.warehouse, warehouse.id.toString()]
-                        : columnFilters.warehouse.filter(
-                            (id) => id !== warehouse.id.toString()
-                          );
-                      handleColumnFilterChange('warehouse', newValue);
-                    }}
-                  />
-                  <Typography variant='body2'>{warehouse.name}</Typography>
-                </Box>
-              ))}
-            </Box>
-          </Box>
+          <TableFilter
+            title='Lọc theo kho'
+            options={
+              warehousesData?.data?.map((warehouse) => ({
+                id: warehouse.id,
+                label: warehouse.name,
+              })) ?? []
+            }
+            selectedValues={columnFilters.warehouse}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('warehouse', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
+      case 'items':
+        return (
+          <TableFilter
+            title='Lọc theo sản phẩm'
+            options={
+              productsData?.data?.map((product) => ({
+                id: product.id,
+                label: product.name,
+              })) ?? []
+            }
+            selectedValues={columnFilters.items}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('items', newValues)
+            }
+            onClose={handleFilterClose}
+            sx={{ maxWidth: 300 }}
+          />
         );
       case 'type':
         return (
-          <Box sx={{ p: 2, minWidth: 200 }}>
-            <Typography variant='subtitle2' sx={{ mb: 1 }}>
-              Lọc theo loại nhập
-            </Typography>
-            <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-              {enumData?.data?.map((type) => (
-                <Box
-                  key={type.value}
-                  sx={{ display: 'flex', alignItems: 'center', py: 0.5 }}>
-                  <Checkbox
-                    checked={columnFilters.type.includes(type.value)}
-                    onChange={(e) => {
-                      const newValue = e.target.checked
-                        ? [...columnFilters.type, type.value]
-                        : columnFilters.type.filter((t) => t !== type.value);
-                      handleColumnFilterChange('type', newValue);
-                    }}
-                  />
-                  <Typography variant='body2'>{type.label}</Typography>
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        );
-      case 'date':
-        return (
-          <Box sx={{ p: 2, minWidth: 300 }}>
-            <Typography variant='subtitle2' sx={{ mb: 1 }}>
-              Lọc theo ngày
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                label='Từ ngày'
-                type='date'
-                value={columnFilters.date.start}
-                onChange={(e) =>
-                  handleColumnFilterChange('date', {
-                    ...columnFilters.date,
-                    start: e.target.value,
-                  })
-                }
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-              />
-              <TextField
-                label='Đến ngày'
-                type='date'
-                value={columnFilters.date.end}
-                onChange={(e) =>
-                  handleColumnFilterChange('date', {
-                    ...columnFilters.date,
-                    end: e.target.value,
-                  })
-                }
-                InputLabelProps={{ shrink: true }}
-                fullWidth
-              />
-            </Box>
-          </Box>
+          <TableFilter
+            title='Lọc theo loại nhập'
+            options={
+              enumData?.data?.map((type: IEnum) => ({
+                id: type.value,
+                label: type.label,
+              })) ?? []
+            }
+            selectedValues={columnFilters.type}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('type', newValues)
+            }
+            onClose={handleFilterClose}
+          />
         );
       default:
         return null;
@@ -365,37 +367,125 @@ const InventoryImportPage = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell align='center'>STT</TableCell>
-                <TableCell>
-                  Kho
-                  <IconButton
-                    size='small'
-                    onClick={(e) => handleFilterClick(e, 'warehouse')}
-                    sx={{ ml: 1 }}>
-                    <FilterListIcon fontSize='small' />
-                  </IconButton>
+                <TableCell colSpan={headCells.length}>
+                  <Box
+                    sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {Object.entries(columnFilters).map(
+                        ([filterKey, filterValues]) => {
+                          if (filterValues.length === 0) return null;
+
+                          let filterLabels: string[] = [];
+                          if (filterKey === 'warehouse') {
+                            filterLabels = filterValues.map(
+                              (value) =>
+                                warehousesData?.data?.find(
+                                  (w) => w.id === +value
+                                )?.name || value
+                            );
+                          } else if (filterKey === 'items') {
+                            filterLabels = filterValues.map(
+                              (value) =>
+                                productsData?.data?.find((p) => p.id === +value)
+                                  ?.name || value
+                            );
+                          } else if (filterKey === 'type') {
+                            filterLabels = filterValues.map(
+                              (value) =>
+                                enumData?.data?.find((e) => e.value === value)
+                                  ?.label || value
+                            );
+                          }
+
+                          return filterLabels.map((label) => (
+                            <Chip
+                              key={`${filterKey}-${label}`}
+                              label={label}
+                              onDelete={() => {
+                                const newValues = filterValues.filter(
+                                  (value) => {
+                                    const itemLabel =
+                                      filterKey === 'warehouse'
+                                        ? warehousesData?.data?.find(
+                                            (w) => w.id === +value
+                                          )?.name
+                                        : filterKey === 'items'
+                                        ? productsData?.data?.find(
+                                            (p) => p.id === +value
+                                          )?.name
+                                        : enumData?.data?.find(
+                                            (e) => e.value === value
+                                          )?.label;
+                                    return itemLabel !== label;
+                                  }
+                                );
+                                handleColumnFilterChange(filterKey, newValues);
+                              }}
+                              size='small'
+                            />
+                          ));
+                        }
+                      )}
+                      {Object.values(columnFilters).some(
+                        (values) => values.length > 0
+                      ) && (
+                        <Button
+                          size='small'
+                          onClick={() => {
+                            setColumnFilters({
+                              warehouse: [],
+                              items: [],
+                              type: [],
+                            });
+                          }}>
+                          Clear
+                        </Button>
+                      )}
+                    </Box>
+                    <DateRangePicker
+                      onChange={(item) => setState([item.selection])}
+                      showSelectionPreview={true}
+                      moveRangeOnFirstSelection={false}
+                      months={2}
+                      ranges={state}
+                      direction='horizontal'
+                    />
+                  </Box>
                 </TableCell>
-                <TableCell width={'40%'}>Sản phẩm</TableCell>
-                <TableCell align='center'>
-                  Loại nhập
-                  <IconButton
-                    size='small'
-                    onClick={(e) => handleFilterClick(e, 'type')}
-                    sx={{ ml: 1 }}>
-                    <FilterListIcon fontSize='small' />
-                  </IconButton>
-                </TableCell>
-                <TableCell align='center'>
-                  Ngày
-                  <IconButton
-                    size='small'
-                    onClick={(e) => handleFilterClick(e, 'date')}
-                    sx={{ ml: 1 }}>
-                    <FilterListIcon fontSize='small' />
-                  </IconButton>
-                </TableCell>
-                <TableCell align='center'>Ghi chú</TableCell>
-                <TableCell align='center'>Hành động</TableCell>
+              </TableRow>
+              <TableRow>
+                {headCells?.map((headCell) => (
+                  <TableCell
+                    key={headCell.id}
+                    align={headCell.align ?? 'left'}
+                    padding={headCell.disablePadding ? 'none' : 'normal'}>
+                    {headCell.label}
+                    {headCell.isFilter ? (
+                      <>
+                        {' '}
+                        {columnFilters[
+                          headCell.id as keyof typeof columnFilters
+                        ]?.length > 0 && (
+                          <Typography component='span' sx={{ fontSize: 14 }}>
+                            (
+                            {
+                              columnFilters[
+                                headCell.id as keyof typeof columnFilters
+                              ].length
+                            }
+                            )
+                          </Typography>
+                        )}
+                        <IconButton
+                          size='small'
+                          onClick={(e) => handleFilterClick(e, headCell.id)}
+                          sx={{ ml: 1 }}>
+                          <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </>
+                    ) : null}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -408,6 +498,7 @@ const InventoryImportPage = () => {
                       <Box sx={{}}>
                         {importLog?.items?.map((importLogItem) => (
                           <Box
+                            key={importLogItem?.sku?.id}
                             my={1}
                             sx={{
                               display: 'flex',
@@ -474,7 +565,9 @@ const InventoryImportPage = () => {
                               {importLogItem?.sku?.productSkuAttributes?.length
                                 ? importLogItem?.sku?.productSkuAttributes?.map(
                                     (item) => (
-                                      <Typography sx={{ fontSize: 13 }}>
+                                      <Typography
+                                        key={item?.id}
+                                        sx={{ fontSize: 13 }}>
                                         {item?.attributeValue?.attribute?.label}
                                         : {item?.attributeValue?.value}
                                       </Typography>
@@ -545,12 +638,9 @@ const InventoryImportPage = () => {
           horizontal: 'left',
         }}>
         {renderFilterContent()}
-        <DialogActions>
-          <Button onClick={handleFilterClose}>Đóng</Button>
-        </DialogActions>
       </Popover>
 
-      {isCreatePending && <SuspenseLoader />}
+      {/* {isCreatePending && <SuspenseLoader />} */}
     </Card>
   );
 };
