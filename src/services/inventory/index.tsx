@@ -37,8 +37,10 @@ interface IGetImportLogListParams {
   warehouseIds?: string[];
   productIds?: string[];
   types?: string[];
-  startDate?: string;
-  endDate?: string;
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  limit?: number;
 }
 
 const getImportLogList = async (params?: IGetImportLogListParams) => {
@@ -47,8 +49,10 @@ const getImportLogList = async (params?: IGetImportLogListParams) => {
       warehouseIds: params?.warehouseIds?.join(','),
       productIds: params?.productIds?.join(','),
       types: params?.types?.join(','),
-      startDate: params?.startDate,
-      endDate: params?.endDate,
+      fromDate: params?.fromDate,
+      toDate: params?.toDate,
+      page: params?.page,
+      limit: params?.limit,
     },
   });
   return result.data as TPaginatedResponse<IImportLog>;
