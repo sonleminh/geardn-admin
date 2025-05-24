@@ -25,8 +25,12 @@ export const TableSkeleton = ({ rowsPerPage, columns }: TableSkeletonProps) => {
             <TableCell
               key={colIndex}
               align={column.align ?? 'left'}
-              padding='none'
-              sx={{ width: column.width }}>
+              sx={{
+                width: column.width,
+                minWidth: column.width,
+                maxWidth: column.width,
+                boxSizing: 'border-box',
+              }}>
               {column.type === 'image' && (
                 <Skeleton variant='rectangular' width={40} height={40} />
               )}
@@ -53,7 +57,12 @@ export const TableSkeleton = ({ rowsPerPage, columns }: TableSkeletonProps) => {
                   </Box>
                 </Box>
               )}
-              {column.type === 'text' && <Skeleton width={column?.width} />}
+              {column.type === 'text' && (
+                <Skeleton
+                  width={`calc(${column.width} - 32px)`}
+                  sx={{ boxSizing: 'border-box' }}
+                />
+              )}
             </TableCell>
           ))}
         </TableRow>

@@ -31,6 +31,6 @@ export interface ICreateImportLog extends Record<string, unknown>  {
     items: {
         skuId: number;
         quantity: number;
-        price: number;
+        costPrice: number;
     }[];
 }

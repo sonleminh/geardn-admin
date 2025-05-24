@@ -54,7 +54,7 @@ import { useCreateImportLog } from '@/services/inventory';
 interface IImportItem {
   sku: IProductSku;
   quantity: string;
-  price: string;
+  costPrice: string;
 }
 
 const CreateInventoryImportPage = () => {
@@ -64,7 +64,7 @@ const CreateInventoryImportPage = () => {
 
   const [productId, setProductId] = useState<number>();
   const [skuId, setSkuId] = useState<string>('');
-  const [price, setPrice] = useState<string>('');
+  const [costPrice, setCostPrice] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('');
   const [isEditItem, setIsEditItem] = useState<boolean>(false);
   const [editItemIndex, setEditItemIndex] = useState<number | null>(null);
@@ -88,14 +88,13 @@ const CreateInventoryImportPage = () => {
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      console.log('values', values);
       const payload = {
         warehouseId: +values.warehouseId,
         type: values.type,
         note: values.note,
         items: importItems?.map((item) => ({
           skuId: +item.sku.id,
-          price: +item.quantity,
+          costPrice: +item.costPrice,
           quantity: +item.quantity,
         })),
       };
@@ -138,24 +137,24 @@ const CreateInventoryImportPage = () => {
       const updatedImportItems = importItems;
       updatedImportItems[editItemIndex] = {
         sku: sku,
-        price: price,
+        costPrice: costPrice,
         quantity: quantity,
       };
       setImportItems(updatedImportItems);
       setProductId(undefined);
       setSkuId('');
-      setPrice('');
+      setCostPrice('');
       setQuantity('');
     } else {
-      if (sku && skuId && quantity && price) {
+      if (sku && skuId && quantity && costPrice) {
         setImportItems((prev) => [
           ...prev,
-          { sku: sku, quantity: quantity, price: price },
+          { sku: sku, quantity: quantity, costPrice: costPrice },
         ]);
       }
       setProductId(undefined);
       setSkuId('');
-      setPrice('');
+      setCostPrice('');
       setQuantity('');
     }
   };
@@ -164,7 +163,7 @@ const CreateInventoryImportPage = () => {
     setIsEditItem(true);
     setProductId(item?.sku?.product?.id);
     setSkuId(item?.sku?.id?.toString() ?? '');
-    setPrice(item?.price.toString() ?? '');
+    setCostPrice(item?.costPrice.toString() ?? '');
     setQuantity(item?.quantity.toString() ?? '');
     setEditItemIndex(index);
   };
@@ -319,9 +318,9 @@ const CreateInventoryImportPage = () => {
                 <Grid2 size={12}>
                   <FormControl fullWidth>
                     <Input
-                      id='price'
+                      id='costPrice'
                       label='Giá nhập'
-                      name='name'
+                      name='costPrice'
                       variant='filled'
                       type='number'
                       required
@@ -330,8 +329,8 @@ const CreateInventoryImportPage = () => {
                       //     {formik.errors.price}
                       //   </Box>
                       // }
-                      value={price}
-                      onChange={(e) => setPrice(e?.target?.value)}
+                      value={costPrice}
+                      onChange={(e) => setCostPrice(e?.target?.value)}
                     />
                   </FormControl>
                 </Grid2>
@@ -486,7 +485,7 @@ const CreateInventoryImportPage = () => {
                             {item.quantity}
                           </TableCell>
                           <TableCell sx={{ fontSize: 12 }} align='right'>
-                            {formatPrice(+item?.price)}
+                            {formatPrice(+item?.costPrice)}
                           </TableCell>
                           <TableCell align='center'>
                             <Button
