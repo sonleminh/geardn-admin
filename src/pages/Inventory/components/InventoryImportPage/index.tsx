@@ -58,10 +58,8 @@ import { formatPrice } from '@/utils/format-price';
 
 // Local constants
 import { ROUTES } from '@/constants/route';
-
-// Types
-type ColumnType = 'text' | 'image' | 'action' | 'complex';
-type ColumnAlign = 'left' | 'center' | 'right';
+import { ColumnType, TableColumn } from '@/interfaces/ITableColumn';
+import { ColumnAlign } from '@/interfaces/ITableColumn';
 
 interface Data {
   stt: number;
@@ -81,13 +79,6 @@ interface HeadCell {
   isFilter?: boolean;
   width?: string;
 }
-
-interface TableColumn {
-  width: string;
-  align?: ColumnAlign;
-  type: ColumnType;
-}
-
 interface ColumnFilters {
   warehouse: string[];
   items: string[];
@@ -470,7 +461,7 @@ const useFilterState = () => {
 
 const usePagination = () => {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const handleChangePage = useCallback((event: unknown, newPage: number) => {
     setPage(newPage);
@@ -529,6 +520,8 @@ const InventoryImportPage = () => {
     page: page + 1,
     limit: rowsPerPage,
   });
+
+  console.log('isLoadingImportLogs', isLoadingImportLogs);
 
   const importTypeMap = useMemo(
     () =>
@@ -789,7 +782,7 @@ const InventoryImportPage = () => {
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[5, 10, 25, 50]}
+          rowsPerPageOptions={[10, 20, 30, 50]}
           labelRowsPerPage='Số hàng mỗi trang'
           labelDisplayedRows={({ from, to, count }) =>
             `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`

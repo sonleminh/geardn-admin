@@ -19,9 +19,9 @@ export interface IStockProductSkuItem extends IProductSku {
 }
 
 export interface IStockByWarehouseItem {
-    productId: number;
-    productName: number;
-    productImages: string[];
+    id: number;
+    name: number;
+    images: string[];
     totalStock: number;
     skus: IStockProductSkuItem[];
 }

@@ -70,6 +70,8 @@ const CreateInventoryImportPage = () => {
   const [editItemIndex, setEditItemIndex] = useState<number | null>(null);
   const [importItems, setImportItems] = useState<IImportItem[]>([]);
 
+  console.log('importItems', importItems);
+
   const { data: warehousesData } = useGetWarehouseList();
   const { data: enumData } = useGetEnumByContext('import-type');
 

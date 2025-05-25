@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import AddBusinessOutlinedIcon from '@mui/icons-material/AddBusinessOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import SearchIcon from '@mui/icons-material/Search';
 import {
   Box,
   Card,
@@ -13,7 +13,6 @@ import {
   FormControl,
   IconButton,
   MenuItem,
-  Pagination,
   Select,
   SelectChangeEvent,
   Table,
@@ -21,11 +20,13 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   Typography,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
-import { LuPackagePlus } from 'react-icons/lu';
-import { LuPackageMinus } from 'react-icons/lu';
+import { LuPackageMinus, LuPackagePlus } from 'react-icons/lu';
 import { TbHomeEdit } from 'react-icons/tb';
 
 import { ROUTES } from '@/constants/route';
@@ -35,26 +36,63 @@ import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 
 import useConfirmModal from '@/hooks/useModalConfirm';
 
-import { IQuery } from '@/interfaces/IQuery';
-
 import { useGetStocksByWarehouse } from '@/services/stock';
 import { useGetWarehouseList } from '@/services/warehouse';
 
+import { TableColumn } from '@/interfaces/ITableColumn';
 import { truncateTextByLine } from '@/utils/css-helper.util';
+import { TableSkeleton } from '@/components/TableSkeleton';
+
+const columns: TableColumn[] = [
+  { align: 'center' },
+  { type: 'complex' },
+  { align: 'center' },
+  { align: 'center' },
+  { align: 'center', type: 'action' },
+];
+
+const usePagination = () => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(2);
+
+  const handleChangePage = useCallback((event: unknown, newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const handleChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0);
+    },
+    []
+  );
+
+  return {
+    page,
+    rowsPerPage,
+    handleChangePage,
+    handleChangeRowsPerPage,
+  };
+};
 
 const InventoryPage = () => {
   const navigate = useNavigate();
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
-  const [query, setQuery] = useState<IQuery>({
-    limit: 10,
-    page: 1,
-  });
+  const { page, rowsPerPage, handleChangePage, handleChangeRowsPerPage } =
+    usePagination();
 
-  const { data: warehousesData } = useGetWarehouseList();
+  const { data: warehousesData, isLoading: isLoadingWarehouses } =
+    useGetWarehouseList();
   const [warehouseId, setWarehouseId] = useState<number>();
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: stocksData } = useGetStocksByWarehouse(warehouseId);
+  const { data: stocksData, isLoading: isLoadingStocks } =
+    useGetStocksByWarehouse(warehouseId, {
+      page: page + 1,
+      limit: rowsPerPage,
+      search: searchQuery,
+    });
 
   useEffect(() => {
     if (!warehouseId && warehousesData?.data?.length) {
@@ -62,13 +100,15 @@ const InventoryPage = () => {
     }
   }, [warehousesData, warehouseId]);
 
-  const handleChangeQuery = (object: Partial<IQuery>) => {
-    setQuery((prev) => ({ ...prev, ...object }));
-  };
-
   const handleWarehouseIdChange = (event: SelectChangeEvent<number>) => {
     setWarehouseId(+event.target.value);
   };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const isLoading = isLoadingWarehouses || isLoadingStocks || !warehouseId;
 
   return (
     <Card sx={{ borderRadius: 2 }}>
@@ -119,12 +159,10 @@ const InventoryPage = () => {
                 size='small'
                 sx={{
                   width: 200,
-                  mr: 2,
                   '& .MuiInputBase-root': {
                     minHeight: 40,
                   },
                 }}>
-                {/* <InputLabel>Kho hàng</InputLabel> */}
                 <Select
                   onChange={handleWarehouseIdChange}
                   value={warehouseId ?? ''}>
@@ -138,6 +176,27 @@ const InventoryPage = () => {
             </Box>
           }
         />
+        <Box sx={{ px: 2, pb: 2 }}>
+          <TextField
+            fullWidth
+            size='small'
+            placeholder='Tìm kiếm sản phẩm...'
+            value={searchQuery}
+            onChange={handleSearchChange}
+            sx={{
+              '& .MuiInputBase-root': {
+                minHeight: 40,
+              },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
         <Divider />
         <TableContainer>
           <Table>
@@ -151,7 +210,9 @@ const InventoryPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {stocksData?.data?.length ? (
+              {isLoading ? (
+                <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
+              ) : stocksData?.data?.length ? (
                 stocksData?.data?.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell align='center'>{index + 1}</TableCell>
@@ -166,10 +227,7 @@ const InventoryPage = () => {
                               objectFit: 'contain',
                             },
                           }}>
-                          <img
-                            src={item?.productImages?.[0]}
-                            className='thumbnail'
-                          />
+                          <img src={item?.images?.[0]} className='thumbnail' />
                         </Box>
                         <Box
                           sx={{
@@ -178,7 +236,7 @@ const InventoryPage = () => {
                             ml: 2,
                           }}>
                           <Typography sx={{ ...truncateTextByLine(2) }}>
-                            {item?.productName}
+                            {item?.name}
                           </Typography>
                         </Box>
                       </Box>
@@ -186,7 +244,7 @@ const InventoryPage = () => {
                     <TableCell align='center'>{item?.totalStock}</TableCell>
                     <TableCell align='center'>
                       <IconButton
-                        onClick={() => navigate(`${item?.productId}/stocks`)}>
+                        onClick={() => navigate(`${item?.id}/stocks`)}>
                         <VisibilityOutlinedIcon />
                       </IconButton>
                     </TableCell>
@@ -195,7 +253,6 @@ const InventoryPage = () => {
                         <Box mb={1}>
                           <ButtonWithTooltip
                             color='primary'
-                            // onClick={() => navigate(`update/${item?.}`)}
                             variant='outlined'
                             title='Chỉnh sửa'
                             placement='left'>
@@ -209,7 +266,6 @@ const InventoryPage = () => {
                               showConfirmModal({
                                 title: 'Bạn có muốn xóa danh mục này không?',
                                 cancelText: 'Hủy',
-                                // onOk: () => handleDeleteCategory(item?.id),
                                 okText: 'Xóa',
                                 btnOkColor: 'error',
                               });
@@ -227,34 +283,26 @@ const InventoryPage = () => {
               ) : (
                 <TableRow>
                   <TableCell align='center' colSpan={6}>
-                    Empty
+                    Không có dữ liệu
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </TableContainer>
-        <Divider />
-        <Box
-          p={2}
-          sx={{
-            ['.MuiPagination-ul']: {
-              justifyContent: 'center',
-            },
-            textAlign: 'right',
-          }}>
-          <Typography>Tổng cộng: {stocksData?.meta?.total ?? 0}</Typography>
-          <Pagination
-            count={Math.ceil((stocksData?.meta?.total ?? 0) / query.limit!)}
-            page={query.page ?? 0}
-            onChange={(_: React.ChangeEvent<unknown>, newPage) => {
-              handleChangeQuery({ page: newPage });
-            }}
-            defaultPage={query.page ?? 0}
-            showFirstButton
-            showLastButton
-          />
-        </Box>
+        <TablePagination
+          component='div'
+          count={stocksData?.meta?.total || 0}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[2, 20, 30, 50]}
+          labelRowsPerPage='Số hàng mỗi trang'
+          labelDisplayedRows={({ from, to, count }) =>
+            `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`
+          }
+        />
       </Card>
       {confirmModal()}
     </Card>

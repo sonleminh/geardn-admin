@@ -2,25 +2,32 @@ import { QueryKeys } from '@/constants/query-key';
 import { axiosInstance } from '../axiosInstance';
 import { useQuery } from '@tanstack/react-query';
 
-import {
-  IProductWithStock,
-  IStock,
-  IStockByWarehouseItem,
-} from '@/interfaces/IStock';
+import { IStockByWarehouseItem } from '@/interfaces/IStock';
 import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
-import { IProduct } from '@/interfaces/IProduct';
 
 const stockeUrl = '/stocks';
 
-const getStocksByWarehouse = async (id: number | undefined) => {
-  const result = await axiosInstance.get(`${stockeUrl}/${id}/warehouses`);
+const getStocksByWarehouse = async (
+  id: number | undefined,
+  params?: { page?: number; limit?: number; search?: string }
+) => {
+  const result = await axiosInstance.get(`${stockeUrl}/${id}/warehouses`, {
+    params: {
+      page: params?.page,
+      limit: params?.limit,
+      search: params?.search,
+    },
+  });
   return result.data as TPaginatedResponse<IStockByWarehouseItem>;
 };
 
-export const useGetStocksByWarehouse = (id: number | undefined) => {
+export const useGetStocksByWarehouse = (
+  id: number | undefined,
+  params?: { page?: number; limit?: number; search?: string }
+) => {
   return useQuery({
-    queryKey: [QueryKeys.Stock, id],
-    queryFn: () => getStocksByWarehouse(id),
+    queryKey: [QueryKeys.Stock, id, params],
+    queryFn: () => getStocksByWarehouse(id, params),
     refetchOnWindowFocus: false,
     refetchInterval: false,
     enabled: !!id,
@@ -29,7 +36,7 @@ export const useGetStocksByWarehouse = (id: number | undefined) => {
 
 const getStockByProduct = async (id: number | undefined) => {
   const result = await axiosInstance.get(`${stockeUrl}/${id}/products`);
-  return result.data as TBaseResponse<IProductWithStock>;
+  return result.data as TBaseResponse<IStockByWarehouseItem>;
 };
 
 export const useGetStockByProduct = (id: number | undefined) => {

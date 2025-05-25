@@ -12,10 +12,13 @@ import {
   TableHead,
   TableRow,
   Typography,
+  IconButton,
 } from '@mui/material';
 import AddBusinessOutlinedIcon from '@mui/icons-material/AddBusinessOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
 import { ROUTES } from '@/constants/route';
 
@@ -30,18 +33,32 @@ import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ActionButton from '@/components/ActionButton';
 
 import { truncateTextByLine } from '@/utils/css-helper.util';
+import { TableSkeleton } from '@/components/TableSkeleton';
+import { TableColumn } from '@/interfaces/ITableColumn';
+
+const columns: TableColumn[] = [
+  { align: 'center' },
+  { type: 'complex' },
+  { align: 'center' },
+  { align: 'center' },
+  { align: 'center', type: 'action' },
+];
 
 const InventoryByProduct = () => {
   const { id } = useParams();
   const numericId = id ? Number(id) : undefined;
 
   const navigate = useNavigate();
-  const { showNotification } = useNotificationContext();
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
-  const { data: warehousesData } = useGetWarehouseList();
+  const { data: warehousesData, isLoading: isLoadingWarehouses } =
+    useGetWarehouseList();
 
-  const { data: stockData } = useGetStockByProduct(numericId);
+  const { data: stockData, isLoading: isLoadingStock } =
+    useGetStockByProduct(numericId);
+
+  const isLoading = isLoadingWarehouses || isLoadingStock || !numericId;
+
   return (
     <Card sx={{ borderRadius: 2 }}>
       <Card>
@@ -55,9 +72,16 @@ const InventoryByProduct = () => {
             </ButtonWithTooltip>
           }
           title={
-            <Typography sx={{ mr: 2, fontSize: 20, fontWeight: 500 }}>
-              Tồn kho sản phẩm: {stockData?.data?.name}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton
+                onClick={() => navigate(ROUTES.INVENTORY)}
+                sx={{ mr: 1 }}>
+                <ChevronLeftIcon />
+              </IconButton>
+              <Typography sx={{ mr: 2, fontSize: 20, fontWeight: 500 }}>
+                Tồn kho sản phẩm: {stockData?.data?.name}
+              </Typography>
+            </Box>
           }
         />
         <Divider />
@@ -71,11 +95,12 @@ const InventoryByProduct = () => {
                 {warehousesData?.data?.map((warehouse) => (
                   <TableCell align='center'>{warehouse?.name}</TableCell>
                 ))}
-                <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {stockData?.data ? (
+              {isLoading ? (
+                <TableSkeleton rowsPerPage={2} columns={columns} />
+              ) : stockData?.data ? (
                 stockData?.data?.skus?.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell align='center'>{index + 1}</TableCell>
@@ -99,7 +124,7 @@ const InventoryByProduct = () => {
                             ml: 2,
                           }}>
                           <Typography sx={{ ...truncateTextByLine(2) }}>
-                            {/* {item?.productName} */}
+                            {item?.name}
                           </Typography>
                         </Box>
                       </Box>
@@ -123,38 +148,6 @@ const InventoryByProduct = () => {
                         </Typography>
                       </TableCell>
                     ))}
-                    <TableCell align='center'>
-                      <ActionButton>
-                        <Box mb={1}>
-                          <ButtonWithTooltip
-                            color='primary'
-                            // onClick={() => navigate(`update/${item?.}`)}
-                            variant='outlined'
-                            title='Chỉnh sửa'
-                            placement='left'>
-                            <EditOutlinedIcon />
-                          </ButtonWithTooltip>
-                        </Box>
-                        <Box>
-                          <ButtonWithTooltip
-                            color='error'
-                            onClick={() => {
-                              showConfirmModal({
-                                title: 'Bạn có muốn xóa danh mục này không?',
-                                cancelText: 'Hủy',
-                                // onOk: () => handleDeleteCategory(item?.id),
-                                okText: 'Xóa',
-                                btnOkColor: 'error',
-                              });
-                            }}
-                            variant='outlined'
-                            title='Xoá'
-                            placement='left'>
-                            <DeleteOutlineOutlinedIcon />
-                          </ButtonWithTooltip>
-                        </Box>
-                      </ActionButton>
-                    </TableCell>
                   </TableRow>
                 ))
               ) : (

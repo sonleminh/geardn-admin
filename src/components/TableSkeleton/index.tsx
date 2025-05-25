@@ -50,14 +50,12 @@ export const TableSkeleton = ({ rowsPerPage, columns }: TableSkeletonProps) => {
                         flexDirection: 'column',
                         gap: 0.5,
                       }}>
-                      <Skeleton width={80} />
-                      <Skeleton width={60} />
-                      <Skeleton width={70} />
+                      <Skeleton width={150} />
                     </Box>
                   </Box>
                 </Box>
               )}
-              {column.type === 'text' && (
+              {(!column.type || column.type === 'text') && (
                 <Skeleton
                   width={`calc(${column.width} - 32px)`}
                   sx={{ boxSizing: 'border-box' }}
