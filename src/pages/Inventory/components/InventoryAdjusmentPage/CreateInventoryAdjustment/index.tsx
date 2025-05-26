@@ -1,24 +1,8 @@
 import { ChangeEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-import Input from '@/components/Input';
-import SuspenseLoader from '@/components/SuspenseLoader';
-
-import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 
-import { ROUTES } from '@/constants/route';
-
-import { IProductSku } from '@/interfaces/IProductSku';
-import { useGetEnumByContext } from '@/services/enum';
-import { useCreateImportLog } from '@/services/inventory';
-import { useGetProductList } from '@/services/product';
-import { useGetSkusByProductId } from '@/services/sku';
-import { useGetWarehouseList } from '@/services/warehouse';
-import { truncateTextByLine } from '@/utils/css-helper.util';
-import { formatPrice } from '@/utils/format-price';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -51,6 +35,24 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
+
+import Input from '@/components/Input';
+import SuspenseLoader from '@/components/SuspenseLoader';
+
+import { QueryKeys } from '@/constants/query-key';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import { ROUTES } from '@/constants/route';
+
+import { IProductSku } from '@/interfaces/IProductSku';
+
+import { useGetEnumByContext } from '@/services/enum';
+import { useCreateImportLog } from '@/services/inventory';
+import { useGetProductList } from '@/services/product';
+import { useGetSkusByProductId } from '@/services/sku';
+import { useGetWarehouseList } from '@/services/warehouse';
+
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import { formatPrice } from '@/utils/format-price';
 
 interface IImportItem {
   sku: IProductSku;
@@ -228,7 +230,7 @@ const CreateInventoryAdjustmentPage = () => {
           </FormHelperText>
         </FormControl>
         <FormControl variant='filled' fullWidth>
-          <InputLabel>Loại nhập</InputLabel>
+          <InputLabel>Loại điều chỉnh</InputLabel>
           <Select
             disableUnderline
             required
@@ -335,19 +337,19 @@ const CreateInventoryAdjustmentPage = () => {
                 <Grid2 size={12}>
                   <FormControl fullWidth>
                     <Input
-                      id='costPrice'
-                      label='Giá nhập'
-                      name='costPrice'
+                      id='quantity'
+                      label='Số lượng cũ'
+                      name='quantity'
                       variant='filled'
                       type='number'
-                      required
+                      disabled
                       // helperText={
                       //   <Box component={'span'} sx={helperTextStyle}>
                       //     {formik.errors.price}
                       //   </Box>
                       // }
-                      value={costPrice}
-                      onChange={(e) => setCostPrice(e?.target?.value)}
+                      value={quantity}
+                      onChange={(e) => setQuantity(e?.target?.value)}
                     />
                   </FormControl>
                 </Grid2>
@@ -355,7 +357,7 @@ const CreateInventoryAdjustmentPage = () => {
                   <FormControl fullWidth>
                     <Input
                       id='quantity'
-                      label='Số lượng'
+                      label='Số lượng điều chỉnh'
                       name='quantity'
                       variant='filled'
                       type='number'

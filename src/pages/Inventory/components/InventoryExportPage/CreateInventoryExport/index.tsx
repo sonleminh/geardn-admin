@@ -79,8 +79,6 @@ const CreateInventoryExportPage = () => {
   const { mutate: createExportLogMutate, isPending: isCreatePending } =
     useCreateExportLog();
 
-  console.log(exportItems);
-
   const formik = useFormik({
     initialValues: {
       warehouseId: '',
@@ -89,7 +87,6 @@ const CreateInventoryExportPage = () => {
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      console.log('values', values);
       const payload = {
         warehouseId: +values.warehouseId,
         type: values.type,
@@ -104,7 +101,7 @@ const CreateInventoryExportPage = () => {
         onSuccess() {
           queryClient.invalidateQueries({ queryKey: [QueryKeys.ExportLog] });
           showNotification('Tạo xuất hàng thành công', 'success');
-          navigate(ROUTES.INVENTORY);
+          navigate(`${ROUTES.INVENTORY}/export`);
         },
       });
     },
@@ -125,6 +122,10 @@ const CreateInventoryExportPage = () => {
   };
 
   const handleSaveItem = () => {
+    if (!formik?.values?.warehouseId) {
+      return showNotification('Vui lòng chọn kho hàng', 'error');
+    }
+
     const isAlreadySelected = exportItems.some((item) => {
       return item?.sku?.id === +skuId;
     });
@@ -134,6 +135,15 @@ const CreateInventoryExportPage = () => {
 
     const sku = skusData?.data?.find((sku) => sku?.id === +skuId);
 
+    console.log('sku:', sku?.stocks);
+    console.log('formik?.values?.warehouseId:', formik?.values?.warehouseId);
+    console.log(
+      'skuc:',
+      sku?.stocks?.find(
+        (stock) => stock?.skuId === +formik?.values?.warehouseId
+      )
+    );
+
     if (editItemIndex !== null && sku && skuId) {
       const updatedExportItems = exportItems;
       updatedExportItems[editItemIndex] = {
@@ -141,7 +151,9 @@ const CreateInventoryExportPage = () => {
         quantity: quantity,
         costPrice:
           sku?.stocks
-            ?.find((stock) => stock?.skuId === +skuId)
+            ?.find(
+              (stock) => stock?.warehouseId === +formik?.values?.warehouseId
+            )
             ?.costPrice?.toString() ?? '',
       };
       setExportItems(updatedExportItems);
@@ -157,7 +169,9 @@ const CreateInventoryExportPage = () => {
             quantity: quantity,
             costPrice:
               sku?.stocks
-                ?.find((stock) => stock?.skuId === +skuId)
+                ?.find(
+                  (stock) => stock?.warehouseId === +formik?.values?.warehouseId
+                )
                 ?.costPrice?.toString() ?? '',
           },
         ]);
@@ -218,7 +232,8 @@ const CreateInventoryExportPage = () => {
             size='small'
             name='warehouseId'
             onChange={handleSelectChange}
-            value={formik?.values?.warehouseId ?? ''}>
+            value={formik?.values?.warehouseId ?? ''}
+            disabled={exportItems?.length > 0}>
             {warehousesData?.data?.map((item) => (
               <MenuItem key={item?.name} value={item?.id}>
                 {item?.name}
@@ -453,9 +468,13 @@ const CreateInventoryExportPage = () => {
                               </Box>
                               <Typography
                                 sx={{ fontSize: 13, ...truncateTextByLine(1) }}>
-                                {item?.sku?.productSkuAttributes
-                                  ?.map((item) => item?.attributeValue?.value)
-                                  .join(' - ')}
+                                {item?.sku?.productSkuAttributes?.length
+                                  ? item?.sku?.productSkuAttributes
+                                      ?.map(
+                                        (item) => item?.attributeValue?.value
+                                      )
+                                      .join(' - ')
+                                  : item?.sku?.product?.name}
                               </Typography>
                             </Box>
                           </TableCell>

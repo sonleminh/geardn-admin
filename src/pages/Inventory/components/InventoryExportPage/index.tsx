@@ -137,7 +137,7 @@ const headCells: readonly HeadCell[] = [
     align: 'center',
     id: 'createdAt',
     disablePadding: false,
-    label: 'Ngày nhập',
+    label: 'Ngày xuất',
     width: '120px',
   },
   {

@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Material-UI components
 import {
   Box,
   Button,
@@ -23,7 +22,6 @@ import {
   Typography,
 } from '@mui/material';
 
-// Material-UI icons
 import { AddCircleOutlined } from '@mui/icons-material';
 import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
@@ -32,32 +30,26 @@ import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
-// Third-party libraries
 import { addDays } from 'date-fns';
 import moment from 'moment';
 import { DateRangePicker, RangeKeyDict } from 'react-date-range';
 
-// Local components
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import TableFilter from '@/components/TableFilter';
 import { TableSkeleton } from '@/components/TableSkeleton';
 
-// Local services
 import { useGetEnumByContext } from '@/services/enum';
 import { useGetImportLogList } from '@/services/inventory';
 import { useGetProductList } from '@/services/product';
 import { useGetWarehouseList } from '@/services/warehouse';
 
-// Local interfaces
 import { IEnum } from '@/interfaces/IEnum';
 import { IInventoryLogItem } from '@/interfaces/IInventorytLog';
 
-// Local utilities
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
 
-// Local constants
 import { ROUTES } from '@/constants/route';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 

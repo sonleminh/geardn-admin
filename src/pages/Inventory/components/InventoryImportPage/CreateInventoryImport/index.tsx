@@ -1,16 +1,11 @@
-import { ChangeEvent, useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-
-import Input from '@/components/Input';
-import SuspenseLoader from '@/components/SuspenseLoader';
-
-import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { ChangeEvent, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 
-import { ROUTES } from '@/constants/route';
-
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Autocomplete,
   Box,
@@ -40,18 +35,23 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { createSchema, updateSchema } from '../utils/schema/warehouseSchema';
+
+import Input from '@/components/Input';
+import SuspenseLoader from '@/components/SuspenseLoader';
+
+import { QueryKeys } from '@/constants/query-key';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import { ROUTES } from '@/constants/route';
+import { IProductSku } from '@/interfaces/IProductSku';
+
 import { useGetEnumByContext } from '@/services/enum';
+import { useCreateImportLog } from '@/services/inventory';
 import { useGetProductList } from '@/services/product';
 import { useGetSkusByProductId } from '@/services/sku';
-import { IProductSku } from '@/interfaces/IProductSku';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import { formatPrice } from '@/utils/format-price';
-import { truncateTextByLine } from '@/utils/css-helper.util';
 import { useGetWarehouseList } from '@/services/warehouse';
-import { useCreateImportLog } from '@/services/inventory';
+
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import { formatPrice } from '@/utils/format-price';
 
 interface IImportItem {
   sku: IProductSku;
@@ -70,6 +70,9 @@ const CreateInventoryImportPage = () => {
   const [quantity, setQuantity] = useState<string>('');
   const [isEditItem, setIsEditItem] = useState<boolean>(false);
   const [editItemIndex, setEditItemIndex] = useState<number | null>(null);
+  const [transferFromWarehouseId, setTransferFromWarehouseId] = useState<
+    number | null
+  >(null);
   const [importItems, setImportItems] = useState<IImportItem[]>([]);
 
   const { data: warehousesData } = useGetWarehouseList();
@@ -105,11 +108,24 @@ const CreateInventoryImportPage = () => {
         onSuccess() {
           queryClient.invalidateQueries({ queryKey: [QueryKeys.ImportLog] });
           showNotification('Tạo nhập hàng thành công', 'success');
-          navigate(ROUTES.INVENTORY);
+          navigate(`${ROUTES.INVENTORY}/import`);
         },
       });
     },
   });
+
+  useEffect(() => {
+    if (transferFromWarehouseId && skuId) {
+      setCostPrice(
+        skusData?.data
+          ?.find((sku) => sku?.id === +skuId)
+          ?.stocks?.find(
+            (stock) => stock?.warehouseId === +transferFromWarehouseId
+          )
+          ?.costPrice?.toString() ?? ''
+      );
+    }
+  }, [transferFromWarehouseId, skuId]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -187,6 +203,12 @@ const CreateInventoryImportPage = () => {
     setQuantity('');
   };
 
+  const handleTransferFromWarehouseSelect = (
+    event: SelectChangeEvent<string>
+  ) => {
+    setTransferFromWarehouseId(+event.target.value);
+  };
+
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
@@ -247,6 +269,31 @@ const CreateInventoryImportPage = () => {
             </Box>
           </FormHelperText>
         </FormControl>
+        {formik?.values?.type === 'TRANSFER' && (
+          <FormControl variant='filled' fullWidth>
+            <InputLabel>Chuyển từ kho</InputLabel>
+            <Select
+              disableUnderline
+              required
+              size='small'
+              name='type'
+              onChange={handleTransferFromWarehouseSelect}
+              value={transferFromWarehouseId?.toString() ?? ''}>
+              {warehousesData?.data
+                ?.filter((item) => item?.id !== +formik?.values?.warehouseId)
+                ?.map((item) => (
+                  <MenuItem key={item?.name} value={item?.id}>
+                    {item?.name}
+                  </MenuItem>
+                ))}
+            </Select>
+            <FormHelperText>
+              <Box component={'span'} sx={helperTextStyle}>
+                {formik.errors?.type}
+              </Box>
+            </FormHelperText>
+          </FormControl>
+        )}
         <Grid2 container spacing={2}>
           <Grid2 size={6}>
             <Box>
@@ -293,36 +340,44 @@ const CreateInventoryImportPage = () => {
                       onChange={handleSkuSelect}
                       value={skuId ?? ''}
                       disabled={!productId || !skusData}>
-                      {skusData?.data?.map((item) => (
-                        <MenuItem key={item?.id} value={item?.id}>
-                          <Typography
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              width: '100%',
-                              fontSize: 14,
-                            }}>
-                            <Typography component={'span'}>
-                              {item?.productSkuAttributes?.length
-                                ? item?.productSkuAttributes
-                                    ?.map(
-                                      (item) =>
-                                        `${item?.attributeValue?.attribute?.label}:
+                      {skusData?.data?.length ? (
+                        skusData?.data?.map((item) => (
+                          <MenuItem key={item?.id} value={item?.id}>
+                            <Typography
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                width: '100%',
+                                fontSize: 14,
+                              }}>
+                              <Typography component={'span'}>
+                                {item?.productSkuAttributes?.length
+                                  ? item?.productSkuAttributes
+                                      ?.map(
+                                        (item) =>
+                                          `${item?.attributeValue?.attribute?.label}:
                                   ${item?.attributeValue?.value}
                                 `
-                                    )
-                                    .join('- ')
-                                : ''}
+                                      )
+                                      .join('- ')
+                                  : ''}
+                              </Typography>
+                              <Typography
+                                component={'span'}
+                                sx={{ fontWeight: 500 }}>
+                                {item?.sku}
+                              </Typography>
                             </Typography>
-                            <Typography
-                              component={'span'}
-                              sx={{ fontWeight: 500 }}>
-                              {item?.sku}
-                            </Typography>
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem value=''>
+                          <Typography sx={{ fontSize: 14 }}>
+                            Không có loại sản phấm
                           </Typography>
                         </MenuItem>
-                      ))}
+                      )}
                     </Select>
                     <FormHelperText>
                       <Box component={'span'} sx={helperTextStyle}>
@@ -340,6 +395,7 @@ const CreateInventoryImportPage = () => {
                       variant='filled'
                       type='number'
                       required
+                      disabled={formik?.values?.type === 'TRANSFER'}
                       // helperText={
                       //   <Box component={'span'} sx={helperTextStyle}>
                       //     {formik.errors.price}
