@@ -1,599 +1,845 @@
-import { ChangeEvent, useState } from 'react';
+// React and React Router
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import Input from '@/components/Input';
-import SuspenseLoader from '@/components/SuspenseLoader';
-
-import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import { useQueryClient } from '@tanstack/react-query';
-import { useFormik } from 'formik';
-
-import { ROUTES } from '@/constants/route';
-import { IProductSku } from '@/interfaces/IProductSku';
-import { useGetEnumByContext } from '@/services/enum';
-import { useGetProductList } from '@/services/product';
-import { useGetSkusByProductId } from '@/services/sku';
-import { useGetWarehouseList } from '@/services/warehouse';
-import { truncateTextByLine } from '@/utils/css-helper.util';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+// Material-UI components
 import {
-  Autocomplete,
   Box,
   Button,
   Card,
   CardContent,
   CardHeader,
+  Chip,
   Divider,
-  FormControl,
-  FormHelperText,
-  Grid2,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Popper,
-  Select,
-  SelectChangeEvent,
-  SxProps,
+  IconButton,
+  Popover,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
-  TextField,
-  Theme,
   Typography,
 } from '@mui/material';
-import { useCreateExportLog } from '@/services/inventory';
+
+// Material-UI icons
+import { AddCircleOutlined } from '@mui/icons-material';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import FilterListIcon from '@mui/icons-material/FilterList';
+
+// Third-party libraries
+import { addDays } from 'date-fns';
+import moment from 'moment';
+import { DateRangePicker, RangeKeyDict } from 'react-date-range';
+
+// Local components
+import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import TableFilter from '@/components/TableFilter';
+import { TableSkeleton } from '@/components/TableSkeleton';
+
+// Local services
+import { useGetEnumByContext } from '@/services/enum';
+import { useGetExportLogList } from '@/services/inventory';
+import { useGetProductList } from '@/services/product';
+import { useGetWarehouseList } from '@/services/warehouse';
+
+// Local interfaces
+import { IEnum } from '@/interfaces/IEnum';
+import { IInventoryLogItem } from '@/interfaces/IInventorytLog';
+
+// Local utilities
+import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
 
-interface IExportItem {
-  sku: IProductSku;
-  quantity: string;
-  costPrice: string;
+// Local constants
+import { ROUTES } from '@/constants/route';
+import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
+
+interface Data {
+  stt: number;
+  warehouse: string;
+  items: IInventoryLogItem[];
+  type: string;
+  createdAt: Date;
+  note: string;
+  action: string;
 }
 
-const ExportPage = () => {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+interface HeadCell {
+  align?: ColumnAlign;
+  disablePadding: boolean;
+  id: keyof Data;
+  label: string;
+  isFilter?: boolean;
+  width?: string;
+}
+interface ColumnFilters {
+  warehouse: string[];
+  items: string[];
+  type: string[];
+  date: { fromDate: string; toDate: string };
+}
 
-  const [productId, setProductId] = useState<number>();
-  const [skuId, setSkuId] = useState<string>('');
-  const [quantity, setQuantity] = useState<string>('');
-  const [isEditItem, setIsEditItem] = useState<boolean>(false);
-  const [editItemIndex, setEditItemIndex] = useState<number | null>(null);
-  const [exportItems, setExportItems] = useState<IExportItem[]>([]);
+// Constants
+const INITIAL_COLUMN_FILTERS: ColumnFilters = {
+  warehouse: [],
+  items: [],
+  type: [],
+  date: { fromDate: '', toDate: '' },
+};
+
+const INITIAL_DATE_STATE = [
+  {
+    startDate: new Date(),
+    endDate: addDays(new Date(), 7),
+    key: 'selection',
+  },
+];
+
+const headCells: readonly HeadCell[] = [
+  {
+    align: 'center',
+    id: 'stt',
+    disablePadding: false,
+    label: 'STT',
+    isFilter: false,
+    width: '60px',
+  },
+  {
+    id: 'warehouse',
+    disablePadding: false,
+    label: 'Kho',
+    isFilter: true,
+    width: '120px',
+  },
+  {
+    id: 'items',
+    disablePadding: false,
+    label: 'Sản phẩm',
+    isFilter: true,
+    width: '400px',
+  },
+  {
+    align: 'center',
+    id: 'type',
+    disablePadding: false,
+    label: 'Loại',
+    isFilter: true,
+    width: '120px',
+  },
+  {
+    align: 'center',
+    id: 'createdAt',
+    disablePadding: false,
+    label: 'Ngày nhập',
+    width: '120px',
+  },
+  {
+    align: 'center',
+    id: 'note',
+    disablePadding: false,
+    label: 'Ghi chú',
+    width: '150px',
+  },
+  {
+    align: 'center',
+    id: 'action',
+    disablePadding: false,
+    label: 'Hành động',
+    width: '150px',
+  },
+];
+
+const columns: TableColumn[] = [
+  { width: '60px', align: 'center', type: 'text' },
+  { width: '120px', type: 'text' },
+  { width: '400px', type: 'complex' },
+  { width: '120px', align: 'center', type: 'text' },
+  { width: '120px', align: 'center', type: 'text' },
+  { width: '150px', align: 'center', type: 'text' },
+  { width: '150px', align: 'center', type: 'action' },
+];
+
+// Components
+interface ImportLogItemProps {
+  item: IInventoryLogItem;
+}
+
+const ImportLogItem = ({ item }: ImportLogItemProps) => {
+  const productName = item?.sku?.product?.name;
+  const imageUrl = item?.sku?.imageUrl ?? item?.sku?.product?.images?.[0];
+  const quantity = item?.quantity;
+  const costPrice = item?.costPrice;
+  const attributes = item?.sku?.productSkuAttributes;
+
+  return (
+    <Box
+      my={1}
+      sx={{
+        display: 'flex',
+        p: 1,
+        bgcolor: '#fafafa',
+        border: '1px solid #dadada',
+        borderRadius: 1,
+      }}>
+      <Box
+        sx={{
+          height: 40,
+          '.thumbnail': {
+            width: 40,
+            height: 40,
+            mr: 1,
+            objectFit: 'contain',
+          },
+        }}>
+        <img src={imageUrl} className='thumbnail' alt={productName} />
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Typography
+          sx={{
+            width: 80,
+            fontSize: 14,
+            fontWeight: 500,
+            ...truncateTextByLine(1),
+          }}>
+          {productName}
+        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Typography sx={{ fontSize: 13 }}>SL: {quantity}</Typography>
+          <Typography sx={{ fontSize: 13 }}>
+            Giá nhập: {formatPrice(costPrice)}
+          </Typography>
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          ml: 2,
+        }}>
+        {attributes?.length
+          ? attributes.map((attr) => (
+              <Typography key={attr?.id} sx={{ fontSize: 13 }}>
+                {attr?.attributeValue?.attribute?.label}:{' '}
+                {attr?.attributeValue?.value}
+              </Typography>
+            ))
+          : null}
+      </Box>
+    </Box>
+  );
+};
+
+interface FilterChipsProps {
+  columnFilters: ColumnFilters;
+  warehousesData: {
+    data?: Array<{
+      id: number;
+      name: string;
+    }>;
+  };
+  productsData: {
+    data?: Array<{
+      id: number;
+      name: string;
+    }>;
+  };
+  enumData: {
+    data?: Array<IEnum>;
+  };
+  onFilterChange: (
+    column: string,
+    value: string | string[] | { fromDate: string; toDate: string }
+  ) => void;
+}
+
+const FilterChips = ({
+  columnFilters,
+  warehousesData,
+  productsData,
+  enumData,
+  onFilterChange,
+}: FilterChipsProps) => {
+  const getFilterLabels = useCallback(
+    (filterKey: string, values: string[]) => {
+      if (filterKey === 'warehouse') {
+        return values.map(
+          (value: string) =>
+            warehousesData?.data?.find(
+              (w: { id: number; name: string }) => w.id === +value
+            )?.name || value
+        );
+      } else if (filterKey === 'items') {
+        return values.map(
+          (value: string) =>
+            productsData?.data?.find(
+              (p: { id: number; name: string }) => p.id === +value
+            )?.name || value
+        );
+      } else if (filterKey === 'type') {
+        return values.map(
+          (value: string) =>
+            enumData?.data?.find((e: IEnum) => e.value === value)?.label ||
+            value
+        );
+      }
+      return [];
+    },
+    [warehousesData?.data, productsData?.data, enumData?.data]
+  );
+
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <FilterListIcon />
+      {Object.entries(columnFilters).map(([filterKey, filterValues]) => {
+        if (filterKey === 'date') {
+          const dateValues = filterValues as {
+            fromDate: string;
+            toDate: string;
+          };
+          if (!dateValues.fromDate || !dateValues.toDate) return null;
+          return (
+            <Chip
+              key='date-filter'
+              label={`${moment(dateValues.fromDate).format(
+                'DD/MM/YYYY'
+              )} - ${moment(dateValues.toDate).format('DD/MM/YYYY')}`}
+              onDelete={() => {
+                onFilterChange('date', { fromDate: '', toDate: '' });
+              }}
+              size='small'
+            />
+          );
+        }
+
+        const values = filterValues as string[];
+        if (values.length === 0) return null;
+
+        const filterLabels = getFilterLabels(filterKey, values);
+
+        return filterLabels.map((label) => (
+          <Chip
+            key={`${filterKey}-${label}`}
+            label={label}
+            onDelete={() => {
+              const newValues = values.filter((value: string) => {
+                const itemLabel =
+                  filterKey === 'warehouse'
+                    ? warehousesData?.data?.find((w) => w.id === +value)?.name
+                    : filterKey === 'items'
+                    ? productsData?.data?.find((p) => p.id === +value)?.name
+                    : enumData?.data?.find((e) => e.value === value)?.label;
+                return itemLabel !== label;
+              });
+              onFilterChange(filterKey, newValues);
+            }}
+            size='small'
+            sx={{ maxWidth: 120 }}
+          />
+        ));
+      })}
+    </Box>
+  );
+};
+
+// Custom hooks
+const useFilterState = () => {
+  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
+  const [activeFilterColumn, setActiveFilterColumn] = useState<string>('');
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>(
+    INITIAL_COLUMN_FILTERS
+  );
+  const [dateState, setDateState] = useState(INITIAL_DATE_STATE);
+  const [dateFilterAnchorEl, setDateFilterAnchorEl] =
+    useState<null | HTMLElement>(null);
+
+  const handleFilterClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>, column: string) => {
+      setFilterAnchorEl(event.currentTarget);
+      setActiveFilterColumn(column);
+    },
+    []
+  );
+
+  const handleFilterClose = useCallback(() => {
+    setFilterAnchorEl(null);
+    setActiveFilterColumn('');
+  }, []);
+
+  const handleColumnFilterChange = useCallback(
+    (
+      column: string,
+      value: string | string[] | { fromDate: string; toDate: string }
+    ) => {
+      setColumnFilters((prev) => ({
+        ...prev,
+        [column]: value,
+      }));
+    },
+    []
+  );
+
+  const handleDateRangeChange = useCallback((rangesByKey: RangeKeyDict) => {
+    const selection = rangesByKey.selection;
+    if (!selection?.startDate || !selection?.endDate) return;
+
+    setDateState([
+      {
+        startDate: selection.startDate,
+        endDate: selection.endDate,
+        key: 'selection',
+      },
+    ]);
+
+    const fromDate = new Date(
+      Date.UTC(
+        selection.startDate.getFullYear(),
+        selection.startDate.getMonth(),
+        selection.startDate.getDate(),
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+    const toDate = new Date(
+      Date.UTC(
+        selection.endDate.getFullYear(),
+        selection.endDate.getMonth(),
+        selection.endDate.getDate(),
+        23,
+        59,
+        59,
+        999
+      )
+    );
+
+    setColumnFilters((prev) => ({
+      ...prev,
+      date: {
+        fromDate: fromDate.toISOString().split('T')[0],
+        toDate: toDate.toISOString().split('T')[0],
+      },
+    }));
+  }, []);
+
+  const handleDateFilterClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      setDateFilterAnchorEl(event.currentTarget);
+    },
+    []
+  );
+
+  const handleDateFilterClose = useCallback(() => {
+    setDateFilterAnchorEl(null);
+  }, []);
+
+  return {
+    filterAnchorEl,
+    activeFilterColumn,
+    columnFilters,
+    dateState,
+    dateFilterAnchorEl,
+    handleFilterClick,
+    handleFilterClose,
+    handleColumnFilterChange,
+    handleDateRangeChange,
+    handleDateFilterClick,
+    handleDateFilterClose,
+  };
+};
+
+const usePagination = () => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleChangePage = useCallback((event: unknown, newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const handleChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0);
+    },
+    []
+  );
+
+  return {
+    page,
+    rowsPerPage,
+    handleChangePage,
+    handleChangeRowsPerPage,
+  };
+};
+
+// Main component
+const InventoryExportPage = () => {
+  const navigate = useNavigate();
+  const {
+    filterAnchorEl,
+    activeFilterColumn,
+    columnFilters,
+    dateState,
+    dateFilterAnchorEl,
+    handleFilterClick,
+    handleFilterClose,
+    handleColumnFilterChange,
+    handleDateRangeChange,
+    handleDateFilterClick,
+    handleDateFilterClose,
+  } = useFilterState();
+
+  const { page, rowsPerPage, handleChangePage, handleChangeRowsPerPage } =
+    usePagination();
 
   const { data: warehousesData } = useGetWarehouseList();
-  const { data: enumData } = useGetEnumByContext('export-type');
-
   const { data: productsData } = useGetProductList();
-  const { data: skusData } = useGetSkusByProductId(productId);
+  const { data: enumData } = useGetEnumByContext('import-type');
 
-  const { mutate: createExportLogMutate, isPending: isCreatePending } =
-    useCreateExportLog();
-
-  console.log(exportItems);
-
-  const formik = useFormik({
-    initialValues: {
-      warehouseId: '',
-      type: '',
-    },
-    // validationSchema: isEdit ? updateSchema : createSchema,
-    validateOnChange: false,
-    onSubmit(values) {
-      console.log('values', values);
-      const payload = {
-        warehouseId: +values.warehouseId,
-        type: values.type,
-        items: exportItems?.map((item) => ({
-          skuId: +item.sku.id,
-          quantity: +item.quantity,
-          costPrice: +item.costPrice,
-        })),
-      };
-
-      createExportLogMutate(payload, {
-        onSuccess() {
-          queryClient.invalidateQueries({ queryKey: [QueryKeys.ExportLog] });
-          showNotification('Tạo xuất hàng thành công', 'success');
-          navigate(ROUTES.INVENTORY);
-        },
-      });
-    },
+  const {
+    data: importLogsData,
+    refetch: refetchImportLogs,
+    isLoading: isLoadingImportLogs,
+  } = useGetExportLogList({
+    warehouseIds: columnFilters.warehouse,
+    productIds: columnFilters.items,
+    types: columnFilters.type,
+    fromDate: columnFilters.date.fromDate,
+    toDate: columnFilters.date.toDate,
+    page: page + 1,
+    limit: rowsPerPage,
   });
 
-  const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    formik.setFieldValue(name, value);
-  };
+  console.log('isLoadingImportLogs', isLoadingImportLogs);
 
-  const handleSelectChange = (event: SelectChangeEvent<string>) => {
-    const { name, value } = event.target;
-    formik.setFieldValue(name, value);
-  };
+  const importTypeMap = useMemo(
+    () =>
+      Object.fromEntries(
+        enumData?.data?.map((item) => [item.value, item.label]) ?? []
+      ),
+    [enumData?.data]
+  );
 
-  const handleSkuSelect = (event: SelectChangeEvent<string>) => {
-    setSkuId(event.target.value);
-  };
+  useEffect(() => {
+    refetchImportLogs();
+  }, [columnFilters, refetchImportLogs]);
 
-  const handleSaveItem = () => {
-    const isAlreadySelected = exportItems.some((item) => {
-      return item?.sku?.id === +skuId;
-    });
-    if (isAlreadySelected && !isEditItem) {
-      return showNotification('Sku đã tồn tại', 'error');
+  const renderFilterContent = useCallback(() => {
+    switch (activeFilterColumn) {
+      case 'warehouse':
+        return (
+          <TableFilter
+            title='Lọc theo kho'
+            options={
+              warehousesData?.data?.map((warehouse) => ({
+                id: warehouse.id,
+                label: warehouse.name,
+              })) ?? []
+            }
+            selectedValues={columnFilters.warehouse}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('warehouse', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
+      case 'items':
+        return (
+          <TableFilter
+            title='Lọc theo sản phẩm'
+            options={
+              productsData?.data?.map((product) => ({
+                id: product.id,
+                label: product.name,
+              })) ?? []
+            }
+            selectedValues={columnFilters.items}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('items', newValues)
+            }
+            onClose={handleFilterClose}
+            sx={{ maxWidth: 300 }}
+          />
+        );
+      case 'type':
+        return (
+          <TableFilter
+            title='Lọc theo loại nhập'
+            options={
+              enumData?.data?.map((type: IEnum) => ({
+                id: type.value,
+                label: type.label,
+              })) ?? []
+            }
+            selectedValues={columnFilters.type}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('type', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
+      default:
+        return null;
     }
-
-    const sku = skusData?.data?.find((sku) => sku?.id === +skuId);
-
-    if (editItemIndex !== null && sku && skuId) {
-      const updatedExportItems = exportItems;
-      updatedExportItems[editItemIndex] = {
-        sku: sku,
-        quantity: quantity,
-        costPrice:
-          sku?.stocks
-            ?.find((stock) => stock?.skuId === +skuId)
-            ?.costPrice?.toString() ?? '',
-      };
-      setExportItems(updatedExportItems);
-      setProductId(undefined);
-      setSkuId('');
-      setQuantity('');
-    } else {
-      if (sku && skuId && quantity) {
-        setExportItems((prev) => [
-          ...prev,
-          {
-            sku: sku,
-            quantity: quantity,
-            costPrice:
-              sku?.stocks
-                ?.find((stock) => stock?.skuId === +skuId)
-                ?.costPrice?.toString() ?? '',
-          },
-        ]);
-      }
-      setProductId(undefined);
-      setSkuId('');
-      setQuantity('');
-    }
-  };
-
-  const handleEditImportItem = (item: IExportItem, index: number) => {
-    setIsEditItem(true);
-    setProductId(item?.sku?.product?.id);
-    setSkuId(item?.sku?.id?.toString() ?? '');
-    setQuantity(item?.quantity.toString() ?? '');
-    setEditItemIndex(index);
-  };
-
-  const handleDeleteImportItem = (itemIndex: number) => {
-    const updAttributeList = exportItems?.filter(
-      (_, index) => index !== itemIndex
-    );
-    if (updAttributeList?.length === 0) {
-      setIsEditItem(false);
-    }
-    setExportItems(updAttributeList);
-  };
+  }, [
+    activeFilterColumn,
+    warehousesData,
+    productsData,
+    enumData,
+    columnFilters,
+    handleColumnFilterChange,
+    handleFilterClose,
+  ]);
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
         title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            Nhập hàng
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              onClick={() => navigate(ROUTES.INVENTORY)}
+              sx={{ mr: 1 }}>
+              <ChevronLeftIcon />
+            </IconButton>
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+              Xuất hàng
+            </Typography>
+          </Box>
+        }
+        action={
+          <ButtonWithTooltip
+            variant='contained'
+            onClick={() => navigate(`${ROUTES.INVENTORY}/export/create`)}
+            title='Xuất hàng'
+            sx={{ textTransform: 'none' }}>
+            <AddCircleOutlined />
+          </ButtonWithTooltip>
         }
       />
       <Divider />
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <FormControl variant='filled' fullWidth>
-          <InputLabel>Kho hàng</InputLabel>
-          <Select
-            disableUnderline
-            required
-            size='small'
-            name='warehouseId'
-            onChange={handleSelectChange}
-            value={formik?.values?.warehouseId ?? ''}>
-            {warehousesData?.data?.map((item) => (
-              <MenuItem key={item?.name} value={item?.id}>
-                {item?.name}
-              </MenuItem>
-            ))}
-          </Select>
-          <FormHelperText>
-            <Box component={'span'} sx={helperTextStyle}>
-              {formik.errors?.warehouseId}
-            </Box>
-          </FormHelperText>
-        </FormControl>
-        <FormControl variant='filled' fullWidth>
-          <InputLabel>Loại xuất</InputLabel>
-          <Select
-            disableUnderline
-            required
-            size='small'
-            name='type'
-            onChange={handleSelectChange}
-            value={formik?.values?.type ?? ''}>
-            {enumData?.data?.map((item) => (
-              <MenuItem key={item?.value} value={item?.value}>
-                {item?.label}
-              </MenuItem>
-            ))}
-          </Select>
-          <FormHelperText>
-            <Box component={'span'} sx={helperTextStyle}>
-              {formik.errors?.type}
-            </Box>
-          </FormHelperText>
-        </FormControl>
-        <FormControl variant='filled' fullWidth>
-          <Input
-            id='note'
-            label='Ghi chú'
-            name='note'
-            variant='filled'
-            size='small'
-            // helperText={
-            //   <Box component={'span'} sx={helperTextStyle}>
-            //     {formik?.errors?.note}
-            //   </Box>
-            // }
-            // value={formik?.values?.note ?? ''}
-            onChange={handleChangeValue}
-          />
-        </FormControl>
-        <Grid2 container spacing={2}>
-          <Grid2 size={6}>
-            <Box>
-              <Typography sx={{ mb: 2 }}>Thêm loại hàng:</Typography>
-              <Grid2 container spacing={2}>
-                <Grid2 size={12}>
-                  <FormControl variant='filled' fullWidth>
-                    <Autocomplete
-                      disablePortal
-                      options={productsData?.data ?? []}
-                      renderInput={(params) => (
-                        <TextField {...params} label='Sản phẩm' />
-                      )}
-                      onChange={(e, value) => setProductId(value?.id)}
-                      value={
-                        productsData?.data.find(
-                          (item) => item.id === productId
-                        ) ?? null
-                      }
-                      getOptionLabel={(option) => option?.name ?? ''}
-                      PopperComponent={(props) => (
-                        <Popper
-                          {...props}
-                          placement='bottom-start'
-                          modifiers={[
-                            {
-                              name: 'flip',
-                              enabled: false,
-                            },
-                          ]}
-                        />
-                      )}
-                    />
-                  </FormControl>
-                </Grid2>
-                <Grid2 size={12}>
-                  <FormControl variant='filled' fullWidth>
-                    <InputLabel>Loại sản phấm</InputLabel>
-                    <Select
-                      disableUnderline
-                      required
-                      size='small'
-                      name='skuId'
-                      onChange={handleSkuSelect}
-                      value={skuId ?? ''}
-                      disabled={!productId || !skusData}>
-                      {skusData?.data?.map((item) => (
-                        <MenuItem key={item?.id} value={item?.id}>
-                          <Typography
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              width: '100%',
-                              fontSize: 14,
-                            }}>
-                            <Typography component={'span'}>
-                              {item?.productSkuAttributes?.length
-                                ? item?.productSkuAttributes
-                                    ?.map(
-                                      (item) =>
-                                        `${item?.attributeValue?.attribute?.label}:
-                                  ${item?.attributeValue?.value}
-                                `
-                                    )
-                                    .join('- ')
-                                : ''}
-                            </Typography>
-                            <Typography
-                              component={'span'}
-                              sx={{ fontWeight: 500 }}>
-                              {item?.sku}
-                            </Typography>
-                          </Typography>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    <FormHelperText>
-                      <Box component={'span'} sx={helperTextStyle}>
-                        {formik.errors?.type}
-                      </Box>
-                    </FormHelperText>
-                  </FormControl>
-                </Grid2>
-                <Grid2 size={12}>
-                  <FormControl fullWidth>
-                    <Input
-                      id='quantity'
-                      label='Số lượng'
-                      name='quantity'
-                      variant='filled'
-                      type='number'
-                      required
-                      // helperText={
-                      //   <Box component={'span'} sx={helperTextStyle}>
-                      //     {formik.errors.price}
-                      //   </Box>
-                      // }
-                      value={quantity}
-                      onChange={(e) => setQuantity(e?.target?.value)}
-                    />
-                  </FormControl>
-                </Grid2>
-                <Box sx={{ display: 'flex', ml: 'auto' }}>
-                  <Typography sx={helperTextStyle}>
-                    {/* {optionError} */}
-                  </Typography>
-                  <Button
-                    sx={{ ml: 2, textTransform: 'initial' }}
-                    variant='contained'
-                    // disabled={
-                    //   !variantName || attributeList?.length === 0
-                    //     ? true
-                    //     : false
-                    // }
-                    // disabled={!attributeValueId}
-                    onClick={handleSaveItem}>
-                    Lưu
-                  </Button>
-                  <Button
-                    sx={{ ml: 2, textTransform: 'initial' }}
-                    variant='outlined'
-                    // onClick={handleDelBtn}
-                    // disabled={
-                    //   attributeId?.length <= 0 && attributeValueId?.length <= 0
-                    // }
-                  >
-                    Xóa
-                  </Button>
-                  {/* <Button
-                      sx={{
-                        ml: 2,
-                        textTransform: 'initial',
-                        color: '#D03739',
-                        border: '1px solid #D03739',
-                      }}
-                      variant='outlined'
-                      onClick={handleDelAllVariant}
-                    >
-                      Xóa tất cả
-                    </Button> */}
-                </Box>
-              </Grid2>
-            </Box>
-          </Grid2>
-          <Grid2 size={6}>
-            <Box>
-              <Typography sx={{ mb: 2 }}>Danh sách hàng:</Typography>
-              <TableContainer component={Paper}>
-                <Table sx={{}} aria-label='simple table'>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ width: '3%', px: 1 }} align='center'>
-                        STT
-                      </TableCell>
-                      <TableCell sx={{ width: '25%', px: 0 }} align='center'>
-                        Sản phẩm
-                      </TableCell>
-                      <TableCell sx={{ width: '14%', px: 1 }} align='center'>
-                        Số lượng
-                      </TableCell>
-                      <TableCell sx={{ width: '10%', px: 1 }} align='center'>
-                        Giá vốn
-                      </TableCell>
-                      <TableCell sx={{ width: '15%' }} align='center'>
-                        Tuỳ chọn
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {exportItems?.length ? (
-                      exportItems.map((item, index) => (
-                        <TableRow
-                          key={item?.sku?.id}
-                          sx={{
-                            '&:last-child td, &:last-child th': { border: 0 },
-                          }}>
-                          <TableCell
-                            sx={{ px: 1, fontSize: 13 }}
-                            component='th'
-                            scope='row'
-                            align='center'>
-                            {index + 1}
-                          </TableCell>
-                          <TableCell sx={{ px: 0 }} align='center'>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Box
-                                sx={{
-                                  position: 'relative',
-                                  height: '42px',
-                                  '.thumbnail': {
-                                    maxWidth: 42,
-                                    maxHeight: 42,
-                                    mr: 1,
-                                    border: '1px solid #dadada',
-                                  },
-                                }}>
-                                <img
-                                  src={
-                                    item?.sku?.imageUrl ??
-                                    item?.sku?.product?.images?.[0]
-                                  }
-                                  className='thumbnail'
-                                />
-                              </Box>
-                              <Typography
-                                sx={{ fontSize: 13, ...truncateTextByLine(1) }}>
-                                {item?.sku?.productSkuAttributes
-                                  ?.map((item) => item?.attributeValue?.value)
-                                  .join(' - ')}
-                              </Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell sx={{ px: 1 }} align='center'>
-                            {item?.quantity}
-                          </TableCell>
-                          <TableCell sx={{ fontSize: 12 }} align='right'>
-                            {formatPrice(+item?.costPrice)}
-                          </TableCell>
-                          <TableCell align='center'>
-                            <Button
-                              sx={{
-                                minWidth: 20,
-                                width: 20,
-                                height: 30,
-                                mr: 1,
-                              }}
-                              variant='outlined'
-                              onClick={() => {
-                                handleEditImportItem(item, index);
-                              }}>
-                              <EditOutlinedIcon sx={{ fontSize: 14 }} />
-                            </Button>
-                            <Button
-                              sx={{ minWidth: 20, width: 20, height: 30 }}
-                              variant='outlined'
-                              onClick={() => handleDeleteImportItem(index)}>
-                              <DeleteOutlineOutlinedIcon
-                                sx={{ fontSize: 14 }}
-                              />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow
-                        sx={{
-                          height: '80px',
-                          '& td': { border: 0 },
-                        }}>
-                        <TableCell
-                          colSpan={6}
-                          align='center'
-                          sx={{
-                            textAlign: 'center',
-                            color: '#999',
-                          }}>
-                          Empty
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-                <Divider />
-                {/* <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'end',
-                    alignItems: 'center',
-                    width: '100%',
-                    px: 4,
-                    py: 1,
-                  }}>
-                  <Typography sx={{ mr: 4, fontSize: 14 }}>
-                    Tổng tiền:
-                  </Typography>
-                  <Typography>{formatPrice(totalAmount())}</Typography>
-                </Box> */}
-              </TableContainer>
-              {/* <Box>
-                {importItems?.map((item, index) => (
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell colSpan={headCells.length}>
                   <Box
-                    key={index}
                     sx={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      mb: 2,
                     }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Box
+                    <FilterChips
+                      columnFilters={columnFilters}
+                      warehousesData={warehousesData || { data: [] }}
+                      productsData={productsData || { data: [] }}
+                      enumData={enumData || { data: [] }}
+                      onFilterChange={handleColumnFilterChange}
+                    />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Button
+                        variant='outlined'
+                        size='small'
+                        onClick={handleDateFilterClick}
+                        startIcon={<DateRangeOutlinedIcon />}
                         sx={{
-                          position: 'relative',
-                          height: '48px',
-                          mr: 1,
-                          '.thumbnail': {
-                            maxWidth: 48,
-                            maxHeight: 48,
-                            mr: 1,
-                            border: '1px solid #dadada',
+                          textTransform: 'none',
+                          borderColor: columnFilters.date.fromDate
+                            ? 'primary.main'
+                            : 'inherit',
+                          color: columnFilters.date.fromDate
+                            ? 'primary.main'
+                            : 'inherit',
+                          '&:hover': {
+                            borderColor: 'primary.main',
                           },
                         }}>
-                        <img
-                          src={
-                            item?.sku?.imageUrl ??
-                            item?.sku?.product?.images?.[0]
-                          }
-                          className='thumbnail'
-                        />
-                      </Box>
-                      <Typography sx={{ fontSize: 14 }}>
-                        {item?.sku?.productSkuAttributes
-                          ?.map((item) => item?.attributeValue?.value)
-                          .join('- ')}
-                      </Typography>
+                        {columnFilters.date.fromDate
+                          ? `${moment(columnFilters.date.fromDate).format(
+                              'DD/MM/YYYY'
+                            )} - ${moment(columnFilters.date.toDate).format(
+                              'DD/MM/YYYY'
+                            )}`
+                          : 'Chọn ngày'}
+                      </Button>
                     </Box>
-                    <Typography>{item?.sku?.sku}</Typography>
-                    <Typography>{item?.quantity}</Typography>
                   </Box>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                {headCells?.map((headCell) => (
+                  <TableCell
+                    key={headCell.id}
+                    align={headCell.align ?? 'left'}
+                    padding={headCell.disablePadding ? 'none' : 'normal'}
+                    sx={{ width: headCell.width }}>
+                    {headCell.label}
+                    {headCell.isFilter ? (
+                      <>
+                        {' '}
+                        {(() => {
+                          const filterValue =
+                            columnFilters[
+                              headCell.id as keyof typeof columnFilters
+                            ];
+                          if (
+                            Array.isArray(filterValue) &&
+                            filterValue.length > 0
+                          ) {
+                            return (
+                              <Typography
+                                component='span'
+                                sx={{ fontSize: 14 }}>
+                                ({filterValue.length})
+                              </Typography>
+                            );
+                          }
+                          return null;
+                        })()}
+                        <IconButton
+                          size='small'
+                          onClick={(e) => handleFilterClick(e, headCell.id)}
+                          sx={{ ml: 1 }}>
+                          <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </>
+                    ) : null}
+                  </TableCell>
                 ))}
-              </Box> */}
-            </Box>
-          </Grid2>
-        </Grid2>
-
-        <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate(ROUTES.INVENTORY)} sx={{ mr: 2 }}>
-            Trở lại
-          </Button>
-          <Button variant='contained' onClick={() => formik.handleSubmit()}>
-            Thêm
-          </Button>
-        </Box>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {isLoadingImportLogs ? (
+                <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
+              ) : importLogsData?.data?.length ? (
+                importLogsData?.data?.map((importLog, index) => (
+                  <TableRow key={importLog.id || index}>
+                    <TableCell align='center'>
+                      {page * rowsPerPage + index + 1}
+                    </TableCell>
+                    <TableCell>{importLog?.warehouse?.name}</TableCell>
+                    <TableCell>
+                      <Box>
+                        {importLog?.items?.map((importLogItem) => (
+                          <ImportLogItem
+                            key={importLogItem?.sku?.id}
+                            item={importLogItem}
+                          />
+                        ))}
+                      </Box>
+                    </TableCell>
+                    <TableCell align='center'>
+                      {importTypeMap?.[importLog?.type] || 'Không xác định'}
+                    </TableCell>
+                    <TableCell align='center'>
+                      {moment(importLog?.createdAt).format('DD/MM/YYYY')}
+                    </TableCell>
+                    <TableCell align='center'>
+                      {importLog?.note ?? 'Không có'}
+                    </TableCell>
+                    <TableCell align='center'>
+                      <ActionButton>
+                        <Box mb={1}>
+                          <ButtonWithTooltip
+                            color='primary'
+                            variant='outlined'
+                            title='Chỉnh sửa'
+                            placement='left'>
+                            <EditOutlinedIcon />
+                          </ButtonWithTooltip>
+                        </Box>
+                        <Box>
+                          <ButtonWithTooltip
+                            color='error'
+                            variant='outlined'
+                            title='Xoá'
+                            placement='left'>
+                            <DeleteOutlineOutlinedIcon />
+                          </ButtonWithTooltip>
+                        </Box>
+                      </ActionButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell align='center' colSpan={7}>
+                    Không có dữ liệu
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          component='div'
+          count={importLogsData?.meta?.total || 0}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[10, 20, 30, 50]}
+          labelRowsPerPage='Số hàng mỗi trang'
+          labelDisplayedRows={({ from, to, count }) =>
+            `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`
+          }
+        />
       </CardContent>
-      {isCreatePending && <SuspenseLoader />}
+
+      <Popover
+        open={Boolean(filterAnchorEl)}
+        anchorEl={filterAnchorEl}
+        onClose={handleFilterClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}>
+        {renderFilterContent()}
+      </Popover>
+
+      <Popover
+        open={Boolean(dateFilterAnchorEl)}
+        anchorEl={dateFilterAnchorEl}
+        onClose={handleDateFilterClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        PaperProps={{
+          sx: {
+            p: 2,
+            mt: 1,
+          },
+        }}>
+        <DateRangePicker
+          onChange={handleDateRangeChange}
+          moveRangeOnFirstSelection={false}
+          months={2}
+          ranges={dateState}
+          direction='horizontal'
+        />
+      </Popover>
     </Card>
   );
 };
 
-export default ExportPage;
-
-const helperTextStyle: SxProps<Theme> = {
-  color: 'red',
-  fontSize: 13,
-};
+export default InventoryExportPage;

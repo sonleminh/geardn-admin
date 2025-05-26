@@ -53,7 +53,7 @@ const columns: TableColumn[] = [
 
 const usePagination = () => {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(2);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const handleChangePage = useCallback((event: unknown, newPage: number) => {
     setPage(newPage);
@@ -297,7 +297,7 @@ const InventoryPage = () => {
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[2, 20, 30, 50]}
+          rowsPerPageOptions={[10, 20, 30, 50]}
           labelRowsPerPage='Số hàng mỗi trang'
           labelDisplayedRows={({ from, to, count }) =>
             `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`

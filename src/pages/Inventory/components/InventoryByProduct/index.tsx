@@ -63,14 +63,6 @@ const InventoryByProduct = () => {
     <Card sx={{ borderRadius: 2 }}>
       <Card>
         <CardHeader
-          action={
-            <ButtonWithTooltip
-              variant='contained'
-              onClick={() => navigate(`${ROUTES.WAREHOUSE}/import`)}
-              title='Thêm kho hàng'>
-              <AddBusinessOutlinedIcon />
-            </ButtonWithTooltip>
-          }
           title={
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton
@@ -78,7 +70,13 @@ const InventoryByProduct = () => {
                 sx={{ mr: 1 }}>
                 <ChevronLeftIcon />
               </IconButton>
-              <Typography sx={{ mr: 2, fontSize: 20, fontWeight: 500 }}>
+              <Typography
+                sx={{
+                  mr: 2,
+                  fontSize: 20,
+                  fontWeight: 500,
+                  ...truncateTextByLine(1),
+                }}>
                 Tồn kho sản phẩm: {stockData?.data?.name}
               </Typography>
             </Box>
@@ -100,7 +98,7 @@ const InventoryByProduct = () => {
             <TableBody>
               {isLoading ? (
                 <TableSkeleton rowsPerPage={2} columns={columns} />
-              ) : stockData?.data ? (
+              ) : stockData?.data?.skus?.length ? (
                 stockData?.data?.skus?.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell align='center'>{index + 1}</TableCell>
@@ -116,16 +114,6 @@ const InventoryByProduct = () => {
                             },
                           }}>
                           <img src={item?.imageUrl} className='thumbnail' />
-                        </Box>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            ml: 2,
-                          }}>
-                          <Typography sx={{ ...truncateTextByLine(2) }}>
-                            {item?.name}
-                          </Typography>
                         </Box>
                       </Box>
                     </TableCell>
@@ -153,7 +141,7 @@ const InventoryByProduct = () => {
               ) : (
                 <TableRow>
                   <TableCell align='center' colSpan={6}>
-                    Empty
+                    Không có dữ liệu
                   </TableCell>
                 </TableRow>
               )}

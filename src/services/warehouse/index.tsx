@@ -7,7 +7,7 @@ import {
   ICreateWarehouse,
   IUpdateWarehousePayload,
 } from '@/interfaces/IWarehouse';
-import { ICreateImportLog } from '@/interfaces/IImportLog';
+import { ICreateImportLog } from '@/interfaces/IInventorytLog';
 type TWarehousesRes = {
   success: boolean;
   message: string;

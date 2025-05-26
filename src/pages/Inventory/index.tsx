@@ -2,9 +2,13 @@ import { useRoutes } from 'react-router-dom';
 import InventoryByProduct from './components/InventoryByProduct';
 import InventoryLayout from './components/InventoryLayout';
 import InventoryPage from './components/InventoryPage';
-import InventoryImportPage from './components/InventoryImportPage';
-import ExportPage from './components/InventoryExportPage';
+import InventoryImportPage from './components/InventoryExportPage';
+import ExportPage from './components/InventoryExportPage/CreateInventoryExport';
 import CreateInventoryImportPage from './components/InventoryImportPage/CreateInventoryImport';
+import InventoryExportPage from './components/InventoryExportPage';
+import CreateInventoryExportPage from './components/InventoryExportPage/CreateInventoryExport';
+import InventoryAdjustmentPage from './components/InventoryAdjusmentPage';
+import CreateInventoryAdjustmentPage from './components/InventoryAdjusmentPage/CreateInventoryAdjustment';
 
 const Inventory = () => {
   const router = useRoutes([
@@ -31,11 +35,19 @@ const Inventory = () => {
         },
         {
           path: '/export',
-          element: <ExportPage />,
+          element: <InventoryExportPage />,
+        },
+        {
+          path: '/export/create',
+          element: <CreateInventoryExportPage />,
         },
         {
           path: '/adjustment',
-          element: <ExportPage />,
+          element: <InventoryAdjustmentPage />,
+        },
+        {
+          path: '/adjustment/create',
+          element: <CreateInventoryAdjustmentPage />,
         },
       ],
     },

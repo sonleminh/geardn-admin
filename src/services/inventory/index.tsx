@@ -1,28 +1,33 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+
 import { axiosInstance } from '../axiosInstance';
 import { QueryKeys } from '@/constants/query-key';
 
-import {
-  IWarehouse,
-  ICreateWarehouse,
-  IUpdateWarehousePayload,
-} from '@/interfaces/IWarehouse';
-import { ICreateImportLog, IImportLog } from '@/interfaces/IImportLog';
-import { ICreateExportLog } from '@/interfaces/IExportLog';
 import { ICreateAdjustmentLog } from '@/interfaces/IAdjustmentLog';
+import { ICreateExportLog } from '@/interfaces/IExportLog';
+import {
+  ICreateInventoryLog,
+  IInventoryLog,
+} from '@/interfaces/IInventorytLog';
 import { TPaginatedResponse } from '@/types/response.type';
 
-type TWarehouseById = {
-  status: number;
-  message: string;
-  data: IWarehouse;
-};
+interface IGetLogListParams {
+  warehouseIds?: string[];
+  productIds?: string[];
+  types?: string[];
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  limit?: number;
+}
 
 const importLogUrl = '/import-logs';
 const exportLogUrl = '/export-logs';
 const adjustmentLogUrl = '/adjustment-logs';
 
-const createImportLog = async (payload: ICreateImportLog) => {
+//IMPORT LOG
+
+const createImportLog = async (payload: ICreateInventoryLog) => {
   const result = await axiosInstance.post(importLogUrl, payload);
   return result.data;
 };
@@ -33,17 +38,7 @@ export const useCreateImportLog = () => {
   });
 };
 
-interface IGetImportLogListParams {
-  warehouseIds?: string[];
-  productIds?: string[];
-  types?: string[];
-  fromDate?: string;
-  toDate?: string;
-  page?: number;
-  limit?: number;
-}
-
-const getImportLogList = async (params?: IGetImportLogListParams) => {
+const getImportLogList = async (params?: IGetLogListParams) => {
   const result = await axiosInstance.get(`${importLogUrl}`, {
     params: {
       warehouseIds: params?.warehouseIds?.join(','),
@@ -55,10 +50,10 @@ const getImportLogList = async (params?: IGetImportLogListParams) => {
       limit: params?.limit,
     },
   });
-  return result.data as TPaginatedResponse<IImportLog>;
+  return result.data as TPaginatedResponse<IInventoryLog>;
 };
 
-export const useGetImportLogList = (params?: IGetImportLogListParams) => {
+export const useGetImportLogList = (params?: IGetLogListParams) => {
   return useQuery({
     queryKey: [QueryKeys.ImportLog, params],
     queryFn: () => getImportLogList(params),
@@ -66,6 +61,8 @@ export const useGetImportLogList = (params?: IGetImportLogListParams) => {
     refetchInterval: false,
   });
 };
+
+//EXPORT LOG
 
 const createExportLog = async (payload: ICreateExportLog) => {
   const result = await axiosInstance.post(exportLogUrl, payload);
@@ -78,6 +75,32 @@ export const useCreateExportLog = () => {
   });
 };
 
+const getExportLogList = async (params?: IGetLogListParams) => {
+  const result = await axiosInstance.get(`${exportLogUrl}`, {
+    params: {
+      warehouseIds: params?.warehouseIds?.join(','),
+      productIds: params?.productIds?.join(','),
+      types: params?.types?.join(','),
+      fromDate: params?.fromDate,
+      toDate: params?.toDate,
+      page: params?.page,
+      limit: params?.limit,
+    },
+  });
+  return result.data as TPaginatedResponse<IInventoryLog>;
+};
+
+export const useGetExportLogList = (params?: IGetLogListParams) => {
+  return useQuery({
+    queryKey: [QueryKeys.ExportLog, params],
+    queryFn: () => getExportLogList(params),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+  });
+};
+
+//ADJUSTMENT LOG
+
 const createAdjustmentLog = async (payload: ICreateAdjustmentLog) => {
   const result = await axiosInstance.post(adjustmentLogUrl, payload);
   return result.data;
@@ -86,5 +109,29 @@ const createAdjustmentLog = async (payload: ICreateAdjustmentLog) => {
 export const useCreateAdjustmentLog = () => {
   return useMutation({
     mutationFn: createAdjustmentLog,
+  });
+};
+
+const getAdjustmentLogList = async (params?: IGetLogListParams) => {
+  const result = await axiosInstance.get(`${adjustmentLogUrl}`, {
+    params: {
+      warehouseIds: params?.warehouseIds?.join(','),
+      productIds: params?.productIds?.join(','),
+      types: params?.types?.join(','),
+      fromDate: params?.fromDate,
+      toDate: params?.toDate,
+      page: params?.page,
+      limit: params?.limit,
+    },
+  });
+  return result.data as TPaginatedResponse<IInventoryLog>;
+};
+
+export const useGetAdjustmentLogList = (params?: IGetLogListParams) => {
+  return useQuery({
+    queryKey: [QueryKeys.AdjustmentLog, params],
+    queryFn: () => getAdjustmentLogList(params),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
   });
 };

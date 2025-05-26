@@ -1,7 +1,7 @@
 import { IProductSku } from "./IProductSku";
 import { IWarehouse } from "./IWarehouse";
 
-export interface IImportLogItem {
+export interface IInventoryLogItem {
     id: number;
     importLogId: number;
     skuId: number;
@@ -11,20 +11,20 @@ export interface IImportLogItem {
     sku: IProductSku;
 }
 
-export interface IImportLog {
+export interface IInventoryLog {
     id: number;
     warehouseId: number;
     type: string;
     note?: string;
     createdBy: number;
-    items: IImportLogItem[];
+    items: IInventoryLogItem[];
     createdAt: Date;
 
     warehouse: IWarehouse;
 }
 
 
-export interface ICreateImportLog extends Record<string, unknown>  {
+export interface ICreateInventoryLog extends Record<string, unknown>  {
     warehouseId: number;
     type: string;
     note?: string;

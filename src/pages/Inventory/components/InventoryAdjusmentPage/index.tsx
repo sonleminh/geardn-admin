@@ -483,7 +483,7 @@ const usePagination = () => {
 };
 
 // Main component
-const InventoryImportPage = () => {
+const InventoryAdjustmentPage = () => {
   const navigate = useNavigate();
   const {
     filterAnchorEl,
@@ -606,14 +606,14 @@ const InventoryImportPage = () => {
       <CardHeader
         title={
           <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            Nhập hàng
+            Điều chỉnh kho
           </Typography>
         }
         action={
           <ButtonWithTooltip
             variant='contained'
-            onClick={() => navigate(`${ROUTES.INVENTORY}/import/create`)}
-            title='Nhập hàng'
+            onClick={() => navigate(`${ROUTES.INVENTORY}/adjustment/create`)}
+            title='Điều chỉnh kho'
             sx={{ textTransform: 'none' }}>
             <AddCircleOutlined />
           </ButtonWithTooltip>
@@ -834,4 +834,4 @@ const InventoryImportPage = () => {
   );
 };
 
-export default InventoryImportPage;
+export default InventoryAdjustmentPage;
