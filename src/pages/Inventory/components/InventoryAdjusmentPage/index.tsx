@@ -1,8 +1,6 @@
-// React and React Router
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Material-UI components
 import {
   Box,
   Button,
@@ -23,40 +21,33 @@ import {
   Typography,
 } from '@mui/material';
 
-// Material-UI icons
 import { AddCircleOutlined } from '@mui/icons-material';
-import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
-// Third-party libraries
 import { addDays } from 'date-fns';
 import moment from 'moment';
 import { DateRangePicker, RangeKeyDict } from 'react-date-range';
 
-// Local components
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import TableFilter from '@/components/TableFilter';
 import { TableSkeleton } from '@/components/TableSkeleton';
 
-// Local services
 import { useGetEnumByContext } from '@/services/enum';
-import { useGetImportLogList } from '@/services/inventory';
+import { useGetAdjustmentLogList } from '@/services/inventory';
 import { useGetProductList } from '@/services/product';
 import { useGetWarehouseList } from '@/services/warehouse';
 
-// Local interfaces
 import { IEnum } from '@/interfaces/IEnum';
 import { IInventoryLogItem } from '@/interfaces/IInventorytLog';
 
-// Local utilities
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
 
-// Local constants
 import { ROUTES } from '@/constants/route';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 
@@ -507,10 +498,10 @@ const InventoryAdjustmentPage = () => {
   const { data: enumData } = useGetEnumByContext('import-type');
 
   const {
-    data: importLogsData,
-    refetch: refetchImportLogs,
-    isLoading: isLoadingImportLogs,
-  } = useGetImportLogList({
+    data: adjustmentLogsData,
+    refetch: adjustmentLogsRefetch,
+    isLoading: isLoadingAdjustmentLogs,
+  } = useGetAdjustmentLogList({
     warehouseIds: columnFilters.warehouse,
     productIds: columnFilters.items,
     types: columnFilters.type,
@@ -519,8 +510,6 @@ const InventoryAdjustmentPage = () => {
     page: page + 1,
     limit: rowsPerPage,
   });
-
-  console.log('isLoadingImportLogs', isLoadingImportLogs);
 
   const importTypeMap = useMemo(
     () =>
@@ -531,8 +520,8 @@ const InventoryAdjustmentPage = () => {
   );
 
   useEffect(() => {
-    refetchImportLogs();
-  }, [columnFilters, refetchImportLogs]);
+    adjustmentLogsRefetch();
+  }, [columnFilters, adjustmentLogsRefetch]);
 
   const renderFilterContent = useCallback(() => {
     switch (activeFilterColumn) {
@@ -712,33 +701,33 @@ const InventoryAdjustmentPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {isLoadingImportLogs ? (
+              {isLoadingAdjustmentLogs ? (
                 <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
-              ) : importLogsData?.data?.length ? (
-                importLogsData?.data?.map((importLog, index) => (
-                  <TableRow key={importLog.id || index}>
+              ) : adjustmentLogsData?.data?.length ? (
+                adjustmentLogsData?.data?.map((adjustmentLog, index) => (
+                  <TableRow key={adjustmentLog.id || index}>
                     <TableCell align='center'>
                       {page * rowsPerPage + index + 1}
                     </TableCell>
-                    <TableCell>{importLog?.warehouse?.name}</TableCell>
+                    <TableCell>{adjustmentLog?.warehouse?.name}</TableCell>
                     <TableCell>
                       <Box>
-                        {importLog?.items?.map((importLogItem) => (
+                        {adjustmentLog?.items?.map((adjustmentLogItem) => (
                           <ImportLogItem
-                            key={importLogItem?.sku?.id}
-                            item={importLogItem}
+                            key={adjustmentLogItem?.sku?.id}
+                            item={adjustmentLogItem}
                           />
                         ))}
                       </Box>
                     </TableCell>
                     <TableCell align='center'>
-                      {importTypeMap?.[importLog?.type] || 'Không xác định'}
+                      {importTypeMap?.[adjustmentLog?.type] || 'Không xác định'}
                     </TableCell>
                     <TableCell align='center'>
-                      {moment(importLog?.createdAt).format('DD/MM/YYYY')}
+                      {moment(adjustmentLog?.createdAt).format('DD/MM/YYYY')}
                     </TableCell>
                     <TableCell align='center'>
-                      {importLog?.note ?? 'Không có'}
+                      {adjustmentLog?.note ?? 'Không có'}
                     </TableCell>
                     <TableCell align='center'>
                       <ActionButton>
@@ -776,7 +765,7 @@ const InventoryAdjustmentPage = () => {
         </TableContainer>
         <TablePagination
           component='div'
-          count={importLogsData?.meta?.total || 0}
+          count={adjustmentLogsData?.meta?.total || 0}
           page={page}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}

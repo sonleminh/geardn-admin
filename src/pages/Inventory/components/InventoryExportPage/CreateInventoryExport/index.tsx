@@ -17,6 +17,7 @@ import { useGetSkusByProductId } from '@/services/sku';
 import { useGetWarehouseList } from '@/services/warehouse';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Autocomplete,
@@ -29,6 +30,7 @@ import {
   FormControl,
   FormHelperText,
   Grid2,
+  IconButton,
   InputLabel,
   MenuItem,
   Paper,
@@ -62,6 +64,7 @@ const CreateInventoryExportPage = () => {
 
   const [productId, setProductId] = useState<number>();
   const [skuId, setSkuId] = useState<string>('');
+
   const [quantity, setQuantity] = useState<string>('');
   const [isEditItem, setIsEditItem] = useState<boolean>(false);
   const [editItemIndex, setEditItemIndex] = useState<number | null>(null);
@@ -183,13 +186,26 @@ const CreateInventoryExportPage = () => {
     setExportItems(updAttributeList);
   };
 
+  const handleDeleteCurrentItem = () => {
+    setProductId(undefined);
+    setSkuId('');
+    setQuantity('');
+  };
+
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
         title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            Xuất hàng
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              onClick={() => navigate(`${ROUTES.INVENTORY}/export`)}
+              sx={{ mr: 1 }}>
+              <ChevronLeftIcon />
+            </IconButton>
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+              Xuất hàng
+            </Typography>
+          </Box>
         }
       />
       <Divider />
@@ -356,43 +372,21 @@ const CreateInventoryExportPage = () => {
                   </FormControl>
                 </Grid2>
                 <Box sx={{ display: 'flex', ml: 'auto' }}>
-                  <Typography sx={helperTextStyle}>
-                    {/* {optionError} */}
-                  </Typography>
+                  <Typography sx={helperTextStyle}></Typography>
                   <Button
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='contained'
-                    // disabled={
-                    //   !variantName || attributeList?.length === 0
-                    //     ? true
-                    //     : false
-                    // }
-                    // disabled={!attributeValueId}
+                    disabled={!productId || !skuId || !quantity}
                     onClick={handleSaveItem}>
                     Lưu
                   </Button>
                   <Button
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='outlined'
-                    // onClick={handleDelBtn}
-                    // disabled={
-                    //   attributeId?.length <= 0 && attributeValueId?.length <= 0
-                    // }
-                  >
+                    onClick={handleDeleteCurrentItem}
+                    disabled={!productId || !skuId || !quantity}>
                     Xóa
                   </Button>
-                  {/* <Button
-                      sx={{
-                        ml: 2,
-                        textTransform: 'initial',
-                        color: '#D03739',
-                        border: '1px solid #D03739',
-                      }}
-                      variant='outlined'
-                      onClick={handleDelAllVariant}
-                    >
-                      Xóa tất cả
-                    </Button> */}
                 </Box>
               </Grid2>
             </Box>

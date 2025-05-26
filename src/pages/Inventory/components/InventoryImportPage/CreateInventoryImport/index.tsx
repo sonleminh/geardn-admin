@@ -22,6 +22,7 @@ import {
   FormControl,
   FormHelperText,
   Grid2,
+  IconButton,
   InputLabel,
   MenuItem,
   Paper,
@@ -46,6 +47,7 @@ import { useGetSkusByProductId } from '@/services/sku';
 import { IProductSku } from '@/interfaces/IProductSku';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { formatPrice } from '@/utils/format-price';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { useGetWarehouseList } from '@/services/warehouse';
@@ -69,8 +71,6 @@ const CreateInventoryImportPage = () => {
   const [isEditItem, setIsEditItem] = useState<boolean>(false);
   const [editItemIndex, setEditItemIndex] = useState<number | null>(null);
   const [importItems, setImportItems] = useState<IImportItem[]>([]);
-
-  console.log('importItems', importItems);
 
   const { data: warehousesData } = useGetWarehouseList();
   const { data: enumData } = useGetEnumByContext('import-type');
@@ -180,13 +180,27 @@ const CreateInventoryImportPage = () => {
     setImportItems(updAttributeList);
   };
 
+  const handleDeleteCurrentItem = () => {
+    setProductId(undefined);
+    setSkuId('');
+    setCostPrice('');
+    setQuantity('');
+  };
+
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
         title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            Nhập hàng
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              onClick={() => navigate(`${ROUTES.INVENTORY}/import`)}
+              sx={{ mr: 1 }}>
+              <ChevronLeftIcon />
+            </IconButton>
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+              Nhập hàng
+            </Typography>
+          </Box>
         }
       />
       <Divider />
@@ -362,7 +376,6 @@ const CreateInventoryImportPage = () => {
                       label='Ghi chú'
                       name='note'
                       variant='filled'
-                      required
                       helperText={
                         <Box component={'span'} sx={helperTextStyle}>
                           {formik?.errors?.note}
@@ -374,43 +387,21 @@ const CreateInventoryImportPage = () => {
                   </FormControl>
                 </Grid2>
                 <Box sx={{ display: 'flex', ml: 'auto' }}>
-                  <Typography sx={helperTextStyle}>
-                    {/* {optionError} */}
-                  </Typography>
+                  <Typography sx={helperTextStyle}></Typography>
                   <Button
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='contained'
-                    // disabled={
-                    //   !variantName || attributeList?.length === 0
-                    //     ? true
-                    //     : false
-                    // }
-                    // disabled={!attributeValueId}
+                    disabled={!productId || !skuId || !costPrice || !quantity}
                     onClick={handleSaveItem}>
                     Lưu
                   </Button>
                   <Button
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='outlined'
-                    // onClick={handleDelBtn}
-                    // disabled={
-                    //   attributeId?.length <= 0 && attributeValueId?.length <= 0
-                    // }
-                  >
+                    onClick={handleDeleteCurrentItem}
+                    disabled={!productId || !skuId || !costPrice || !quantity}>
                     Xóa
                   </Button>
-                  {/* <Button
-                      sx={{
-                        ml: 2,
-                        textTransform: 'initial',
-                        color: '#D03739',
-                        border: '1px solid #D03739',
-                      }}
-                      variant='outlined'
-                      onClick={handleDelAllVariant}
-                    >
-                      Xóa tất cả
-                    </Button> */}
                 </Box>
               </Grid2>
             </Box>

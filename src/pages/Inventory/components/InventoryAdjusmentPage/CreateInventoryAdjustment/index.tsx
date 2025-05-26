@@ -1,5 +1,5 @@
-import { ChangeEvent, useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { ChangeEvent, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
@@ -11,6 +11,17 @@ import { useFormik } from 'formik';
 
 import { ROUTES } from '@/constants/route';
 
+import { IProductSku } from '@/interfaces/IProductSku';
+import { useGetEnumByContext } from '@/services/enum';
+import { useCreateImportLog } from '@/services/inventory';
+import { useGetProductList } from '@/services/product';
+import { useGetSkusByProductId } from '@/services/sku';
+import { useGetWarehouseList } from '@/services/warehouse';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import { formatPrice } from '@/utils/format-price';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Autocomplete,
   Box,
@@ -22,6 +33,7 @@ import {
   FormControl,
   FormHelperText,
   Grid2,
+  IconButton,
   InputLabel,
   MenuItem,
   Paper,
@@ -39,17 +51,6 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import { createSchema, updateSchema } from '../utils/schema/warehouseSchema';
-import { useGetEnumByContext } from '@/services/enum';
-import { useGetProductList } from '@/services/product';
-import { useGetSkusByProductId } from '@/services/sku';
-import { IProductSku } from '@/interfaces/IProductSku';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import { formatPrice } from '@/utils/format-price';
-import { truncateTextByLine } from '@/utils/css-helper.util';
-import { useGetWarehouseList } from '@/services/warehouse';
-import { useCreateImportLog } from '@/services/inventory';
 
 interface IImportItem {
   sku: IProductSku;
@@ -180,13 +181,27 @@ const CreateInventoryAdjustmentPage = () => {
     setImportItems(updAttributeList);
   };
 
+  const handleDeleteCurrentItem = () => {
+    setProductId(undefined);
+    setSkuId('');
+    setCostPrice('');
+    setQuantity('');
+  };
+
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
         title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            Nhập hàng
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              onClick={() => navigate(`${ROUTES.INVENTORY}/adjustment`)}
+              sx={{ mr: 1 }}>
+              <ChevronLeftIcon />
+            </IconButton>
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+              Tạo điều chỉnh
+            </Typography>
+          </Box>
         }
       />
       <Divider />
@@ -374,43 +389,21 @@ const CreateInventoryAdjustmentPage = () => {
                   </FormControl>
                 </Grid2>
                 <Box sx={{ display: 'flex', ml: 'auto' }}>
-                  <Typography sx={helperTextStyle}>
-                    {/* {optionError} */}
-                  </Typography>
+                  <Typography sx={helperTextStyle}></Typography>
                   <Button
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='contained'
-                    // disabled={
-                    //   !variantName || attributeList?.length === 0
-                    //     ? true
-                    //     : false
-                    // }
-                    // disabled={!attributeValueId}
+                    disabled={!productId || !skuId || !costPrice || !quantity}
                     onClick={handleSaveItem}>
                     Lưu
                   </Button>
                   <Button
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='outlined'
-                    // onClick={handleDelBtn}
-                    // disabled={
-                    //   attributeId?.length <= 0 && attributeValueId?.length <= 0
-                    // }
-                  >
+                    onClick={handleDeleteCurrentItem}
+                    disabled={!productId || !skuId || !costPrice || !quantity}>
                     Xóa
                   </Button>
-                  {/* <Button
-                      sx={{
-                        ml: 2,
-                        textTransform: 'initial',
-                        color: '#D03739',
-                        border: '1px solid #D03739',
-                      }}
-                      variant='outlined'
-                      onClick={handleDelAllVariant}
-                    >
-                      Xóa tất cả
-                    </Button> */}
                 </Box>
               </Grid2>
             </Box>
@@ -596,7 +589,9 @@ const CreateInventoryAdjustmentPage = () => {
         </Grid2>
 
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate(ROUTES.INVENTORY)} sx={{ mr: 2 }}>
+          <Button
+            onClick={() => navigate(`${ROUTES.INVENTORY}/adjustment`)}
+            sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button variant='contained' onClick={() => formik.handleSubmit()}>

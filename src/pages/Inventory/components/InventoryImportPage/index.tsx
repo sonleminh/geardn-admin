@@ -29,6 +29,7 @@ import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
 // Third-party libraries
@@ -520,8 +521,6 @@ const InventoryImportPage = () => {
     limit: rowsPerPage,
   });
 
-  console.log('isLoadingImportLogs', isLoadingImportLogs);
-
   const importTypeMap = useMemo(
     () =>
       Object.fromEntries(
@@ -605,9 +604,16 @@ const InventoryImportPage = () => {
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
         title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            Nhập hàng
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              onClick={() => navigate(ROUTES.INVENTORY)}
+              sx={{ mr: 1 }}>
+              <ChevronLeftIcon />
+            </IconButton>
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+              Nhập hàng
+            </Typography>
+          </Box>
         }
         action={
           <ButtonWithTooltip
