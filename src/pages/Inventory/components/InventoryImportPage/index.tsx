@@ -45,7 +45,7 @@ import { useGetProductList } from '@/services/product';
 import { useGetWarehouseList } from '@/services/warehouse';
 
 import { IEnum } from '@/interfaces/IEnum';
-import { IInventoryLogItem } from '@/interfaces/IInventorytLog';
+import { IImportLogItem } from '@/interfaces/IInventorytLog';
 
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
@@ -56,7 +56,7 @@ import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 interface Data {
   stt: number;
   warehouse: string;
-  items: IInventoryLogItem[];
+  items: IImportLogItem[];
   type: string;
   createdAt: Date;
   note: string;
@@ -101,21 +101,21 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'STT',
     isFilter: false,
-    width: '60px',
+    width: '7%',
   },
   {
     id: 'warehouse',
     disablePadding: false,
     label: 'Kho',
     isFilter: true,
-    width: '120px',
+    width: '10%',
   },
   {
     id: 'items',
     disablePadding: false,
     label: 'Sản phẩm',
     isFilter: true,
-    width: '400px',
+    width: '39%',
   },
   {
     align: 'center',
@@ -123,44 +123,44 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Loại',
     isFilter: true,
-    width: '120px',
+    width: '12%',
   },
   {
     align: 'center',
     id: 'createdAt',
     disablePadding: false,
     label: 'Ngày nhập',
-    width: '120px',
+    width: '12%',
   },
   {
     align: 'center',
     id: 'note',
     disablePadding: false,
     label: 'Ghi chú',
-    width: '150px',
+    width: '10%',
   },
   {
     align: 'center',
     id: 'action',
     disablePadding: false,
     label: 'Hành động',
-    width: '150px',
+    width: '10%',
   },
 ];
 
 const columns: TableColumn[] = [
   { width: '60px', align: 'center', type: 'text' },
-  { width: '120px', type: 'text' },
+  { width: '100px', type: 'text' },
   { width: '400px', type: 'complex' },
   { width: '120px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
-  { width: '150px', align: 'center', type: 'text' },
-  { width: '150px', align: 'center', type: 'action' },
+  { width: '120px', align: 'center', type: 'text' },
+  { width: '120px', align: 'center', type: 'action' },
 ];
 
 // Components
 interface ImportLogItemProps {
-  item: IInventoryLogItem;
+  item: IImportLogItem;
 }
 
 const ImportLogItem = ({ item }: ImportLogItemProps) => {
@@ -736,7 +736,7 @@ const InventoryImportPage = () => {
                       {moment(importLog?.createdAt).format('DD/MM/YYYY')}
                     </TableCell>
                     <TableCell align='center'>
-                      {importLog?.note ?? 'Không có'}
+                      {importLog?.note?.length ? importLog?.note : 'Không có'}
                     </TableCell>
                     <TableCell align='center'>
                       <ActionButton>

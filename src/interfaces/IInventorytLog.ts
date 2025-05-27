@@ -1,7 +1,7 @@
 import { IProductSku } from "./IProductSku";
 import { IWarehouse } from "./IWarehouse";
 
-export interface IInventoryLogItem {
+export interface IImportLogItem {
     id: number;
     importLogId: number;
     skuId: number;
@@ -11,20 +11,20 @@ export interface IInventoryLogItem {
     sku: IProductSku;
 }
 
-export interface IInventoryLog {
+export interface IImportLog {
     id: number;
     warehouseId: number;
     type: string;
     note?: string;
     createdBy: number;
-    items: IInventoryLogItem[];
+    items: IImportLogItem[];
     createdAt: Date;
 
     warehouse: IWarehouse;
 }
 
 
-export interface ICreateInventoryLog extends Record<string, unknown>  {
+export interface ICreateImportLog extends Record<string, unknown>  {
     warehouseId: number;
     type: string;
     note?: string;
@@ -32,5 +32,75 @@ export interface ICreateInventoryLog extends Record<string, unknown>  {
         skuId: number;
         quantity: number;
         costPrice: number;
+    }[];
+}
+
+export interface IExportLogItem {
+    id: number;
+    exportLogId: number;
+    skuId: number;
+    quantity: number;
+    costPrice: number;
+    note?: string;
+    sku: IProductSku;
+}
+
+export interface IExportLog {
+    id: number;
+    warehouseId: number;
+    type: string;
+    note?: string;
+    createdBy: number;
+    items: IExportLogItem[];
+    createdAt: Date;
+
+    warehouse: IWarehouse;
+}
+
+
+export interface ICreateExportLog extends Record<string, unknown>  {
+    warehouseId: number;
+    type: string;
+    note?: string;
+    items: {
+        skuId: number;
+        quantity: number;
+        costPrice: number;
+    }[];
+}
+
+export interface IAdjustmentLogItem {
+    id: number;
+    adjustmentId: number;
+    skuId: number;
+    quantityBefore: number;
+    quantityChange: number;
+    costPriceBefore: number;
+    sku: IProductSku;
+}
+
+export interface IAdjustmentLog {
+    id: number;
+    warehouseId: number;
+    type: string;
+    reason: string;
+    note?: string;
+    createdBy: number;
+    warehouse: IWarehouse;
+    items: IAdjustmentLogItem[];
+    createdAt: Date;
+}
+
+
+export interface ICreateAdjustmentLog extends Record<string, unknown>  {
+    warehouseId: number;
+    type: string;
+    reason: string;
+    note?: string;
+    items: {
+        skuId: number;
+        quantityBefore: number;
+        quantityChange: number;
+        costPriceBefore: number;
     }[];
 }

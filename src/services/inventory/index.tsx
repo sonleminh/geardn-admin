@@ -3,11 +3,11 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { axiosInstance } from '../axiosInstance';
 import { QueryKeys } from '@/constants/query-key';
 
-import { ICreateAdjustmentLog } from '@/interfaces/IAdjustmentLog';
-import { ICreateExportLog } from '@/interfaces/IExportLog';
+import { ICreateImportLog, IImportLog } from '@/interfaces/IInventorytLog';
+import { ICreateExportLog, IExportLog } from '@/interfaces/IInventorytLog';
 import {
-  ICreateInventoryLog,
-  IInventoryLog,
+  ICreateAdjustmentLog,
+  IAdjustmentLog,
 } from '@/interfaces/IInventorytLog';
 import { TPaginatedResponse } from '@/types/response.type';
 
@@ -15,6 +15,7 @@ interface IGetLogListParams {
   warehouseIds?: string[];
   productIds?: string[];
   types?: string[];
+  reasons?: string[];
   fromDate?: string;
   toDate?: string;
   page?: number;
@@ -27,7 +28,7 @@ const adjustmentLogUrl = '/adjustment-logs';
 
 //IMPORT LOG
 
-const createImportLog = async (payload: ICreateInventoryLog) => {
+const createImportLog = async (payload: ICreateImportLog) => {
   const result = await axiosInstance.post(importLogUrl, payload);
   return result.data;
 };
@@ -50,7 +51,7 @@ const getImportLogList = async (params?: IGetLogListParams) => {
       limit: params?.limit,
     },
   });
-  return result.data as TPaginatedResponse<IInventoryLog>;
+  return result.data as TPaginatedResponse<IImportLog>;
 };
 
 export const useGetImportLogList = (params?: IGetLogListParams) => {
@@ -87,7 +88,7 @@ const getExportLogList = async (params?: IGetLogListParams) => {
       limit: params?.limit,
     },
   });
-  return result.data as TPaginatedResponse<IInventoryLog>;
+  return result.data as TPaginatedResponse<IExportLog>;
 };
 
 export const useGetExportLogList = (params?: IGetLogListParams) => {
@@ -118,13 +119,14 @@ const getAdjustmentLogList = async (params?: IGetLogListParams) => {
       warehouseIds: params?.warehouseIds?.join(','),
       productIds: params?.productIds?.join(','),
       types: params?.types?.join(','),
+      reasons: params?.reasons?.join(','),
       fromDate: params?.fromDate,
       toDate: params?.toDate,
       page: params?.page,
       limit: params?.limit,
     },
   });
-  return result.data as TPaginatedResponse<IInventoryLog>;
+  return result.data as TPaginatedResponse<IAdjustmentLog>;
 };
 
 export const useGetAdjustmentLogList = (params?: IGetLogListParams) => {

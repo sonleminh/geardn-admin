@@ -8,6 +8,7 @@ import { QueryKeys } from '@/constants/query-key';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
+import * as Yup from 'yup';
 
 import { ROUTES } from '@/constants/route';
 import { IProductSku } from '@/interfaces/IProductSku';
@@ -57,6 +58,12 @@ interface IExportItem {
   costPrice: string;
 }
 
+const schema = Yup.object().shape({
+  warehouseId: Yup.string().required('Vui lòng chọn kho hàng'),
+  type: Yup.string().required('Vui lòng chọn loại xuất hàng'),
+  note: Yup.string().optional(),
+});
+
 const CreateInventoryExportPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -83,8 +90,9 @@ const CreateInventoryExportPage = () => {
     initialValues: {
       warehouseId: '',
       type: '',
+      note: '',
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: schema,
     validateOnChange: false,
     onSubmit(values) {
       const payload = {
@@ -247,7 +255,7 @@ const CreateInventoryExportPage = () => {
           </FormHelperText>
         </FormControl>
         <FormControl variant='filled' fullWidth>
-          <InputLabel>Loại xuất</InputLabel>
+          <InputLabel>Loại xuất hàng</InputLabel>
           <Select
             disableUnderline
             required
@@ -274,12 +282,6 @@ const CreateInventoryExportPage = () => {
             name='note'
             variant='filled'
             size='small'
-            // helperText={
-            //   <Box component={'span'} sx={helperTextStyle}>
-            //     {formik?.errors?.note}
-            //   </Box>
-            // }
-            // value={formik?.values?.note ?? ''}
             onChange={handleChangeValue}
           />
         </FormControl>
@@ -360,11 +362,6 @@ const CreateInventoryExportPage = () => {
                         </MenuItem>
                       ))}
                     </Select>
-                    <FormHelperText>
-                      <Box component={'span'} sx={helperTextStyle}>
-                        {formik.errors?.type}
-                      </Box>
-                    </FormHelperText>
                   </FormControl>
                 </Grid2>
                 <Grid2 size={12}>
@@ -376,11 +373,6 @@ const CreateInventoryExportPage = () => {
                       variant='filled'
                       type='number'
                       required
-                      // helperText={
-                      //   <Box component={'span'} sx={helperTextStyle}>
-                      //     {formik.errors.price}
-                      //   </Box>
-                      // }
                       value={quantity}
                       onChange={(e) => setQuantity(e?.target?.value)}
                     />
@@ -529,63 +521,7 @@ const CreateInventoryExportPage = () => {
                   </TableBody>
                 </Table>
                 <Divider />
-                {/* <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'end',
-                    alignItems: 'center',
-                    width: '100%',
-                    px: 4,
-                    py: 1,
-                  }}>
-                  <Typography sx={{ mr: 4, fontSize: 14 }}>
-                    Tổng tiền:
-                  </Typography>
-                  <Typography>{formatPrice(totalAmount())}</Typography>
-                </Box> */}
               </TableContainer>
-              {/* <Box>
-                {importItems?.map((item, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mb: 2,
-                    }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Box
-                        sx={{
-                          position: 'relative',
-                          height: '48px',
-                          mr: 1,
-                          '.thumbnail': {
-                            maxWidth: 48,
-                            maxHeight: 48,
-                            mr: 1,
-                            border: '1px solid #dadada',
-                          },
-                        }}>
-                        <img
-                          src={
-                            item?.sku?.imageUrl ??
-                            item?.sku?.product?.images?.[0]
-                          }
-                          className='thumbnail'
-                        />
-                      </Box>
-                      <Typography sx={{ fontSize: 14 }}>
-                        {item?.sku?.productSkuAttributes
-                          ?.map((item) => item?.attributeValue?.value)
-                          .join('- ')}
-                      </Typography>
-                    </Box>
-                    <Typography>{item?.sku?.sku}</Typography>
-                    <Typography>{item?.quantity}</Typography>
-                  </Box>
-                ))}
-              </Box> */}
             </Box>
           </Grid2>
         </Grid2>

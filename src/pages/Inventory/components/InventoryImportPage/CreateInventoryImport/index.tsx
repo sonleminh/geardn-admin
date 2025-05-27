@@ -2,6 +2,7 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
+import * as Yup from 'yup';
 
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
@@ -59,6 +60,12 @@ interface IImportItem {
   costPrice: string;
 }
 
+const schema = Yup.object().shape({
+  warehouseId: Yup.string().required('Vui lòng chọn kho hàng'),
+  type: Yup.string().required('Vui lòng chọn loại nhập hàng'),
+  note: Yup.string().optional(),
+});
+
 const CreateInventoryImportPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -90,7 +97,7 @@ const CreateInventoryImportPage = () => {
       type: '',
       note: '',
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: schema,
     validateOnChange: false,
     onSubmit(values) {
       const payload = {
@@ -125,7 +132,7 @@ const CreateInventoryImportPage = () => {
           ?.costPrice?.toString() ?? ''
       );
     }
-  }, [transferFromWarehouseId, skuId]);
+  }, [skusData?.data, transferFromWarehouseId, skuId]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -249,7 +256,7 @@ const CreateInventoryImportPage = () => {
           </FormHelperText>
         </FormControl>
         <FormControl variant='filled' fullWidth>
-          <InputLabel>Loại nhập</InputLabel>
+          <InputLabel>Loại nhập hàng</InputLabel>
           <Select
             disableUnderline
             required
@@ -287,11 +294,6 @@ const CreateInventoryImportPage = () => {
                   </MenuItem>
                 ))}
             </Select>
-            <FormHelperText>
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors?.type}
-              </Box>
-            </FormHelperText>
           </FormControl>
         )}
         <Grid2 container spacing={2}>
@@ -379,11 +381,6 @@ const CreateInventoryImportPage = () => {
                         </MenuItem>
                       )}
                     </Select>
-                    <FormHelperText>
-                      <Box component={'span'} sx={helperTextStyle}>
-                        {formik.errors?.type}
-                      </Box>
-                    </FormHelperText>
                   </FormControl>
                 </Grid2>
                 <Grid2 size={12}>
@@ -394,13 +391,7 @@ const CreateInventoryImportPage = () => {
                       name='costPrice'
                       variant='filled'
                       type='number'
-                      required
                       disabled={formik?.values?.type === 'TRANSFER'}
-                      // helperText={
-                      //   <Box component={'span'} sx={helperTextStyle}>
-                      //     {formik.errors.price}
-                      //   </Box>
-                      // }
                       value={costPrice}
                       onChange={(e) => setCostPrice(e?.target?.value)}
                     />
@@ -415,11 +406,6 @@ const CreateInventoryImportPage = () => {
                       variant='filled'
                       type='number'
                       required
-                      // helperText={
-                      //   <Box component={'span'} sx={helperTextStyle}>
-                      //     {formik.errors.price}
-                      //   </Box>
-                      // }
                       value={quantity}
                       onChange={(e) => setQuantity(e?.target?.value)}
                     />
@@ -466,7 +452,7 @@ const CreateInventoryImportPage = () => {
             <Box>
               <Typography sx={{ mb: 2 }}>Danh sách hàng:</Typography>
               <TableContainer component={Paper}>
-                <Table sx={{}} aria-label='simple table'>
+                <Table aria-label='simple table'>
                   <TableHead>
                     <TableRow>
                       <TableCell sx={{ width: '3%', px: 1 }} align='center'>
@@ -581,63 +567,7 @@ const CreateInventoryImportPage = () => {
                   </TableBody>
                 </Table>
                 <Divider />
-                {/* <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'end',
-                    alignItems: 'center',
-                    width: '100%',
-                    px: 4,
-                    py: 1,
-                  }}>
-                  <Typography sx={{ mr: 4, fontSize: 14 }}>
-                    Tổng tiền:
-                  </Typography>
-                  <Typography>{formatPrice(totalAmount())}</Typography>
-                </Box> */}
               </TableContainer>
-              {/* <Box>
-                {importItems?.map((item, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mb: 2,
-                    }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Box
-                        sx={{
-                          position: 'relative',
-                          height: '48px',
-                          mr: 1,
-                          '.thumbnail': {
-                            maxWidth: 48,
-                            maxHeight: 48,
-                            mr: 1,
-                            border: '1px solid #dadada',
-                          },
-                        }}>
-                        <img
-                          src={
-                            item?.sku?.imageUrl ??
-                            item?.sku?.product?.images?.[0]
-                          }
-                          className='thumbnail'
-                        />
-                      </Box>
-                      <Typography sx={{ fontSize: 14 }}>
-                        {item?.sku?.productSkuAttributes
-                          ?.map((item) => item?.attributeValue?.value)
-                          .join('- ')}
-                      </Typography>
-                    </Box>
-                    <Typography>{item?.sku?.sku}</Typography>
-                    <Typography>{item?.quantity}</Typography>
-                  </Box>
-                ))}
-              </Box> */}
             </Box>
           </Grid2>
         </Grid2>

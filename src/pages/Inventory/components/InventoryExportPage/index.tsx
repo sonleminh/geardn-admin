@@ -51,7 +51,7 @@ import { useGetWarehouseList } from '@/services/warehouse';
 
 // Local interfaces
 import { IEnum } from '@/interfaces/IEnum';
-import { IInventoryLogItem } from '@/interfaces/IInventorytLog';
+import { IExportLogItem } from '@/interfaces/IInventorytLog';
 
 // Local utilities
 import { truncateTextByLine } from '@/utils/css-helper.util';
@@ -64,7 +64,7 @@ import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 interface Data {
   stt: number;
   warehouse: string;
-  items: IInventoryLogItem[];
+  items: IExportLogItem[];
   type: string;
   createdAt: Date;
   note: string;
@@ -109,21 +109,21 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'STT',
     isFilter: false,
-    width: '60px',
+    width: '7%',
   },
   {
     id: 'warehouse',
     disablePadding: false,
     label: 'Kho',
     isFilter: true,
-    width: '120px',
+    width: '10%',
   },
   {
     id: 'items',
     disablePadding: false,
     label: 'Sản phẩm',
     isFilter: true,
-    width: '400px',
+    width: '39%',
   },
   {
     align: 'center',
@@ -131,47 +131,47 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Loại',
     isFilter: true,
-    width: '120px',
+    width: '12%',
   },
   {
     align: 'center',
     id: 'createdAt',
     disablePadding: false,
     label: 'Ngày xuất',
-    width: '120px',
+    width: '12%',
   },
   {
     align: 'center',
     id: 'note',
     disablePadding: false,
     label: 'Ghi chú',
-    width: '150px',
+    width: '10%',
   },
   {
     align: 'center',
     id: 'action',
     disablePadding: false,
     label: 'Hành động',
-    width: '150px',
+    width: '10%',
   },
 ];
 
 const columns: TableColumn[] = [
   { width: '60px', align: 'center', type: 'text' },
-  { width: '120px', type: 'text' },
+  { width: '100px', type: 'text' },
   { width: '400px', type: 'complex' },
   { width: '120px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
-  { width: '150px', align: 'center', type: 'text' },
-  { width: '150px', align: 'center', type: 'action' },
+  { width: '120px', align: 'center', type: 'text' },
+  { width: '120px', align: 'center', type: 'action' },
 ];
 
 // Components
-interface ImportLogItemProps {
-  item: IInventoryLogItem;
+interface ExportLogItemProps {
+  item: IExportLogItem;
 }
 
-const ImportLogItem = ({ item }: ImportLogItemProps) => {
+const ExportLogItem = ({ item }: ExportLogItemProps) => {
   const productName = item?.sku?.product?.name;
   const imageUrl = item?.sku?.imageUrl ?? item?.sku?.product?.images?.[0];
   const quantity = item?.quantity;
@@ -505,12 +505,12 @@ const InventoryExportPage = () => {
 
   const { data: warehousesData } = useGetWarehouseList();
   const { data: productsData } = useGetProductList();
-  const { data: enumData } = useGetEnumByContext('import-type');
+  const { data: enumData } = useGetEnumByContext('export-type');
 
   const {
-    data: importLogsData,
-    refetch: refetchImportLogs,
-    isLoading: isLoadingImportLogs,
+    data: exportLogsData,
+    refetch: refetchExportLogs,
+    isLoading: isLoadingExportLogs,
   } = useGetExportLogList({
     warehouseIds: columnFilters.warehouse,
     productIds: columnFilters.items,
@@ -521,8 +521,6 @@ const InventoryExportPage = () => {
     limit: rowsPerPage,
   });
 
-  console.log('isLoadingImportLogs', isLoadingImportLogs);
-
   const importTypeMap = useMemo(
     () =>
       Object.fromEntries(
@@ -532,8 +530,8 @@ const InventoryExportPage = () => {
   );
 
   useEffect(() => {
-    refetchImportLogs();
-  }, [columnFilters, refetchImportLogs]);
+    refetchExportLogs();
+  }, [columnFilters, refetchExportLogs]);
 
   const renderFilterContent = useCallback(() => {
     switch (activeFilterColumn) {
@@ -720,33 +718,33 @@ const InventoryExportPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {isLoadingImportLogs ? (
+              {isLoadingExportLogs ? (
                 <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
-              ) : importLogsData?.data?.length ? (
-                importLogsData?.data?.map((importLog, index) => (
-                  <TableRow key={importLog.id || index}>
+              ) : exportLogsData?.data?.length ? (
+                exportLogsData?.data?.map((exportLog, index) => (
+                  <TableRow key={exportLog.id || index}>
                     <TableCell align='center'>
                       {page * rowsPerPage + index + 1}
                     </TableCell>
-                    <TableCell>{importLog?.warehouse?.name}</TableCell>
+                    <TableCell>{exportLog?.warehouse?.name}</TableCell>
                     <TableCell>
                       <Box>
-                        {importLog?.items?.map((importLogItem) => (
-                          <ImportLogItem
-                            key={importLogItem?.sku?.id}
-                            item={importLogItem}
+                        {exportLog?.items?.map((exportLogItem) => (
+                          <ExportLogItem
+                            key={exportLogItem?.sku?.id}
+                            item={exportLogItem}
                           />
                         ))}
                       </Box>
                     </TableCell>
                     <TableCell align='center'>
-                      {importTypeMap?.[importLog?.type] || 'Không xác định'}
+                      {importTypeMap?.[exportLog?.type] || 'Không xác định'}
                     </TableCell>
                     <TableCell align='center'>
-                      {moment(importLog?.createdAt).format('DD/MM/YYYY')}
+                      {moment(exportLog?.createdAt).format('DD/MM/YYYY')}
                     </TableCell>
                     <TableCell align='center'>
-                      {importLog?.note ?? 'Không có'}
+                      {exportLog?.note?.length ? exportLog?.note : 'Không có'}
                     </TableCell>
                     <TableCell align='center'>
                       <ActionButton>
@@ -784,7 +782,7 @@ const InventoryExportPage = () => {
         </TableContainer>
         <TablePagination
           component='div'
-          count={importLogsData?.meta?.total || 0}
+          count={exportLogsData?.meta?.total || 0}
           page={page}
           onPageChange={handleChangePage}
           rowsPerPage={rowsPerPage}

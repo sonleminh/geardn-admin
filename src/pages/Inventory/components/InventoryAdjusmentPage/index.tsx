@@ -25,6 +25,7 @@ import { AddCircleOutlined } from '@mui/icons-material';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
@@ -43,10 +44,9 @@ import { useGetProductList } from '@/services/product';
 import { useGetWarehouseList } from '@/services/warehouse';
 
 import { IEnum } from '@/interfaces/IEnum';
-import { IInventoryLogItem } from '@/interfaces/IInventorytLog';
+import { IAdjustmentLogItem } from '@/interfaces/IInventorytLog';
 
 import { truncateTextByLine } from '@/utils/css-helper.util';
-import { formatPrice } from '@/utils/format-price';
 
 import { ROUTES } from '@/constants/route';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
@@ -54,8 +54,9 @@ import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 interface Data {
   stt: number;
   warehouse: string;
-  items: IInventoryLogItem[];
+  items: IAdjustmentLogItem[];
   type: string;
+  reason: string;
   createdAt: Date;
   note: string;
   action: string;
@@ -73,6 +74,7 @@ interface ColumnFilters {
   warehouse: string[];
   items: string[];
   type: string[];
+  reason: string[];
   date: { fromDate: string; toDate: string };
 }
 
@@ -81,6 +83,7 @@ const INITIAL_COLUMN_FILTERS: ColumnFilters = {
   warehouse: [],
   items: [],
   type: [],
+  reason: [],
   date: { fromDate: '', toDate: '' },
 };
 
@@ -99,21 +102,21 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'STT',
     isFilter: false,
-    width: '60px',
+    width: '6%',
   },
   {
     id: 'warehouse',
     disablePadding: false,
     label: 'Kho',
     isFilter: true,
-    width: '120px',
+    width: '10%',
   },
   {
     id: 'items',
     disablePadding: false,
     label: 'Sản phẩm',
     isFilter: true,
-    width: '400px',
+    width: '30%',
   },
   {
     align: 'center',
@@ -121,28 +124,36 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Loại',
     isFilter: true,
-    width: '120px',
+    width: '10%',
+  },
+  {
+    align: 'center',
+    id: 'reason',
+    disablePadding: false,
+    label: 'Lý do',
+    isFilter: true,
+    width: '14%',
   },
   {
     align: 'center',
     id: 'createdAt',
     disablePadding: false,
     label: 'Ngày nhập',
-    width: '120px',
+    width: '10%',
   },
   {
     align: 'center',
     id: 'note',
     disablePadding: false,
     label: 'Ghi chú',
-    width: '150px',
+    width: '10%',
   },
   {
     align: 'center',
     id: 'action',
     disablePadding: false,
     label: 'Hành động',
-    width: '150px',
+    width: '10%',
   },
 ];
 
@@ -152,20 +163,21 @@ const columns: TableColumn[] = [
   { width: '400px', type: 'complex' },
   { width: '120px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
-  { width: '150px', align: 'center', type: 'text' },
-  { width: '150px', align: 'center', type: 'action' },
+  { width: '120px', align: 'center', type: 'text' },
+  { width: '120px', align: 'center', type: 'text' },
+  { width: '120px', align: 'center', type: 'action' },
 ];
 
 // Components
-interface ImportLogItemProps {
-  item: IInventoryLogItem;
+interface AdjustmentLogItemProps {
+  item: IAdjustmentLogItem;
 }
 
-const ImportLogItem = ({ item }: ImportLogItemProps) => {
+const AdjustmentLogItem = ({ item }: AdjustmentLogItemProps) => {
   const productName = item?.sku?.product?.name;
   const imageUrl = item?.sku?.imageUrl ?? item?.sku?.product?.images?.[0];
-  const quantity = item?.quantity;
-  const costPrice = item?.costPrice;
+  const quantityBefore = item?.quantityBefore;
+  const quantityChange = item?.quantityChange;
   const attributes = item?.sku?.productSkuAttributes;
 
   return (
@@ -201,9 +213,9 @@ const ImportLogItem = ({ item }: ImportLogItemProps) => {
           {productName}
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography sx={{ fontSize: 13 }}>SL: {quantity}</Typography>
+          <Typography sx={{ fontSize: 13 }}>SL cũ: {quantityBefore}</Typography>
           <Typography sx={{ fontSize: 13 }}>
-            Giá nhập: {formatPrice(costPrice)}
+            SL mới: {quantityChange}
           </Typography>
         </Box>
       </Box>
@@ -495,7 +507,9 @@ const InventoryAdjustmentPage = () => {
 
   const { data: warehousesData } = useGetWarehouseList();
   const { data: productsData } = useGetProductList();
-  const { data: enumData } = useGetEnumByContext('import-type');
+  const { data: adjustmentTypeData } = useGetEnumByContext('adjustment-type');
+  const { data: adjustmentReasonData } =
+    useGetEnumByContext('adjustment-reason');
 
   const {
     data: adjustmentLogsData,
@@ -505,18 +519,28 @@ const InventoryAdjustmentPage = () => {
     warehouseIds: columnFilters.warehouse,
     productIds: columnFilters.items,
     types: columnFilters.type,
+    reasons: columnFilters.reason,
     fromDate: columnFilters.date.fromDate,
     toDate: columnFilters.date.toDate,
     page: page + 1,
     limit: rowsPerPage,
   });
 
-  const importTypeMap = useMemo(
+  const adjustmentTypeMap = useMemo(
     () =>
       Object.fromEntries(
-        enumData?.data?.map((item) => [item.value, item.label]) ?? []
+        adjustmentTypeData?.data?.map((item) => [item.value, item.label]) ?? []
       ),
-    [enumData?.data]
+    [adjustmentTypeData?.data]
+  );
+
+  const adjustmentReasonMap = useMemo(
+    () =>
+      Object.fromEntries(
+        adjustmentReasonData?.data?.map((item) => [item.value, item.label]) ??
+          []
+      ),
+    [adjustmentReasonData?.data]
   );
 
   useEffect(() => {
@@ -565,7 +589,7 @@ const InventoryAdjustmentPage = () => {
           <TableFilter
             title='Lọc theo loại nhập'
             options={
-              enumData?.data?.map((type: IEnum) => ({
+              adjustmentTypeData?.data?.map((type: IEnum) => ({
                 id: type.value,
                 label: type.label,
               })) ?? []
@@ -577,6 +601,23 @@ const InventoryAdjustmentPage = () => {
             onClose={handleFilterClose}
           />
         );
+      case 'reason':
+        return (
+          <TableFilter
+            title='Lọc theo lý do'
+            options={
+              adjustmentReasonData?.data?.map((reason: IEnum) => ({
+                id: reason.value,
+                label: reason.label,
+              })) ?? []
+            }
+            selectedValues={columnFilters.reason}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('reason', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
       default:
         return null;
     }
@@ -584,7 +625,8 @@ const InventoryAdjustmentPage = () => {
     activeFilterColumn,
     warehousesData,
     productsData,
-    enumData,
+    adjustmentTypeData,
+    adjustmentReasonData?.data,
     columnFilters,
     handleColumnFilterChange,
     handleFilterClose,
@@ -594,9 +636,16 @@ const InventoryAdjustmentPage = () => {
     <Card sx={{ mt: 3, borderRadius: 2 }}>
       <CardHeader
         title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            Điều chỉnh kho
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              onClick={() => navigate(`${ROUTES.INVENTORY}/import`)}
+              sx={{ mr: 1 }}>
+              <ChevronLeftIcon />
+            </IconButton>
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+              Điều chỉnh kho
+            </Typography>
+          </Box>
         }
         action={
           <ButtonWithTooltip
@@ -625,7 +674,7 @@ const InventoryAdjustmentPage = () => {
                       columnFilters={columnFilters}
                       warehousesData={warehousesData || { data: [] }}
                       productsData={productsData || { data: [] }}
-                      enumData={enumData || { data: [] }}
+                      enumData={adjustmentTypeData || { data: [] }}
                       onFilterChange={handleColumnFilterChange}
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -713,7 +762,7 @@ const InventoryAdjustmentPage = () => {
                     <TableCell>
                       <Box>
                         {adjustmentLog?.items?.map((adjustmentLogItem) => (
-                          <ImportLogItem
+                          <AdjustmentLogItem
                             key={adjustmentLogItem?.sku?.id}
                             item={adjustmentLogItem}
                           />
@@ -721,13 +770,20 @@ const InventoryAdjustmentPage = () => {
                       </Box>
                     </TableCell>
                     <TableCell align='center'>
-                      {importTypeMap?.[adjustmentLog?.type] || 'Không xác định'}
+                      {adjustmentTypeMap?.[adjustmentLog?.type] ||
+                        'Không xác định'}
+                    </TableCell>
+                    <TableCell align='center'>
+                      {adjustmentReasonMap?.[adjustmentLog?.reason ?? ''] ||
+                        'Không xác định'}
                     </TableCell>
                     <TableCell align='center'>
                       {moment(adjustmentLog?.createdAt).format('DD/MM/YYYY')}
                     </TableCell>
                     <TableCell align='center'>
-                      {adjustmentLog?.note ?? 'Không có'}
+                      {adjustmentLog?.note?.length
+                        ? adjustmentLog?.note
+                        : 'Không có'}
                     </TableCell>
                     <TableCell align='center'>
                       <ActionButton>

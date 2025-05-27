@@ -1,7 +1,8 @@
-import { ChangeEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
+import { ChangeEvent, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import * as Yup from 'yup';
 
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
@@ -40,25 +41,33 @@ import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
 import { ROUTES } from '@/constants/route';
+import { useNotificationContext } from '@/contexts/NotificationContext';
 
 import { IProductSku } from '@/interfaces/IProductSku';
 
 import { useGetEnumByContext } from '@/services/enum';
-import { useCreateImportLog } from '@/services/inventory';
 import { useGetProductList } from '@/services/product';
 import { useGetSkusByProductId } from '@/services/sku';
 import { useGetWarehouseList } from '@/services/warehouse';
 
+import { useCreateAdjustmentLog } from '@/services/inventory';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
 
-interface IImportItem {
+interface IAdjustmentItem {
   sku: IProductSku;
-  quantity: string;
-  costPrice: string;
+  quantityBefore: string;
+  quantityChange: string;
+  costPriceBefore: string;
 }
+
+const schema = Yup.object().shape({
+  warehouseId: Yup.string().required('Vui lòng chọn kho hàng'),
+  type: Yup.string().required('Vui lòng chọn loại điều chỉnh'),
+  reason: Yup.string().required('Vui lòng chọn lý do điều chỉnh'),
+  note: Yup.string().optional(),
+});
 
 const CreateInventoryAdjustmentPage = () => {
   const navigate = useNavigate();
@@ -67,52 +76,72 @@ const CreateInventoryAdjustmentPage = () => {
 
   const [productId, setProductId] = useState<number>();
   const [skuId, setSkuId] = useState<string>('');
-  const [costPrice, setCostPrice] = useState<string>('');
-  const [quantity, setQuantity] = useState<string>('');
+  const [quantityBefore, setQuantityBefore] = useState<string>('');
+  const [quantityChange, setQuantityChange] = useState<string>('');
   const [isEditItem, setIsEditItem] = useState<boolean>(false);
   const [editItemIndex, setEditItemIndex] = useState<number | null>(null);
-  const [importItems, setImportItems] = useState<IImportItem[]>([]);
+  const [adjustmentItems, setAdjustmentItems] = useState<IAdjustmentItem[]>([]);
 
-  console.log('importItems', importItems);
+  console.log('adjustmentItems', adjustmentItems);
 
   const { data: warehousesData } = useGetWarehouseList();
-  const { data: enumData } = useGetEnumByContext('import-type');
+  const { data: adjustmentTypeData } = useGetEnumByContext('adjustment-type');
+  const { data: adjustmentReasonData } =
+    useGetEnumByContext('adjustment-reason');
 
   const { data: productsData } = useGetProductList();
   const { data: skusData } = useGetSkusByProductId(productId);
 
-  const { mutate: createImportLogMutate, isPending: isCreatePending } =
-    useCreateImportLog();
+  const { mutate: createAdjustmentLogMutate, isPending: isCreatePending } =
+    useCreateAdjustmentLog();
 
   const formik = useFormik({
     initialValues: {
       warehouseId: '',
       type: '',
+      reason: '',
       note: '',
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: schema,
     validateOnChange: false,
     onSubmit(values) {
       const payload = {
         warehouseId: +values.warehouseId,
         type: values.type,
+        reason: values.reason,
         note: values.note,
-        items: importItems?.map((item) => ({
+        items: adjustmentItems?.map((item) => ({
           skuId: +item.sku.id,
-          costPrice: +item.costPrice,
-          quantity: +item.quantity,
+          costPriceBefore: +item.costPriceBefore,
+          quantityBefore: +item.quantityBefore,
+          quantityChange: +item.quantityChange,
         })),
       };
 
-      createImportLogMutate(payload, {
+      createAdjustmentLogMutate(payload, {
         onSuccess() {
-          queryClient.invalidateQueries({ queryKey: [QueryKeys.ImportLog] });
-          showNotification('Tạo nhập hàng thành công', 'success');
-          navigate(ROUTES.INVENTORY);
+          queryClient.invalidateQueries({
+            queryKey: [QueryKeys.AdjustmentLog],
+          });
+          showNotification('Tạo điều chỉnh thành công', 'success');
+          navigate(`${ROUTES.INVENTORY}/adjustment`);
         },
       });
     },
   });
+
+  useEffect(() => {
+    if (skuId) {
+      setQuantityBefore(
+        skusData?.data
+          ?.find((sku) => sku?.id === +skuId)
+          ?.stocks?.find(
+            (stock) => stock?.warehouseId === +formik?.values?.warehouseId
+          )
+          ?.quantity?.toString() ?? ''
+      );
+    }
+  }, [skusData?.data, formik?.values?.warehouseId, skuId]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -129,7 +158,7 @@ const CreateInventoryAdjustmentPage = () => {
   };
 
   const handleSaveItem = () => {
-    const isAlreadySelected = importItems.some((item) => {
+    const isAlreadySelected = adjustmentItems.some((item) => {
       return item?.sku?.id === +skuId;
     });
     if (isAlreadySelected && !isEditItem) {
@@ -139,55 +168,77 @@ const CreateInventoryAdjustmentPage = () => {
     const sku = skusData?.data?.find((sku) => sku?.id === +skuId);
 
     if (editItemIndex !== null && sku && skuId) {
-      const updatedImportItems = importItems;
-      updatedImportItems[editItemIndex] = {
+      const updatedAdjustmentItems = adjustmentItems;
+      updatedAdjustmentItems[editItemIndex] = {
         sku: sku,
-        costPrice: costPrice,
-        quantity: quantity,
+        costPriceBefore:
+          sku?.stocks
+            ?.find(
+              (stock) => stock?.warehouseId === +formik?.values?.warehouseId
+            )
+            ?.costPrice?.toString() ?? '',
+        quantityBefore:
+          sku?.stocks
+            ?.find(
+              (stock) => stock?.warehouseId === +formik?.values?.warehouseId
+            )
+            ?.quantity?.toString() ?? '',
+        quantityChange: quantityChange,
       };
-      setImportItems(updatedImportItems);
+      setAdjustmentItems(updatedAdjustmentItems);
       setProductId(undefined);
       setSkuId('');
-      setCostPrice('');
-      setQuantity('');
+      setQuantityChange('');
     } else {
-      if (sku && skuId && quantity && costPrice) {
-        setImportItems((prev) => [
+      if (sku && skuId && quantityChange) {
+        setAdjustmentItems((prev) => [
           ...prev,
-          { sku: sku, quantity: quantity, costPrice: costPrice },
+          {
+            sku: sku,
+            quantityBefore:
+              sku?.stocks
+                ?.find(
+                  (stock) => stock?.warehouseId === +formik?.values?.warehouseId
+                )
+                ?.quantity?.toString() ?? '',
+            quantityChange: quantityChange,
+            costPriceBefore:
+              sku?.stocks
+                ?.find(
+                  (stock) => stock?.warehouseId === +formik?.values?.warehouseId
+                )
+                ?.costPrice?.toString() ?? '',
+          },
         ]);
       }
       setProductId(undefined);
       setSkuId('');
-      setCostPrice('');
-      setQuantity('');
+      setQuantityChange('');
     }
   };
 
-  const handleEditImportItem = (item: IImportItem, index: number) => {
+  const handleEditImportItem = (item: IAdjustmentItem, index: number) => {
     setIsEditItem(true);
     setProductId(item?.sku?.product?.id);
     setSkuId(item?.sku?.id?.toString() ?? '');
-    setCostPrice(item?.costPrice.toString() ?? '');
-    setQuantity(item?.quantity.toString() ?? '');
+    setQuantityChange(item?.quantityBefore.toString() ?? '');
     setEditItemIndex(index);
   };
 
   const handleDeleteImportItem = (itemIndex: number) => {
-    const updAttributeList = importItems?.filter(
+    const updAttributeList = adjustmentItems?.filter(
       (_, index) => index !== itemIndex
     );
     if (updAttributeList?.length === 0) {
       setIsEditItem(false);
     }
-    setImportItems(updAttributeList);
+    setAdjustmentItems(updAttributeList);
   };
 
   const handleDeleteCurrentItem = () => {
     setProductId(undefined);
     setSkuId('');
-    setCostPrice('');
-    setQuantity('');
+    setQuantityChange('');
   };
 
   return (
@@ -238,7 +289,7 @@ const CreateInventoryAdjustmentPage = () => {
             name='type'
             onChange={handleSelectChange}
             value={formik?.values?.type ?? ''}>
-            {enumData?.data?.map((item) => (
+            {adjustmentTypeData?.data?.map((item) => (
               <MenuItem key={item?.value} value={item?.value}>
                 {item?.label}
               </MenuItem>
@@ -247,6 +298,27 @@ const CreateInventoryAdjustmentPage = () => {
           <FormHelperText>
             <Box component={'span'} sx={helperTextStyle}>
               {formik.errors?.type}
+            </Box>
+          </FormHelperText>
+        </FormControl>
+        <FormControl variant='filled' fullWidth>
+          <InputLabel>Lý do điều chỉnh</InputLabel>
+          <Select
+            disableUnderline
+            required
+            size='small'
+            name='reason'
+            onChange={handleSelectChange}
+            value={formik?.values?.reason ?? ''}>
+            {adjustmentReasonData?.data?.map((item) => (
+              <MenuItem key={item?.value} value={item?.value}>
+                {item?.label}
+              </MenuItem>
+            ))}
+          </Select>
+          <FormHelperText>
+            <Box component={'span'} sx={helperTextStyle}>
+              {formik.errors?.reason}
             </Box>
           </FormHelperText>
         </FormControl>
@@ -327,48 +399,31 @@ const CreateInventoryAdjustmentPage = () => {
                         </MenuItem>
                       ))}
                     </Select>
-                    <FormHelperText>
-                      <Box component={'span'} sx={helperTextStyle}>
-                        {formik.errors?.type}
-                      </Box>
-                    </FormHelperText>
                   </FormControl>
                 </Grid2>
                 <Grid2 size={12}>
                   <FormControl fullWidth>
                     <Input
-                      id='quantity'
+                      id='quantityBefore'
                       label='Số lượng cũ'
-                      name='quantity'
                       variant='filled'
                       type='number'
                       disabled
-                      // helperText={
-                      //   <Box component={'span'} sx={helperTextStyle}>
-                      //     {formik.errors.price}
-                      //   </Box>
-                      // }
-                      value={quantity}
-                      onChange={(e) => setQuantity(e?.target?.value)}
+                      value={quantityBefore}
                     />
                   </FormControl>
                 </Grid2>
                 <Grid2 size={12}>
                   <FormControl fullWidth>
                     <Input
-                      id='quantity'
+                      id='quantityChange'
                       label='Số lượng điều chỉnh'
-                      name='quantity'
+                      name='quantityChange'
                       variant='filled'
                       type='number'
                       required
-                      // helperText={
-                      //   <Box component={'span'} sx={helperTextStyle}>
-                      //     {formik.errors.price}
-                      //   </Box>
-                      // }
-                      value={quantity}
-                      onChange={(e) => setQuantity(e?.target?.value)}
+                      value={quantityChange}
+                      onChange={(e) => setQuantityChange(e?.target?.value)}
                     />
                   </FormControl>
                 </Grid2>
@@ -379,7 +434,6 @@ const CreateInventoryAdjustmentPage = () => {
                       label='Ghi chú'
                       name='note'
                       variant='filled'
-                      required
                       helperText={
                         <Box component={'span'} sx={helperTextStyle}>
                           {formik?.errors?.note}
@@ -395,7 +449,7 @@ const CreateInventoryAdjustmentPage = () => {
                   <Button
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='contained'
-                    disabled={!productId || !skuId || !costPrice || !quantity}
+                    disabled={!productId || !skuId || !quantityChange}
                     onClick={handleSaveItem}>
                     Lưu
                   </Button>
@@ -403,7 +457,7 @@ const CreateInventoryAdjustmentPage = () => {
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='outlined'
                     onClick={handleDeleteCurrentItem}
-                    disabled={!productId || !skuId || !costPrice || !quantity}>
+                    disabled={!productId || !skuId || !quantityChange}>
                     Xóa
                   </Button>
                 </Box>
@@ -417,26 +471,29 @@ const CreateInventoryAdjustmentPage = () => {
                 <Table sx={{}} aria-label='simple table'>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ width: '3%', px: 1 }} align='center'>
+                      <TableCell sx={{ width: '5%', px: 1 }} align='center'>
                         STT
                       </TableCell>
-                      <TableCell sx={{ width: '30%', px: 0 }} align='center'>
+                      <TableCell sx={{ width: '35%', px: 0 }} align='center'>
                         Sản phẩm
                       </TableCell>
-                      <TableCell sx={{ width: '5%', px: 1 }} align='center'>
-                        SL
+                      <TableCell sx={{ width: '12%', px: 1 }} align='center'>
+                        SL cũ
                       </TableCell>
-                      <TableCell sx={{ width: '8%', px: 1 }} align='center'>
+                      <TableCell sx={{ width: '12%', px: 1 }} align='center'>
+                        SL mới
+                      </TableCell>
+                      <TableCell sx={{ width: '15%', px: 1 }} align='center'>
                         Giá
                       </TableCell>
-                      <TableCell sx={{ width: '16%' }} align='center'>
+                      <TableCell sx={{ width: '25%' }} align='center'>
                         Tuỳ chọn
                       </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {importItems?.length ? (
-                      importItems.map((item, index) => (
+                    {adjustmentItems?.length ? (
+                      adjustmentItems.map((item, index) => (
                         <TableRow
                           key={item?.sku?.id}
                           sx={{
@@ -479,10 +536,13 @@ const CreateInventoryAdjustmentPage = () => {
                             </Box>
                           </TableCell>
                           <TableCell sx={{ px: 1 }} align='center'>
-                            {item.quantity}
+                            {item.quantityBefore}
+                          </TableCell>
+                          <TableCell sx={{ px: 1 }} align='center'>
+                            {item.quantityChange}
                           </TableCell>
                           <TableCell sx={{ fontSize: 12 }} align='right'>
-                            {formatPrice(+item?.costPrice)}
+                            {formatPrice(+item?.costPriceBefore)}
                           </TableCell>
                           <TableCell align='center'>
                             <Button
@@ -529,63 +589,7 @@ const CreateInventoryAdjustmentPage = () => {
                   </TableBody>
                 </Table>
                 <Divider />
-                {/* <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'end',
-                    alignItems: 'center',
-                    width: '100%',
-                    px: 4,
-                    py: 1,
-                  }}>
-                  <Typography sx={{ mr: 4, fontSize: 14 }}>
-                    Tổng tiền:
-                  </Typography>
-                  <Typography>{formatPrice(totalAmount())}</Typography>
-                </Box> */}
               </TableContainer>
-              {/* <Box>
-                {importItems?.map((item, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mb: 2,
-                    }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Box
-                        sx={{
-                          position: 'relative',
-                          height: '48px',
-                          mr: 1,
-                          '.thumbnail': {
-                            maxWidth: 48,
-                            maxHeight: 48,
-                            mr: 1,
-                            border: '1px solid #dadada',
-                          },
-                        }}>
-                        <img
-                          src={
-                            item?.sku?.imageUrl ??
-                            item?.sku?.product?.images?.[0]
-                          }
-                          className='thumbnail'
-                        />
-                      </Box>
-                      <Typography sx={{ fontSize: 14 }}>
-                        {item?.sku?.productSkuAttributes
-                          ?.map((item) => item?.attributeValue?.value)
-                          .join('- ')}
-                      </Typography>
-                    </Box>
-                    <Typography>{item?.sku?.sku}</Typography>
-                    <Typography>{item?.quantity}</Typography>
-                  </Box>
-                ))}
-              </Box> */}
             </Box>
           </Grid2>
         </Grid2>
