@@ -1,751 +1,544 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import moment from 'moment';
-import { useQueryClient } from '@tanstack/react-query';
 import {
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  TableContainer,
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Chip,
+  Divider,
+  IconButton,
+  InputAdornment,
+  Popover,
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TablePagination,
   TableRow,
-  TableSortLabel,
-  Toolbar,
-  Tooltip,
+  TextField,
   Typography,
-  Paper,
-  Box,
-  Checkbox,
-  IconButton,
-  Grid2,
-  Button,
 } from '@mui/material';
-import { alpha } from '@mui/material/styles';
-import { visuallyHidden } from '@mui/utils';
+import { useQueryClient } from '@tanstack/react-query';
+import moment from 'moment';
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { AddCircleOutlined } from '@mui/icons-material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ClearIcon from '@mui/icons-material/Clear';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import SearchIcon from '@mui/icons-material/Search';
 
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import HtmlRenderBox from '@/components/HtmlRenderBox';
 import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ExcelUpload from '@/components/ExcelUpload';
+import TableFilter from '@/components/TableFilter';
+import { TableSkeleton } from '@/components/TableSkeleton';
 
-import useConfirmModal from '@/hooks/useModalConfirm';
 import { useNotificationContext } from '@/contexts/NotificationContext';
+import useConfirmModal from '@/hooks/useModalConfirm';
 
-import { ITagOptions } from '@/interfaces/IProduct';
 import { ICategory } from '@/interfaces/ICategory';
-import { QueryKeys } from '@/constants/query-key';
-import { IQuery } from '@/interfaces/IQuery';
+import { IProduct } from '@/interfaces/IProduct';
+import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 
-import {
-  useDeleteManyProduct,
-  useGetProductByCateId,
-  useGetProductList,
-} from '@/services/product';
-import { getBgColor } from '@/utils/getTagBgColor';
+import { ROUTES } from '@/constants/route';
 import { useGetCategoryList } from '@/services/category';
+import { useGetProductList } from '@/services/product';
 
 interface Data {
   stt: number;
+  id: number;
   name: string;
   category: string;
-  images: string;
-  created_at: string;
+  image: string;
+  createdAt: string;
+  action: string;
 }
 
-function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
+interface HeadCell {
+  align?: ColumnAlign;
+  disablePadding: boolean;
+  id: keyof Data;
+  label: string;
+  isFilter?: boolean;
+  width?: string;
 }
 
-type Order = 'asc' | 'desc';
-
-function getComparator<Key extends keyof any>(
-  order: Order,
-  orderBy: Key
-): (
-  a: { [key in Key]: number | string },
-  b: { [key in Key]: number | string }
-) => number {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
+interface ColumnFilters {
+  category: string[];
 }
 
-interface EnhancedTableProps {
-  numSelected: number;
-  onRequestSort: (
-    event: React.MouseEvent<unknown>,
-    property: keyof Data
-  ) => void;
-  onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  order: Order;
-  orderBy: string;
-  rowCount: number;
-}
+// Constants
+const INITIAL_COLUMN_FILTERS: ColumnFilters = {
+  category: [],
+};
 
-function EnhancedTableHead(props: EnhancedTableProps) {
-  const {
-    onSelectAllClick,
-    order,
-    orderBy,
-    numSelected,
-    rowCount,
-    onRequestSort,
-  } = props;
-  const createSortHandler =
-    (property: keyof Data) => (event: React.MouseEvent<unknown>) => {
-      onRequestSort(event, property);
-    };
+const headCells: readonly HeadCell[] = [
+  {
+    align: 'center',
+    id: 'stt',
+    disablePadding: false,
+    label: 'STT',
+    isFilter: false,
+    width: '7%',
+  },
+  {
+    id: 'name',
+    disablePadding: false,
+    label: 'Tên sản phẩm',
+    isFilter: false,
+    width: '25%',
+  },
+  {
+    id: 'category',
+    disablePadding: false,
+    align: 'center',
+    label: 'Danh mục',
+    isFilter: true,
+    width: '18%',
+  },
+  {
+    align: 'center',
+    id: 'image',
+    disablePadding: false,
+    label: 'Ảnh',
+    width: '10%',
+  },
+  {
+    align: 'center',
+    id: 'createdAt',
+    disablePadding: false,
+    label: 'Ngày tạo',
+    width: '10%',
+  },
+  {
+    align: 'center',
+    id: 'action',
+    disablePadding: false,
+    label: 'Hành động',
+    width: '10%',
+  },
+];
 
-  return (
-    <TableHead>
-      <TableRow>
-        <TableCell padding='checkbox'>
-          <Checkbox
-            color='primary'
-            indeterminate={numSelected > 0 && numSelected < rowCount}
-            checked={rowCount > 0 && numSelected === rowCount}
-            onChange={onSelectAllClick}
-            inputProps={{
-              'aria-label': 'select all desserts',
-            }}
-          />
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sortDirection={orderBy === 'stt' ? order : false}>
-          <TableSortLabel
-            active={orderBy === 'stt'}
-            direction={orderBy === 'stt' ? order : 'asc'}
-            onClick={createSortHandler('stt')}>
-            STT
-            {orderBy === 'stt' ? (
-              <Box component='span' sx={visuallyHidden}>
-                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-              </Box>
-            ) : null}
-          </TableSortLabel>
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sortDirection={orderBy === 'name' ? order : false}>
-          <TableSortLabel
-            active={orderBy === 'name'}
-            direction={orderBy === 'name' ? order : 'asc'}
-            onClick={createSortHandler('name')}>
-            Tên sản phẩm
-            {orderBy === 'name' ? (
-              <Box component='span' sx={visuallyHidden}>
-                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-              </Box>
-            ) : null}
-          </TableSortLabel>
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sx={{ width: '18%' }}
-          sortDirection={orderBy === 'category' ? order : false}>
-          <TableSortLabel
-            active={orderBy === 'category'}
-            direction={orderBy === 'category' ? order : 'asc'}
-            onClick={createSortHandler('category')}>
-            Danh mục
-            {orderBy === 'category' ? (
-              <Box component='span' sx={visuallyHidden}>
-                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-              </Box>
-            ) : null}
-          </TableSortLabel>
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sx={{ width: 80 }}
-          sortDirection={orderBy === 'images' ? order : false}>
-          Ảnh
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sortDirection={orderBy === 'created_at' ? order : false}>
-          <TableSortLabel
-            active={orderBy === 'created_at'}
-            direction={orderBy === 'created_at' ? order : 'asc'}
-            onClick={createSortHandler('created_at')}>
-            Ngày tạo
-            {orderBy === 'created_at' ? (
-              <Box component='span' sx={visuallyHidden}>
-                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-              </Box>
-            ) : null}
-          </TableSortLabel>
-        </TableCell>
-        <TableCell align={'center'}>Hành động</TableCell>
-        <TableCell align={'center'}>Kho</TableCell>
-      </TableRow>
-    </TableHead>
+const columns: TableColumn[] = [
+  { width: '60px', align: 'center', type: 'text' },
+  { width: '250px', type: 'text' },
+  { width: '180px', type: 'text' },
+  { width: '100px', align: 'center', type: 'image' },
+  { width: '150px', align: 'center', type: 'text' },
+  { width: '150px', align: 'center', type: 'action' },
+  { width: '100px', align: 'center', type: 'action' },
+];
+
+// Custom hooks
+const useFilterState = () => {
+  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
+    null
   );
-}
-interface EnhancedTableToolbarProps {
-  numSelected: number;
-  categoryList: ICategory[];
-  onCategoryChange: (event: SelectChangeEvent<number>) => void;
-  categoryValue: number | undefined;
-  handleDeleteFilter: () => void;
-  selected: number[];
-  handleDeleteSelected: () => void;
-}
-function EnhancedTableToolbar(props: EnhancedTableToolbarProps) {
-  const {
-    numSelected,
-    categoryList,
-    onCategoryChange,
-    categoryValue,
-    handleDeleteFilter,
-    selected,
-    handleDeleteSelected,
-  } = props;
+  const [activeFilterColumn, setActiveFilterColumn] = useState<string>('');
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>(
+    INITIAL_COLUMN_FILTERS
+  );
 
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const { showNotification } = useNotificationContext();
+  const handleFilterClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>, column: string) => {
+      setFilterAnchorEl(event.currentTarget);
+      setActiveFilterColumn(column);
+    },
+    []
+  );
 
-  const delManyPrdMutation = useDeleteManyProduct();
+  const handleFilterClose = useCallback(() => {
+    setFilterAnchorEl(null);
+    setActiveFilterColumn('');
+  }, []);
 
-  const handleDelete = () => {
-    delManyPrdMutation.mutate(selected, {
-      onSuccess() {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-        handleDeleteSelected();
-        showNotification('Xóa sản phẩm thành công', 'success');
-      },
-    });
+  const handleColumnFilterChange = useCallback(
+    (column: string, value: string[]) => {
+      setColumnFilters((prev) => ({
+        ...prev,
+        [column]: value,
+      }));
+    },
+    []
+  );
+
+  return {
+    filterAnchorEl,
+    activeFilterColumn,
+    columnFilters,
+    handleFilterClick,
+    handleFilterClose,
+    handleColumnFilterChange,
   };
+};
+
+const usePagination = () => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleChangePage = useCallback((event: unknown, newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const handleChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0);
+    },
+    []
+  );
+
+  return {
+    page,
+    rowsPerPage,
+    handleChangePage,
+    handleChangeRowsPerPage,
+  };
+};
+
+// Components
+interface FilterChipsProps {
+  columnFilters: ColumnFilters;
+  categoriesData: {
+    data?: Array<ICategory>;
+  };
+  onFilterChange: (column: string, value: string[]) => void;
+}
+
+const FilterChips = ({
+  columnFilters,
+  categoriesData,
+  onFilterChange,
+}: FilterChipsProps) => {
+  const getFilterLabels = useCallback(
+    (filterKey: string, values: string[]) => {
+      if (filterKey === 'category') {
+        return values.map(
+          (value: string) =>
+            categoriesData?.data?.find((c) => c.id === +value)?.name || value
+        );
+      }
+      return [];
+    },
+    [categoriesData?.data]
+  );
 
   return (
-    <Toolbar
-      sx={[
-        {
-          pl: { sm: 2 },
-          pr: { xs: 1, sm: 1 },
-        },
-        numSelected > 0 && {
-          bgcolor: (theme) =>
-            alpha(
-              theme.palette.primary.main,
-              theme.palette.action.activatedOpacity
-            ),
-        },
-      ]}>
-      {numSelected > 0 ? (
-        <Typography
-          sx={{ flex: '1 1 100%' }}
-          color='inherit'
-          variant='subtitle1'
-          component='div'>
-          {numSelected} selected
-        </Typography>
-      ) : (
-        <Typography
-          sx={{ flex: '1 1 100%' }}
-          variant='h6'
-          id='tableTitle'
-          component='div'>
-          Danh sách sản phẩm
-        </Typography>
-      )}
-      {numSelected > 0 ? (
-        <Tooltip title='Delete'>
-          <IconButton>
-            <DeleteIcon onClick={handleDelete} />
-          </IconButton>
-        </Tooltip>
-      ) : (
-        <>
-          <FormControl
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <FilterListIcon />
+      {Object.entries(columnFilters).map(([filterKey, filterValues]) => {
+        const values = filterValues as string[];
+        if (values.length === 0) return null;
+
+        const filterLabels = getFilterLabels(filterKey, values);
+
+        return filterLabels.map((label) => (
+          <Chip
+            key={`${filterKey}-${label}`}
+            label={label}
+            onDelete={() => {
+              const newValues = values.filter((value: string) => {
+                const itemLabel = categoriesData?.data?.find(
+                  (c) => c.id === +value
+                )?.name;
+                return itemLabel !== label;
+              });
+              onFilterChange(filterKey, newValues);
+            }}
             size='small'
-            sx={{
-              width: 250,
-              mr: 2,
-              '& .MuiInputBase-root': {
-                minHeight: 40,
-              },
-            }}>
-            <InputLabel>Danh mục</InputLabel>
-            <Select
-              label='Danh mục'
-              onChange={onCategoryChange}
-              value={categoryValue}>
-              {categoryList?.map((item) => (
-                <MenuItem key={item.id} value={item?.id}>
-                  {item.name}
-                </MenuItem>
-              ))}
-            </Select>
-            {categoryValue && (
-              <ClearIcon
-                sx={{
-                  position: 'absolute',
-                  right: 30,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  p: '2px',
-                  ':hover': {
-                    bgcolor: '#eee',
-                    borderRadius: '50%',
-                    cursor: 'pointer',
-                  },
-                }}
-                onClick={handleDeleteFilter}
-              />
-            )}
-          </FormControl>
-          <ExcelUpload />
-          <ButtonWithTooltip
-            sx={{ ml: 2 }}
-            variant='contained'
-            onClick={() => navigate('create')}
-            title='Thêm sản phẩm'>
-            <AddCircleOutlined />
-          </ButtonWithTooltip>
-          {/* <Tooltip title='Filter list'>
-            <IconButton>
-              <FilterListIcon />
-            </IconButton>
-          </Tooltip> */}
-        </>
-      )}
-    </Toolbar>
+            sx={{ maxWidth: 120 }}
+          />
+        ));
+      })}
+    </Box>
   );
-}
-export default function ProductList() {
+};
+
+export default function ProductList2() {
   const navigate = useNavigate();
   const { confirmModal, showConfirmModal } = useConfirmModal();
+  const queryClient = useQueryClient();
+  const { showNotification } = useNotificationContext();
 
-  const [order, setOrder] = useState<Order>('asc');
-  const [orderBy, setOrderBy] = useState<keyof Data>('stt');
-  const [category, setCategory] = useState<number>();
-  const [selected, setSelected] = useState<number[]>([]);
-  const [query, setQuery] = useState<IQuery>({
-    limit: 2,
-    page: 0,
-  });
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const {
+    filterAnchorEl,
+    activeFilterColumn,
+    columnFilters,
+    handleFilterClick,
+    handleFilterClose,
+    handleColumnFilterChange,
+  } = useFilterState();
+
+  const { page, rowsPerPage, handleChangePage, handleChangeRowsPerPage } =
+    usePagination();
 
   const { data: categoriesData } = useGetCategoryList();
-  const { data: productsData } = useGetProductList({ ...query });
-  const { data: productByCategory, isLoading } = useGetProductByCateId(
-    category,
-    query
-  );
+  const { data: productsData, isLoading } = useGetProductList({
+    page: page + 1,
+    limit: rowsPerPage,
+    categoryIds: columnFilters.category,
+    search: searchQuery,
+  });
 
-  const handleRequestSort = (
-    _: React.MouseEvent<unknown> | null,
-    property: keyof Data
-  ) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
   };
 
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      const newSelected = (productByCategory?.data ?? productsData?.data)?.map(
-        (n) => n?.id
-      );
-      if (newSelected) {
-        setSelected(newSelected);
-      }
-      return;
+  // const handleDelete = () => {
+  //   delManyPrdMutation.mutate(selected, {
+  //     onSuccess() {
+  //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+  //       setSelected([]);
+  //       showNotification('Xóa sản phẩm thành công', 'success');
+  //     },
+  //   });
+  // };
+
+  const renderFilterContent = useCallback(() => {
+    switch (activeFilterColumn) {
+      case 'category':
+        return (
+          <TableFilter
+            title='Lọc theo danh mục'
+            options={
+              categoriesData?.data?.map((category) => ({
+                id: category.id,
+                label: category.name,
+              })) ?? []
+            }
+            selectedValues={columnFilters.category}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('category', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
+      default:
+        return null;
     }
-    setSelected([]);
-  };
-
-  const handleClick = (_: React.MouseEvent<unknown>, id: number) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected: number[] = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
-    setSelected(newSelected);
-  };
-
-  const handleChangePage = (
-    _: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number
-  ) => {
-    setQuery((prev) => ({ ...prev, page: newPage }));
-  };
-
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setQuery((prev) => ({
-      ...prev,
-      ...{ limit: +event.target.value },
-    }));
-  };
-
-  // Avoid a layout jump when reaching the last page with empty rows.
-  const emptyRows =
-    (query?.page ?? 0) > 0
-      ? Math.max(
-          0,
-          (1 + (query.page ?? 0)) * (query.limit ?? 10) -
-            (productsData?.meta?.total ?? 0)
-        )
-      : 0;
-
-  const rows = useMemo(
-    () =>
-      (productByCategory?.data ?? productsData?.data)?.map(
-        (product, index) => ({
-          stt: index + 1,
-          id: product.id,
-          name: product.name,
-          category: product.category?.name || '',
-          images: product.images[0] || '',
-          created_at: moment(product?.createdAt)?.format('DD/MM/YYYY'),
-          slug: product.slug,
-        })
-      ) || [],
-    [productsData, productByCategory]
-  );
-
-  const visibleRows = useMemo(
-    () => rows.sort(getComparator(order, orderBy)),
-    [order, orderBy, query.limit, rows]
-  );
-
-  const handleCategoryChange = (event: SelectChangeEvent<number>) => {
-    setCategory(+event.target.value);
-  };
-
-  const handleDetailClick = (row: Data) => {
-    const detailPrd = productsData?.data?.find((prd) => prd.name === row.name);
-    showConfirmModal({
-      title: (
-        <Typography sx={{ fontSize: 20, fontWeight: 'bold' }}>
-          Chi tiết sản phẩm
-        </Typography>
-      ),
-      content: (
-        <Grid2 container rowSpacing={1}>
-          <Grid2 size={3.5} fontSize={15}>
-            Tên:
-          </Grid2>
-          <Grid2 size={8.5}> {detailPrd?.name}</Grid2>
-          <Grid2 size={3.5}>Danh mục: </Grid2>
-          <Grid2 size={8.5}> {detailPrd?.category?.name}</Grid2>
-          <Grid2 size={3.5}>Ảnh:</Grid2>
-          <Grid2 size={8.5}>
-            {detailPrd?.images?.map((img) => (
-              <Box
-                sx={{
-                  height: 60,
-                  '.thumbnail': {
-                    width: 60,
-                    height: 60,
-                    objectFit: 'contain',
-                    border: '1px solid #ccc',
-                  },
-                }}
-                key={img}>
-                <img src={img} className='thumbnail' />
-              </Box>
-            ))}
-          </Grid2>
-          {detailPrd?.tags && detailPrd?.tags?.length > 0 && (
-            <Grid2 size={3.5}>Tags: </Grid2>
-          )}
-          {detailPrd?.tags && detailPrd?.tags?.length > 0 && (
-            <Grid2 size={8.5}>
-              {detailPrd?.tags?.map((tag: ITagOptions) => (
-                <Box
-                  key={tag.value}
-                  sx={{
-                    width: 100,
-                    padding: '4px 2px',
-                    my: 1,
-                    bgcolor: getBgColor(tag.value),
-                    color: '#fff',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    textAlign: 'center',
-                    fontSize: 13,
-                  }}>
-                  {tag.label}
-                </Box>
-              ))}
-            </Grid2>
-          )}
-          {/* <Grid2 size={3.5}>Thuộc tính: </Grid2>
-          <Grid2 size={8.5}>
-            {detailPrd?.attributes?.map((att: string) => (
-              <Box key={att}>{att}</Box>
-            ))}
-          </Grid2> */}
-          {/* <Grid2 size={3.5}>Mã sản phẩm: </Grid2>
-          <Grid2 size={8.5}>{detailPrd?.sku_name}</Grid2> */}
-          <Grid2 size={3.5}>Chi tiết: </Grid2>
-          <Grid2 size={8.5}>
-            {Object.keys(detailPrd?.details || {}).length === 0 ? (
-              <>Không có</>
-            ) : (
-              <Grid2 container>
-                {detailPrd?.details.guarantee && (
-                  <>
-                    <Grid2 size={4.5}>- Bảo hành:</Grid2>
-                    <Grid2 size={7.5}>{detailPrd?.details.guarantee}</Grid2>
-                  </>
-                )}
-                {detailPrd?.details.weight && (
-                  <>
-                    <Grid2 size={4.5}>- Trọng lượng:</Grid2>
-                    <Grid2 size={7.5}>{detailPrd?.details.weight}</Grid2>
-                  </>
-                )}
-                {detailPrd?.details.material && (
-                  <>
-                    <Grid2 size={4.5}>- Chất liệu:</Grid2>
-                    <Grid2 size={7.5}>{detailPrd?.details.material}</Grid2>
-                  </>
-                )}
-              </Grid2>
-            )}
-          </Grid2>
-          <Grid2 size={3.5}>Mô tả: </Grid2>
-          <Grid2 size={8.5}>
-            <HtmlRenderBox html={detailPrd?.description ?? ''} />
-          </Grid2>
-        </Grid2>
-      ),
-      showBtnOk: false,
-      cancelText: 'Đóng',
-    });
-  };
+  }, [
+    activeFilterColumn,
+    categoriesData?.data,
+    columnFilters.category,
+    handleColumnFilterChange,
+    handleFilterClose,
+  ]);
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Paper sx={{ width: '100%', mb: 2 }}>
-        <EnhancedTableToolbar
-          numSelected={selected.length}
-          categoryList={categoriesData?.data ?? []}
-          onCategoryChange={handleCategoryChange}
-          categoryValue={category}
-          handleDeleteFilter={() => {
-            setCategory(undefined);
+    <Card sx={{ mt: 3, borderRadius: 2 }}>
+      <CardHeader
+        title={
+          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+            Danh sách sản phẩm
+          </Typography>
+        }
+        action={
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <ExcelUpload />
+            <ButtonWithTooltip
+              variant='contained'
+              onClick={() => navigate('create')}
+              title='Thêm sản phẩm'
+              sx={{ textTransform: 'none' }}>
+              <AddCircleOutlined />
+            </ButtonWithTooltip>
+          </Box>
+        }
+      />
+      <Box sx={{ px: 2, pb: 2 }}>
+        <TextField
+          fullWidth
+          size='small'
+          placeholder='Tìm kiếm sản phẩm...'
+          value={searchQuery}
+          onChange={handleSearchChange}
+          sx={{
+            '& .MuiInputBase-root': {
+              minHeight: 40,
+            },
           }}
-          selected={selected}
-          handleDeleteSelected={() => {
-            setSelected([]);
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position='start'>
+                <SearchIcon />
+              </InputAdornment>
+            ),
           }}
         />
-        <TableContainer sx={{ overflow: 'unset' }}>
-          <Table sx={{ minWidth: 750 }} aria-labelledby='tableTitle'>
-            <EnhancedTableHead
-              numSelected={selected.length}
-              order={order}
-              orderBy={orderBy}
-              onSelectAllClick={handleSelectAllClick}
-              onRequestSort={handleRequestSort}
-              rowCount={productsData?.meta?.total || 0}
-            />
-            <TableBody
-              sx={{
-                position: 'relative',
-                height: !productByCategory
-                  ? 80 *
-                    ((productsData?.meta?.total ?? 0) < (query?.limit ?? 2)
-                      ? productsData?.meta?.total ?? 10
-                      : query?.limit ?? 10)
-                  : '',
-                // + 1 *
-                // ((data?.total ?? 0) < (query?.limit ?? 10)
-                //   ? data?.total ?? 0
-                //   : query?.limit ?? 10),
-              }}>
+      </Box>
+      <Divider />
+      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell colSpan={headCells.length}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}>
+                    <FilterChips
+                      columnFilters={columnFilters}
+                      categoriesData={categoriesData || { data: [] }}
+                      onFilterChange={handleColumnFilterChange}
+                    />
+                  </Box>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                {headCells?.map((headCell) => (
+                  <TableCell
+                    key={headCell.id}
+                    align={headCell.align ?? 'left'}
+                    padding={headCell.disablePadding ? 'none' : 'normal'}
+                    sx={{ width: headCell.width }}>
+                    {headCell.label}
+                    {headCell.isFilter ? (
+                      <>
+                        {' '}
+                        {(() => {
+                          const filterValue =
+                            columnFilters[
+                              headCell.id as keyof typeof columnFilters
+                            ];
+                          if (
+                            Array.isArray(filterValue) &&
+                            filterValue.length > 0
+                          ) {
+                            return (
+                              <Typography
+                                component='span'
+                                sx={{ fontSize: 14 }}>
+                                ({filterValue.length})
+                              </Typography>
+                            );
+                          }
+                          return null;
+                        })()}
+                        <IconButton
+                          size='small'
+                          onClick={(e) => handleFilterClick(e, headCell.id)}
+                          sx={{ ml: 1 }}>
+                          <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </>
+                    ) : null}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {isLoading ? (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    right: '50%',
-                    transform: 'translate(50%, -50%)',
-                  }}>
-                  <CircularProgress size={64} disableShrink thickness={3} />
-                </Box>
-              ) : (
-                visibleRows?.map((row, index) => {
-                  const isItemSelected = selected.includes(row.id);
-                  const labelId = `enhanced-table-checkbox-${index}`;
-
-                  return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row.id)}
-                      role='checkbox'
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={row.stt}
-                      selected={isItemSelected}
-                      sx={{ cursor: 'pointer' }}>
-                      <TableCell padding='checkbox' sx={{ height: 80 }}>
-                        <Checkbox
-                          color='primary'
-                          checked={isItemSelected}
-                          inputProps={{
-                            'aria-labelledby': labelId,
-                          }}
+                <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
+              ) : productsData?.data?.length ? (
+                productsData?.data?.map((product, index) => (
+                  <TableRow key={product.id}>
+                    <TableCell align='center'>
+                      {page * rowsPerPage + index + 1}
+                    </TableCell>
+                    <TableCell>
+                      <Typography>{product.name}</Typography>
+                    </TableCell>
+                    <TableCell align='center'>
+                      <Typography>{product.category?.name}</Typography>
+                    </TableCell>
+                    <TableCell align='center'>
+                      <Box
+                        sx={{
+                          height: 40,
+                          '.thumbnail': {
+                            width: 40,
+                            height: 40,
+                            mr: 1,
+                            objectFit: 'contain',
+                          },
+                        }}>
+                        <img
+                          src={product?.images?.[0]}
+                          className='thumbnail'
+                          alt={product?.name}
                         />
-                      </TableCell>
-                      <TableCell
-                        component='th'
-                        id={labelId}
-                        scope='row'
-                        padding='none'
-                        align='center'
-                        sx={{ height: 80 }}>
-                        {index + 1}
-                      </TableCell>
-                      <TableCell
-                        component='th'
-                        id={labelId}
-                        scope='row'
-                        padding='none'
-                        sx={{ height: 80 }}>
-                        {row.name}
-                      </TableCell>
-                      <TableCell
-                        padding='none'
-                        align='center'
-                        sx={{ width: '16%', height: 80 }}>
-                        {row?.category}
-                      </TableCell>
-                      <TableCell
-                        padding='none'
-                        align='center'
-                        sx={{ width: 80, height: 80 }}>
-                        <Box
-                          sx={{
-                            height: 80,
-                            '.thumbnail': {
-                              width: 80,
-                              height: 80,
-                              objectFit: 'contain',
-                            },
-                          }}>
-                          <img
-                            src={row?.images}
-                            className='thumbnail'
-                            style={{ width: 80, height: 80 }}
-                          />
+                      </Box>
+                    </TableCell>
+                    <TableCell align='center'>
+                      <Typography>
+                        {moment(product?.createdAt).format('DD/MM/YYYY')}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align='center'>
+                      <ActionButton>
+                        <Box mb={1}>
+                          <ButtonWithTooltip
+                            color='primary'
+                            variant='outlined'
+                            title='Chỉnh sửa'
+                            placement='left'
+                            onClick={() => navigate(`update/${product.id}`)}>
+                            <EditOutlinedIcon />
+                          </ButtonWithTooltip>
                         </Box>
-                      </TableCell>
-
-                      <TableCell
-                        padding='none'
-                        align='center'
-                        sx={{ height: 80 }}>
-                        {row?.created_at}
-                      </TableCell>
-                      <TableCell
-                        align='center'
-                        sx={{ width: '10%', height: 80 }}>
-                        <Box onClick={(e) => e.stopPropagation()}>
-                          <ActionButton>
-                            <Box mb={1}>
-                              <ButtonWithTooltip
-                                color='primary'
-                                variant='outlined'
-                                title='Chi tiết'
-                                placement='left'
-                                onClick={() => handleDetailClick(row)}>
-                                <InfoOutlinedIcon />
-                              </ButtonWithTooltip>
-                            </Box>
-                            <Box mb={1}>
-                              <ButtonWithTooltip
-                                color='primary'
-                                onClick={() => navigate(`update/${row?.id}`)}
-                                variant='outlined'
-                                title='Chỉnh sửa'
-                                placement='left'>
-                                <EditOutlinedIcon />
-                              </ButtonWithTooltip>
-                            </Box>
-                          </ActionButton>
+                        <Box>
+                          <ButtonWithTooltip
+                            color='error'
+                            variant='outlined'
+                            title='Xoá'
+                            placement='left'>
+                            <DeleteOutlineOutlinedIcon />
+                          </ButtonWithTooltip>
                         </Box>
-                      </TableCell>
-                      <TableCell align='center'>
-                        <Button
-                          variant='contained'
-                          onClick={(e) => {
-                            navigate(`/product/${row?.slug}`);
-                            e.stopPropagation();
-                          }}>
-                          <KeyboardReturnIcon />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-              {emptyRows > 0 && productsData && (
-                <TableRow
-                  style={{
-                    height: 80 * emptyRows + 1 * emptyRows,
-                  }}>
-                  <TableCell colSpan={12} />
+                      </ActionButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell align='center' colSpan={headCells.length + 1}>
+                    Không có dữ liệu
+                  </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[10, 20]}
           component='div'
-          count={
-            productByCategory?.meta?.total ?? productsData?.meta?.total ?? 0
-          }
-          rowsPerPage={query?.limit ?? 2}
-          page={query?.page ?? 0}
+          count={productsData?.meta?.total || 0}
+          page={page}
           onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[10, 20, 30, 50]}
+          labelRowsPerPage='Số hàng mỗi trang'
+          labelDisplayedRows={({ from, to, count }) =>
+            `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`
+          }
         />
-      </Paper>
+      </CardContent>
+
+      <Popover
+        open={Boolean(filterAnchorEl)}
+        anchorEl={filterAnchorEl}
+        onClose={handleFilterClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}>
+        {renderFilterContent()}
+      </Popover>
+
       {confirmModal()}
-    </Box>
+    </Card>
   );
 }

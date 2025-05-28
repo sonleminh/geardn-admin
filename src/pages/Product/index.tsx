@@ -4,7 +4,7 @@ import ProductList from './components/ProductList';
 import ProductSku from './components/ProductSku';
 import ProductSkuUpsert from './components/ProductSkuUpsert';
 import ProductUpsert from './components/ProductUpsert';
-import ProductList2 from './components/ProductList2';
+import ProductDetailPage from './components/Product';
 
 const Product = () => {
   const router = useRoutes([
@@ -14,7 +14,7 @@ const Product = () => {
       children: [
         {
           path: '',
-          element: <ProductList2 />,
+          element: <ProductList />,
           index: true,
         },
         {
@@ -27,8 +27,12 @@ const Product = () => {
         },
         {
           path: '/:slug',
-          element: <ProductSku />,
+          element: <ProductDetailPage />,
         },
+        // {
+        //   path: '/:slug',
+        //   element: <ProductSku />,
+        // },
         {
           path: '/sku/create/:sku',
           element: <ProductSkuUpsert />,

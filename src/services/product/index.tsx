@@ -17,7 +17,8 @@ import { TPaginatedResponse } from '@/types/response.type';
 interface IGetProductListQuery {
   page?: number;
   limit?: number;
-  categories?: string[];
+  categoryIds?: string[];
+  search?: string;
 }
 
 type TProductRes = {
@@ -59,7 +60,8 @@ const getProductList = async (query?: IGetProductListQuery) => {
     params: {
       page: query?.page ?? 0,
       limit: query?.limit ?? 10,
-      categories: query?.categories?.join(','),
+      categoryIds: query?.categoryIds?.join(','),
+      search: query?.search,
     },
   });
   return result.data as TPaginatedResponse<IProduct>;
