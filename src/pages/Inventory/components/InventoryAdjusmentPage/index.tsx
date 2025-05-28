@@ -160,7 +160,7 @@ const headCells: readonly HeadCell[] = [
 const columns: TableColumn[] = [
   { width: '60px', align: 'center', type: 'text' },
   { width: '120px', type: 'text' },
-  { width: '400px', type: 'complex' },
+  { width: '300px', type: 'complex' },
   { width: '120px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
@@ -504,6 +504,8 @@ const InventoryAdjustmentPage = () => {
 
   const { page, rowsPerPage, handleChangePage, handleChangeRowsPerPage } =
     usePagination();
+
+  console.log(page);
 
   const { data: warehousesData } = useGetWarehouseList();
   const { data: productsData } = useGetProductList();

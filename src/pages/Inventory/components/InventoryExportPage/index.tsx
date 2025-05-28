@@ -159,7 +159,7 @@ const headCells: readonly HeadCell[] = [
 const columns: TableColumn[] = [
   { width: '60px', align: 'center', type: 'text' },
   { width: '100px', type: 'text' },
-  { width: '400px', type: 'complex' },
+  { width: '300px', type: 'complex' },
   { width: '120px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },

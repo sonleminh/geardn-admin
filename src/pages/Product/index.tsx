@@ -4,6 +4,7 @@ import ProductList from './components/ProductList';
 import ProductSku from './components/ProductSku';
 import ProductSkuUpsert from './components/ProductSkuUpsert';
 import ProductUpsert from './components/ProductUpsert';
+import ProductList2 from './components/ProductList2';
 
 const Product = () => {
   const router = useRoutes([
@@ -13,7 +14,7 @@ const Product = () => {
       children: [
         {
           path: '',
-          element: <ProductList />,
+          element: <ProductList2 />,
           index: true,
         },
         {
