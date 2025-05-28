@@ -1,10 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import moment from 'moment';
-import { useQueryClient } from '@tanstack/react-query';
 import {
   Box,
-  Button,
   Card,
   CardContent,
   CardHeader,
@@ -19,53 +14,45 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  TableSortLabel,
   Typography,
-  Checkbox,
 } from '@mui/material';
-import { visuallyHidden } from '@mui/utils';
+import { useQueryClient } from '@tanstack/react-query';
+import moment from 'moment';
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { AddCircleOutlined } from '@mui/icons-material';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import HtmlRenderBox from '@/components/HtmlRenderBox';
 import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ExcelUpload from '@/components/ExcelUpload';
 import TableFilter from '@/components/TableFilter';
 import { TableSkeleton } from '@/components/TableSkeleton';
 
-import useConfirmModal from '@/hooks/useModalConfirm';
 import { useNotificationContext } from '@/contexts/NotificationContext';
+import useConfirmModal from '@/hooks/useModalConfirm';
 
-import { ITagOptions } from '@/interfaces/IProduct';
 import { ICategory } from '@/interfaces/ICategory';
-import { QueryKeys } from '@/constants/query-key';
-import { IQuery } from '@/interfaces/IQuery';
+import { IProduct } from '@/interfaces/IProduct';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 
-import { useDeleteManyProduct, useGetProductList } from '@/services/product';
-import { getBgColor } from '@/utils/getTagBgColor';
-import { useGetCategoryList } from '@/services/category';
 import { ROUTES } from '@/constants/route';
+import { useGetCategoryList } from '@/services/category';
+import { useGetProductList } from '@/services/product';
 
 interface Data {
   stt: number;
   id: number;
   name: string;
   category: string;
-  images: string;
-  created_at: string;
-  slug: string;
-}
-
-interface IProductQuery extends IQuery {
-  category?: string[];
+  image: string;
+  createdAt: string;
+  action: string;
 }
 
 interface HeadCell {
@@ -105,23 +92,31 @@ const headCells: readonly HeadCell[] = [
   {
     id: 'category',
     disablePadding: false,
+    align: 'center',
     label: 'Danh mục',
     isFilter: true,
     width: '18%',
   },
   {
     align: 'center',
-    id: 'images',
+    id: 'image',
     disablePadding: false,
     label: 'Ảnh',
     width: '10%',
   },
   {
     align: 'center',
-    id: 'created_at',
+    id: 'createdAt',
     disablePadding: false,
     label: 'Ngày tạo',
-    width: '15%',
+    width: '10%',
+  },
+  {
+    align: 'center',
+    id: 'action',
+    disablePadding: false,
+    label: 'Hành động',
+    width: '10%',
   },
 ];
 
@@ -146,18 +141,6 @@ function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
 }
 
 type Order = 'asc' | 'desc';
-
-function getComparator<Key extends keyof any>(
-  order: Order,
-  orderBy: Key
-): (
-  a: { [key in Key]: number | string },
-  b: { [key in Key]: number | string }
-) => number {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
 
 // Custom hooks
 const useFilterState = () => {
@@ -314,161 +297,15 @@ export default function ProductList2() {
     categories: columnFilters.category,
   });
 
-  const delManyPrdMutation = useDeleteManyProduct();
-
-  const handleRequestSort = (
-    _: React.MouseEvent<unknown>,
-    property: keyof Data
-  ) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      const newSelected = productsData?.data?.map((n) => n?.id);
-      if (newSelected) {
-        setSelected(newSelected);
-      }
-      return;
-    }
-    setSelected([]);
-  };
-
-  const handleClick = (_: React.MouseEvent<unknown>, id: number) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected: number[] = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
-    setSelected(newSelected);
-  };
-
-  const handleDelete = () => {
-    delManyPrdMutation.mutate(selected, {
-      onSuccess() {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-        setSelected([]);
-        showNotification('Xóa sản phẩm thành công', 'success');
-      },
-    });
-  };
-
-  const handleDetailClick = (row: Data) => {
-    const detailPrd = productsData?.data?.find((prd) => prd.name === row.name);
-    showConfirmModal({
-      title: (
-        <Typography sx={{ fontSize: 20, fontWeight: 'bold' }}>
-          Chi tiết sản phẩm
-        </Typography>
-      ),
-      content: (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Box sx={{ display: 'flex' }}>
-            <Typography sx={{ width: 100, fontWeight: 500 }}>Tên:</Typography>
-            <Typography>{detailPrd?.name}</Typography>
-          </Box>
-          <Box sx={{ display: 'flex' }}>
-            <Typography sx={{ width: 100, fontWeight: 500 }}>
-              Danh mục:
-            </Typography>
-            <Typography>{detailPrd?.category?.name}</Typography>
-          </Box>
-          <Box sx={{ display: 'flex' }}>
-            <Typography sx={{ width: 100, fontWeight: 500 }}>Ảnh:</Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              {detailPrd?.images?.map((img) => (
-                <Box
-                  sx={{
-                    height: 60,
-                    '.thumbnail': {
-                      width: 60,
-                      height: 60,
-                      objectFit: 'contain',
-                      border: '1px solid #ccc',
-                    },
-                  }}
-                  key={img}>
-                  <img src={img} className='thumbnail' alt={detailPrd?.name} />
-                </Box>
-              ))}
-            </Box>
-          </Box>
-          {detailPrd?.tags && detailPrd?.tags?.length > 0 && (
-            <Box sx={{ display: 'flex' }}>
-              <Typography sx={{ width: 100, fontWeight: 500 }}>
-                Tags:
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {detailPrd?.tags?.map((tag: ITagOptions) => (
-                  <Box
-                    key={tag.value}
-                    sx={{
-                      padding: '4px 8px',
-                      bgcolor: getBgColor(tag.value),
-                      color: '#fff',
-                      border: '1px solid #ccc',
-                      borderRadius: '4px',
-                      fontSize: 13,
-                    }}>
-                    {tag.label}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          )}
-          <Box sx={{ display: 'flex' }}>
-            <Typography sx={{ width: 100, fontWeight: 500 }}>
-              Chi tiết:
-            </Typography>
-            <Box>
-              {Object.keys(detailPrd?.details || {}).length === 0 ? (
-                <Typography>Không có</Typography>
-              ) : (
-                <Box
-                  sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                  {detailPrd?.details.guarantee && (
-                    <Typography>
-                      - Bảo hành: {detailPrd?.details.guarantee}
-                    </Typography>
-                  )}
-                  {detailPrd?.details.weight && (
-                    <Typography>
-                      - Trọng lượng: {detailPrd?.details.weight}
-                    </Typography>
-                  )}
-                  {detailPrd?.details.material && (
-                    <Typography>
-                      - Chất liệu: {detailPrd?.details.material}
-                    </Typography>
-                  )}
-                </Box>
-              )}
-            </Box>
-          </Box>
-          <Box sx={{ display: 'flex' }}>
-            <Typography sx={{ width: 100, fontWeight: 500 }}>Mô tả:</Typography>
-            <Box sx={{ flex: 1 }}>
-              <HtmlRenderBox html={detailPrd?.description ?? ''} />
-            </Box>
-          </Box>
-        </Box>
-      ),
-      showBtnOk: false,
-      cancelText: 'Đóng',
-    });
-  };
+  // const handleDelete = () => {
+  //   delManyPrdMutation.mutate(selected, {
+  //     onSuccess() {
+  //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+  //       setSelected([]);
+  //       showNotification('Xóa sản phẩm thành công', 'success');
+  //     },
+  //   });
+  // };
 
   const renderFilterContent = useCallback(() => {
     switch (activeFilterColumn) {
@@ -499,25 +336,6 @@ export default function ProductList2() {
     handleColumnFilterChange,
     handleFilterClose,
   ]);
-
-  const rows = useMemo(
-    () =>
-      productsData?.data?.map((product, index) => ({
-        stt: index + 1,
-        id: product.id,
-        name: product.name,
-        category: product.category?.name || '',
-        images: product.images[0] || '',
-        created_at: moment(product?.createdAt)?.format('DD/MM/YYYY'),
-        slug: product.slug,
-      })) || [],
-    [productsData]
-  );
-
-  const visibleRows = useMemo(
-    () => rows.sort(getComparator(order, orderBy)),
-    [order, orderBy, rows]
-  );
 
   return (
     <Card sx={{ mt: 3, borderRadius: 2 }}>
@@ -567,44 +385,13 @@ export default function ProductList2() {
                 </TableCell>
               </TableRow>
               <TableRow>
-                <TableCell padding='checkbox'>
-                  <Checkbox
-                    color='primary'
-                    indeterminate={
-                      selected.length > 0 &&
-                      selected.length < (productsData?.meta?.total || 0)
-                    }
-                    checked={
-                      productsData?.meta?.total
-                        ? selected.length === productsData.meta.total
-                        : false
-                    }
-                    onChange={handleSelectAllClick}
-                    inputProps={{
-                      'aria-label': 'select all products',
-                    }}
-                  />
-                </TableCell>
-                {headCells.map((headCell) => (
+                {headCells?.map((headCell) => (
                   <TableCell
                     key={headCell.id}
                     align={headCell.align ?? 'left'}
                     padding={headCell.disablePadding ? 'none' : 'normal'}
-                    sortDirection={orderBy === headCell.id ? order : false}
                     sx={{ width: headCell.width }}>
-                    <TableSortLabel
-                      active={orderBy === headCell.id}
-                      direction={orderBy === headCell.id ? order : 'asc'}
-                      onClick={(e) => handleRequestSort(e, headCell.id)}>
-                      {headCell.label}
-                      {orderBy === headCell.id ? (
-                        <Box component='span' sx={visuallyHidden}>
-                          {order === 'desc'
-                            ? 'sorted descending'
-                            : 'sorted ascending'}
-                        </Box>
-                      ) : null}
-                    </TableSortLabel>
+                    {headCell.label}
                     {headCell.isFilter ? (
                       <>
                         {' '}
@@ -642,90 +429,65 @@ export default function ProductList2() {
             <TableBody>
               {isLoading ? (
                 <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
-              ) : visibleRows?.length ? (
-                visibleRows.map((row, index) => {
-                  const isItemSelected = selected.includes(row.id);
-                  const labelId = `enhanced-table-checkbox-${index}`;
-
-                  return (
-                    <TableRow
-                      hover
-                      onClick={(event) => handleClick(event, row.id)}
-                      role='checkbox'
-                      aria-checked={isItemSelected}
-                      tabIndex={-1}
-                      key={row.id}
-                      selected={isItemSelected}
-                      sx={{ cursor: 'pointer' }}>
-                      <TableCell padding='checkbox'>
-                        <Checkbox
-                          color='primary'
-                          checked={isItemSelected}
-                          inputProps={{
-                            'aria-labelledby': labelId,
-                          }}
+              ) : productsData?.data?.length ? (
+                productsData?.data?.map((product, index) => (
+                  <TableRow key={product.id}>
+                    <TableCell align='center'>
+                      {page * rowsPerPage + index + 1}
+                    </TableCell>
+                    <TableCell>
+                      <Typography>{product.name}</Typography>
+                    </TableCell>
+                    <TableCell align='center'>
+                      <Typography>{product.category?.name}</Typography>
+                    </TableCell>
+                    <TableCell align='center'>
+                      <Box
+                        sx={{
+                          height: 40,
+                          '.thumbnail': {
+                            width: 40,
+                            height: 40,
+                            mr: 1,
+                            objectFit: 'contain',
+                          },
+                        }}>
+                        <img
+                          src={product?.images?.[0]}
+                          className='thumbnail'
+                          alt={product?.name}
                         />
-                      </TableCell>
-                      <TableCell align='center'>{row.stt}</TableCell>
-                      <TableCell>{row.name}</TableCell>
-                      <TableCell>{row.category}</TableCell>
-                      <TableCell align='center'>
-                        <Box
-                          sx={{
-                            height: 80,
-                            '.thumbnail': {
-                              width: 80,
-                              height: 80,
-                              objectFit: 'contain',
-                            },
-                          }}>
-                          <img
-                            src={row.images}
-                            className='thumbnail'
-                            alt={row.name}
-                          />
+                      </Box>
+                    </TableCell>
+                    <TableCell align='center'>
+                      <Typography>
+                        {moment(product?.createdAt).format('DD/MM/YYYY')}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align='center'>
+                      <ActionButton>
+                        <Box mb={1}>
+                          <ButtonWithTooltip
+                            color='primary'
+                            variant='outlined'
+                            title='Chỉnh sửa'
+                            placement='left'>
+                            <EditOutlinedIcon />
+                          </ButtonWithTooltip>
                         </Box>
-                      </TableCell>
-                      <TableCell align='center'>{row.created_at}</TableCell>
-                      <TableCell align='center'>
-                        <Box onClick={(e) => e.stopPropagation()}>
-                          <ActionButton>
-                            <Box mb={1}>
-                              <ButtonWithTooltip
-                                color='primary'
-                                variant='outlined'
-                                title='Chi tiết'
-                                placement='left'
-                                onClick={() => handleDetailClick(row)}>
-                                <InfoOutlinedIcon />
-                              </ButtonWithTooltip>
-                            </Box>
-                            <Box>
-                              <ButtonWithTooltip
-                                color='primary'
-                                onClick={() => navigate(`update/${row.id}`)}
-                                variant='outlined'
-                                title='Chỉnh sửa'
-                                placement='left'>
-                                <EditOutlinedIcon />
-                              </ButtonWithTooltip>
-                            </Box>
-                          </ActionButton>
+                        <Box>
+                          <ButtonWithTooltip
+                            color='error'
+                            variant='outlined'
+                            title='Xoá'
+                            placement='left'>
+                            <DeleteOutlineOutlinedIcon />
+                          </ButtonWithTooltip>
                         </Box>
-                      </TableCell>
-                      <TableCell align='center'>
-                        <Button
-                          variant='contained'
-                          onClick={(e) => {
-                            navigate(`/product/${row.slug}`);
-                            e.stopPropagation();
-                          }}>
-                          <KeyboardReturnIcon />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
+                      </ActionButton>
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : (
                 <TableRow>
                   <TableCell align='center' colSpan={headCells.length + 1}>

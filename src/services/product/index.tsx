@@ -14,18 +14,11 @@ import { ErrorResponse } from '@/interfaces/IError';
 import { IQuery } from '@/interfaces/IQuery';
 import { TPaginatedResponse } from '@/types/response.type';
 
-interface IGetProductListParams {
+interface IGetProductListQuery {
   page?: number;
   limit?: number;
   categories?: string[];
 }
-
-type TProductsRes = {
-  success: boolean;
-  message: string;
-  data: IProduct[];
-  total: number;
-};
 
 type TProductRes = {
   status: number;
@@ -61,18 +54,18 @@ export const useCreateProduct = () => {
   });
 };
 
-const getProductList = async (params?: IGetProductListParams) => {
+const getProductList = async (query?: IGetProductListQuery) => {
   const result = await axiosInstance.get(`${productUrl}`, {
     params: {
-      page: params?.page ?? 0,
-      limit: params?.limit ?? 10,
-      category: params?.category?.join(','),
+      page: query?.page ?? 0,
+      limit: query?.limit ?? 10,
+      categories: query?.categories?.join(','),
     },
   });
   return result.data as TPaginatedResponse<IProduct>;
 };
 
-export const useGetProductList = (query?: IQuery) => {
+export const useGetProductList = (query?: IGetProductListQuery) => {
   return useQuery({
     queryKey: [QueryKeys.Product, query],
     queryFn: () => getProductList(query),
