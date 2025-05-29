@@ -4,7 +4,7 @@ import ProductList from './components/ProductList';
 import ProductSku from './components/ProductSku';
 import ProductSkuUpsert from './components/ProductSkuUpsert';
 import ProductUpsert from './components/ProductUpsert';
-import ProductDetailPage from './components/Product';
+import ProductDetailPage from './components/ProductDetail';
 
 const Product = () => {
   const router = useRoutes([

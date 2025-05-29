@@ -49,7 +49,7 @@ export const useGetSkusByProductId = (id: number | undefined) => {
 };
 
 const getSkuByProductSku = async (sku: string) => {
-  const result = await axiosInstance.get(`${productSkuUrl}/sku/${sku}`);
+  const result = await axiosInstance.get(`${productSkuUrl}/${sku}`);
   return result.data as TSkuRes;
 };
 
