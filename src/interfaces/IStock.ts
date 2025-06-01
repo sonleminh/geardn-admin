@@ -16,6 +16,7 @@ export interface IStock {
 
 export interface IStockProductSkuItem extends IProductSku {
     quantity: number;
+    costPrice: number;
 }
 
 export interface IStockByWarehouseItem {

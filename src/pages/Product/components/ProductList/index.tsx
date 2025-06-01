@@ -30,6 +30,7 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import SearchIcon from '@mui/icons-material/Search';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
@@ -130,7 +131,6 @@ const columns: TableColumn[] = [
   { width: '100px', align: 'center', type: 'image' },
   { width: '150px', align: 'center', type: 'text' },
   { width: '150px', align: 'center', type: 'action' },
-  { width: '100px', align: 'center', type: 'action' },
 ];
 
 // Custom hooks
@@ -454,18 +454,14 @@ export default function ProductList2() {
                       <Box
                         sx={{
                           height: 40,
-                          '.thumbnail': {
+                          img: {
                             width: 40,
                             height: 40,
                             mr: 1,
                             objectFit: 'contain',
                           },
                         }}>
-                        <img
-                          src={product?.images?.[0]}
-                          className='thumbnail'
-                          alt={product?.name}
-                        />
+                        <img src={product?.images?.[0]} alt={product?.name} />
                       </Box>
                     </TableCell>
                     <TableCell align='center'>
@@ -475,6 +471,16 @@ export default function ProductList2() {
                     </TableCell>
                     <TableCell align='center'>
                       <ActionButton>
+                        <Box mb={1}>
+                          <ButtonWithTooltip
+                            color='primary'
+                            variant='outlined'
+                            title='Xem'
+                            placement='left'
+                            onClick={() => navigate(`${product.id}`)}>
+                            <VisibilityOutlinedIcon />
+                          </ButtonWithTooltip>
+                        </Box>
                         <Box mb={1}>
                           <ButtonWithTooltip
                             color='primary'

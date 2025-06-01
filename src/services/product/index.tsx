@@ -12,7 +12,7 @@ import {
 } from '@/interfaces/IProduct';
 import { ErrorResponse } from '@/interfaces/IError';
 import { IQuery } from '@/interfaces/IQuery';
-import { TPaginatedResponse } from '@/types/response.type';
+import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
 
 interface IGetProductListQuery {
   page?: number;
@@ -102,7 +102,7 @@ export const useGetProductByCateId = (
 
 const getProductById = async (id: number) => {
   const result = await axiosInstance.get(`${productUrl}/${id}`);
-  return (result.data as TProductRes).data;
+  return result.data as TBaseResponse<IProduct>;
 };
 
 export const useGetProductById = (id: number) => {

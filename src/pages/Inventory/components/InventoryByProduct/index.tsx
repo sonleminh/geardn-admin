@@ -1,10 +1,15 @@
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { ROUTES } from '@/constants/route';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import PriceChangeOutlinedIcon from '@mui/icons-material/PriceChangeOutlined';
 import {
   Box,
   Card,
   CardHeader,
   Divider,
+  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -12,29 +17,21 @@ import {
   TableHead,
   TableRow,
   Typography,
-  IconButton,
 } from '@mui/material';
-import AddBusinessOutlinedIcon from '@mui/icons-material/AddBusinessOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-
-import { ROUTES } from '@/constants/route';
-
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { BsBoxes } from 'react-icons/bs';
 
 import useConfirmModal from '@/hooks/useModalConfirm';
 
 import { useGetStockByProduct } from '@/services/stock';
 import { useGetWarehouseList } from '@/services/warehouse';
 
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 
-import { truncateTextByLine } from '@/utils/css-helper.util';
 import { TableSkeleton } from '@/components/TableSkeleton';
 import { TableColumn } from '@/interfaces/ITableColumn';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import { formatPrice } from '@/utils/format-price';
 
 const columns: TableColumn[] = [
   { align: 'center' },
@@ -49,7 +46,7 @@ const InventoryByProduct = () => {
   const numericId = id ? Number(id) : undefined;
 
   const navigate = useNavigate();
-  const { confirmModal, showConfirmModal } = useConfirmModal();
+  const { confirmModal } = useConfirmModal();
 
   const { data: warehousesData, isLoading: isLoadingWarehouses } =
     useGetWarehouseList();
@@ -90,9 +87,9 @@ const InventoryByProduct = () => {
                 <TableCell align='center'>STT</TableCell>
                 <TableCell>Sản phẩm</TableCell>
                 <TableCell>Phân loại</TableCell>
-                {warehousesData?.data?.map((warehouse) => (
-                  <TableCell align='center'>{warehouse?.name}</TableCell>
-                ))}
+
+                <TableCell align='center'>Thông tin</TableCell>
+                <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -103,18 +100,16 @@ const InventoryByProduct = () => {
                   <TableRow key={index}>
                     <TableCell align='center'>{index + 1}</TableCell>
                     <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Box
-                          sx={{
+                      <Box
+                        sx={{
+                          height: 60,
+                          '.thumbnail': {
+                            width: 60,
                             height: 60,
-                            '.thumbnail': {
-                              width: 60,
-                              height: 60,
-                              objectFit: 'contain',
-                            },
-                          }}>
-                          <img src={item?.imageUrl} className='thumbnail' />
-                        </Box>
+                            objectFit: 'contain',
+                          },
+                        }}>
+                        <img src={item?.imageUrl} className='thumbnail' />
                       </Box>
                     </TableCell>
                     <TableCell>
@@ -129,13 +124,80 @@ const InventoryByProduct = () => {
                           : ''}
                       </Box>
                     </TableCell>
-                    {warehousesData?.data?.map((warehouse, index) => (
-                      <TableCell key={warehouse?.id} align='center'>
-                        <Typography>
-                          {item?.stocks?.[index]?.quantity ?? 'Không có'}
-                        </Typography>
-                      </TableCell>
-                    ))}
+                    <TableCell>
+                      {warehousesData?.data?.map((warehouse, index) => (
+                        <Box
+                          key={warehouse?.id}
+                          sx={{
+                            display: 'flex',
+                            border: '1px solid #e0e0e0',
+                            borderRadius: 1,
+                            px: 2,
+                            py: 1,
+                            mb:
+                              index === warehousesData?.data?.length - 1
+                                ? 0
+                                : 2,
+                          }}>
+                          <Typography sx={{ mr: 8 }}>
+                            {warehouse?.name}:
+                          </Typography>
+                          <Typography
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              width: 150,
+                              fontSize: 14,
+                            }}>
+                            <BsBoxes />
+                            <Typography component='span' sx={{ ml: 1 }}>
+                              Số lượng:
+                            </Typography>
+                            <Typography component='span' sx={{ ml: 1 }}>
+                              {item?.stocks?.[index]?.quantity ?? 0}
+                            </Typography>
+                          </Typography>
+                          <Typography
+                            sx={{ display: 'flex', alignItems: 'center' }}>
+                            <PriceChangeOutlinedIcon sx={{ fontSize: 20 }} />
+                            <Typography component='span' sx={{ ml: 1 }}>
+                              Giá vốn:
+                            </Typography>
+                            <Typography component='span' sx={{ ml: 1 }}>
+                              {formatPrice(
+                                item?.stocks?.[index]?.costPrice ?? 0
+                              )}
+                            </Typography>
+                          </Typography>
+                        </Box>
+                      ))}
+                    </TableCell>
+
+                    <TableCell align='center'>
+                      <ActionButton>
+                        <Box>
+                          {/* <ButtonWithTooltip
+                            color='primary'
+                            variant='outlined'
+                            title='Xem'
+                            placement='left'
+                            onClick={() => navigate(`${product.id}`)}>
+                            <VisibilityOutlinedIcon />
+                          </ButtonWithTooltip> */}
+                        </Box>
+                        <Box mb={1}>
+                          <ButtonWithTooltip
+                            color='primary'
+                            variant='outlined'
+                            title='Chỉnh sửa'
+                            placement='left'
+                            // onClick={() => navigate(`update/${product.id}`)}
+                          >
+                            <EditOutlinedIcon />
+                          </ButtonWithTooltip>
+                        </Box>
+                      </ActionButton>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (

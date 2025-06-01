@@ -74,6 +74,7 @@ interface ICKEditorProps {
   onChange?: (value: string) => void;
   value?: string;
   helperText?: string;
+  disabled?: boolean;
 }
 
 interface CustomUploadResponse extends UploadResponse {
@@ -84,6 +85,7 @@ export default function CKEditor({
   onChange,
   value,
   helperText,
+  disabled = false,
 }: ICKEditorProps) {
   const [isLayoutReady, setIsLayoutReady] = useState(false);
 
@@ -321,6 +323,7 @@ export default function CKEditor({
             onChange?.(data);
           }}
           data={value}
+          disabled={disabled}
         />
       )}
       {helperText && (

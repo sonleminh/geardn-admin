@@ -1,22 +1,19 @@
 import { ChangeEvent, ReactNode, useEffect, useRef, useState } from 'react';
-import CircularProgressWithLabel from '../CircularProgress';
-import { useUploadImage } from '@/services/product';
-
 import { Box, Button, TextFieldProps, Typography } from '@mui/material';
-import FileUploadIcon from '@mui/icons-material/FileUpload';
+
+import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import ClearIcon from '@mui/icons-material/Clear';
 
+import { useUploadImage } from '@/services/product';
+import CircularProgressWithLabel from '../CircularProgress';
+
 type TUploadProps = {
-  title?: ReactNode;
-  required?: boolean;
   onClearValue?: () => void;
   onUploadChange: (images: string[]) => void;
   value: string[];
 } & TextFieldProps;
 
 const MultipleImageUpload = ({
-  title,
-  required,
   disabled,
   value,
   onUploadChange,
@@ -54,18 +51,8 @@ const MultipleImageUpload = ({
 
   return (
     <Box display={'flex'}>
-      <Box height={'60px'} mr={2}>
-        <Box display={'flex'} mb={'6px'}>
-          {title && (
-            <Typography width={'80px'} mr={2}>
-              {title}{' '}
-              {required && (
-                <Typography component={'span'} color='red'>
-                  *
-                </Typography>
-              )}
-            </Typography>
-          )}
+      <Box height={'60px'}>
+        <Box>
           <input
             type='file'
             multiple
@@ -75,16 +62,15 @@ const MultipleImageUpload = ({
             style={{ display: 'none' }}
           />
           <Button
-            sx={{ width: '60px', height: '32px', mr: 2 }}
-            variant='contained'
+            sx={{ width: 60, height: 60, mr: 2 }}
+            variant='outlined'
             disabled={disabled}
             onClick={() => {
               if (uploadInputRef.current) {
                 uploadInputRef.current.click();
               }
             }}>
-            <FileUploadIcon />
-            {/* Upload */}
+            <AddPhotoAlternateOutlinedIcon sx={{ fontSize: 30 }} />
           </Button>
         </Box>
         {helperText && (
@@ -104,16 +90,17 @@ const MultipleImageUpload = ({
                 key={item}
                 sx={{
                   position: 'relative',
-                  height: '60px',
+                  height: 60,
                   mr: 1.5,
-                  '.thumbnail': {
-                    maxWidth: 60,
-                    maxHeight: 60,
+                  img: {
+                    width: 60,
+                    height: 60,
                     mr: 1,
+                    objectFit: 'contain',
                     border: '1px solid #aaaaaa',
                   },
                 }}>
-                <img src={item} className='thumbnail' />
+                <img src={item} />
                 <ClearIcon
                   onClick={() => {
                     const newImages = images.filter((_, i) => i !== index);

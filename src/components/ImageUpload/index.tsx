@@ -7,16 +7,12 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 import ClearIcon from '@mui/icons-material/Clear';
 
 type TUploadProps = {
-  title?: ReactNode;
-  required?: boolean;
   onClearValue?: () => void;
   onUploadChange: (image: string) => void;
   value: string;
 } & TextFieldProps;
 
 const ImageUpload = ({
-  title,
-  required,
   disabled,
   value,
   onUploadChange,
@@ -57,16 +53,6 @@ const ImageUpload = ({
     <Box display={'flex'}>
       <Box mr={2}>
         <Box display={'flex'}>
-          {title && (
-            <Typography mr={2} mb={1.5}>
-              {title}{' '}
-              {required && (
-                <Typography component={'span'} color='red'>
-                  *
-                </Typography>
-              )}
-            </Typography>
-          )}
           <input
             type='file'
             multiple
