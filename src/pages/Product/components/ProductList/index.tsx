@@ -24,6 +24,7 @@ import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { AddCircleOutlined } from '@mui/icons-material';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -31,7 +32,7 @@ import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import SearchIcon from '@mui/icons-material/Search';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ExcelUpload from '@/components/ExcelUpload';
@@ -475,10 +476,20 @@ export default function ProductList2() {
                           <ButtonWithTooltip
                             color='primary'
                             variant='outlined'
-                            title='Xem'
+                            title='Xem chi tiết'
                             placement='left'
                             onClick={() => navigate(`${product.id}`)}>
-                            <VisibilityOutlinedIcon />
+                            <InfoOutlinedIcon />
+                          </ButtonWithTooltip>
+                        </Box>
+                        <Box mb={1}>
+                          <ButtonWithTooltip
+                            color='primary'
+                            variant='outlined'
+                            title='Danh sách mã hàng'
+                            placement='left'
+                            onClick={() => navigate(`${product.id}/sku`)}>
+                            <ListAltIcon />
                           </ButtonWithTooltip>
                         </Box>
                         <Box mb={1}>

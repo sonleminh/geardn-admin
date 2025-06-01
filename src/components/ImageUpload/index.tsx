@@ -1,10 +1,10 @@
-import { ChangeEvent, ReactNode, useEffect, useRef, useState } from 'react';
-import CircularProgressWithLabel from '../CircularProgress';
 import { useUploadImage } from '@/services/product';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import CircularProgressWithLabel from '../CircularProgress';
 
-import { Box, Button, TextFieldProps, Typography } from '@mui/material';
-import FileUploadIcon from '@mui/icons-material/FileUpload';
+import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import ClearIcon from '@mui/icons-material/Clear';
+import { Box, Button, TextFieldProps, Typography } from '@mui/material';
 
 type TUploadProps = {
   onClearValue?: () => void;
@@ -62,16 +62,15 @@ const ImageUpload = ({
             style={{ display: 'none' }}
           />
           <Button
-            sx={{ width: '120px', height: '30px', mr: 2 }}
-            variant='contained'
+            sx={{ width: 60, height: 60, mr: 2 }}
+            variant='outlined'
             disabled={disabled}
             onClick={() => {
               if (uploadInputRef.current) {
                 uploadInputRef.current.click();
               }
             }}>
-            <FileUploadIcon />
-            {/* Upload */}
+            <AddPhotoAlternateOutlinedIcon sx={{ fontSize: 30 }} />
           </Button>
         </Box>
         {helperText && (
@@ -90,14 +89,15 @@ const ImageUpload = ({
               sx={{
                 position: 'relative',
                 mr: 1.5,
-                '.thumbnail': {
-                  maxWidth: 60,
-                  maxHeight: 60,
+                img: {
+                  width: 60,
+                  height: 60,
                   mr: 1,
+                  objectFit: 'contain',
                   border: '1px solid #aaaaaa',
                 },
               }}>
-              <img src={image} className='thumbnail' />
+              <img src={image} />
               <ClearIcon
                 onClick={() => {
                   setImage('');

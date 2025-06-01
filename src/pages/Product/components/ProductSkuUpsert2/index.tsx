@@ -15,7 +15,6 @@ import {
   CardHeader,
   Divider,
   FormControl,
-  Grid2,
   Link,
   InputLabel,
   MenuItem,
@@ -24,6 +23,7 @@ import {
   SxProps,
   Theme,
   Typography,
+  Grid2,
 } from '@mui/material';
 
 import { QueryKeys } from '@/constants/query-key';
@@ -31,8 +31,6 @@ import { QueryKeys } from '@/constants/query-key';
 import ImageUpload from '@/components/ImageUpload';
 import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
 
@@ -44,20 +42,24 @@ import {
   useGetAttributeValueList,
   useGetAttributeValuesByAttributeId,
 } from '@/services/attribute-value';
-import { useGetProductBySlug } from '@/services/product';
+import { useGetProductById, useGetProductBySlug } from '@/services/product';
 import {
   useCreateSku,
   useGetSkuByProductSku,
   useUpdateSku,
 } from '@/services/sku';
-import { ROUTES } from '@/constants/route';
 
-const ProductSkuDetail = () => {
+import { ROUTES } from '@/constants/route';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+
+const ProductSkuUpsert = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isEdit = location?.pathname.includes('update');
-  const { sku } = useParams<{ sku: string }>();
-
+  const { id, sku } = useParams<{ id: string; sku: string }>();
+  console.log('id', id);
+  console.log('sku', sku);
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
   const [isEditAttribute, setIsEditAttribute] = useState<boolean>(false);
@@ -73,14 +75,12 @@ const ProductSkuDetail = () => {
   >([]);
   const [showAttributeForm, setShowAttributeForm] = useState<boolean>(true);
 
-  const { data: productData } = useGetProductBySlug(
-    !isEdit ? (sku as string) : ''
-  );
+  const { data: productData } = useGetProductById(id ? +id : 0);
+
   const { data: skuData } = useGetSkuByProductSku(
     isEdit ? (sku as string) : ''
   );
   const { data: attributeListData } = useGetAttributeList();
-  console.log('attributeListData', attributeListData?.data);
   const { data: attributeValueByAttIdListData } =
     useGetAttributeValuesByAttributeId(+attributeId);
 
@@ -296,13 +296,17 @@ const ProductSkuDetail = () => {
             Sản phẩm
           </Link>
           <Typography color='text.primary'>
-            Chi tiết phân loại sản phẩm
+            {isEdit
+              ? 'Chỉnh sửa phân loại sản phẩm'
+              : 'Thêm phân loại sản phẩm'}
           </Typography>
         </Breadcrumbs>
       </Box>
 
       <Typography sx={{ mb: 2, fontSize: 20, fontWeight: 600 }}>
-        Chi tiết phân loại sản phẩm:
+        {isEdit
+          ? `Chỉnh sửa phân loại sản phẩm: ${skuData?.data?.product?.name}`
+          : `Thêm phân loại sản phẩm: ${productData?.data?.name}`}
       </Typography>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -519,7 +523,7 @@ const ProductSkuDetail = () => {
   );
 };
 
-export default ProductSkuDetail;
+export default ProductSkuUpsert;
 
 const helperTextStyle: SxProps<Theme> = {
   color: 'red',

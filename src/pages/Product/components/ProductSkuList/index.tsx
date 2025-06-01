@@ -10,7 +10,7 @@ import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
-import { useGetProductBySlug } from '@/services/product';
+import { useGetProductById, useGetProductBySlug } from '@/services/product';
 import { useDeleteSku, useGetSkusByProductId } from '@/services/sku';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
@@ -30,13 +30,15 @@ import {
 import moment from 'moment';
 
 const ProductSku = () => {
-  const { slug } = useParams();
+  const { id } = useParams();
   // const numericId = slug ? Number(id) : undefined;
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: product } = useGetProductBySlug(slug as string);
-  const { data: skusData } = useGetSkusByProductId(product?.data?.id as number);
+  const { data: productData, isLoading: isProductLoading } = useGetProductById(
+    id ? +id : 0
+  );
+  const { data: skusData } = useGetSkusByProductId(id ? +id : 0);
   const { showNotification } = useNotificationContext();
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
@@ -59,7 +61,7 @@ const ProductSku = () => {
           action={
             <ButtonWithTooltip
               variant='contained'
-              onClick={() => navigate(`/product/sku/create/${slug}`)}
+              onClick={() => navigate(`/product/sku/create/${id}`)}
               title='Thêm mã hàng'>
               <AddCircleOutlined />
             </ButtonWithTooltip>
@@ -67,7 +69,7 @@ const ProductSku = () => {
           title={
             <Typography
               sx={{ fontSize: 20, fontWeight: 500, ...truncateTextByLine(1) }}>
-              Danh sách mã hàng: {product?.data?.name}
+              Danh sách mã hàng: {productData?.data?.name}
             </Typography>
           }
         />

@@ -7,17 +7,12 @@ import {
   IProductSku,
   IUpdateProductSkuPayload,
 } from '@/interfaces/IProductSku';
+import { TBaseResponse } from '@/types/response.type';
 
 type TSkusRes = {
   status: number;
   message: string;
   data: IProductSku[];
-};
-
-type TSkuRes = {
-  status: number;
-  message: string;
-  data: IProductSku;
 };
 
 const productSkuUrl = '/product-skus';
@@ -50,7 +45,7 @@ export const useGetSkusByProductId = (id: number | undefined) => {
 
 const getSkuByProductSku = async (sku: string) => {
   const result = await axiosInstance.get(`${productSkuUrl}/${sku}`);
-  return result.data as TSkuRes;
+  return result.data as TBaseResponse<IProductSku>;
 };
 
 export const useGetSkuByProductSku = (sku: string) => {

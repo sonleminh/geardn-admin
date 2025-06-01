@@ -1,11 +1,13 @@
 import { useRoutes } from 'react-router-dom';
 import ProductLayout from './components/ProductLayout';
 import ProductList from './components/ProductList';
-import ProductSku from './components/ProductSku';
+import ProductSku from './components/ProductSkuList';
 import ProductSkuUpsert from './components/ProductSkuUpsert';
 import ProductDetail from './components/ProductDetail';
 import ProductUpsert from './components/ProductUpsert';
 import ProductSkuDetail from './components/ProductSkuDetail';
+import ProductSkuUpsert2 from './components/ProductSkuUpsert2';
+import ProductSkuList from './components/ProductSkuList';
 
 const Product = () => {
   const router = useRoutes([
@@ -35,16 +37,20 @@ const Product = () => {
         //   element: <ProductSku />,
         // },
         {
+          path: '/:id/sku',
+          element: <ProductSkuList />,
+        },
+        {
           path: '/sku/:id',
           element: <ProductSkuDetail />,
         },
         {
-          path: '/sku/create/:sku',
-          element: <ProductSkuUpsert />,
+          path: '/sku/create/:id',
+          element: <ProductSkuUpsert2 />,
         },
         {
           path: '/sku/update/:sku',
-          element: <ProductSkuUpsert />,
+          element: <ProductSkuUpsert2 />,
         },
       ],
     },

@@ -419,18 +419,6 @@ const ProductSkuUpsert = () => {
                     }>
                     Xóa
                   </Button>
-                  {/* <Button
-                    sx={{
-                      ml: 2,
-                      textTransform: 'initial',
-                      color: '#D03739',
-                      border: '1px solid #D03739',
-                    }}
-                    variant='outlined'
-                    onClick={handleDelAllVariant}
-                  >
-                    Xóa tất cả
-                  </Button> */}
                 </Box>
               </Grid2>
             </>
