@@ -83,43 +83,41 @@ const ImageUpload = ({
         )}
       </Box>
       <Box>
-        <Box display={'flex'}>
-          {!progress && image !== '' && (
-            <Box
+        {!progress && image !== '' && (
+          <Box
+            sx={{
+              position: 'relative',
+              width: 60,
+              height: 60,
+              img: {
+                width: 60,
+                height: 60,
+                objectFit: 'contain',
+                border: '1px solid #aaaaaa',
+              },
+            }}>
+            <img src={image} />
+            <ClearIcon
+              onClick={() => {
+                setImage('');
+              }}
               sx={{
-                position: 'relative',
-                mr: 1.5,
-                img: {
-                  width: 60,
-                  height: 60,
-                  mr: 1,
-                  objectFit: 'contain',
-                  border: '1px solid #aaaaaa',
+                position: 'absolute',
+                top: '-6px',
+                right: '-8px',
+                bgcolor: 'white',
+                fontSize: 16,
+                border: '1px solid #696969',
+                borderRadius: '2px',
+                cursor: 'pointer',
+                ':hover': {
+                  bgcolor: '#eaeaea',
                 },
-              }}>
-              <img src={image} />
-              <ClearIcon
-                onClick={() => {
-                  setImage('');
-                }}
-                sx={{
-                  position: 'absolute',
-                  top: '-6px',
-                  right: '0px',
-                  bgcolor: 'white',
-                  fontSize: 16,
-                  border: '1px solid #696969',
-                  borderRadius: '2px',
-                  cursor: 'pointer',
-                  ':hover': {
-                    bgcolor: '#eaeaea',
-                  },
-                }}
-              />
-            </Box>
-          )}
-          {progress !== null && <CircularProgressWithLabel value={progress} />}
-        </Box>
+              }}
+            />
+          </Box>
+        )}
+        {progress !== null && <CircularProgressWithLabel value={progress} />}
       </Box>
     </Box>
   );

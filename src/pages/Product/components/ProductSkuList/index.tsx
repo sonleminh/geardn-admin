@@ -1,24 +1,22 @@
 import { useNavigate, useParams } from 'react-router-dom';
+import moment from 'moment';
 
-import { QueryKeys } from '@/constants/query-key';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { AddCircleOutlined } from '@mui/icons-material';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-
-import ActionButton from '@/components/ActionButton';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { useGetProductById, useGetProductBySlug } from '@/services/product';
-import { useDeleteSku, useGetSkusByProductId } from '@/services/sku';
-import { truncateTextByLine } from '@/utils/css-helper.util';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+
 import {
   Box,
+  Breadcrumbs,
   Card,
   CardHeader,
   Divider,
+  Link,
   Table,
   TableBody,
   TableCell,
@@ -27,7 +25,21 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import moment from 'moment';
+
+import { QueryKeys } from '@/constants/query-key';
+import { ROUTES } from '@/constants/route';
+
+import { useNotificationContext } from '@/contexts/NotificationContext';
+
+import useConfirmModal from '@/hooks/useModalConfirm';
+
+import { useGetProductById } from '@/services/product';
+import { useDeleteSku, useGetSkusByProductId } from '@/services/sku';
+
+import { truncateTextByLine } from '@/utils/css-helper.util';
+
+import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 
 const ProductSku = () => {
   const { id } = useParams();
@@ -35,9 +47,7 @@ const ProductSku = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: productData, isLoading: isProductLoading } = useGetProductById(
-    id ? +id : 0
-  );
+  const { data: productData } = useGetProductById(id ? +id : 0);
   const { data: skusData } = useGetSkusByProductId(id ? +id : 0);
   const { showNotification } = useNotificationContext();
 
@@ -55,13 +65,33 @@ const ProductSku = () => {
   };
 
   return (
-    <Card sx={{ borderRadius: 2 }}>
+    <>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{ mb: 3 }}>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+        </Link>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.PRODUCT)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          Sản phẩm
+        </Link>
+        <Typography color='text.primary'>Danh sách mã hàng</Typography>
+      </Breadcrumbs>
       <Card>
         <CardHeader
           action={
             <ButtonWithTooltip
               variant='contained'
-              onClick={() => navigate(`/product/sku/create/${id}`)}
+              onClick={() => navigate(`/product/${id}/sku/create`)}
               title='Thêm mã hàng'>
               <AddCircleOutlined />
             </ButtonWithTooltip>
@@ -86,77 +116,88 @@ const ProductSku = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {skusData?.data?.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell align='center'>{index + 1}</TableCell>
-                  <TableCell sx={{ width: '30%' }}>
-                    <Typography sx={{ ...truncateTextByLine(2) }}>
-                      {item.sku}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align='center'>
-                    {item?.imageUrl ? (
-                      <Box
-                        sx={{
-                          height: 40,
-                          '.thumbnail': {
-                            width: 40,
+              {skusData?.data &&
+                skusData?.data?.map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell align='center'>{index + 1}</TableCell>
+                    <TableCell sx={{ width: '30%' }}>
+                      <Typography sx={{ ...truncateTextByLine(2) }}>
+                        {item.sku}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align='center'>
+                      {item?.imageUrl ? (
+                        <Box
+                          sx={{
                             height: 40,
-                            objectFit: 'contain',
-                          },
-                        }}>
-                        <img src={item?.imageUrl} className='thumbnail' />
-                      </Box>
-                    ) : (
-                      'Không có'
-                    )}
-                  </TableCell>
-                  <TableCell align='center'>
-                    {moment(item.createdAt).format('DD/MM/YYYY')}
-                  </TableCell>
-                  <TableCell align='center'>
-                    <ActionButton>
-                      <Box mb={1}>
-                        <ButtonWithTooltip
-                          color='primary'
-                          onClick={() =>
-                            navigate(`/product/sku/update/${item?.sku}`)
-                          }
-                          variant='outlined'
-                          title='Chỉnh sửa'
-                          placement='left'>
-                          <EditOutlinedIcon />
-                        </ButtonWithTooltip>
-                      </Box>
-                      <Box>
-                        <ButtonWithTooltip
-                          color='error'
-                          onClick={() => {
-                            showConfirmModal({
-                              title: 'Bạn có muốn xóa mã hàng này không?',
-                              cancelText: 'Hủy',
-                              onOk: () => handleDeleteSku(item?.id),
-                              okText: 'Xóa',
-                              btnOkColor: 'error',
-                            });
-                          }}
-                          variant='outlined'
-                          title='Xoá'
-                          placement='left'>
-                          <DeleteOutlineOutlinedIcon />
-                        </ButtonWithTooltip>
-                      </Box>
-                    </ActionButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+                            '.thumbnail': {
+                              width: 40,
+                              height: 40,
+                              objectFit: 'contain',
+                            },
+                          }}>
+                          <img src={item?.imageUrl} className='thumbnail' />
+                        </Box>
+                      ) : (
+                        'Không có'
+                      )}
+                    </TableCell>
+                    <TableCell align='center'>
+                      {moment(item.createdAt).format('DD/MM/YYYY')}
+                    </TableCell>
+                    <TableCell align='center'>
+                      <ActionButton>
+                        <Box mb={1}>
+                          <ButtonWithTooltip
+                            color='primary'
+                            onClick={() => navigate(`/product/sku/${item?.id}`)}
+                            variant='outlined'
+                            title='Xem chi tiết'
+                            placement='left'>
+                            <InfoOutlinedIcon />
+                          </ButtonWithTooltip>
+                        </Box>
+                        <Box mb={1}>
+                          <ButtonWithTooltip
+                            color='primary'
+                            onClick={() =>
+                              navigate(`/product/sku/update/${item?.id}`)
+                            }
+                            variant='outlined'
+                            title='Chỉnh sửa'
+                            placement='left'>
+                            <EditOutlinedIcon />
+                          </ButtonWithTooltip>
+                        </Box>
+                        <Box>
+                          <ButtonWithTooltip
+                            color='error'
+                            onClick={() => {
+                              showConfirmModal({
+                                title: 'Bạn có muốn xóa mã hàng này không?',
+                                cancelText: 'Hủy',
+                                onOk: () => handleDeleteSku(item?.id),
+                                okText: 'Xóa',
+                                btnOkColor: 'error',
+                              });
+                            }}
+                            variant='outlined'
+                            title='Xoá'
+                            placement='left'>
+                            <DeleteOutlineOutlinedIcon />
+                          </ButtonWithTooltip>
+                        </Box>
+                      </ActionButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </TableContainer>
         <Divider />
       </Card>
       {confirmModal()}
-    </Card>
+    </>
   );
 };
 

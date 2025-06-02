@@ -28,6 +28,21 @@ export const useCreateSku = () => {
   });
 };
 
+const getSkuById = async (id: number | undefined) => {
+  const result = await axiosInstance.get(`${productSkuUrl}/${id}`);
+  return result.data as TBaseResponse<IProductSku>;
+};
+
+export const useGetSkuById = (id: number | undefined) => {
+  return useQuery({
+    queryKey: [QueryKeys.Sku, id],
+    queryFn: () => getSkuById(id),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    enabled: !!id,
+  });
+};
+
 const getSkusByProductId = async (id: number | undefined) => {
   const result = await axiosInstance.get(`products/${id}/skus`);
   return result.data as TSkusRes;

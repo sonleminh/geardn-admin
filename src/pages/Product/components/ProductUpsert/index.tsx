@@ -19,12 +19,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import {
   Autocomplete,
+  AutocompleteRenderInputParams,
   Box,
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
@@ -34,40 +34,20 @@ import {
   FormHelperText,
   Grid2,
   InputLabel,
+  Link,
   MenuItem,
   Select,
   SelectChangeEvent,
   SxProps,
-  TableBody,
-  TableRow,
-  TableHead,
-  Table,
-  TableCell,
-  TableContainer,
   TextField,
   Theme,
-  AutocompleteRenderInputParams,
   Typography,
-  Breadcrumbs,
-  Link,
-  Skeleton,
 } from '@mui/material';
 
+import { ROUTES } from '@/constants/route';
 import { useGetCategoryList } from '@/services/category';
 import { useGetEnumByContext } from '@/services/enum';
-import { TableSkeleton } from '@/components/TableSkeleton';
-import { formatPrice } from '@/utils/format-price';
-import { TableColumn } from '@/interfaces/ITableColumn';
-import { ROUTES } from '@/constants/route';
 import { useGetWarehouseList } from '@/services/warehouse';
-
-const columns: TableColumn[] = [
-  { align: 'center' },
-  { align: 'center' },
-  {},
-  { align: 'center' },
-  { align: 'center' },
-];
 
 const ProductUpsert = () => {
   const { id } = useParams();
@@ -79,13 +59,9 @@ const ProductUpsert = () => {
   const isEdit = !!id;
 
   const { data: initData } = useGetProductInitial();
-  const { data: productData, isLoading: isProductLoading } = useGetProductById(
-    id ? +id : 0
-  );
+  const { data: productData } = useGetProductById(id ? +id : 0);
   const { data: categoryList } = useGetCategoryList();
   const { data: tagData } = useGetEnumByContext('product-tag');
-  const { data: warehousesData, isLoading: isLoadingWarehouses } =
-    useGetWarehouseList();
 
   const { mutate: createProductMutate, isPending: isCreatePending } =
     useCreateProduct();
@@ -198,7 +174,7 @@ const ProductUpsert = () => {
           <Link
             underline='hover'
             color='inherit'
-            onClick={() => navigate(ROUTES.HOME)}
+            onClick={() => navigate(ROUTES.DASHBOARD)}
             sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <HomeOutlinedIcon sx={{ fontSize: 24 }} />
           </Link>
@@ -222,7 +198,6 @@ const ProductUpsert = () => {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Grid2 container spacing={3}>
           <Grid2 size={6}>
-            {/* Name and Description */}
             <Card sx={{ mb: 3 }}>
               <CardHeader
                 title='Thông tin chung'
@@ -416,183 +391,24 @@ const ProductUpsert = () => {
                 </FormControl>
               </CardContent>
             </Card>
-            <Box sx={{ mt: 2, textAlign: 'end' }}>
-              <Button onClick={() => navigate(ROUTES.PRODUCT)} sx={{ mr: 2 }}>
-                Trở lại
-              </Button>
-              <Button variant='contained' onClick={() => formik.handleSubmit()}>
-                Lưu
-              </Button>
-            </Box>
           </Grid2>
-          <Grid2 size={12}>
-            <Card>
-              <CardHeader
-                title='Phân loại sản phẩm'
-                sx={{
-                  span: {
-                    fontSize: 18,
-                    fontWeight: 500,
-                  },
-                }}
-              />
-              <Divider />
-              <CardContent>
-                <TableContainer>
-                  {isProductLoading || isLoadingWarehouses ? (
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell align='center'>STT</TableCell>
-                          <TableCell align='center'>Ảnh</TableCell>
-                          <TableCell>Phân loại</TableCell>
-                          <TableCell align='center'>Giá bán</TableCell>
-                          {[1, 2].map((index) => (
-                            <TableCell align='center' key={index}>
-                              <Skeleton width={100} />
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {[1, 2, 3].map((index) => (
-                          <TableRow key={index}>
-                            <TableCell>
-                              <Typography align='center'>
-                                <Skeleton width={20} />
-                              </Typography>
-                            </TableCell>
-                            <TableCell align='center'>
-                              <Box
-                                sx={{
-                                  height: 40,
-                                  '.thumbnail': {
-                                    width: 40,
-                                    height: 40,
-                                  },
-                                }}>
-                                <Skeleton
-                                  variant='rectangular'
-                                  width={40}
-                                  height={40}
-                                />
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  gap: 1,
-                                }}>
-                                <Skeleton width={100} />
-                                <Skeleton width={80} />
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Typography align='center'>
-                                <Skeleton width={80} />
-                              </Typography>
-                            </TableCell>
-                            {[1, 2, 3].map((warehouseIndex) => (
-                              <TableCell align='center' key={warehouseIndex}>
-                                <Skeleton width={60} />
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell align='center'>STT</TableCell>
-                          <TableCell align='center'>Ảnh</TableCell>
-                          <TableCell>Phân loại</TableCell>
-                          <TableCell align='center'>Giá bán</TableCell>
-                          {warehousesData?.data?.map((warehouse) => (
-                            <TableCell align='center' key={warehouse?.id}>
-                              {warehouse?.name}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {productData?.data?.skus?.length ? (
-                          productData?.data?.skus?.map((item, index) => (
-                            <TableRow key={index}>
-                              <TableCell>
-                                <Typography align='center'>
-                                  {index + 1}
-                                </Typography>
-                              </TableCell>
-                              <TableCell align='center'>
-                                <Box
-                                  sx={{
-                                    height: 40,
-                                    '.thumbnail': {
-                                      width: 40,
-                                      height: 40,
-                                      objectFit: 'contain',
-                                    },
-                                  }}>
-                                  <img
-                                    src={item?.imageUrl}
-                                    className='thumbnail'
-                                  />
-                                </Box>
-                              </TableCell>
-                              <TableCell>
-                                <Box
-                                  sx={{
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                  }}>
-                                  {item?.productSkuAttributes?.length
-                                    ? item?.productSkuAttributes?.map(
-                                        (item) => (
-                                          <Typography sx={{ fontSize: 14 }}>
-                                            {
-                                              item?.attributeValue?.attribute
-                                                ?.label
-                                            }
-                                            : {item?.attributeValue?.value}
-                                          </Typography>
-                                        )
-                                      )
-                                    : ''}
-                                </Box>
-                              </TableCell>
-                              <TableCell>
-                                <Typography align='center'>
-                                  {formatPrice(item?.price)}
-                                </Typography>
-                              </TableCell>
-                              {warehousesData?.data?.map(
-                                (warehouse, warehouseIndex) => (
-                                  <TableCell align='center' key={warehouse?.id}>
-                                    {item?.stocks?.[warehouseIndex]?.quantity ??
-                                      'Không có'}
-                                  </TableCell>
-                                )
-                              )}
-                            </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell align='center' colSpan={6}>
-                              Không có dữ liệu
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  )}
-                </TableContainer>
-              </CardContent>
-            </Card>
-          </Grid2>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              width: '100%',
+              mt: 2,
+            }}>
+            <Button onClick={() => navigate(ROUTES.PRODUCT)} sx={{ mr: 2 }}>
+              Trở lại
+            </Button>
+            <Button
+              variant='contained'
+              onClick={() => formik.handleSubmit()}
+              sx={{ minWidth: 100 }}>
+              Lưu
+            </Button>
+          </Box>
         </Grid2>
       </Box>
       {(isCreatePending || isUpdatePending) && <SuspenseLoader />}

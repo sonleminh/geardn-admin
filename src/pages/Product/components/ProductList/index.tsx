@@ -1,5 +1,6 @@
 import {
   Box,
+  Breadcrumbs,
   Card,
   CardContent,
   CardHeader,
@@ -7,6 +8,7 @@ import {
   Divider,
   IconButton,
   InputAdornment,
+  Link,
   Popover,
   Table,
   TableBody,
@@ -23,27 +25,26 @@ import moment from 'moment';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { AddCircleOutlined } from '@mui/icons-material';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import SearchIcon from '@mui/icons-material/Search';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ExcelUpload from '@/components/ExcelUpload';
 import TableFilter from '@/components/TableFilter';
 import { TableSkeleton } from '@/components/TableSkeleton';
+import { AddCircleOutlined } from '@mui/icons-material';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import SearchIcon from '@mui/icons-material/Search';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
 
 import { ICategory } from '@/interfaces/ICategory';
-import { IProduct } from '@/interfaces/IProduct';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 
 import { ROUTES } from '@/constants/route';
@@ -332,230 +333,252 @@ export default function ProductList2() {
   ]);
 
   return (
-    <Card sx={{ mt: 3, borderRadius: 2 }}>
-      <CardHeader
-        title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            Danh sách sản phẩm
-          </Typography>
-        }
-        action={
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <ExcelUpload />
-            <ButtonWithTooltip
-              variant='contained'
-              onClick={() => navigate('create')}
-              title='Thêm sản phẩm'
-              sx={{ textTransform: 'none' }}>
-              <AddCircleOutlined />
-            </ButtonWithTooltip>
-          </Box>
-        }
-      />
-      <Box sx={{ px: 2, pb: 2 }}>
-        <TextField
-          fullWidth
-          size='small'
-          placeholder='Tìm kiếm sản phẩm...'
-          value={searchQuery}
-          onChange={handleSearchChange}
-          sx={{
-            '& .MuiInputBase-root': {
-              minHeight: 40,
-            },
-          }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position='start'>
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
-      <Divider />
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell colSpan={headCells.length}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}>
-                    <FilterChips
-                      columnFilters={columnFilters}
-                      categoriesData={categoriesData || { data: [] }}
-                      onFilterChange={handleColumnFilterChange}
-                    />
-                  </Box>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                {headCells?.map((headCell) => (
-                  <TableCell
-                    key={headCell.id}
-                    align={headCell.align ?? 'left'}
-                    padding={headCell.disablePadding ? 'none' : 'normal'}
-                    sx={{ width: headCell.width }}>
-                    {headCell.label}
-                    {headCell.isFilter ? (
-                      <>
-                        {' '}
-                        {(() => {
-                          const filterValue =
-                            columnFilters[
-                              headCell.id as keyof typeof columnFilters
-                            ];
-                          if (
-                            Array.isArray(filterValue) &&
-                            filterValue.length > 0
-                          ) {
-                            return (
-                              <Typography
-                                component='span'
-                                sx={{ fontSize: 14 }}>
-                                ({filterValue.length})
-                              </Typography>
-                            );
-                          }
-                          return null;
-                        })()}
-                        <IconButton
-                          size='small'
-                          onClick={(e) => handleFilterClick(e, headCell.id)}
-                          sx={{ ml: 1 }}>
-                          <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
-                        </IconButton>
-                      </>
-                    ) : null}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {isLoading ? (
-                <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
-              ) : productsData?.data?.length ? (
-                productsData?.data?.map((product, index) => (
-                  <TableRow key={product.id}>
-                    <TableCell align='center'>
-                      {page * rowsPerPage + index + 1}
-                    </TableCell>
-                    <TableCell>
-                      <Typography>{product.name}</Typography>
-                    </TableCell>
-                    <TableCell align='center'>
-                      <Typography>{product.category?.name}</Typography>
-                    </TableCell>
-                    <TableCell align='center'>
-                      <Box
-                        sx={{
-                          height: 40,
-                          img: {
-                            width: 40,
-                            height: 40,
-                            mr: 1,
-                            objectFit: 'contain',
-                          },
-                        }}>
-                        <img src={product?.images?.[0]} alt={product?.name} />
-                      </Box>
-                    </TableCell>
-                    <TableCell align='center'>
-                      <Typography>
-                        {moment(product?.createdAt).format('DD/MM/YYYY')}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align='center'>
-                      <ActionButton>
-                        <Box mb={1}>
-                          <ButtonWithTooltip
-                            color='primary'
-                            variant='outlined'
-                            title='Xem chi tiết'
-                            placement='left'
-                            onClick={() => navigate(`${product.id}`)}>
-                            <InfoOutlinedIcon />
-                          </ButtonWithTooltip>
-                        </Box>
-                        <Box mb={1}>
-                          <ButtonWithTooltip
-                            color='primary'
-                            variant='outlined'
-                            title='Danh sách mã hàng'
-                            placement='left'
-                            onClick={() => navigate(`${product.id}/sku`)}>
-                            <ListAltIcon />
-                          </ButtonWithTooltip>
-                        </Box>
-                        <Box mb={1}>
-                          <ButtonWithTooltip
-                            color='primary'
-                            variant='outlined'
-                            title='Chỉnh sửa'
-                            placement='left'
-                            onClick={() => navigate(`update/${product.id}`)}>
-                            <EditOutlinedIcon />
-                          </ButtonWithTooltip>
-                        </Box>
-                        <Box>
-                          <ButtonWithTooltip
-                            color='error'
-                            variant='outlined'
-                            title='Xoá'
-                            placement='left'>
-                            <DeleteOutlineOutlinedIcon />
-                          </ButtonWithTooltip>
-                        </Box>
-                      </ActionButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell align='center' colSpan={headCells.length + 1}>
-                    Không có dữ liệu
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          component='div'
-          count={productsData?.meta?.total || 0}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[10, 20, 30, 50]}
-          labelRowsPerPage='Số hàng mỗi trang'
-          labelDisplayedRows={({ from, to, count }) =>
-            `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`
+    <>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{ mb: 3 }}>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+        </Link>
+        <Typography color='text.primary'>Danh sách sản phẩm</Typography>
+      </Breadcrumbs>
+      <Card sx={{ mt: 3, borderRadius: 2 }}>
+        <CardHeader
+          title={
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+              Danh sách sản phẩm
+            </Typography>
+          }
+          action={
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <ExcelUpload />
+              <ButtonWithTooltip
+                variant='contained'
+                onClick={() => navigate('create')}
+                title='Thêm sản phẩm'
+                sx={{ textTransform: 'none' }}>
+                <AddCircleOutlined />
+              </ButtonWithTooltip>
+            </Box>
           }
         />
-      </CardContent>
+        <Box sx={{ px: 2, pb: 2 }}>
+          <TextField
+            fullWidth
+            size='small'
+            placeholder='Tìm kiếm sản phẩm...'
+            value={searchQuery}
+            onChange={handleSearchChange}
+            sx={{
+              '& .MuiInputBase-root': {
+                minHeight: 40,
+              },
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+        <Divider />
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell colSpan={headCells.length}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}>
+                      <FilterChips
+                        columnFilters={columnFilters}
+                        categoriesData={categoriesData || { data: [] }}
+                        onFilterChange={handleColumnFilterChange}
+                      />
+                    </Box>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  {headCells?.map((headCell) => (
+                    <TableCell
+                      key={headCell.id}
+                      align={headCell.align ?? 'left'}
+                      padding={headCell.disablePadding ? 'none' : 'normal'}
+                      sx={{ width: headCell.width }}>
+                      {headCell.label}
+                      {headCell.isFilter ? (
+                        <>
+                          {' '}
+                          {(() => {
+                            const filterValue =
+                              columnFilters[
+                                headCell.id as keyof typeof columnFilters
+                              ];
+                            if (
+                              Array.isArray(filterValue) &&
+                              filterValue.length > 0
+                            ) {
+                              return (
+                                <Typography
+                                  component='span'
+                                  sx={{ fontSize: 14 }}>
+                                  ({filterValue.length})
+                                </Typography>
+                              );
+                            }
+                            return null;
+                          })()}
+                          <IconButton
+                            size='small'
+                            onClick={(e) => handleFilterClick(e, headCell.id)}
+                            sx={{ ml: 1 }}>
+                            <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </>
+                      ) : null}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {isLoading ? (
+                  <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
+                ) : productsData?.data?.length ? (
+                  productsData?.data?.map((product, index) => (
+                    <TableRow key={product.id}>
+                      <TableCell align='center'>
+                        {page * rowsPerPage + index + 1}
+                      </TableCell>
+                      <TableCell>
+                        <Typography>{product.name}</Typography>
+                      </TableCell>
+                      <TableCell align='center'>
+                        <Typography>{product.category?.name}</Typography>
+                      </TableCell>
+                      <TableCell align='center'>
+                        <Box
+                          sx={{
+                            height: 40,
+                            img: {
+                              width: 40,
+                              height: 40,
+                              mr: 1,
+                              objectFit: 'contain',
+                            },
+                          }}>
+                          <img src={product?.images?.[0]} alt={product?.name} />
+                        </Box>
+                      </TableCell>
+                      <TableCell align='center'>
+                        <Typography>
+                          {moment(product?.createdAt).format('DD/MM/YYYY')}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align='center'>
+                        <ActionButton>
+                          <Box mb={1}>
+                            <ButtonWithTooltip
+                              color='primary'
+                              variant='outlined'
+                              title='Xem chi tiết'
+                              placement='left'
+                              onClick={() => navigate(`${product.id}`)}>
+                              <InfoOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
+                          <Box mb={1}>
+                            <ButtonWithTooltip
+                              color='primary'
+                              variant='outlined'
+                              title='Danh sách mã hàng'
+                              placement='left'
+                              onClick={() => navigate(`${product.id}/sku`)}>
+                              <ListAltIcon />
+                            </ButtonWithTooltip>
+                          </Box>
+                          <Box mb={1}>
+                            <ButtonWithTooltip
+                              color='primary'
+                              variant='outlined'
+                              title='Chỉnh sửa'
+                              placement='left'
+                              onClick={() => navigate(`update/${product.id}`)}>
+                              <EditOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
+                          {/* <Box>
+                            <ButtonWithTooltip
+                              color='error'
+                              variant='outlined'
+                              title='Xoá'
+                              placement='left'
+                              onClick={() =>
+                                showConfirmModal({
+                                  title: 'Xoá sản phẩm',
+                                  content:
+                                    'Bạn có chắc chắn muốn xoá sản phẩm này?',
+                                })
+                              }>
+                              <DeleteOutlineOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box> */}
+                        </ActionButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell align='center' colSpan={headCells.length + 1}>
+                      Không có dữ liệu
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            component='div'
+            count={productsData?.meta?.total || 0}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[10, 20, 30, 50]}
+            labelRowsPerPage='Số hàng mỗi trang'
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`
+            }
+          />
+        </CardContent>
 
-      <Popover
-        open={Boolean(filterAnchorEl)}
-        anchorEl={filterAnchorEl}
-        onClose={handleFilterClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}>
-        {renderFilterContent()}
-      </Popover>
+        <Popover
+          open={Boolean(filterAnchorEl)}
+          anchorEl={filterAnchorEl}
+          onClose={handleFilterClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'left',
+          }}>
+          {renderFilterContent()}
+        </Popover>
 
-      {confirmModal()}
-    </Card>
+        {confirmModal()}
+      </Card>
+    </>
   );
 }

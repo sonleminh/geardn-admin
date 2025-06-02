@@ -1,13 +1,17 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { useFormik } from 'formik';
 import { ChangeEvent, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 
 import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import {
   Box,
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
@@ -16,6 +20,7 @@ import {
   FormControl,
   Grid2,
   InputLabel,
+  Link,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -24,35 +29,49 @@ import {
   Typography,
 } from '@mui/material';
 
+import { ROUTES } from '@/constants/route';
 import { QueryKeys } from '@/constants/query-key';
-
-import ImageUpload from '@/components/ImageUpload';
-import Input from '@/components/Input';
-import SuspenseLoader from '@/components/SuspenseLoader';
-
 import { useNotificationContext } from '@/contexts/NotificationContext';
-
-import { truncateTextByLine } from '@/utils/css-helper.util';
-
 import { IAttributeValue } from '@/interfaces/IAttributeValue';
 import { useGetAttributeList } from '@/services/attribute';
 import {
   useGetAttributeValueList,
   useGetAttributeValuesByAttributeId,
 } from '@/services/attribute-value';
-import { useGetProductBySlug } from '@/services/product';
+import { useGetProductById } from '@/services/product';
 import {
   useCreateSku,
   useGetSkuByProductSku,
   useUpdateSku,
 } from '@/services/sku';
+import ImageUpload from '@/components/ImageUpload';
+import Input from '@/components/Input';
+import SuspenseLoader from '@/components/SuspenseLoader';
+
+const createSchema = Yup.object().shape({
+  price: Yup.number()
+    .required('Vui lòng nhập giá bán')
+    .min(0, 'Giá bán phải lớn hơn hoặc bằng 0')
+    .typeError('Giá bán phải là số'),
+  imageUrl: Yup.string().nullable(),
+});
+
+const updateSchema = Yup.object().shape({
+  price: Yup.number()
+    .required('Vui lòng nhập giá bán')
+    .min(0, 'Giá bán phải lớn hơn hoặc bằng 0')
+    .typeError('Giá bán phải là số'),
+  imageUrl: Yup.string().nullable(),
+});
 
 const ProductSkuUpsert = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isEdit = location?.pathname.includes('update');
-  const { sku } = useParams<{ sku: string }>();
-
+  const { productId, skuId } = useParams<{
+    productId: string;
+    skuId: string;
+  }>();
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
   const [isEditAttribute, setIsEditAttribute] = useState<boolean>(false);
@@ -68,14 +87,12 @@ const ProductSkuUpsert = () => {
   >([]);
   const [showAttributeForm, setShowAttributeForm] = useState<boolean>(true);
 
-  const { data: productData } = useGetProductBySlug(
-    !isEdit ? (sku as string) : ''
-  );
+  const { data: productData } = useGetProductById(productId ? +productId : 0);
+
   const { data: skuData } = useGetSkuByProductSku(
-    isEdit ? (sku as string) : ''
+    isEdit ? (skuId as string) : ''
   );
   const { data: attributeListData } = useGetAttributeList();
-  console.log('attributeListData', attributeListData?.data);
   const { data: attributeValueByAttIdListData } =
     useGetAttributeValuesByAttributeId(+attributeId);
 
@@ -91,23 +108,23 @@ const ProductSkuUpsert = () => {
       formik.setFieldValue('imageUrl', skuData?.data?.imageUrl);
       setAttributeList(
         skuData?.data?.productSkuAttributes?.map((item) => ({
-          attributeId: String(item?.attributeValue?.attributeId),
+          attributeId: String(item?.attributeValue?.attribute?.id),
           attributeValueId: String(item?.attributeValue?.id),
         }))
       );
     }
-  }, [sku, skuData]);
+  }, [skuId, skuData]);
 
   const formik = useFormik({
     initialValues: {
       price: '',
       imageUrl: '',
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
+    validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      if (!sku) {
-        throw new Error('sku is missing');
+      if (!skuId) {
+        throw new Error('skuId is missing');
       }
       if (attributeId || attributeValueId) {
         return showNotification('Chưa lưu phân loại hàng', 'error');
@@ -249,223 +266,269 @@ const ProductSkuUpsert = () => {
     attributeValueId: string,
     index: number
   ) => {
-    // const handleEditAttribute = (attributeValueId: string, index: number) => {
     setIsEditAttribute(true);
     setEditAttIndex(index);
     setAttributeId(attributeId);
     setAttributeValueId(attributeValueId);
-    // const attributeValue = attributeValuesData?.data?.find(
-    //   (prdAttr) => prdAttr.id === +attributeValueId
-    // );
-    // if (attributeValue) {
-    //   setAttributeValueId(String(attributeValue.attributeId));
-    // }
   };
 
   return (
-    <Card sx={{ mt: 3, borderRadius: 2 }}>
-      <CardHeader
-        title={
-          <Typography
-            sx={{ fontSize: 20, fontWeight: 500, ...truncateTextByLine(1) }}>
-            {isEdit ? 'Sửa mã hàng' : 'Thêm mã hàng'}:{' '}
-            {productData?.data?.name ?? sku}
+    <>
+      <Box sx={{ mb: 3 }}>
+        <Breadcrumbs
+          separator={<NavigateNextIcon fontSize='small' />}
+          aria-label='breadcrumb'>
+          <Link
+            underline='hover'
+            color='inherit'
+            onClick={() => navigate(ROUTES.DASHBOARD)}
+            sx={{
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+            <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+          </Link>
+          <Link
+            underline='hover'
+            color='inherit'
+            onClick={() => navigate(ROUTES.PRODUCT)}
+            sx={{
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+            Sản phẩm
+          </Link>
+          <Typography color='text.primary'>
+            {isEdit
+              ? 'Chỉnh sửa phân loại sản phẩm'
+              : 'Thêm phân loại sản phẩm'}
           </Typography>
-        }
-      />
-      <Divider />
+        </Breadcrumbs>
+      </Box>
 
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Grid2 container rowSpacing={2} columnSpacing={4}>
-          <Grid2 size={12}>
-            <Box display={'flex'}>
-              <Typography sx={{ width: 80, mr: 2, mb: 2 }}>
-                Loại hàng:
-              </Typography>
-              {!showAttributeForm && (
-                <Button
-                  sx={{ height: 32 }}
-                  variant={'contained'}
-                  size='small'
-                  onClick={handleAddAttribute}>
-                  <AddIcon />
-                </Button>
-              )}
-            </Box>
-          </Grid2>
-          {(showAttributeForm || isEdit) && (
-            <>
-              {attributeList?.length > 0 && (
-                <Grid2 size={12} className='attribute-list'>
-                  <Box
-                    sx={{
-                      width: '400px',
-                      p: '12px 20px',
-                      border: '1px solid #ccc',
-                      borderRadius: 1,
-                    }}>
-                    {attributeList?.map((item, index) => {
-                      const attributeValueItem = getAttributeLabel(
-                        item?.attributeId,
-                        item?.attributeValueId
-                      );
-                      return (
-                        <Box
-                          key={item?.attributeValueId}
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            my: 1.5,
-                          }}>
-                          <Typography key={item?.attributeValueId}>
-                            {attributeValueItem?.attribute ?? ''} -{' '}
-                            {attributeValueItem?.attributeValue ?? ''}
-                          </Typography>
-                          <Box>
-                            <Button
-                              sx={{
-                                minWidth: 40,
-                                width: 40,
-                                height: 30,
-                              }}
-                              variant='outlined'
-                              onClick={() =>
-                                handleEditAttribute(
-                                  String(item.attributeId),
-                                  String(item.attributeValueId),
-                                  index
-                                )
-                              }>
-                              <EditOutlinedIcon sx={{ fontSize: 20 }} />
-                            </Button>
-                            <Button
-                              sx={{
-                                minWidth: 40,
-                                width: 40,
-                                height: 30,
-                                ml: 2,
-                              }}
-                              variant='outlined'
-                              onClick={() => handleDeleteAttribute(index)}>
-                              <DeleteOutlineOutlinedIcon
-                                sx={{ fontSize: 20 }}
-                              />
-                            </Button>
-                          </Box>
-                        </Box>
-                      );
-                    })}
-                  </Box>
-                </Grid2>
-              )}
-              <Grid2 size={4}>
-                <FormControl variant='filled' fullWidth>
-                  <InputLabel>Loại</InputLabel>
-                  <Select
-                    disableUnderline
-                    size='small'
-                    onChange={handleAttributeChange}
-                    value={attributeId ?? ''}
-                    disabled={isEditAttribute}>
-                    {attributeListData?.data?.map((item) => (
-                      <MenuItem key={item?.id} value={String(item.id)}>
-                        {item?.label}
-                      </MenuItem>
-                    )) ?? []}
-                  </Select>
-                </FormControl>
-              </Grid2>
-              <Grid2 size={4}>
-                <FormControl variant='filled' fullWidth>
-                  <InputLabel>Giá trị</InputLabel>
-                  <Select
-                    disableUnderline
-                    size='small'
-                    onChange={handleAttributeValueValueChange}
-                    value={attributeValueId ?? ''}
-                    disabled={!attributeValueByAttIdListData}>
-                    {attributeValueByAttIdListData?.data?.map((item) => (
-                      <MenuItem key={item?.id} value={String(item?.id)}>
-                        {item.value}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid2>
-              <Grid2 size={4}>
-                <Box sx={{ display: 'flex', ml: 'auto' }}>
-                  <Typography sx={helperTextStyle}>
-                    {/* {optionError} */}
-                  </Typography>
-                  <Button
-                    sx={{ ml: 2, textTransform: 'initial' }}
-                    variant='contained'
-                    // disabled={
-                    //   !variantName || attributeList?.length === 0
-                    //     ? true
-                    //     : false
-                    // }
-                    disabled={!attributeValueId}
-                    onClick={handleSaveAttribute}>
-                    Lưu
-                  </Button>
-                  <Button
-                    sx={{ ml: 2, textTransform: 'initial' }}
-                    variant='outlined'
-                    onClick={handleDelBtn}
-                    disabled={
-                      attributeId?.length <= 0 && attributeValueId?.length <= 0
-                    }>
-                    Xóa
-                  </Button>
-                </Box>
-              </Grid2>
-            </>
-          )}
+      <Typography sx={{ mb: 2, fontSize: 20, fontWeight: 600 }}>
+        {isEdit
+          ? `Chỉnh sửa phân loại sản phẩm: ${
+              skuData?.data?.product?.name ?? ''
+            }`
+          : `Thêm phân loại sản phẩm: ${productData?.data?.name ?? ''}`}
+      </Typography>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Grid2 container spacing={3}>
           <Grid2 size={6}>
-            <FormControl fullWidth>
-              <Input
-                label='Giá'
-                name='price'
-                variant='filled'
-                type='number'
-                size='small'
-                required
-                helperText={
-                  <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors.price}
-                  </Box>
-                }
-                value={formik?.values.price}
-                onChange={handleChangeValue}
+            <Card>
+              <CardHeader
+                title='Thông tin:'
+                sx={{
+                  span: {
+                    fontSize: 18,
+                    fontWeight: 500,
+                  },
+                }}
               />
-            </FormControl>
+              <Divider />
+              <CardContent>
+                {(showAttributeForm || isEdit) && (
+                  <Grid2 container spacing={2} mb={2}>
+                    <Grid2 size={6}>
+                      <FormControl variant='filled' fullWidth>
+                        <InputLabel>Loại</InputLabel>
+                        <Select
+                          disableUnderline
+                          size='small'
+                          onChange={handleAttributeChange}
+                          value={attributeId ?? ''}
+                          disabled={isEditAttribute}>
+                          {attributeListData?.data?.map((item) => (
+                            <MenuItem key={item?.id} value={String(item.id)}>
+                              {item?.label}
+                            </MenuItem>
+                          )) ?? []}
+                        </Select>
+                      </FormControl>
+                    </Grid2>
+                    <Grid2 size={6}>
+                      <FormControl variant='filled' fullWidth>
+                        <InputLabel>Giá trị</InputLabel>
+                        <Select
+                          disableUnderline
+                          size='small'
+                          onChange={handleAttributeValueValueChange}
+                          value={attributeValueId ?? ''}
+                          disabled={!attributeValueByAttIdListData}>
+                          {attributeValueByAttIdListData?.data?.map((item) => (
+                            <MenuItem key={item?.id} value={String(item?.id)}>
+                              {item.value}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid2>
+                    <Box sx={{ display: 'flex', ml: 'auto' }}>
+                      <Typography sx={helperTextStyle}></Typography>
+                      <Button
+                        sx={{ ml: 2, textTransform: 'initial' }}
+                        variant='contained'
+                        disabled={!attributeValueId}
+                        onClick={handleSaveAttribute}>
+                        Lưu
+                      </Button>
+                      <Button
+                        sx={{ ml: 2, textTransform: 'initial' }}
+                        variant='outlined'
+                        onClick={handleDelBtn}
+                        disabled={
+                          attributeId?.length <= 0 &&
+                          attributeValueId?.length <= 0
+                        }>
+                        Xóa
+                      </Button>
+                    </Box>
+                  </Grid2>
+                )}
+                {!showAttributeForm && (
+                  <Button
+                    sx={{ height: 32 }}
+                    variant={'contained'}
+                    size='small'
+                    onClick={handleAddAttribute}>
+                    <AddIcon />
+                  </Button>
+                )}
+                <FormControl fullWidth>
+                  <Input
+                    label='Giá bán'
+                    name='price'
+                    variant='filled'
+                    type='number'
+                    size='small'
+                    required
+                    helperText={
+                      <Box component={'span'} sx={helperTextStyle}>
+                        {formik.errors.price}
+                      </Box>
+                    }
+                    value={formik?.values.price}
+                    onChange={handleChangeValue}
+                  />
+                </FormControl>
+                <FormControl fullWidth margin='normal'>
+                  <ImageUpload
+                    title={'Ảnh:'}
+                    helperText={
+                      <Box component={'span'} sx={helperTextStyle}>
+                        {formik.errors.imageUrl}
+                      </Box>
+                    }
+                    value={formik?.values?.imageUrl}
+                    onUploadChange={handleUploadResult}
+                  />
+                </FormControl>
+              </CardContent>
+            </Card>
+          </Grid2>
+          <Grid2 size={6}>
+            <Card>
+              <CardHeader
+                title='Danh sách thuộc tính:'
+                sx={{
+                  span: {
+                    fontSize: 18,
+                    fontWeight: 500,
+                  },
+                }}
+              />
+              <Divider />
+              <CardContent>
+                {attributeList?.length > 0 ? (
+                  <Grid2 size={12} className='attribute-list'>
+                    <Box
+                      sx={{
+                        width: '400px',
+                        p: '12px 20px',
+                        border: '1px solid #ccc',
+                        borderRadius: 1,
+                      }}>
+                      {attributeList?.map((item, index) => {
+                        const attributeValueItem = getAttributeLabel(
+                          item?.attributeId,
+                          item?.attributeValueId
+                        );
+                        return (
+                          <Box
+                            key={item?.attributeValueId}
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              my: 1.5,
+                            }}>
+                            <Typography key={item?.attributeValueId}>
+                              {attributeValueItem?.attribute ?? ''} -{' '}
+                              {attributeValueItem?.attributeValue ?? ''}
+                            </Typography>
+                            <Box>
+                              <Button
+                                sx={{
+                                  minWidth: 40,
+                                  width: 40,
+                                  height: 30,
+                                }}
+                                variant='outlined'
+                                onClick={() =>
+                                  handleEditAttribute(
+                                    String(item.attributeId),
+                                    String(item.attributeValueId),
+                                    index
+                                  )
+                                }>
+                                <EditOutlinedIcon sx={{ fontSize: 20 }} />
+                              </Button>
+                              <Button
+                                sx={{
+                                  minWidth: 40,
+                                  width: 40,
+                                  height: 30,
+                                  ml: 2,
+                                }}
+                                variant='outlined'
+                                onClick={() => handleDeleteAttribute(index)}>
+                                <DeleteOutlineOutlinedIcon
+                                  sx={{ fontSize: 20 }}
+                                />
+                              </Button>
+                            </Box>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  </Grid2>
+                ) : (
+                  <Typography>Không có phân loại sản phẩm</Typography>
+                )}
+              </CardContent>
+            </Card>
           </Grid2>
         </Grid2>
-        <FormControl>
-          <ImageUpload
-            title={'Ảnh:'}
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.imageUrl}
-              </Box>
-            }
-            value={formik?.values?.imageUrl}
-            onUploadChange={handleUploadResult}
-          />
-        </FormControl>
         <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate(-1)} sx={{ mr: 2 }}>
+          <Button
+            onClick={() => navigate(`/product/${skuData?.data?.productId}/sku`)}
+            sx={{ mr: 2 }}>
             Trở lại
           </Button>
-          <Button variant='contained' onClick={() => formik.handleSubmit()}>
-            Thêm
+          <Button
+            variant='contained'
+            onClick={() => formik.handleSubmit()}
+            sx={{ minWidth: 100 }}>
+            Lưu
           </Button>
         </Box>
-      </CardContent>
+      </Box>
       {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
-    </Card>
+    </>
   );
 };
 

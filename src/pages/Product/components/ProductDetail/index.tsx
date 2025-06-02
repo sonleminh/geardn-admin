@@ -6,10 +6,6 @@ import Input from '@/components/Input';
 import { useGetProductById } from '@/services/product';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import PriceChangeOutlinedIcon from '@mui/icons-material/PriceChangeOutlined';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import {
   Box,
   Breadcrumbs,
@@ -22,54 +18,39 @@ import {
   FormControl,
   Grid2,
   Link,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Typography,
 } from '@mui/material';
 
 import { ROUTES } from '@/constants/route';
-import { useGetWarehouseList } from '@/services/warehouse';
-import { formatPrice } from '@/utils/format-price';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import ActionButton from '@/components/ActionButton';
 
 const ProductUpsert = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: productData, isLoading: isProductLoading } = useGetProductById(
-    id ? +id : 0
-  );
-  const { data: warehousesData, isLoading: isLoadingWarehouses } =
-    useGetWarehouseList();
+  const { data: productData } = useGetProductById(id ? +id : 0);
 
   return (
     <>
-      <Box sx={{ mb: 3 }}>
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize='small' />}
-          aria-label='breadcrumb'>
-          <Link
-            underline='hover'
-            color='inherit'
-            onClick={() => navigate(ROUTES.HOME)}
-            sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-            <HomeOutlinedIcon sx={{ fontSize: 24 }} />
-          </Link>
-          <Link
-            underline='hover'
-            color='inherit'
-            onClick={() => navigate(ROUTES.PRODUCT)}
-            sx={{ cursor: 'pointer' }}>
-            Sản phẩm
-          </Link>
-          <Typography color='text.primary'>Chi tiết sản phẩm</Typography>
-        </Breadcrumbs>
-      </Box>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{ mb: 3 }}>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+        </Link>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.PRODUCT)}
+          sx={{ cursor: 'pointer' }}>
+          Sản phẩm
+        </Link>
+        <Typography color='text.primary'>Chi tiết sản phẩm</Typography>
+      </Breadcrumbs>
 
       <Typography sx={{ mb: 2, fontSize: 20, fontWeight: 600 }}>
         Chi tiết sản phẩm:
@@ -236,142 +217,23 @@ const ProductUpsert = () => {
                 </FormControl>
               </CardContent>
             </Card>
-            <Box sx={{ mt: 2, textAlign: 'end' }}>
-              <Button onClick={() => navigate(ROUTES.PRODUCT)} sx={{ mr: 2 }}>
-                Trở lại
-              </Button>
-              <Button
-                variant='contained'
-                onClick={() => navigate(`/product/update/${id}`)}>
-                Chỉnh sửa
-              </Button>
-            </Box>
           </Grid2>
-          <Grid2 size={12}>
-            <Card>
-              <CardHeader
-                title='Phân loại sản phẩm'
-                sx={{
-                  span: {
-                    fontSize: 18,
-                    fontWeight: 500,
-                  },
-                }}
-              />
-              <Divider />
-              <CardContent>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell align='center'>STT</TableCell>
-                        <TableCell align='center'>Ảnh</TableCell>
-                        <TableCell>Phân loại</TableCell>
-                        <TableCell align='center'>Giá bán</TableCell>
-                        <TableCell align='center'>Hành động</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {productData?.data?.skus?.length ? (
-                        productData?.data?.skus?.map((item, index) => (
-                          <TableRow key={index}>
-                            <TableCell>
-                              <Typography align='center'>
-                                {index + 1}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align='center'>
-                              <Box
-                                sx={{
-                                  height: 40,
-                                  '.thumbnail': {
-                                    width: 40,
-                                    height: 40,
-                                    objectFit: 'contain',
-                                  },
-                                }}>
-                                <img
-                                  src={item?.imageUrl}
-                                  className='thumbnail'
-                                />
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                }}>
-                                {item?.productSkuAttributes?.length
-                                  ? item?.productSkuAttributes?.map((item) => (
-                                      <Typography sx={{ fontSize: 14 }}>
-                                        {item?.attributeValue?.attribute?.label}
-                                        : {item?.attributeValue?.value}
-                                      </Typography>
-                                    ))
-                                  : ''}
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Typography align='center'>
-                                {formatPrice(item?.price)}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align='center'>
-                              <ActionButton>
-                                <Box mb={1}>
-                                  <ButtonWithTooltip
-                                    color='primary'
-                                    variant='outlined'
-                                    title='Xem'
-                                    placement='left'
-                                    onClick={() =>
-                                      navigate(
-                                        `${ROUTES.PRODUCT}/sku/${item.id}`
-                                      )
-                                    }>
-                                    <VisibilityOutlinedIcon />
-                                  </ButtonWithTooltip>
-                                </Box>
-                                <Box mb={1}>
-                                  <ButtonWithTooltip
-                                    color='primary'
-                                    variant='outlined'
-                                    title='Chỉnh sửa'
-                                    placement='left'
-                                    // onClick={() =>
-                                    //   navigate(`update/${product.id}`)
-                                    // }
-                                  >
-                                    <EditOutlinedIcon />
-                                  </ButtonWithTooltip>
-                                </Box>
-                                <Box>
-                                  <ButtonWithTooltip
-                                    color='error'
-                                    variant='outlined'
-                                    title='Xoá'
-                                    placement='left'>
-                                    <DeleteOutlineOutlinedIcon />
-                                  </ButtonWithTooltip>
-                                </Box>
-                              </ActionButton>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell align='center' colSpan={6}>
-                            Không có dữ liệu
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>
-            </Card>
-          </Grid2>
+          <Box
+            sx={{
+              width: '100%',
+              mt: 2,
+              display: 'flex',
+              justifyContent: 'flex-end',
+            }}>
+            <Button onClick={() => navigate(ROUTES.PRODUCT)} sx={{ mr: 2 }}>
+              Trở lại
+            </Button>
+            <Button
+              variant='outlined'
+              onClick={() => navigate(`/product/update/${id}`)}>
+              Chỉnh sửa
+            </Button>
+          </Box>
         </Grid2>
       </Box>
     </>

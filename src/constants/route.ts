@@ -3,7 +3,6 @@ export const ROUTES = {
     ATTRIBUTE_VALUE: '/attribute-value',
     CATEGORY: '/category',
     DASHBOARD: '/dashboard',
-    HOME: '/',
     INVENTORY: '/inventory',
     LOGIN: '/login',
     ORDER: '/order',
