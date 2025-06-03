@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import {
   Box,
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
@@ -14,11 +15,13 @@ import {
   FormControl,
   FormControlLabel,
   Grid2,
+  Link,
   Radio,
   RadioGroup,
   Typography,
 } from '@mui/material';
-
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -33,7 +36,7 @@ import { useGetPaymentById } from '@/services/payment';
 
 import { QueryKeys } from '@/constants/query-key';
 
-import { ICreateOrderItem, IOrderItem } from '@/interfaces/IOrder';
+import { IOrderItem } from '@/interfaces/IOrder';
 
 import { createSchema, updateSchema } from '../utils/schema/orderSchema';
 
@@ -42,8 +45,6 @@ import CustomerForm from './components/CustomerForm';
 // import ProductSelector from './components/ProductSelector';
 import ShipmentForm from './components/ShipmentForm';
 import { ROUTES } from '@/constants/route';
-import ProductSelector from './components/ProductSelector';
-import { useGetCategoryList } from '@/services/category';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -53,7 +54,7 @@ const OrderUpsert = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
-  const [orderItems, setOrderItems] = useState<ICreateOrderItem[]>([]);
+  const [orderItems, setOrderItems] = useState<IOrderItem[]>([]);
 
   const [city, setCity] = useState<string>('');
   const [district, setDistrict] = useState<string>('');
@@ -62,7 +63,7 @@ const OrderUpsert = () => {
   const [shopAddress, setShopAddress] = useState<string>('');
 
   const { data: orderData } = useGetOrderById(id as string);
-  const { data: payment } = useGetPaymentById(1);
+  const { data: payment } = useGetPaymentById('673c8947d6a67118f380f4ab');
 
   const { mutate: createOrderMutate, isPending: isCreatePending } =
     useCreateOrder();
@@ -93,7 +94,7 @@ const OrderUpsert = () => {
     onSubmit(values) {
       const payload = {
         ...values,
-        user: user?.id,
+        user: user?._id,
         items: orderItems,
         shipment: {
           ...values?.shipment,
@@ -115,42 +116,42 @@ const OrderUpsert = () => {
       ) {
         return showNotification('Vui lòng chọn địa chỉ nhận hàng', 'error');
       }
-      // if (isEdit) {
-      //   updateOrderMutate(
-      //     { _id: id, ...payload },
-      //     {
-      //       onSuccess() {
-      //         queryClient.invalidateQueries({
-      //           queryKey: [QueryKeys.Order],
-      //         });
-      //         showNotification('Cập nhật đơn hàng thành công', 'success');
-      //         navigate(-1);
-      //       },
-      //       onError: (err: Error | AxiosError) => {
-      //         if (axios.isAxiosError(err)) {
-      //           showNotification(err.response?.data?.message, 'error');
-      //         } else {
-      //           showNotification(err.message, 'error');
-      //         }
-      //       },
-      //     }
-      //   );
-      // } else {
-      //   createOrderMutate(payload, {
-      //     onSuccess() {
-      //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
-      //       showNotification('Tạo đơn hàng thành công', 'success');
-      //       navigate(-1);
-      //     },
-      //     onError: (err: Error | AxiosError) => {
-      //       if (axios.isAxiosError(err)) {
-      //         showNotification(err.response?.data?.message, 'error');
-      //       } else {
-      //         showNotification(err.message, 'error');
-      //       }
-      //     },
-      //   });
-      // }
+      if (isEdit) {
+        updateOrderMutate(
+          { _id: id, ...payload },
+          {
+            onSuccess() {
+              queryClient.invalidateQueries({
+                queryKey: [QueryKeys.Order],
+              });
+              showNotification('Cập nhật đơn hàng thành công', 'success');
+              navigate(-1);
+            },
+            onError: (err: Error | AxiosError) => {
+              if (axios.isAxiosError(err)) {
+                showNotification(err.response?.data?.message, 'error');
+              } else {
+                showNotification(err.message, 'error');
+              }
+            },
+          }
+        );
+      } else {
+        createOrderMutate(payload, {
+          onSuccess() {
+            queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
+            showNotification('Tạo đơn hàng thành công', 'success');
+            navigate(-1);
+          },
+          onError: (err: Error | AxiosError) => {
+            if (axios.isAxiosError(err)) {
+              showNotification(err.response?.data?.message, 'error');
+            } else {
+              showNotification(err.message, 'error');
+            }
+          },
+        });
+      }
     },
   });
 
@@ -173,7 +174,7 @@ const OrderUpsert = () => {
       formik.setFieldValue('shipment.method', orderData?.shipment?.method);
       formik.setFieldValue(
         'shipment.delivery_date',
-        orderData?.shipment?.deliveryDate
+        orderData?.shipment?.delivery_date
       );
       formik.setFieldValue('note', orderData?.note);
       setOrderItems(orderData?.items);
@@ -186,16 +187,34 @@ const OrderUpsert = () => {
   };
 
   return (
-    <Card sx={{ mt: 3, borderRadius: 2 }}>
-      <CardHeader
-        title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            {isEdit ? 'Sửa đơn hàng' : 'Thêm đơn hàng'}:{' '}
-          </Typography>
-        }
-      />
+    <Box sx={{ mb: 3 }}>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{ mb: 2 }}>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+        </Link>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.ORDER)}
+          sx={{ cursor: 'pointer' }}>
+          Đơn hàng
+        </Link>
+        <Typography color='text.primary'>
+          {isEdit ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn hàng mới'}
+        </Typography>
+      </Breadcrumbs>
+      <Typography sx={{ mb: 2, fontSize: 20, fontWeight: 600 }}>
+        {isEdit ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn hàng mới'}:
+      </Typography>
       <Divider />
-      <CardContent>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Typography mb={1}>Thông tin:</Typography>
         <CustomerForm
           values={formik?.values.customer}
@@ -227,12 +246,12 @@ const OrderUpsert = () => {
                 onChange={handleChange}
                 value={formik?.values?.payment?.method}>
                 <FormControlLabel
-                  value={payment?.data?.id}
+                  value={payment?.id}
                   control={<Radio size='small' />}
                   label={
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <img
-                        src={payment?.data?.image ?? ''}
+                        src={payment?.image ?? ''}
                         alt=''
                         style={{
                           width: '100%',
@@ -242,7 +261,7 @@ const OrderUpsert = () => {
                         }}
                       />
                       <Typography sx={{ ml: 1, fontSize: 14 }}>
-                        {payment?.data?.name}
+                        {payment?.name}
                       </Typography>
                     </Box>
                   }
@@ -252,12 +271,12 @@ const OrderUpsert = () => {
             </FormControl>
           </Grid2>
           <Grid2 size={6} />
-          <ProductSelector
+          {/* <ProductSelector
             isEdit={isEdit}
             orderData={orderData}
             orderItems={orderItems}
             setOrderItems={setOrderItems}
-          />
+          /> */}
         </Grid2>
         <Box sx={{ textAlign: 'end' }}>
           <Button
@@ -268,9 +287,9 @@ const OrderUpsert = () => {
           </Button>
           <Button onClick={() => navigate(ROUTES.ORDER)}>Trở lại</Button>
         </Box>
-      </CardContent>
+      </Box>
       {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
-    </Card>
+    </Box>
   );
 };
 

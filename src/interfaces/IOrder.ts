@@ -1,16 +1,26 @@
+interface ISkuAttribute {
+    attribute: string;
+    value: string;
+}
+
 export interface IOrderItem {
-    model_id: string;
-    name: string;
-    image: string;
-    product_id: string;
-    product_name: string;
+    id: number;
+    orderId: number;
+    productId: number;
+    skuId: number;
     quantity: number;
     price: number;
+    costPrice?: number;
+    imageUrl: string;
+    productName: string;
+    productSlug: string;
+    skuCode: string;
+    skuAttributes: ISkuAttribute[];
 }
 
 export interface IOrder {
-    _id: string;
-    user: string;
+    id: string;
+    userId: string;
     items: IOrderItem[];
     customer: {
         name: string,
@@ -20,15 +30,29 @@ export interface IOrder {
     shipment: {
         method: number;
         address: string;
-        delivery_date: Date;
+        deliveryDate: Date;
     },
     payment: {
         method: string;
     },
     note: '';
-    total_amount: number;
+    totalAmount: number;
     status: string;
     createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface ICreateOrderItem {
+    productId: number;
+    skuId: number;
+    quantity: number;
+    price: number;
+    costPrice?: number;
+    imageUrl: string;
+    productName: string;
+    productSlug: string;
+    skuCode: string;
+    skuAttributes: ISkuAttribute[];
 }
 
 export interface ICreateOrder extends Record<string, unknown>  {
@@ -36,13 +60,13 @@ export interface ICreateOrder extends Record<string, unknown>  {
     items: IOrderItem[]
 }
 export interface IUpdateOrder{
-    _id: string;
+    id: number;
     name?: string;
     items: IOrderItem[]
 }
 
 export interface IUpdateOrderStatus{
-    _id: string;
+    id: number;
     status: string;
 }
 

@@ -31,7 +31,6 @@ import ExcelUpload from '@/components/ExcelUpload';
 import TableFilter from '@/components/TableFilter';
 import { TableSkeleton } from '@/components/TableSkeleton';
 import { AddCircleOutlined } from '@mui/icons-material';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -262,9 +261,9 @@ const FilterChips = ({
 
 export default function ProductList2() {
   const navigate = useNavigate();
-  const { confirmModal, showConfirmModal } = useConfirmModal();
-  const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  // const { confirmModal, showConfirmModal } = useConfirmModal();
+  // const queryClient = useQueryClient();
+  // const { showNotification } = useNotificationContext();
 
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -577,7 +576,7 @@ export default function ProductList2() {
           {renderFilterContent()}
         </Popover>
 
-        {confirmModal()}
+        {/* {confirmModal()} */}
       </Card>
     </>
   );

@@ -41,7 +41,7 @@ import { truncateTextByLine } from '@/utils/css-helper.util';
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 
-const ProductSku = () => {
+const ProductSkuList = () => {
   const { id } = useParams();
   // const numericId = slug ? Number(id) : undefined;
   const queryClient = useQueryClient();
@@ -117,12 +117,14 @@ const ProductSku = () => {
             </TableHead>
             <TableBody>
               {skusData?.data &&
-                skusData?.data?.map((item, index) => (
+              Array.isArray(skusData.data) &&
+              skusData.data.length > 0 ? (
+                skusData.data.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell align='center'>{index + 1}</TableCell>
                     <TableCell sx={{ width: '30%' }}>
                       <Typography sx={{ ...truncateTextByLine(2) }}>
-                        {item.sku}
+                        {item?.sku}
                       </Typography>
                     </TableCell>
                     <TableCell align='center'>
@@ -143,7 +145,7 @@ const ProductSku = () => {
                       )}
                     </TableCell>
                     <TableCell align='center'>
-                      {moment(item.createdAt).format('DD/MM/YYYY')}
+                      {moment(item?.createdAt).format('DD/MM/YYYY')}
                     </TableCell>
                     <TableCell align='center'>
                       <ActionButton>
@@ -190,7 +192,14 @@ const ProductSku = () => {
                       </ActionButton>
                     </TableCell>
                   </TableRow>
-                ))}
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} align='center'>
+                    Không có dữ liệu
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -201,4 +210,4 @@ const ProductSku = () => {
   );
 };
 
-export default ProductSku;
+export default ProductSkuList;

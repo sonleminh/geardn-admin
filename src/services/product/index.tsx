@@ -76,24 +76,15 @@ export const useGetProductList = (query?: IGetProductListQuery) => {
   });
 };
 
-const getProductByCateId = async (id: number | undefined, query: IQuery) => {
-  const newParams = { ...query, page: query.page ?? 1 };
-  // const newParams = { ...query, page: (query.page ?? 0) + 1 };
-  const queryParams = queryString.stringify(newParams ?? {});
-  const result = await axiosInstance.get(
-    `${productUrl}/admin/category/${id}?${queryParams}`
-  );
-  // return result.data as { data: IProduct[]; total: number };
+const getProductByCateId = async (id: number | undefined) => {
+  const result = await axiosInstance.get(`${productUrl}/category/${id}`);
   return result.data as TPaginatedResponse<IProduct>;
 };
 
-export const useGetProductByCateId = (
-  id: number | undefined,
-  query: IQuery
-) => {
+export const useGetProductByCateId = (id: number | undefined) => {
   return useQuery({
-    queryKey: [QueryKeys.Product, id, query],
-    queryFn: () => getProductByCateId(id, query),
+    queryKey: [QueryKeys.Product, 'category', id],
+    queryFn: () => getProductByCateId(id),
     refetchOnWindowFocus: false,
     refetchInterval: false,
     enabled: !!id,
