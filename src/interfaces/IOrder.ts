@@ -21,21 +21,20 @@ export interface IOrderItem {
 export interface IOrder {
     id: string;
     userId: string;
-    items: IOrderItem[];
-    customer: {
-        name: string,
-        phone: string,
-        mail: string,
-    },
+    fullName: string;
+    phoneNumber: string;
+    email: string;
     shipment: {
         method: number;
         address: string;
         deliveryDate: Date;
     },
-    payment: {
-        method: string;
-    },
+    paymentMethodId: number;
+    flag: {
+        isOnlineOrder: boolean;
+    };
     note: '';
+    orderItems: IOrderItem[];
     totalAmount: number;
     status: string;
     createdAt: Date;
@@ -56,8 +55,21 @@ export interface ICreateOrderItem {
 }
 
 export interface ICreateOrder extends Record<string, unknown>  {
-    name?: string;
-    items: IOrderItem[]
+    userId: number;
+    fullName: string;
+    phoneNumber: string;
+    email: string;
+    shipment: {
+        method: number;
+        address: string;
+        deliveryDate: Date;
+    };
+    paymentMethodId: number;
+    flag: {
+        isOnlineOrder: boolean;
+    };
+    note: string;
+    items: ICreateOrderItem[]
 }
 export interface IUpdateOrder{
     id: number;

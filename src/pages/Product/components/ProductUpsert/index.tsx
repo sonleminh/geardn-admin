@@ -47,7 +47,6 @@ import {
 import { ROUTES } from '@/constants/route';
 import { useGetCategoryList } from '@/services/category';
 import { useGetEnumByContext } from '@/services/enum';
-import { useGetWarehouseList } from '@/services/warehouse';
 
 const ProductUpsert = () => {
   const { id } = useParams();
@@ -167,250 +166,247 @@ const ProductUpsert = () => {
 
   return (
     <>
-      <Box sx={{ mb: 3 }}>
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize='small' />}
-          aria-label='breadcrumb'>
-          <Link
-            underline='hover'
-            color='inherit'
-            onClick={() => navigate(ROUTES.DASHBOARD)}
-            sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-            <HomeOutlinedIcon sx={{ fontSize: 24 }} />
-          </Link>
-          <Link
-            underline='hover'
-            color='inherit'
-            onClick={() => navigate(ROUTES.PRODUCT)}
-            sx={{ cursor: 'pointer' }}>
-            Sản phẩm
-          </Link>
-          <Typography color='text.primary'>
-            {isEdit ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
-          </Typography>
-        </Breadcrumbs>
-      </Box>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{ mb: 3 }}>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+        </Link>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.PRODUCT)}
+          sx={{ cursor: 'pointer' }}>
+          Sản phẩm
+        </Link>
+        <Typography color='text.primary'>
+          {isEdit ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
+        </Typography>
+      </Breadcrumbs>
 
       <Typography sx={{ mb: 2, fontSize: 20, fontWeight: 600 }}>
         {isEdit ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}:
       </Typography>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Grid2 container spacing={3}>
-          <Grid2 size={6}>
-            <Card sx={{ mb: 3 }}>
-              <CardHeader
-                title='Thông tin chung'
-                sx={{
-                  span: {
-                    fontSize: 18,
-                    fontWeight: 500,
-                  },
-                }}
-              />
-              <Divider />
-              <CardContent>
-                <FormControl fullWidth margin='normal'>
-                  <Input
-                    label='Tên sản phẩm'
-                    name='name'
-                    variant='filled'
+      <Grid2 container spacing={3}>
+        <Grid2 size={6}>
+          <Card sx={{ mb: 3 }}>
+            <CardHeader
+              title='Thông tin chung'
+              sx={{
+                span: {
+                  fontSize: 18,
+                  fontWeight: 500,
+                },
+              }}
+            />
+            <Divider />
+            <CardContent>
+              <FormControl fullWidth margin='normal'>
+                <Input
+                  label='Tên sản phẩm'
+                  name='name'
+                  variant='filled'
+                  size='small'
+                  required
+                  helperText={
+                    <Box component={'span'} sx={helperTextStyle}>
+                      {formik.errors.name}
+                    </Box>
+                  }
+                  value={formik?.values.name}
+                  onChange={handleChangeValue}
+                />
+              </FormControl>
+              <FormControl fullWidth margin='normal'>
+                <FormControl variant='filled' fullWidth>
+                  <InputLabel>Danh mục</InputLabel>
+                  <Select
+                    disableUnderline
                     size='small'
-                    required
-                    helperText={
-                      <Box component={'span'} sx={helperTextStyle}>
-                        {formik.errors.name}
-                      </Box>
-                    }
-                    value={formik?.values.name}
-                    onChange={handleChangeValue}
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <FormControl variant='filled' fullWidth>
-                    <InputLabel>Danh mục</InputLabel>
-                    <Select
-                      disableUnderline
-                      size='small'
-                      name='categoryId'
-                      onChange={handleSelectChange}
-                      value={formik?.values?.categoryId}>
-                      {categoryList?.data?.map((item) => (
-                        <MenuItem key={item.id} value={item?.id}>
-                          {item.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    <FormHelperText>
-                      <Box component={'span'} sx={helperTextStyle}>
-                        {formik.errors?.categoryId}
-                      </Box>
-                    </FormHelperText>
-                  </FormControl>
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <Typography mb={1}>
-                    Ảnh:
-                    <Typography component={'span'} color='red'>
-                      *
-                    </Typography>
-                  </Typography>
-                  <MultipleFileUpload
-                    helperText={
-                      <Box component={'span'} sx={helperTextStyle}>
-                        {formik.errors.images}
-                      </Box>
-                    }
-                    value={formik?.values?.images}
-                    onUploadChange={handleUploadResult}
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <Typography mb={1}>
-                    Mô tả:
-                    <Typography component={'span'} color='red'>
-                      *
-                    </Typography>
-                  </Typography>
-                  <CKEditor
-                    onChange={(value: string) =>
-                      formik.setFieldValue('description', value)
-                    }
-                    value={formik.values.description ?? ''}
-                    helperText={formik?.errors?.description}
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <Autocomplete
-                    multiple
-                    fullWidth
-                    options={tagData?.data ?? []}
-                    disableCloseOnSelect
-                    value={tags}
-                    onChange={(
-                      e: React.ChangeEvent<unknown>,
-                      val: ITagOptions[]
-                    ) => handleTagChange(e, val)}
-                    isOptionEqualToValue={(
-                      option: ITagOptions,
-                      value: ITagOptions
-                    ) => option?.value === value?.value}
-                    renderInput={(params: AutocompleteRenderInputParams) => (
-                      <TextField
-                        {...params}
-                        placeholder='Tag ...'
-                        InputLabelProps={{
-                          shrink: true,
-                        }}
-                        sx={{
-                          bgcolor: '#fff',
-                          color: 'red',
-                          borderRadius: '10px',
-                        }}
-                      />
-                    )}
-                    size='small'
-                  />
+                    name='categoryId'
+                    onChange={handleSelectChange}
+                    value={formik?.values?.categoryId}>
+                    {categoryList?.data?.map((item) => (
+                      <MenuItem key={item.id} value={item?.id}>
+                        {item.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
                   <FormHelperText>
                     <Box component={'span'} sx={helperTextStyle}>
-                      {formik.errors?.tags}
+                      {formik.errors?.categoryId}
                     </Box>
                   </FormHelperText>
                 </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <Typography mb={1}>
-                    Trạng thái:{' '}
-                    {productData?.data?.isDeleted ? 'Đã xóa' : 'Hoạt động'}
+              </FormControl>
+              <FormControl fullWidth margin='normal'>
+                <Typography mb={1}>
+                  Ảnh:
+                  <Typography component={'span'} color='red'>
+                    *
                   </Typography>
-                </FormControl>
-              </CardContent>
-            </Card>
-          </Grid2>
-          <Grid2 size={6}>
-            <Card>
-              <CardHeader
-                title='Thông tin chi tiết'
-                sx={{
-                  span: {
-                    fontSize: 18,
-                    fontWeight: 500,
-                  },
-                }}
-              />
-              <Divider />
-              <CardContent>
-                <FormControl fullWidth margin='normal'>
-                  <Input
-                    label='Hãng'
-                    name='brand'
-                    variant='filled'
-                    size='small'
-                    value={formik?.values.brand}
-                    onChange={handleChangeValue}
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <Input
-                    label='Bảo hành'
-                    name='details.guarantee'
-                    variant='filled'
-                    size='small'
-                    value={formik?.values.details.guarantee}
-                    onChange={handleChangeValue}
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <Input
-                    label='Trọng lượng'
-                    name='details.weight'
-                    variant='filled'
-                    size='small'
-                    value={formik?.values.details.weight}
-                    onChange={handleChangeValue}
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <Input
-                    label='Chất liệu'
-                    name='details.material'
-                    variant='filled'
-                    size='small'
-                    value={formik?.values.details.material}
-                    onChange={handleChangeValue}
-                  />
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <Input
-                    label='Slug'
-                    name='slug'
-                    variant='filled'
-                    size='small'
-                    disabled
-                    value={formik?.values?.slug}
-                  />
-                </FormControl>
-              </CardContent>
-            </Card>
-          </Grid2>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              width: '100%',
-              mt: 2,
-            }}>
-            <Button onClick={() => navigate(ROUTES.PRODUCT)} sx={{ mr: 2 }}>
-              Trở lại
-            </Button>
-            <Button
-              variant='contained'
-              onClick={() => formik.handleSubmit()}
-              sx={{ minWidth: 100 }}>
-              Lưu
-            </Button>
-          </Box>
+                </Typography>
+                <MultipleFileUpload
+                  helperText={
+                    <Box component={'span'} sx={helperTextStyle}>
+                      {formik.errors.images}
+                    </Box>
+                  }
+                  value={formik?.values?.images}
+                  onUploadChange={handleUploadResult}
+                />
+              </FormControl>
+              <FormControl fullWidth margin='normal'>
+                <Typography mb={1}>
+                  Mô tả:
+                  <Typography component={'span'} color='red'>
+                    *
+                  </Typography>
+                </Typography>
+                <CKEditor
+                  onChange={(value: string) =>
+                    formik.setFieldValue('description', value)
+                  }
+                  value={formik.values.description ?? ''}
+                  helperText={formik?.errors?.description}
+                />
+              </FormControl>
+              <FormControl fullWidth margin='normal'>
+                <Autocomplete
+                  multiple
+                  fullWidth
+                  options={tagData?.data ?? []}
+                  disableCloseOnSelect
+                  value={tags}
+                  onChange={(
+                    e: React.ChangeEvent<unknown>,
+                    val: ITagOptions[]
+                  ) => handleTagChange(e, val)}
+                  isOptionEqualToValue={(
+                    option: ITagOptions,
+                    value: ITagOptions
+                  ) => option?.value === value?.value}
+                  renderInput={(params: AutocompleteRenderInputParams) => (
+                    <TextField
+                      {...params}
+                      placeholder='Tag ...'
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      sx={{
+                        bgcolor: '#fff',
+                        color: 'red',
+                        borderRadius: '10px',
+                      }}
+                    />
+                  )}
+                  size='small'
+                />
+                <FormHelperText>
+                  <Box component={'span'} sx={helperTextStyle}>
+                    {formik.errors?.tags}
+                  </Box>
+                </FormHelperText>
+              </FormControl>
+              <FormControl fullWidth margin='normal'>
+                <Typography mb={1}>
+                  Trạng thái:{' '}
+                  {productData?.data?.isDeleted ? 'Đã xóa' : 'Hoạt động'}
+                </Typography>
+              </FormControl>
+            </CardContent>
+          </Card>
         </Grid2>
-      </Box>
+        <Grid2 size={6}>
+          <Card>
+            <CardHeader
+              title='Thông tin chi tiết'
+              sx={{
+                span: {
+                  fontSize: 18,
+                  fontWeight: 500,
+                },
+              }}
+            />
+            <Divider />
+            <CardContent>
+              <FormControl fullWidth margin='normal'>
+                <Input
+                  label='Hãng'
+                  name='brand'
+                  variant='filled'
+                  size='small'
+                  value={formik?.values.brand}
+                  onChange={handleChangeValue}
+                />
+              </FormControl>
+              <FormControl fullWidth margin='normal'>
+                <Input
+                  label='Bảo hành'
+                  name='details.guarantee'
+                  variant='filled'
+                  size='small'
+                  value={formik?.values.details.guarantee}
+                  onChange={handleChangeValue}
+                />
+              </FormControl>
+              <FormControl fullWidth margin='normal'>
+                <Input
+                  label='Trọng lượng'
+                  name='details.weight'
+                  variant='filled'
+                  size='small'
+                  value={formik?.values.details.weight}
+                  onChange={handleChangeValue}
+                />
+              </FormControl>
+              <FormControl fullWidth margin='normal'>
+                <Input
+                  label='Chất liệu'
+                  name='details.material'
+                  variant='filled'
+                  size='small'
+                  value={formik?.values.details.material}
+                  onChange={handleChangeValue}
+                />
+              </FormControl>
+              <FormControl fullWidth margin='normal'>
+                <Input
+                  label='Slug'
+                  name='slug'
+                  variant='filled'
+                  size='small'
+                  disabled
+                  value={formik?.values?.slug}
+                />
+              </FormControl>
+            </CardContent>
+          </Card>
+        </Grid2>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            width: '100%',
+            mt: 2,
+          }}>
+          <Button onClick={() => navigate(ROUTES.PRODUCT)} sx={{ mr: 2 }}>
+            Trở lại
+          </Button>
+          <Button
+            variant='contained'
+            onClick={() => formik.handleSubmit()}
+            sx={{ minWidth: 100 }}>
+            Lưu
+          </Button>
+        </Box>
+      </Grid2>
       {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
     </>
   );

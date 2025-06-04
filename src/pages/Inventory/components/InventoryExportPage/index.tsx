@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 // Material-UI components
 import {
   Box,
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
@@ -12,6 +13,7 @@ import {
   Chip,
   Divider,
   IconButton,
+  Link,
   Popover,
   Table,
   TableBody,
@@ -31,6 +33,8 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 // Third-party libraries
 import { addDays } from 'date-fns';
@@ -601,242 +605,258 @@ const InventoryExportPage = () => {
   ]);
 
   return (
-    <Card sx={{ mt: 3, borderRadius: 2 }}>
-      <CardHeader
-        title={
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton
-              onClick={() => navigate(ROUTES.INVENTORY)}
-              sx={{ mr: 1 }}>
-              <ChevronLeftIcon />
-            </IconButton>
+    <>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{ mb: 3 }}>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+        </Link>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.INVENTORY)}
+          sx={{ cursor: 'pointer' }}>
+          Kho hàng
+        </Link>
+        <Typography color='text.primary'>Xuất hàng</Typography>
+      </Breadcrumbs>
+      <Card>
+        <CardHeader
+          title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
               Xuất hàng
             </Typography>
-          </Box>
-        }
-        action={
-          <ButtonWithTooltip
-            variant='contained'
-            onClick={() => navigate(`${ROUTES.INVENTORY}/export/create`)}
-            title='Xuất hàng'
-            sx={{ textTransform: 'none' }}>
-            <AddCircleOutlined />
-          </ButtonWithTooltip>
-        }
-      />
-      <Divider />
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell colSpan={headCells.length}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}>
-                    <FilterChips
-                      columnFilters={columnFilters}
-                      warehousesData={warehousesData || { data: [] }}
-                      productsData={productsData || { data: [] }}
-                      enumData={enumData || { data: [] }}
-                      onFilterChange={handleColumnFilterChange}
-                    />
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Button
-                        variant='outlined'
-                        size='small'
-                        onClick={handleDateFilterClick}
-                        startIcon={<DateRangeOutlinedIcon />}
-                        sx={{
-                          textTransform: 'none',
-                          borderColor: columnFilters.date.fromDate
-                            ? 'primary.main'
-                            : 'inherit',
-                          color: columnFilters.date.fromDate
-                            ? 'primary.main'
-                            : 'inherit',
-                          '&:hover': {
-                            borderColor: 'primary.main',
-                          },
-                        }}>
-                        {columnFilters.date.fromDate
-                          ? `${moment(columnFilters.date.fromDate).format(
-                              'DD/MM/YYYY'
-                            )} - ${moment(columnFilters.date.toDate).format(
-                              'DD/MM/YYYY'
-                            )}`
-                          : 'Chọn ngày'}
-                      </Button>
-                    </Box>
-                  </Box>
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                {headCells?.map((headCell) => (
-                  <TableCell
-                    key={headCell.id}
-                    align={headCell.align ?? 'left'}
-                    padding={headCell.disablePadding ? 'none' : 'normal'}
-                    sx={{ width: headCell.width }}>
-                    {headCell.label}
-                    {headCell.isFilter ? (
-                      <>
-                        {' '}
-                        {(() => {
-                          const filterValue =
-                            columnFilters[
-                              headCell.id as keyof typeof columnFilters
-                            ];
-                          if (
-                            Array.isArray(filterValue) &&
-                            filterValue.length > 0
-                          ) {
-                            return (
-                              <Typography
-                                component='span'
-                                sx={{ fontSize: 14 }}>
-                                ({filterValue.length})
-                              </Typography>
-                            );
-                          }
-                          return null;
-                        })()}
-                        <IconButton
-                          size='small'
-                          onClick={(e) => handleFilterClick(e, headCell.id)}
-                          sx={{ ml: 1 }}>
-                          <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
-                        </IconButton>
-                      </>
-                    ) : null}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {isLoadingExportLogs ? (
-                <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
-              ) : exportLogsData?.data?.length ? (
-                exportLogsData?.data?.map((exportLog, index) => (
-                  <TableRow key={exportLog.id || index}>
-                    <TableCell align='center'>
-                      {page * rowsPerPage + index + 1}
-                    </TableCell>
-                    <TableCell>{exportLog?.warehouse?.name}</TableCell>
-                    <TableCell>
-                      <Box>
-                        {exportLog?.items?.map((exportLogItem) => (
-                          <ExportLogItem
-                            key={exportLogItem?.sku?.id}
-                            item={exportLogItem}
-                          />
-                        ))}
-                      </Box>
-                    </TableCell>
-                    <TableCell align='center'>
-                      {importTypeMap?.[exportLog?.type] || 'Không xác định'}
-                    </TableCell>
-                    <TableCell align='center'>
-                      {moment(exportLog?.createdAt).format('DD/MM/YYYY')}
-                    </TableCell>
-                    <TableCell align='center'>
-                      {exportLog?.note?.length ? exportLog?.note : 'Không có'}
-                    </TableCell>
-                    <TableCell align='center'>
-                      <ActionButton>
-                        <Box mb={1}>
-                          <ButtonWithTooltip
-                            color='primary'
-                            variant='outlined'
-                            title='Chỉnh sửa'
-                            placement='left'>
-                            <EditOutlinedIcon />
-                          </ButtonWithTooltip>
-                        </Box>
-                        <Box>
-                          <ButtonWithTooltip
-                            color='error'
-                            variant='outlined'
-                            title='Xoá'
-                            placement='left'>
-                            <DeleteOutlineOutlinedIcon />
-                          </ButtonWithTooltip>
-                        </Box>
-                      </ActionButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell align='center' colSpan={7}>
-                    Không có dữ liệu
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          component='div'
-          count={exportLogsData?.meta?.total || 0}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={[10, 20, 30, 50]}
-          labelRowsPerPage='Số hàng mỗi trang'
-          labelDisplayedRows={({ from, to, count }) =>
-            `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`
+          }
+          action={
+            <ButtonWithTooltip
+              variant='contained'
+              onClick={() => navigate(`${ROUTES.INVENTORY}/export/create`)}
+              title='Xuất hàng'
+              sx={{ textTransform: 'none' }}>
+              <AddCircleOutlined />
+            </ButtonWithTooltip>
           }
         />
-      </CardContent>
+        <Divider />
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell colSpan={headCells.length}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}>
+                      <FilterChips
+                        columnFilters={columnFilters}
+                        warehousesData={warehousesData || { data: [] }}
+                        productsData={productsData || { data: [] }}
+                        enumData={enumData || { data: [] }}
+                        onFilterChange={handleColumnFilterChange}
+                      />
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Button
+                          variant='outlined'
+                          size='small'
+                          onClick={handleDateFilterClick}
+                          startIcon={<DateRangeOutlinedIcon />}
+                          sx={{
+                            textTransform: 'none',
+                            borderColor: columnFilters.date.fromDate
+                              ? 'primary.main'
+                              : 'inherit',
+                            color: columnFilters.date.fromDate
+                              ? 'primary.main'
+                              : 'inherit',
+                            '&:hover': {
+                              borderColor: 'primary.main',
+                            },
+                          }}>
+                          {columnFilters.date.fromDate
+                            ? `${moment(columnFilters.date.fromDate).format(
+                                'DD/MM/YYYY'
+                              )} - ${moment(columnFilters.date.toDate).format(
+                                'DD/MM/YYYY'
+                              )}`
+                            : 'Chọn ngày'}
+                        </Button>
+                      </Box>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  {headCells?.map((headCell) => (
+                    <TableCell
+                      key={headCell.id}
+                      align={headCell.align ?? 'left'}
+                      padding={headCell.disablePadding ? 'none' : 'normal'}
+                      sx={{ width: headCell.width }}>
+                      {headCell.label}
+                      {headCell.isFilter ? (
+                        <>
+                          {' '}
+                          {(() => {
+                            const filterValue =
+                              columnFilters[
+                                headCell.id as keyof typeof columnFilters
+                              ];
+                            if (
+                              Array.isArray(filterValue) &&
+                              filterValue.length > 0
+                            ) {
+                              return (
+                                <Typography
+                                  component='span'
+                                  sx={{ fontSize: 14 }}>
+                                  ({filterValue.length})
+                                </Typography>
+                              );
+                            }
+                            return null;
+                          })()}
+                          <IconButton
+                            size='small'
+                            onClick={(e) => handleFilterClick(e, headCell.id)}
+                            sx={{ ml: 1 }}>
+                            <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </>
+                      ) : null}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {isLoadingExportLogs ? (
+                  <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
+                ) : exportLogsData?.data?.length ? (
+                  exportLogsData?.data?.map((exportLog, index) => (
+                    <TableRow key={exportLog.id || index}>
+                      <TableCell align='center'>
+                        {page * rowsPerPage + index + 1}
+                      </TableCell>
+                      <TableCell>{exportLog?.warehouse?.name}</TableCell>
+                      <TableCell>
+                        <Box>
+                          {exportLog?.items?.map((exportLogItem) => (
+                            <ExportLogItem
+                              key={exportLogItem?.sku?.id}
+                              item={exportLogItem}
+                            />
+                          ))}
+                        </Box>
+                      </TableCell>
+                      <TableCell align='center'>
+                        {importTypeMap?.[exportLog?.type] || 'Không xác định'}
+                      </TableCell>
+                      <TableCell align='center'>
+                        {moment(exportLog?.createdAt).format('DD/MM/YYYY')}
+                      </TableCell>
+                      <TableCell align='center'>
+                        {exportLog?.note?.length ? exportLog?.note : 'Không có'}
+                      </TableCell>
+                      <TableCell align='center'>
+                        <ActionButton>
+                          <Box mb={1}>
+                            <ButtonWithTooltip
+                              color='primary'
+                              variant='outlined'
+                              title='Chỉnh sửa'
+                              placement='left'>
+                              <EditOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
+                          <Box>
+                            <ButtonWithTooltip
+                              color='error'
+                              variant='outlined'
+                              title='Xoá'
+                              placement='left'>
+                              <DeleteOutlineOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
+                        </ActionButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell align='center' colSpan={7}>
+                      Không có dữ liệu
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            component='div'
+            count={exportLogsData?.meta?.total || 0}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[10, 20, 30, 50]}
+            labelRowsPerPage='Số hàng mỗi trang'
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`
+            }
+          />
+        </CardContent>
 
-      <Popover
-        open={Boolean(filterAnchorEl)}
-        anchorEl={filterAnchorEl}
-        onClose={handleFilterClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}>
-        {renderFilterContent()}
-      </Popover>
+        <Popover
+          open={Boolean(filterAnchorEl)}
+          anchorEl={filterAnchorEl}
+          onClose={handleFilterClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'left',
+          }}>
+          {renderFilterContent()}
+        </Popover>
 
-      <Popover
-        open={Boolean(dateFilterAnchorEl)}
-        anchorEl={dateFilterAnchorEl}
-        onClose={handleDateFilterClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-        PaperProps={{
-          sx: {
-            p: 2,
-            mt: 1,
-          },
-        }}>
-        <DateRangePicker
-          onChange={handleDateRangeChange}
-          moveRangeOnFirstSelection={false}
-          months={2}
-          ranges={dateState}
-          direction='horizontal'
-        />
-      </Popover>
-    </Card>
+        <Popover
+          open={Boolean(dateFilterAnchorEl)}
+          anchorEl={dateFilterAnchorEl}
+          onClose={handleDateFilterClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          PaperProps={{
+            sx: {
+              p: 2,
+              mt: 1,
+            },
+          }}>
+          <DateRangePicker
+            onChange={handleDateRangeChange}
+            moveRangeOnFirstSelection={false}
+            months={2}
+            ranges={dateState}
+            direction='horizontal'
+          />
+        </Popover>
+      </Card>
+    </>
   );
 };
 

@@ -1,79 +1,79 @@
-import { Box, FormControl, Grid2, SxProps, Theme } from '@mui/material';
+import { Box, FormControl, SxProps, Theme } from '@mui/material';
 import Input from '@/components/Input';
+import { FormikProps } from 'formik';
+
+interface FormValues {
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+  shipment: {
+    method: number;
+    deliveryDate: Date | null;
+  };
+  paymentMethodId: number;
+  flag: {
+    isOnlineOrder: boolean;
+  };
+  note: string;
+}
 
 interface CustomerInfoFormProps {
-  values: {
-    name: string;
-    phone: string;
-    mail: string;
-  };
-  errors: {
-    name?: string;
-    phone?: string;
-    mail?: string;
-  };
+  formik: FormikProps<FormValues>;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const CustomerForm: React.FC<CustomerInfoFormProps> = ({
-  values,
-  errors,
+  formik,
   handleChange,
 }) => {
   return (
-    <Grid2 container rowSpacing={2} columnSpacing={4} mb={2}>
-      <Grid2 size={6}>
-        <FormControl fullWidth>
-          <Input
-            label='Tên khách hàng'
-            name='customer.name'
-            variant='filled'
-            size='small'
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {errors.name}
-              </Box>
-            }
-            value={values.name}
-            onChange={handleChange}
-          />
-        </FormControl>
-      </Grid2>
-      <Grid2 size={6}>
-        <FormControl fullWidth>
-          <Input
-            label='Mail'
-            name='customer.mail'
-            variant='filled'
-            size='small'
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {errors?.mail}
-              </Box>
-            }
-            value={values?.mail}
-            onChange={handleChange}
-          />
-        </FormControl>
-      </Grid2>
-      <Grid2 size={6}>
-        <FormControl fullWidth>
-          <Input
-            label='Số điện thoại'
-            name='customer.phone'
-            variant='filled'
-            size='small'
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {errors?.phone}
-              </Box>
-            }
-            value={values?.phone}
-            onChange={handleChange}
-          />
-        </FormControl>
-      </Grid2>
-    </Grid2>
+    <Box>
+      <FormControl fullWidth margin='dense'>
+        <Input
+          label='Tên khách hàng'
+          name='fullName'
+          variant='filled'
+          size='small'
+          helperText={
+            <Box component={'span'} sx={helperTextStyle}>
+              {formik?.errors?.fullName}
+            </Box>
+          }
+          value={formik?.values?.fullName}
+          onChange={handleChange}
+        />
+      </FormControl>
+      <FormControl fullWidth margin='dense'>
+        <Input
+          label='Email'
+          name='email'
+          variant='filled'
+          size='small'
+          helperText={
+            <Box component={'span'} sx={helperTextStyle}>
+              {formik?.errors?.email}
+            </Box>
+          }
+          value={formik?.values?.email}
+          onChange={handleChange}
+        />
+      </FormControl>
+      <FormControl fullWidth margin='dense'>
+        <Input
+          label='Số điện thoại'
+          name='phoneNumber'
+          variant='filled'
+          size='small'
+          helperText={
+            <Box component={'span'} sx={helperTextStyle}>
+              {formik?.errors?.phoneNumber}
+            </Box>
+          }
+          value={formik?.values?.phoneNumber}
+          onChange={handleChange}
+        />
+      </FormControl>
+    </Box>
   );
 };
 

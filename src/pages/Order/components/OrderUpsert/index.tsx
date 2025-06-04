@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import {
   Box,
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
@@ -14,6 +15,7 @@ import {
   FormControl,
   FormControlLabel,
   Grid2,
+  Link,
   Radio,
   RadioGroup,
   Typography,
@@ -33,7 +35,11 @@ import { useGetPaymentById } from '@/services/payment';
 
 import { QueryKeys } from '@/constants/query-key';
 
-import { ICreateOrderItem, IOrderItem } from '@/interfaces/IOrder';
+import {
+  ICreateOrder,
+  ICreateOrderItem,
+  IOrderItem,
+} from '@/interfaces/IOrder';
 
 import { createSchema, updateSchema } from '../utils/schema/orderSchema';
 
@@ -44,6 +50,8 @@ import ShipmentForm from './components/ShipmentForm';
 import { ROUTES } from '@/constants/route';
 import ProductSelector from './components/ProductSelector';
 import { useGetCategoryList } from '@/services/category';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -71,29 +79,28 @@ const OrderUpsert = () => {
 
   const formik = useFormik({
     initialValues: {
-      customer: {
-        name: '',
-        phone: '',
-        mail: '',
-      },
+      fullName: '',
+      phoneNumber: '',
+      email: '',
       shipment: {
         method: 1,
-        delivery_date: isEdit ? null : moment(),
+        deliveryDate: isEdit ? null : moment().toDate(),
       },
-      payment: {
-        method: '673c8947d6a67118f380f4ab',
-      },
+      paymentMethodId: 1,
       flag: {
-        is_online_order: false,
+        isOnlineOrder: false,
       },
       note: '',
     },
-    validationSchema: isEdit ? updateSchema : createSchema,
+    // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
+      if (!user?.id) {
+        return showNotification('Không tìm thấy tài khoản', 'error');
+      }
       const payload = {
         ...values,
-        user: user?.id,
+        userId: +user?.id,
         items: orderItems,
         shipment: {
           ...values?.shipment,
@@ -102,7 +109,12 @@ const OrderUpsert = () => {
               ? `${detailAddress}, ${ward}, ${district}, ${city}`
               : shopAddress,
         },
+        totalPrice: orderItems?.reduce(
+          (acc, item) => acc + (item?.price ?? 0) * (item?.quantity ?? 0),
+          0
+        ),
       };
+      console.log('payload:', payload);
       if (!orderItems?.length) {
         return showNotification(
           'Không có sản phẩm nào để tạo đơn hàng',
@@ -115,68 +127,71 @@ const OrderUpsert = () => {
       ) {
         return showNotification('Vui lòng chọn địa chỉ nhận hàng', 'error');
       }
-      // if (isEdit) {
-      //   updateOrderMutate(
-      //     { _id: id, ...payload },
-      //     {
-      //       onSuccess() {
-      //         queryClient.invalidateQueries({
-      //           queryKey: [QueryKeys.Order],
-      //         });
-      //         showNotification('Cập nhật đơn hàng thành công', 'success');
-      //         navigate(-1);
-      //       },
-      //       onError: (err: Error | AxiosError) => {
-      //         if (axios.isAxiosError(err)) {
-      //           showNotification(err.response?.data?.message, 'error');
-      //         } else {
-      //           showNotification(err.message, 'error');
-      //         }
-      //       },
-      //     }
-      //   );
-      // } else {
-      //   createOrderMutate(payload, {
-      //     onSuccess() {
-      //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
-      //       showNotification('Tạo đơn hàng thành công', 'success');
-      //       navigate(-1);
-      //     },
-      //     onError: (err: Error | AxiosError) => {
-      //       if (axios.isAxiosError(err)) {
-      //         showNotification(err.response?.data?.message, 'error');
-      //       } else {
-      //         showNotification(err.message, 'error');
-      //       }
-      //     },
-      //   });
-      // }
+      if (isEdit) {
+        // updateOrderMutate(
+        //   { id: +id, ...payload },
+        //   {
+        //     onSuccess() {
+        //       queryClient.invalidateQueries({
+        //         queryKey: [QueryKeys.Order],
+        //       });
+        //       showNotification('Cập nhật đơn hàng thành công', 'success');
+        //       navigate(-1);
+        //     },
+        //     onError: (err: Error | AxiosError) => {
+        //       if (axios.isAxiosError(err)) {
+        //         showNotification(err.response?.data?.message, 'error');
+        //       } else {
+        //         showNotification(err.message, 'error');
+        //       }
+        //     },
+        //   }
+        // );
+      } else {
+        createOrderMutate(payload as ICreateOrder, {
+          onSuccess() {
+            queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
+            showNotification('Tạo đơn hàng thành công', 'success');
+            navigate(-1);
+          },
+          onError: (err: Error | AxiosError) => {
+            if (axios.isAxiosError(err)) {
+              showNotification(err.response?.data?.message, 'error');
+            } else {
+              showNotification(err.message, 'error');
+            }
+          },
+        });
+      }
     },
   });
 
   useEffect(() => {
     if (orderData) {
-      formik.setFieldValue('customer.name', orderData?.customer?.name);
-      formik.setFieldValue('customer.phone', orderData?.customer?.phone);
-      formik.setFieldValue('customer.mail', orderData?.customer?.mail);
+      formik.setFieldValue('fullName', orderData?.data?.fullName);
+      formik.setFieldValue('phoneNumber', orderData?.data?.phoneNumber);
+      formik.setFieldValue('email', orderData?.data?.email);
 
-      if (orderData?.shipment?.method === 1) {
-        const addressArr = orderData?.shipment?.address?.split(', ');
+      if (orderData?.data?.shipment?.method === 1) {
+        const addressArr = orderData?.data?.shipment?.address?.split(', ');
         setCity(addressArr[3]);
         setDistrict(addressArr[2]);
         setWard(addressArr[1]);
         setDetailAddress(addressArr[0]);
       } else {
-        setShopAddress(orderData?.shipment?.address);
+        setShopAddress(orderData?.data?.shipment?.address);
       }
 
-      formik.setFieldValue('shipment.method', orderData?.shipment?.method);
+      formik.setFieldValue(
+        'shipment.method',
+        orderData?.data?.shipment?.method
+      );
       formik.setFieldValue(
         'shipment.delivery_date',
-        orderData?.shipment?.deliveryDate
+        orderData?.data?.shipment?.deliveryDate
       );
-      formik.setFieldValue('note', orderData?.note);
-      setOrderItems(orderData?.items);
+      formik.setFieldValue('note', orderData?.data?.note);
+      setOrderItems(orderData?.data?.items);
     }
   }, [orderData]);
 
@@ -186,91 +201,158 @@ const OrderUpsert = () => {
   };
 
   return (
-    <Card sx={{ mt: 3, borderRadius: 2 }}>
-      <CardHeader
-        title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            {isEdit ? 'Sửa đơn hàng' : 'Thêm đơn hàng'}:{' '}
+    <>
+      <Box sx={{ mb: 3 }}>
+        <Breadcrumbs
+          separator={<NavigateNextIcon fontSize='small' />}
+          aria-label='breadcrumb'>
+          <Link
+            underline='hover'
+            color='inherit'
+            onClick={() => navigate(ROUTES.DASHBOARD)}
+            sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+          </Link>
+          <Link
+            underline='hover'
+            color='inherit'
+            onClick={() => navigate(ROUTES.ORDER)}
+            sx={{ cursor: 'pointer' }}>
+            Đơn hàng
+          </Link>
+          <Typography color='text.primary'>
+            {isEdit ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn hàng mới'}
           </Typography>
-        }
-      />
-      <Divider />
-      <CardContent>
-        <Typography mb={1}>Thông tin:</Typography>
-        <CustomerForm
-          values={formik?.values.customer}
-          errors={formik?.errors.customer || {}}
-          handleChange={handleChange}
-        />
-        <ShipmentForm
-          formik={formik}
-          city={city}
-          district={district}
-          ward={ward}
-          shopAddress={shopAddress}
-          detailAddress={detailAddress}
-          setCity={setCity}
-          setDistrict={setDistrict}
-          setWard={setWard}
-          setDetailAddress={setDetailAddress}
-          setShopAddress={setShopAddress}
-          handleChange={handleChange}
-        />
-        <Grid2 mb={4} container rowSpacing={2} columnSpacing={4}>
-          <Grid2 size={6}>
-            <FormControl>
-              <Typography sx={{ mb: 2, fontWeight: 600 }}>
-                Phương thức thanh toán
-              </Typography>
-              <RadioGroup
-                name='payment.method'
-                onChange={handleChange}
-                value={formik?.values?.payment?.method}>
-                <FormControlLabel
-                  value={payment?.data?.id}
-                  control={<Radio size='small' />}
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <img
-                        src={payment?.data?.image ?? ''}
-                        alt=''
-                        style={{
-                          width: '100%',
-                          maxWidth: '36px',
-                          height: '36px',
-                          objectFit: 'contain',
-                        }}
-                      />
-                      <Typography sx={{ ml: 1, fontSize: 14 }}>
-                        {payment?.data?.name}
-                      </Typography>
-                    </Box>
-                  }
-                />
-              </RadioGroup>
-              <>{formik?.errors?.payment?.method}</>
-            </FormControl>
-          </Grid2>
-          <Grid2 size={6} />
+        </Breadcrumbs>
+      </Box>
+      <Typography sx={{ mb: 2, fontSize: 20, fontWeight: 600 }}>
+        {isEdit ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn hàng mới'}:
+      </Typography>
+      <Grid2 container spacing={3}>
+        <Grid2 size={6}>
+          <Card sx={{ mb: 3 }}>
+            <CardHeader
+              title='Thông tin khách hàng'
+              sx={{
+                span: {
+                  fontSize: 18,
+                  fontWeight: 500,
+                },
+              }}
+            />
+            <Divider />
+            <CardContent>
+              <CustomerForm formik={formik} handleChange={handleChange} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader
+              title='Phương thức thanh toán'
+              sx={{
+                span: {
+                  fontSize: 18,
+                  fontWeight: 500,
+                },
+              }}
+            />
+            <Divider />
+            <CardContent>
+              <FormControl>
+                <Typography sx={{ mb: 2, fontWeight: 600 }}>
+                  Phương thức thanh toán
+                </Typography>
+                <RadioGroup
+                  name='paymentMethodId'
+                  onChange={handleChange}
+                  value={formik?.values?.paymentMethodId}>
+                  <FormControlLabel
+                    value={payment?.data?.id}
+                    control={<Radio size='small' />}
+                    label={
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <img
+                          src={payment?.data?.image ?? ''}
+                          alt=''
+                          style={{
+                            width: '100%',
+                            maxWidth: '36px',
+                            height: '36px',
+                            objectFit: 'contain',
+                          }}
+                        />
+                        <Typography sx={{ ml: 1, fontSize: 14 }}>
+                          {payment?.data?.name}
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                </RadioGroup>
+                <>{formik?.errors?.paymentMethodId}</>
+              </FormControl>
+            </CardContent>
+          </Card>
+        </Grid2>
+        <Grid2 size={6}>
+          <Card>
+            <CardHeader
+              title='Địa chỉ giao hàng'
+              sx={{
+                span: {
+                  fontSize: 18,
+                  fontWeight: 500,
+                },
+              }}
+            />
+            <Divider />
+            <CardContent>
+              <ShipmentForm
+                formik={formik}
+                city={city}
+                district={district}
+                ward={ward}
+                shopAddress={shopAddress}
+                detailAddress={detailAddress}
+                setCity={setCity}
+                setDistrict={setDistrict}
+                setWard={setWard}
+                setDetailAddress={setDetailAddress}
+                setShopAddress={setShopAddress}
+                handleChange={handleChange}
+              />
+            </CardContent>
+          </Card>
+        </Grid2>
+        <Grid2 size={12}>
           <ProductSelector
             isEdit={isEdit}
-            orderData={orderData}
+            orderData={orderData?.data}
             orderItems={orderItems}
             setOrderItems={setOrderItems}
           />
         </Grid2>
-        <Box sx={{ textAlign: 'end' }}>
-          <Button
-            sx={{ mr: 2 }}
-            variant='contained'
-            onClick={() => formik.handleSubmit()}>
-            {isEdit ? 'Lưu' : 'Thêm'}
-          </Button>
-          <Button onClick={() => navigate(ROUTES.ORDER)}>Trở lại</Button>
-        </Box>
-      </CardContent>
+        <Grid2 size={12}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              width: '100%',
+              mt: 2,
+            }}>
+            <Button onClick={() => navigate(ROUTES.PRODUCT)} sx={{ mr: 2 }}>
+              Trở lại
+            </Button>
+            <Button
+              variant='contained'
+              onClick={() => formik.handleSubmit()}
+              // disabled={!orderItems?.length}
+              sx={{ minWidth: 100 }}>
+              {isEdit ? 'Lưu' : 'Tạo'}
+            </Button>
+          </Box>
+        </Grid2>
+      </Grid2>
       {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
-    </Card>
+    </>
   );
 };
 

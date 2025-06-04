@@ -1,36 +1,19 @@
-import { useMemo, useState } from 'react';
+// React and React Router
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useQueryClient } from '@tanstack/react-query';
-
-import { AddCircleOutlined } from '@mui/icons-material';
-
-import ActionButton from '@/components/ActionButton';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import SuspenseLoader from '@/components/SuspenseLoader';
-import { ORDER_STATUS } from '@/constants/order-status';
-import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import useConfirmModal from '@/hooks/useModalConfirm';
-import { IOrderItem } from '@/interfaces/IOrder';
-import { IQuery } from '@/interfaces/IQuery';
-import {
-  useDeleteOrder,
-  useGetOrderList,
-  useUpdateOrderStatus,
-} from '@/services/order';
-import { formatPrice } from '@/utils/format-price';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Box,
+  Breadcrumbs,
+  Button,
   Card,
+  CardContent,
   CardHeader,
+  Chip,
   Divider,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  Tab,
+  IconButton,
+  Link,
+  Popover,
   Table,
   TableBody,
   TableCell,
@@ -38,450 +21,561 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  TableSortLabel,
-  Tabs,
-  TextField,
   Typography,
 } from '@mui/material';
-import { visuallyHidden } from '@mui/utils';
-import moment from 'moment';
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: string;
-}
+import { AddCircleOutlined } from '@mui/icons-material';
+import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+
+import { addDays } from 'date-fns';
+import moment from 'moment';
+import { DateRangePicker, RangeKeyDict } from 'react-date-range';
+
+import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import TableFilter from '@/components/TableFilter';
+import { TableSkeleton } from '@/components/TableSkeleton';
+
+import { useGetEnumByContext } from '@/services/enum';
+import { useGetImportLogList } from '@/services/inventory';
+import { useGetProductList } from '@/services/product';
+import { useGetWarehouseList } from '@/services/warehouse';
+
+import { IEnum } from '@/interfaces/IEnum';
+import { IImportLogItem } from '@/interfaces/IInventorytLog';
+
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import { formatPrice } from '@/utils/format-price';
+
+import { ROUTES } from '@/constants/route';
+import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
+import { useGetOrderList } from '@/services/order';
+import { IOrderItem } from '@/interfaces/IOrder';
 
 interface Data {
   stt: number;
-  _id: string;
-  name: string;
-  items: IOrderItem[];
-  created_at: Date;
-  total_amount: number;
-  status: string;
+  warehouse: string;
+  items: IImportLogItem[];
+  type: string;
+  createdAt: Date;
+  note: string;
+  action: string;
 }
 
-type Order = 'asc' | 'desc';
-
-function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
+interface HeadCell {
+  align?: ColumnAlign;
+  disablePadding: boolean;
+  id: keyof Data;
+  label: string;
+  isFilter?: boolean;
+  width?: string;
+}
+interface ColumnFilters {
+  status: string[];
+  search: string;
+  date: { fromDate: string; toDate: string };
 }
 
-interface EnhancedTableProps {
-  onRequestSort: (
-    event: React.MouseEvent<unknown>,
-    property: keyof Data
+// Constants
+const INITIAL_COLUMN_FILTERS: ColumnFilters = {
+  status: [],
+  search: '',
+  date: { fromDate: '', toDate: '' },
+};
+
+const INITIAL_DATE_STATE = [
+  {
+    startDate: new Date(),
+    endDate: addDays(new Date(), 7),
+    key: 'selection',
+  },
+];
+
+const headCells: readonly HeadCell[] = [
+  {
+    align: 'center',
+    id: 'stt',
+    disablePadding: false,
+    label: 'STT',
+    isFilter: false,
+    width: '2%',
+  },
+  {
+    id: 'items',
+    disablePadding: false,
+    label: 'Thông tin đặt hàng',
+    width: '20%',
+  },
+  {
+    align: 'center',
+    id: 'type',
+    disablePadding: false,
+    label: 'Sản phẩm',
+    isFilter: true,
+    width: '44%',
+  },
+  {
+    align: 'center',
+    id: 'createdAt',
+    disablePadding: false,
+    label: 'Trạng thái',
+    width: '12%',
+  },
+  {
+    align: 'center',
+    id: 'createdAt',
+    disablePadding: false,
+    label: 'Ngày nhập',
+    width: '12%',
+  },
+  {
+    align: 'center',
+    id: 'action',
+    disablePadding: false,
+    label: 'Hành động',
+    width: '10%',
+  },
+];
+
+const columns: TableColumn[] = [
+  { width: '60px', align: 'center', type: 'text' },
+  { width: '100px', type: 'text' },
+  { width: '300px', type: 'complex' },
+  { width: '120px', align: 'center', type: 'text' },
+  { width: '120px', align: 'center', type: 'text' },
+  { width: '120px', align: 'center', type: 'text' },
+  { width: '120px', align: 'center', type: 'action' },
+];
+
+// Components
+interface OrderItemProps {
+  item: IOrderItem;
+}
+
+const OrderItem = ({ item }: OrderItemProps) => {
+  const productName = item?.productName;
+  const imageUrl = item?.imageUrl;
+  const quantity = item?.quantity;
+  const price = item?.price;
+  const attributes = item?.skuAttributes;
+
+  return (
+    <Box
+      my={1}
+      sx={{
+        display: 'flex',
+        p: 1,
+        bgcolor: '#fafafa',
+        border: '1px solid #dadada',
+        borderRadius: 1,
+      }}>
+      <Box
+        sx={{
+          height: 40,
+          '.thumbnail': {
+            width: 40,
+            height: 40,
+            mr: 1,
+            objectFit: 'contain',
+          },
+        }}>
+        <img src={imageUrl} className='thumbnail' alt={productName} />
+      </Box>
+      <Box>
+        <Typography
+          sx={{
+            // width: 80,
+            fontSize: 14,
+            fontWeight: 500,
+            ...truncateTextByLine(1),
+          }}>
+          {productName}
+        </Typography>
+
+        <Typography sx={{ fontSize: 13 }}>SL: {quantity}</Typography>
+        <Typography sx={{ fontSize: 13 }}>Giá: {formatPrice(price)}</Typography>
+      </Box>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          ml: 2,
+        }}>
+        {attributes?.length
+          ? attributes.map((attr, index) => (
+              <Typography key={index} sx={{ fontSize: 13 }}>
+                {attr?.attribute}: {attr?.value}
+              </Typography>
+            ))
+          : null}
+      </Box>
+    </Box>
+  );
+};
+
+interface FilterChipsProps {
+  columnFilters: ColumnFilters;
+  warehousesData: {
+    data?: Array<{
+      id: number;
+      name: string;
+    }>;
+  };
+  productsData: {
+    data?: Array<{
+      id: number;
+      name: string;
+    }>;
+  };
+  enumData: {
+    data?: Array<IEnum>;
+  };
+  onFilterChange: (
+    column: string,
+    value: string | string[] | { fromDate: string; toDate: string }
   ) => void;
-  order: Order;
-  orderBy: string;
-  rowCount: number;
 }
 
-function getComparator<Key extends keyof any>(
-  order: Order,
-  orderBy: Key
-): (
-  a: { [key in Key]: number | string | IOrderItem[] },
-  b: { [key in Key]: number | string | IOrderItem[] }
-) => number {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function EnhancedTableHead(props: EnhancedTableProps) {
-  const { order, orderBy, onRequestSort } = props;
-
-  const createSortHandler =
-    (property: keyof Data) => (event: React.MouseEvent<unknown>) => {
-      onRequestSort(event, property);
-    };
-
-  return (
-    <TableHead>
-      <TableRow>
-        <TableCell align={'center'} padding={'none'} width={'6%'}>
-          STT
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sortDirection={orderBy === 'name' ? order : false}>
-          <TableSortLabel
-            active={orderBy === 'name'}
-            direction={orderBy === 'name' ? order : 'asc'}
-            onClick={createSortHandler('name')}>
-            Khách hàng
-            {orderBy === 'name' ? (
-              <Box component='span' sx={visuallyHidden}>
-                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-              </Box>
-            ) : null}
-          </TableSortLabel>
-        </TableCell>
-        <TableCell align={'center'} padding={'none'} sx={{ width: '18%' }}>
-          Sản phẩm
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sortDirection={orderBy === 'created_at' ? order : false}>
-          <TableSortLabel
-            active={orderBy === 'created_at'}
-            direction={orderBy === 'created_at' ? order : 'asc'}
-            onClick={createSortHandler('created_at')}>
-            Ngày đặt
-            {orderBy === 'created_at' ? (
-              <Box component='span' sx={visuallyHidden}>
-                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-              </Box>
-            ) : null}
-          </TableSortLabel>
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sortDirection={orderBy === 'created_at' ? order : false}>
-          <TableSortLabel
-            active={orderBy === 'created_at'}
-            direction={orderBy === 'created_at' ? order : 'asc'}
-            onClick={createSortHandler('created_at')}>
-            Tổng tiền
-            {orderBy === 'created_at' ? (
-              <Box component='span' sx={visuallyHidden}>
-                {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-              </Box>
-            ) : null}
-          </TableSortLabel>
-        </TableCell>
-        <TableCell
-          align={'center'}
-          padding={'none'}
-          sortDirection={orderBy === 'created_at' ? order : false}>
-          Trạng thái
-        </TableCell>
-        <TableCell align={'center'}>Hành động</TableCell>
-      </TableRow>
-    </TableHead>
-  );
-}
-
-const OrderList = () => {
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const { mutate: updateOrderStatusMutate, isPending: isUpdatePending } =
-    useUpdateOrderStatus();
-
-  const [query, setQuery] = useState<IQuery>({
-    search: '',
-    status: '',
-    limit: 10,
-    page: 0,
-  });
-  const [order, setOrder] = useState<Order>('asc');
-  const [orderBy, setOrderBy] = useState<keyof Data>('stt');
-  const [tabValue, setTabValue] = useState('');
-
-  const handleChange = (_: React.SyntheticEvent, newValue: string) => {
-    setTabValue(newValue);
-    setQuery((prev) => ({ ...prev, ...{ status: newValue } }));
-  };
-
-  const handleRequestSort = (
-    _: React.MouseEvent<unknown>,
-    property: keyof Data
-  ) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const { data } = useGetOrderList(query);
-
-  const { showNotification } = useNotificationContext();
-  const { mutate: deleteOrderMutate } = useDeleteOrder();
-
-  const { confirmModal, showConfirmModal } = useConfirmModal();
-
-  const handleDeleteOrder = (id: string) => {
-    showNotification('Ok', 'error');
-    deleteOrderMutate(id, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
-        showNotification('Xóa danh mục thành công', 'success');
-      },
-    });
-  };
-
-  function CustomTabPanel(props: TabPanelProps) {
-    const { value, index, ...other } = props;
-    return (
-      <div
-        role='tabpanel'
-        hidden={value !== tabValue}
-        id={`simple-tabpanel-${index}`}
-        aria-labelledby={`simple-tab-${index}`}
-        {...other}>
-        {value === tabValue && (
-          <Box>
-            <TableContainer sx={{ overflow: 'unset' }}>
-              <Box>
-                <TextField
-                  sx={{ width: '100%', my: 2 }}
-                  placeholder='Search'
-                  size='small'></TextField>
-              </Box>
-              <Table sx={{ minWidth: 750 }} aria-labelledby='tableTitle'>
-                <EnhancedTableHead
-                  order={order}
-                  orderBy={orderBy}
-                  onRequestSort={handleRequestSort}
-                  rowCount={data?.total || 0}
-                />
-                <TableBody
-                  sx={{
-                    position: 'relative',
-                    // height: !productByCategory
-                    //   ? 80 *
-                    //     ((data?.total ?? 0) < (query?.limit ?? 2)
-                    //       ? data?.total ?? 10
-                    //       : query?.limit ?? 10)
-                    //   : '',
-                    // + 1 *
-                    // ((data?.total ?? 0) < (query?.limit ?? 10)
-                    //   ? data?.total ?? 0
-                    //   : query?.limit ?? 10),
-                  }}>
-                  {
-                    // isLoading ? (
-                    //   <Box
-                    //     sx={{
-                    //       position: 'absolute',
-                    //       top: '50%',
-                    //       right: '50%',
-                    //       transform: 'translate(50%, -50%)',
-                    //     }}>
-                    //     <CircularProgress
-                    //       size={64}
-                    //       disableShrink
-                    //       thickness={3}
-                    //     />
-                    //   </Box>
-                    // ) : (
-                    visibleRows?.map((row, index) => {
-                      const labelId = `enhanced-table-checkbox-${index}`;
-
-                      return (
-                        <TableRow
-                          hover
-                          role='checkbox'
-                          tabIndex={-1}
-                          key={row.stt}
-                          sx={{ cursor: 'pointer' }}>
-                          <TableCell
-                            component='th'
-                            id={labelId}
-                            scope='row'
-                            padding='none'
-                            align='center'
-                            sx={{ height: 80 }}>
-                            {index +
-                              1 +
-                              (query?.page ?? 0) * (query?.limit ?? 0)}
-                          </TableCell>
-                          <TableCell
-                            component='th'
-                            id={labelId}
-                            scope='row'
-                            padding='none'
-                            align='center'
-                            sx={{ width: '16%', height: 80 }}>
-                            {row.name}
-                          </TableCell>
-                          <TableCell
-                            padding='none'
-                            sx={{
-                              width: '16%',
-                              height: 80,
-                            }}>
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                justifyContent: 'center',
-                                height: 66,
-                                overflow: 'auto',
-                              }}>
-                              {row?.items?.map((item) => (
-                                <Box key={item.model_id} sx={{ fontSize: 12 }}>
-                                  - {item?.product_name}
-                                </Box>
-                              ))}
-                            </Box>
-                          </TableCell>
-                          <TableCell
-                            padding='none'
-                            align='center'
-                            sx={{ height: 80 }}>
-                            {row?.created_at}
-                          </TableCell>
-                          <TableCell
-                            padding='none'
-                            align='center'
-                            sx={{ height: 80 }}>
-                            {formatPrice(row.total_amount)}
-                          </TableCell>
-                          <TableCell
-                            padding='none'
-                            align='center'
-                            sx={{ height: 80 }}>
-                            <Select
-                              sx={{
-                                width: '120px',
-                                minHeight: '36px',
-                                fontSize: 14,
-                              }}
-                              size='small'
-                              onChange={(e) => handleUpdateStatus(e, row._id)}
-                              value={row?.status ?? ''}>
-                              {Object.entries(ORDER_STATUS)?.map(
-                                ([key, label]) => (
-                                  <MenuItem
-                                    sx={{ fontSize: 12 }}
-                                    key={key}
-                                    value={key}>
-                                    {label}
-                                  </MenuItem>
-                                )
-                              )}
-                            </Select>
-                          </TableCell>
-
-                          <TableCell
-                            align='center'
-                            sx={{ width: '10%', height: 80 }}>
-                            <Box onClick={(e) => e.stopPropagation()}>
-                              <ActionButton>
-                                {/* <Box mb={1}>
-                                  <ButtonWithTooltip
-                                    color='primary'
-                                    variant='outlined'
-                                    title='Chi tiết'
-                                    placement='left'
-                                    // onClick={() => handleDetailClick(row)}
-                                  >
-                                    <InfoOutlinedIcon />
-                                  </ButtonWithTooltip>
-                                </Box> */}
-                                <Box mb={1}>
-                                  <ButtonWithTooltip
-                                    color='primary'
-                                    onClick={() =>
-                                      navigate(`update/${row?._id}`)
-                                    }
-                                    variant='outlined'
-                                    title='Chỉnh sửa'
-                                    placement='left'>
-                                    <EditOutlinedIcon />
-                                  </ButtonWithTooltip>
-                                </Box>
-                                <Box mb={1}>
-                                  <ButtonWithTooltip
-                                    color='error'
-                                    onClick={() => {
-                                      showConfirmModal({
-                                        title:
-                                          'Bạn có muốn xóa đơn hàng này không?',
-                                        cancelText: 'Hủy',
-                                        onOk: () => handleDeleteOrder(row?._id),
-                                        okText: 'Xóa',
-                                        btnOkColor: 'error',
-                                      });
-                                    }}
-                                    variant='outlined'
-                                    title='Xoá'
-                                    placement='left'>
-                                    <DeleteOutlineOutlinedIcon />
-                                  </ButtonWithTooltip>
-                                </Box>
-                              </ActionButton>
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                    // )
-                  }
-                  {/* {emptyRows > 0 && data && (
-                      <TableRow
-                        style={{
-                          height: 80 * emptyRows + 1 * emptyRows,
-                        }}>
-                        <TableCell colSpan={12} />
-                      </TableRow>
-                    )} */}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-        )}
-      </div>
-    );
-  }
-
-  const rows = useMemo(
-    () =>
-      data?.orders?.map((order, index) => ({
-        stt: index + 1,
-        _id: order._id,
-        name: order.customer?.name,
-        items: order.items,
-        created_at: moment(order?.createdAt)?.format('lll'),
-        total_amount: order.total_amount,
-        status: order.status,
-      })) || [],
-    [data]
-  );
-
-  const visibleRows = useMemo(
-    () => rows.sort(getComparator(order, orderBy)),
-    [order, orderBy, query.limit, rows]
-  );
-
-  const handleChangePage = (_: unknown, newPage: number) => {
-    setQuery((prev) => ({ ...prev, ...{ page: newPage } }));
-  };
-
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setQuery((prev) => ({
-      ...prev,
-      ...{ limit: +event.target.value },
-    }));
-  };
-
-  const handleUpdateStatus = (e: SelectChangeEvent<string>, id: string) => {
-    updateOrderStatusMutate(
-      { _id: id, status: e.target.value },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
-          showNotification('Cập nhật trạng thái thành công', 'success');
-        },
+const FilterChips = ({
+  columnFilters,
+  warehousesData,
+  productsData,
+  enumData,
+  onFilterChange,
+}: FilterChipsProps) => {
+  const getFilterLabels = useCallback(
+    (filterKey: string, values: string[]) => {
+      if (filterKey === 'warehouse') {
+        return values.map(
+          (value: string) =>
+            warehousesData?.data?.find(
+              (w: { id: number; name: string }) => w.id === +value
+            )?.name || value
+        );
+      } else if (filterKey === 'items') {
+        return values.map(
+          (value: string) =>
+            productsData?.data?.find(
+              (p: { id: number; name: string }) => p.id === +value
+            )?.name || value
+        );
+      } else if (filterKey === 'type') {
+        return values.map(
+          (value: string) =>
+            enumData?.data?.find((e: IEnum) => e.value === value)?.label ||
+            value
+        );
       }
-    );
-  };
+      return [];
+    },
+    [warehousesData?.data, productsData?.data, enumData?.data]
+  );
 
   return (
-    <Card sx={{ borderRadius: 2 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <FilterListIcon />
+      {Object.entries(columnFilters).map(([filterKey, filterValues]) => {
+        if (filterKey === 'date') {
+          const dateValues = filterValues as {
+            fromDate: string;
+            toDate: string;
+          };
+          if (!dateValues.fromDate || !dateValues.toDate) return null;
+          return (
+            <Chip
+              key='date-filter'
+              label={`${moment(dateValues.fromDate).format(
+                'DD/MM/YYYY'
+              )} - ${moment(dateValues.toDate).format('DD/MM/YYYY')}`}
+              onDelete={() => {
+                onFilterChange('date', { fromDate: '', toDate: '' });
+              }}
+              size='small'
+            />
+          );
+        }
+
+        const values = filterValues as string[];
+        if (values.length === 0) return null;
+
+        const filterLabels = getFilterLabels(filterKey, values);
+
+        return filterLabels.map((label) => (
+          <Chip
+            key={`${filterKey}-${label}`}
+            label={label}
+            onDelete={() => {
+              const newValues = values.filter((value: string) => {
+                const itemLabel =
+                  filterKey === 'warehouse'
+                    ? warehousesData?.data?.find((w) => w.id === +value)?.name
+                    : filterKey === 'items'
+                    ? productsData?.data?.find((p) => p.id === +value)?.name
+                    : enumData?.data?.find((e) => e.value === value)?.label;
+                return itemLabel !== label;
+              });
+              onFilterChange(filterKey, newValues);
+            }}
+            size='small'
+            sx={{ maxWidth: 120 }}
+          />
+        ));
+      })}
+    </Box>
+  );
+};
+
+// Custom hooks
+const useFilterState = () => {
+  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
+  const [activeFilterColumn, setActiveFilterColumn] = useState<string>('');
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>(
+    INITIAL_COLUMN_FILTERS
+  );
+  const [dateState, setDateState] = useState(INITIAL_DATE_STATE);
+  const [dateFilterAnchorEl, setDateFilterAnchorEl] =
+    useState<null | HTMLElement>(null);
+
+  const handleFilterClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>, column: string) => {
+      setFilterAnchorEl(event.currentTarget);
+      setActiveFilterColumn(column);
+    },
+    []
+  );
+
+  const handleFilterClose = useCallback(() => {
+    setFilterAnchorEl(null);
+    setActiveFilterColumn('');
+  }, []);
+
+  const handleColumnFilterChange = useCallback(
+    (
+      column: string,
+      value: string | string[] | { fromDate: string; toDate: string }
+    ) => {
+      setColumnFilters((prev) => ({
+        ...prev,
+        [column]: value,
+      }));
+    },
+    []
+  );
+
+  const handleDateRangeChange = useCallback((rangesByKey: RangeKeyDict) => {
+    const selection = rangesByKey.selection;
+    if (!selection?.startDate || !selection?.endDate) return;
+
+    setDateState([
+      {
+        startDate: selection.startDate,
+        endDate: selection.endDate,
+        key: 'selection',
+      },
+    ]);
+
+    const fromDate = new Date(
+      Date.UTC(
+        selection.startDate.getFullYear(),
+        selection.startDate.getMonth(),
+        selection.startDate.getDate(),
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+    const toDate = new Date(
+      Date.UTC(
+        selection.endDate.getFullYear(),
+        selection.endDate.getMonth(),
+        selection.endDate.getDate(),
+        23,
+        59,
+        59,
+        999
+      )
+    );
+
+    setColumnFilters((prev) => ({
+      ...prev,
+      date: {
+        fromDate: fromDate.toISOString().split('T')[0],
+        toDate: toDate.toISOString().split('T')[0],
+      },
+    }));
+  }, []);
+
+  const handleDateFilterClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      setDateFilterAnchorEl(event.currentTarget);
+    },
+    []
+  );
+
+  const handleDateFilterClose = useCallback(() => {
+    setDateFilterAnchorEl(null);
+  }, []);
+
+  return {
+    filterAnchorEl,
+    activeFilterColumn,
+    columnFilters,
+    dateState,
+    dateFilterAnchorEl,
+    handleFilterClick,
+    handleFilterClose,
+    handleColumnFilterChange,
+    handleDateRangeChange,
+    handleDateFilterClick,
+    handleDateFilterClose,
+  };
+};
+
+const usePagination = () => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleChangePage = useCallback((event: unknown, newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const handleChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0);
+    },
+    []
+  );
+
+  return {
+    page,
+    rowsPerPage,
+    handleChangePage,
+    handleChangeRowsPerPage,
+  };
+};
+
+// Main component
+const OrderListPage = () => {
+  const navigate = useNavigate();
+  const {
+    filterAnchorEl,
+    activeFilterColumn,
+    columnFilters,
+    dateState,
+    dateFilterAnchorEl,
+    handleFilterClick,
+    handleFilterClose,
+    handleColumnFilterChange,
+    handleDateRangeChange,
+    handleDateFilterClick,
+    handleDateFilterClose,
+  } = useFilterState();
+
+  const { page, rowsPerPage, handleChangePage, handleChangeRowsPerPage } =
+    usePagination();
+
+  const { data: warehousesData } = useGetWarehouseList();
+  const { data: productsData } = useGetProductList();
+  const { data: enumData } = useGetEnumByContext('order-status');
+
+  const {
+    data: ordersData,
+    refetch: refetchOrders,
+    isLoading: isLoadingOrders,
+  } = useGetOrderList({
+    status: columnFilters.status,
+    search: columnFilters.search,
+    page: page + 1,
+    limit: rowsPerPage,
+  });
+
+  const statusMap = useMemo(
+    () =>
+      Object.fromEntries(
+        enumData?.data?.map((item) => [item.value, item.label]) ?? []
+      ),
+    [enumData?.data]
+  );
+
+  useEffect(() => {
+    refetchOrders();
+  }, [columnFilters, refetchOrders]);
+
+  const renderFilterContent = useCallback(() => {
+    switch (activeFilterColumn) {
+      case 'status':
+        return (
+          <TableFilter
+            title='Lọc theo trạng thái'
+            options={
+              enumData?.data?.map((status: IEnum) => ({
+                id: status.value,
+                label: status.label,
+              })) ?? []
+            }
+            selectedValues={columnFilters.status}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('status', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
+
+        return (
+          <TableFilter
+            title='Lọc theo loại nhập'
+            options={
+              enumData?.data?.map((type: IEnum) => ({
+                id: type.value,
+                label: type.label,
+              })) ?? []
+            }
+            selectedValues={columnFilters.type}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('type', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
+      default:
+        return null;
+    }
+  }, [
+    activeFilterColumn,
+    enumData,
+    columnFilters,
+    handleColumnFilterChange,
+    handleFilterClose,
+  ]);
+
+  return (
+    <>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{ mb: 3 }}>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+        </Link>
+        <Typography color='text.primary'>Danh sách đơn hàng</Typography>
+      </Breadcrumbs>
       <Card>
         <CardHeader
           title={
@@ -492,72 +586,232 @@ const OrderList = () => {
           action={
             <ButtonWithTooltip
               variant='contained'
-              onClick={() => navigate('/order/create')}
-              title='Thêm mã hàng'
-              sx={{ ml: 1 }}>
+              onClick={() => navigate(`${ROUTES.INVENTORY}/import/create`)}
+              title='Tạo đơn hàng'
+              sx={{ textTransform: 'none' }}>
               <AddCircleOutlined />
             </ButtonWithTooltip>
           }
         />
         <Divider />
-        <Box sx={{ width: '100%' }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs
-              value={tabValue}
-              onChange={handleChange}
-              aria-label='basic tabs example'>
-              <Tab
-                label={`Tất cả ${data?.total ? `(${data?.total})` : '(0)'}`}
-                value={''}
-              />
-              \{}
-              {Object.entries(ORDER_STATUS)?.map(([key, label]) => (
-                <Tab
-                  key={key}
-                  label={`${label} ${
-                    data?.status_counts?.find((item) => item.status === key)
-                      ?.count
-                      ? ` (${
-                          data?.status_counts?.find(
-                            (item) => item.status === key
-                          )?.count
-                        })`
-                      : `(0)`
-                  }
-                  `}
-                  value={key}
-                />
-              ))}
-            </Tabs>
-          </Box>
-          <CustomTabPanel value={''} index={0} />
-          {Object.entries(ORDER_STATUS)?.map(([key, _], index) => (
-            <CustomTabPanel key={key} value={key} index={index + 1} />
-          ))}
-        </Box>
-        <Divider />
-        <Box
-          p={2}
-          sx={{
-            ['.MuiPagination-ul']: {
-              justifyContent: 'center',
-            },
-            textAlign: 'right',
-          }}>
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell colSpan={headCells.length}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}>
+                      <FilterChips
+                        columnFilters={columnFilters}
+                        warehousesData={warehousesData || { data: [] }}
+                        productsData={productsData || { data: [] }}
+                        enumData={enumData || { data: [] }}
+                        onFilterChange={handleColumnFilterChange}
+                      />
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Button
+                          variant='outlined'
+                          size='small'
+                          onClick={handleDateFilterClick}
+                          startIcon={<DateRangeOutlinedIcon />}
+                          sx={{
+                            textTransform: 'none',
+                            borderColor: columnFilters.date.fromDate
+                              ? 'primary.main'
+                              : 'inherit',
+                            color: columnFilters.date.fromDate
+                              ? 'primary.main'
+                              : 'inherit',
+                            '&:hover': {
+                              borderColor: 'primary.main',
+                            },
+                          }}>
+                          {columnFilters.date.fromDate
+                            ? `${moment(columnFilters.date.fromDate).format(
+                                'DD/MM/YYYY'
+                              )} - ${moment(columnFilters.date.toDate).format(
+                                'DD/MM/YYYY'
+                              )}`
+                            : 'Chọn ngày'}
+                        </Button>
+                      </Box>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  {headCells?.map((headCell) => (
+                    <TableCell
+                      key={headCell.id}
+                      align={headCell.align ?? 'left'}
+                      padding={headCell.disablePadding ? 'none' : 'normal'}
+                      sx={{ width: headCell.width }}>
+                      {headCell.label}
+                      {headCell.isFilter ? (
+                        <>
+                          {' '}
+                          {(() => {
+                            const filterValue =
+                              columnFilters[
+                                headCell.id as keyof typeof columnFilters
+                              ];
+                            if (
+                              Array.isArray(filterValue) &&
+                              filterValue.length > 0
+                            ) {
+                              return (
+                                <Typography
+                                  component='span'
+                                  sx={{ fontSize: 14 }}>
+                                  ({filterValue.length})
+                                </Typography>
+                              );
+                            }
+                            return null;
+                          })()}
+                          <IconButton
+                            size='small'
+                            onClick={(e) => handleFilterClick(e, headCell.id)}
+                            sx={{ ml: 1 }}>
+                            <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </>
+                      ) : null}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {isLoadingOrders ? (
+                  <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
+                ) : ordersData?.data?.length ? (
+                  ordersData?.data?.map((order, index) => (
+                    <TableRow key={order.id || index}>
+                      <TableCell align='center'>
+                        {page * rowsPerPage + index + 1}
+                      </TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
+                          {order?.fullName}
+                        </Typography>
+                        <Typography sx={{ fontSize: 14 }}>
+                          {order?.phoneNumber}
+                        </Typography>
+                        <Typography sx={{ fontSize: 14 }}>
+                          {order?.email}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box>
+                          {order?.orderItems?.map((orderItem) => (
+                            <OrderItem key={orderItem?.id} item={orderItem} />
+                          ))}
+                        </Box>
+                      </TableCell>
+                      <TableCell align='center'>
+                        {statusMap?.[order?.status] || 'Không xác định'}
+                      </TableCell>
+                      <TableCell align='center'>
+                        {moment(order?.createdAt).format('DD/MM/YYYY')}
+                      </TableCell>
+                      <TableCell align='center'>
+                        <ActionButton>
+                          <Box mb={1}>
+                            <ButtonWithTooltip
+                              color='primary'
+                              variant='outlined'
+                              title='Chỉnh sửa'
+                              placement='left'>
+                              <EditOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
+                          <Box>
+                            <ButtonWithTooltip
+                              color='error'
+                              variant='outlined'
+                              title='Xoá'
+                              placement='left'>
+                              <DeleteOutlineOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
+                        </ActionButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell align='center' colSpan={7}>
+                      Không có dữ liệu
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
           <TablePagination
             component='div'
-            count={data?.total ?? 0}
-            page={query?.page ?? 1}
+            count={ordersData?.meta?.total || 0}
+            page={page}
             onPageChange={handleChangePage}
-            rowsPerPage={query?.limit ?? 10}
+            rowsPerPage={rowsPerPage}
             onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[10, 20, 30, 50]}
+            labelRowsPerPage='Số hàng mỗi trang'
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`
+            }
           />
-        </Box>
+        </CardContent>
+
+        <Popover
+          open={Boolean(filterAnchorEl)}
+          anchorEl={filterAnchorEl}
+          onClose={handleFilterClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'left',
+          }}>
+          {renderFilterContent()}
+        </Popover>
+
+        <Popover
+          open={Boolean(dateFilterAnchorEl)}
+          anchorEl={dateFilterAnchorEl}
+          onClose={handleDateFilterClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          PaperProps={{
+            sx: {
+              p: 2,
+              mt: 1,
+            },
+          }}>
+          <DateRangePicker
+            onChange={handleDateRangeChange}
+            moveRangeOnFirstSelection={false}
+            months={2}
+            ranges={dateState}
+            direction='horizontal'
+          />
+        </Popover>
       </Card>
-      {isUpdatePending && <SuspenseLoader />}
-      {confirmModal()}
-    </Card>
+    </>
   );
 };
 
-export default OrderList;
+export default OrderListPage;

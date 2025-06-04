@@ -10,12 +10,14 @@ import {
   IUpdateOrderStatus,
 } from '@/interfaces/IOrder';
 import { IQuery } from '@/interfaces/IQuery';
+import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
 
-type TOrderRes = {
-  orders: IOrder[];
-  total: number;
-  status_counts: { status: string; count: number }[];
-};
+interface IGetOrderListQuery {
+  page?: number;
+  limit?: number;
+  status?: string[];
+  search?: string;
+}
 
 interface IProvince {
   name: string;
@@ -43,7 +45,8 @@ interface IWard {
   short_codename: string;
 }
 
-const orderUrl = '/order';
+const orderUrl = '/orders';
+const provinceUrl = '/province';
 
 const createOrder = async (payload: ICreateOrder) => {
   const result = await axiosInstance.post(`${orderUrl}`, payload);
@@ -56,14 +59,14 @@ export const useCreateOrder = () => {
   });
 };
 
-const getOrderList = async (query: IQuery) => {
+const getOrderList = async (query: IGetOrderListQuery) => {
   const newParams = { ...query, page: query.page ? query.page + 1 : 1 };
   const queryParams = queryString.stringify(newParams ?? {});
   const result = await axiosInstance.get(`${orderUrl}?${queryParams}`);
-  return result.data as TOrderRes;
+  return result.data as TPaginatedResponse<IOrder>;
 };
 
-export const useGetOrderList = (query: IQuery) => {
+export const useGetOrderList = (query: IGetOrderListQuery) => {
   return useQuery({
     queryKey: [QueryKeys.Order, query],
     queryFn: () => getOrderList(query),
@@ -74,7 +77,7 @@ export const useGetOrderList = (query: IQuery) => {
 
 const getOrderById = async (id: string) => {
   const result = await axiosInstance.get(`${orderUrl}/admin/${id}`);
-  return result.data as IOrder;
+  return result.data as TBaseResponse<IOrder>;
 };
 
 export const useGetOrderById = (id: string) => {
@@ -88,10 +91,10 @@ export const useGetOrderById = (id: string) => {
 };
 
 const getProvinceList = async () => {
-  const result = await axiosInstance.get('https://provinces.open-api.vn/api', {
+  const result = await axiosInstance.get(`${provinceUrl}`, {
     withCredentials: false,
   });
-  return result.data as IProvince[];
+  return result.data as TBaseResponse<IProvince[]>;
 };
 
 export const useGetProvinceList = () => {
@@ -104,13 +107,10 @@ export const useGetProvinceList = () => {
 };
 
 const getProvince = async (code: number | undefined) => {
-  const result = await axiosInstance.get(
-    `https://provinces.open-api.vn/api/p/${code}?depth=2`,
-    {
-      withCredentials: false,
-    }
-  );
-  return result.data as IProvince;
+  const result = await axiosInstance.get(`${provinceUrl}/${code}`, {
+    withCredentials: false,
+  });
+  return result.data as TBaseResponse<IProvince>;
 };
 
 export const useGetProvince = (code: number | undefined) => {
@@ -124,11 +124,10 @@ export const useGetProvince = (code: number | undefined) => {
 };
 
 const getDistrict = async (code: number | undefined) => {
-  const result = await axiosInstance.get(
-    `https://provinces.open-api.vn/api/d/${code}?depth=2`,
-    { withCredentials: false }
-  );
-  return result.data as IDistrict;
+  const result = await axiosInstance.get(`${provinceUrl}/d/${code}`, {
+    withCredentials: false,
+  });
+  return result.data as TBaseResponse<IDistrict>;
 };
 
 export const useGetDistrict = (code: number | undefined) => {
@@ -142,8 +141,8 @@ export const useGetDistrict = (code: number | undefined) => {
 };
 
 const updateOrder = async (payload: IUpdateOrder) => {
-  const { _id, ...rest } = payload;
-  const result = await axiosInstance.patch(`${orderUrl}/${_id}`, rest);
+  const { id, ...rest } = payload;
+  const result = await axiosInstance.patch(`${orderUrl}/${id}`, rest);
   return result.data as IOrder;
 };
 
@@ -154,8 +153,8 @@ export const useUpdateOrder = () => {
 };
 
 const updateOrderStatus = async (payload: IUpdateOrderStatus) => {
-  const { _id, ...rest } = payload;
-  const result = await axiosInstance.patch(`${orderUrl}/${_id}/status`, rest);
+  const { id, ...rest } = payload;
+  const result = await axiosInstance.patch(`${orderUrl}/${id}/status`, rest);
   return result.data as IOrder;
 };
 
