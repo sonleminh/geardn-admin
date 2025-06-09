@@ -76,7 +76,7 @@ export const useGetOrderList = (query: IGetOrderListQuery) => {
 };
 
 const getOrderById = async (id: string) => {
-  const result = await axiosInstance.get(`${orderUrl}/admin/${id}`);
+  const result = await axiosInstance.get(`${orderUrl}/${id}`);
   return result.data as TBaseResponse<IOrder>;
 };
 

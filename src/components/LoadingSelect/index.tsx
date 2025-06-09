@@ -7,6 +7,7 @@ import {
   Typography,
 } from '@mui/material';
 import { ReactNode } from 'react';
+import { truncateTextByLine } from '@/utils/css-helper.util';
 
 interface LoadingSelectProps extends Omit<SelectProps, 'children'> {
   loading?: boolean;
@@ -52,7 +53,7 @@ const LoadingSelect = ({
       ) : options.length > 0 ? (
         options.map((option) => (
           <MenuItem key={option.value} value={option.value}>
-            {option.label}
+            <Typography> {option.label}</Typography>
           </MenuItem>
         ))
       ) : (

@@ -87,7 +87,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
       );
       setCategoryId(productData?.data?.category?.id.toString());
     }
-  }, [selectedSkuId, productsByCategoryData, productId]);
+  }, [selectedSkuId, productData, productsByCategoryData, productId]);
 
   //   useEffect(() => {
   //     if (
@@ -303,6 +303,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
                     value: item.id,
                     label: item.productSkuAttributes?.length ? (
                       <Box
+                        key={item.id}
                         sx={{
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -481,7 +482,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
                   {orderItems?.length ? (
                     orderItems.map((item, index) => (
                       <TableRow
-                        key={item.skuId}
+                        key={`${item?.skuId}-${index}`}
                         sx={{
                           '&:last-child td, &:last-child th': { border: 0 },
                         }}>

@@ -35,23 +35,16 @@ import { useGetPaymentById } from '@/services/payment';
 
 import { QueryKeys } from '@/constants/query-key';
 
-import {
-  ICreateOrder,
-  ICreateOrderItem,
-  IOrderItem,
-} from '@/interfaces/IOrder';
-
-import { createSchema, updateSchema } from '../utils/schema/orderSchema';
+import { ICreateOrder, ICreateOrderItem } from '@/interfaces/IOrder';
 
 import SuspenseLoader from '@/components/SuspenseLoader';
 import CustomerForm from './components/CustomerForm';
 // import ProductSelector from './components/ProductSelector';
-import ShipmentForm from './components/ShipmentForm';
 import { ROUTES } from '@/constants/route';
-import ProductSelector from './components/ProductSelector';
-import { useGetCategoryList } from '@/services/category';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import ProductSelector from './components/ProductSelector';
+import ShipmentForm from './components/ShipmentForm';
 
 const OrderUpsert = () => {
   const { id } = useParams();
@@ -62,6 +55,8 @@ const OrderUpsert = () => {
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
   const [orderItems, setOrderItems] = useState<ICreateOrderItem[]>([]);
+
+  console.log('orderItems:', orderItems);
 
   const [city, setCity] = useState<string>('');
   const [district, setDistrict] = useState<string>('');
@@ -101,13 +96,14 @@ const OrderUpsert = () => {
       const payload = {
         ...values,
         userId: +user?.id,
-        items: orderItems,
+        orderItems: orderItems,
         shipment: {
           ...values?.shipment,
           address:
             values?.shipment?.method === 1
               ? `${detailAddress}, ${ward}, ${district}, ${city}`
               : shopAddress,
+          deliveryDate: values?.shipment?.deliveryDate ?? new Date(),
         },
         totalPrice: orderItems?.reduce(
           (acc, item) => acc + (item?.price ?? 0) * (item?.quantity ?? 0),
@@ -128,25 +124,27 @@ const OrderUpsert = () => {
         return showNotification('Vui lòng chọn địa chỉ nhận hàng', 'error');
       }
       if (isEdit) {
-        // updateOrderMutate(
-        //   { id: +id, ...payload },
-        //   {
-        //     onSuccess() {
-        //       queryClient.invalidateQueries({
-        //         queryKey: [QueryKeys.Order],
-        //       });
-        //       showNotification('Cập nhật đơn hàng thành công', 'success');
-        //       navigate(-1);
-        //     },
-        //     onError: (err: Error | AxiosError) => {
-        //       if (axios.isAxiosError(err)) {
-        //         showNotification(err.response?.data?.message, 'error');
-        //       } else {
-        //         showNotification(err.message, 'error');
-        //       }
-        //     },
-        //   }
-        // );
+        const { userId, ...updatePayload } = payload;
+
+        updateOrderMutate(
+          { id: +id, ...updatePayload },
+          {
+            onSuccess() {
+              queryClient.invalidateQueries({
+                queryKey: [QueryKeys.Order],
+              });
+              showNotification('Cập nhật đơn hàng thành công', 'success');
+              navigate(-1);
+            },
+            onError: (err: Error | AxiosError) => {
+              if (axios.isAxiosError(err)) {
+                showNotification(err.response?.data?.message, 'error');
+              } else {
+                showNotification(err.message, 'error');
+              }
+            },
+          }
+        );
       } else {
         createOrderMutate(payload as ICreateOrder, {
           onSuccess() {
@@ -187,11 +185,11 @@ const OrderUpsert = () => {
         orderData?.data?.shipment?.method
       );
       formik.setFieldValue(
-        'shipment.delivery_date',
+        'shipment.deliveryDate',
         orderData?.data?.shipment?.deliveryDate
       );
       formik.setFieldValue('note', orderData?.data?.note);
-      setOrderItems(orderData?.data?.items);
+      setOrderItems(orderData?.data?.orderItems);
     }
   }, [orderData]);
 
@@ -226,7 +224,7 @@ const OrderUpsert = () => {
         </Breadcrumbs>
       </Box>
       <Typography sx={{ mb: 2, fontSize: 20, fontWeight: 600 }}>
-        {isEdit ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn hàng mới'}:
+        {isEdit ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn   hàng mới'}:
       </Typography>
       <Grid2 container spacing={3}>
         <Grid2 size={6}>
@@ -338,7 +336,7 @@ const OrderUpsert = () => {
               width: '100%',
               mt: 2,
             }}>
-            <Button onClick={() => navigate(ROUTES.PRODUCT)} sx={{ mr: 2 }}>
+            <Button onClick={() => navigate(ROUTES.ORDER)} sx={{ mr: 2 }}>
               Trở lại
             </Button>
             <Button

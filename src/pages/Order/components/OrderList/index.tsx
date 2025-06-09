@@ -64,6 +64,7 @@ interface Data {
   warehouse: string;
   items: IImportLogItem[];
   type: string;
+  status: string;
   createdAt: Date;
   note: string;
   action: string;
@@ -123,7 +124,7 @@ const headCells: readonly HeadCell[] = [
   },
   {
     align: 'center',
-    id: 'createdAt',
+    id: 'status',
     disablePadding: false,
     label: 'Trạng thái',
     width: '12%',
@@ -534,22 +535,6 @@ const OrderListPage = () => {
           />
         );
 
-        return (
-          <TableFilter
-            title='Lọc theo loại nhập'
-            options={
-              enumData?.data?.map((type: IEnum) => ({
-                id: type.value,
-                label: type.label,
-              })) ?? []
-            }
-            selectedValues={columnFilters.type}
-            onFilterChange={(newValues) =>
-              handleColumnFilterChange('type', newValues)
-            }
-            onClose={handleFilterClose}
-          />
-        );
       default:
         return null;
     }
@@ -586,7 +571,7 @@ const OrderListPage = () => {
           action={
             <ButtonWithTooltip
               variant='contained'
-              onClick={() => navigate(`${ROUTES.INVENTORY}/import/create`)}
+              onClick={() => navigate(`${ROUTES.ORDER}/create`)}
               title='Tạo đơn hàng'
               sx={{ textTransform: 'none' }}>
               <AddCircleOutlined />
@@ -726,7 +711,10 @@ const OrderListPage = () => {
                               color='primary'
                               variant='outlined'
                               title='Chỉnh sửa'
-                              placement='left'>
+                              placement='left'
+                              onClick={() =>
+                                navigate(`${ROUTES.ORDER}/update/${order?.id}`)
+                              }>
                               <EditOutlinedIcon />
                             </ButtonWithTooltip>
                           </Box>

@@ -69,12 +69,24 @@ export interface ICreateOrder extends Record<string, unknown>  {
         isOnlineOrder: boolean;
     };
     note: string;
-    items: ICreateOrderItem[]
+    orderItems: ICreateOrderItem[]
 }
 export interface IUpdateOrder{
     id: number;
-    name?: string;
-    items: IOrderItem[]
+    fullName: string;
+    phoneNumber: string;
+    email: string;
+    shipment: {
+        method: number;
+        address: string;
+        deliveryDate: Date;
+    };
+    paymentMethodId: number;
+    flag: {
+        isOnlineOrder: boolean;
+    };
+    note: string;
+    orderItems: ICreateOrderItem[]
 }
 
 export interface IUpdateOrderStatus{
