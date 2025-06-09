@@ -198,15 +198,11 @@ const DashboardDrawer = ({
                   width: '100%',
                   fontSize: 14,
                   fontWeight: 600,
-                  color: location.pathname.includes('/dashboard')
-                    ? '#fff'
-                    : 'rgba(255, 255, 255, 0.7)',
                   background: location.pathname.includes('/dashboard')
                     ? '#333'
                     : '',
                   ':hover': {
                     bgcolor: '#333',
-                    color: '#fff',
                   },
                 }}>
                 <ListItemIcon sx={{ color: '#fff' }}>

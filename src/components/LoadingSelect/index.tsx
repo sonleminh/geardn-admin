@@ -53,7 +53,7 @@ const LoadingSelect = ({
       ) : options.length > 0 ? (
         options.map((option) => (
           <MenuItem key={option.value} value={option.value}>
-            <Typography> {option.label}</Typography>
+            {option.label}
           </MenuItem>
         ))
       ) : (
