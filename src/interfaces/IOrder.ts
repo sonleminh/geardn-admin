@@ -35,7 +35,7 @@ export interface IOrder {
     };
     note: '';
     orderItems: IOrderItem[];
-    totalAmount: number;
+    totalPrice: number;
     status: string;
     createdAt: Date;
     updatedAt: Date;

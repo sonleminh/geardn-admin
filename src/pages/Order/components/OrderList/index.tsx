@@ -61,10 +61,10 @@ import { IOrderItem } from '@/interfaces/IOrder';
 
 interface Data {
   stt: number;
-  warehouse: string;
-  items: IImportLogItem[];
-  type: string;
+  info: string;
+  items: IOrderItem[];
   status: string;
+  totalPrice: number;
   createdAt: Date;
   note: string;
   action: string;
@@ -109,18 +109,25 @@ const headCells: readonly HeadCell[] = [
     width: '2%',
   },
   {
-    id: 'items',
+    id: 'info',
     disablePadding: false,
     label: 'Thông tin đặt hàng',
     width: '20%',
   },
   {
     align: 'center',
-    id: 'type',
+    id: 'items',
     disablePadding: false,
     label: 'Sản phẩm',
     isFilter: true,
-    width: '44%',
+    width: '34%',
+  },
+  {
+    align: 'center',
+    id: 'totalPrice',
+    disablePadding: false,
+    label: 'Tổng tiền',
+    width: '10%',
   },
   {
     align: 'center',
@@ -687,7 +694,14 @@ const OrderListPage = () => {
                         <Typography sx={{ fontSize: 14 }}>
                           {order?.phoneNumber}
                         </Typography>
-                        <Typography sx={{ fontSize: 14 }}>
+                        <Typography
+                          sx={{
+                            maxWidth: 100,
+                            fontSize: 14,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}>
                           {order?.email}
                         </Typography>
                       </TableCell>
@@ -697,6 +711,9 @@ const OrderListPage = () => {
                             <OrderItem key={orderItem?.id} item={orderItem} />
                           ))}
                         </Box>
+                      </TableCell>
+                      <TableCell align='center'>
+                        {formatPrice(order?.totalPrice)}
                       </TableCell>
                       <TableCell align='center'>
                         {statusMap?.[order?.status] || 'Không xác định'}

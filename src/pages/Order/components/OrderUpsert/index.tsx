@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import { useFormik } from 'formik';
 import moment from 'moment';
-import { ChangeEvent, useEffect, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -31,48 +31,56 @@ import {
   useGetOrderById,
   useUpdateOrder,
 } from '@/services/order';
-import { useGetPaymentById } from '@/services/payment';
 
 import { QueryKeys } from '@/constants/query-key';
 
-import { ICreateOrder, ICreateOrderItem } from '@/interfaces/IOrder';
+import { ICreateOrder, ICreateOrderItem, IOrder } from '@/interfaces/IOrder';
 
 import SuspenseLoader from '@/components/SuspenseLoader';
 import CustomerForm from './components/CustomerForm';
-// import ProductSelector from './components/ProductSelector';
+import ProductSelector from './components/ProductSelector';
+import ShipmentForm from './components/ShipmentForm';
 import { ROUTES } from '@/constants/route';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import ProductSelector from './components/ProductSelector';
-import ShipmentForm from './components/ShipmentForm';
 
-const OrderUpsert = () => {
-  const { id } = useParams();
-  const isEdit = !!id;
+interface AddressState {
+  city: string;
+  district: string;
+  ward: string;
+  detailAddress: string;
+  shopAddress: string;
+}
 
-  const { user } = useAuthContext();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+interface OrderFormValues {
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+  shipment: {
+    method: number;
+    deliveryDate: Date | null;
+  };
+  paymentMethodId: number;
+  flag: {
+    isOnlineOrder: boolean;
+  };
+  note: string;
+}
+
+const useOrderForm = (
+  orderData: { data: IOrder } | undefined,
+  isEdit: boolean
+) => {
   const [orderItems, setOrderItems] = useState<ICreateOrderItem[]>([]);
+  const [address, setAddress] = useState<AddressState>({
+    city: '',
+    district: '',
+    ward: '',
+    detailAddress: '',
+    shopAddress: '',
+  });
 
-  console.log('orderItems:', orderItems);
-
-  const [city, setCity] = useState<string>('');
-  const [district, setDistrict] = useState<string>('');
-  const [ward, setWard] = useState<string>('');
-  const [detailAddress, setDetailAddress] = useState<string>('');
-  const [shopAddress, setShopAddress] = useState<string>('');
-
-  const { data: orderData } = useGetOrderById(id as string);
-  const { data: payment } = useGetPaymentById(1);
-
-  const { mutate: createOrderMutate, isPending: isCreatePending } =
-    useCreateOrder();
-  const { mutate: updateOrderMutate, isPending: isUpdatePending } =
-    useUpdateOrder();
-
-  const formik = useFormik({
+  const formik = useFormik<OrderFormValues>({
     initialValues: {
       fullName: '',
       phoneNumber: '',
@@ -87,45 +95,111 @@ const OrderUpsert = () => {
       },
       note: '',
     },
-    // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
-    onSubmit(values) {
+    onSubmit: () => {}, // Will be set in the component
+  });
+
+  useEffect(() => {
+    if (orderData) {
+      formik.setFieldValue('fullName', orderData.data.fullName);
+      formik.setFieldValue('phoneNumber', orderData.data.phoneNumber);
+      formik.setFieldValue('email', orderData.data.email);
+
+      if (orderData.data.shipment?.method === 1) {
+        const addressArr = orderData.data.shipment?.address?.split(', ');
+        setAddress({
+          city: addressArr[3] || '',
+          district: addressArr[2] || '',
+          ward: addressArr[1] || '',
+          detailAddress: addressArr[0] || '',
+          shopAddress: '',
+        });
+      } else {
+        setAddress((prev) => ({
+          ...prev,
+          shopAddress: orderData.data.shipment?.address || '',
+        }));
+      }
+
+      formik.setFieldValue('shipment.method', orderData.data.shipment?.method);
+      formik.setFieldValue(
+        'shipment.deliveryDate',
+        orderData.data.shipment?.deliveryDate
+      );
+      formik.setFieldValue('note', orderData.data.note);
+      setOrderItems(orderData.data.orderItems);
+    }
+  }, [orderData]);
+
+  return {
+    formik,
+    orderItems,
+    setOrderItems,
+    address,
+    setAddress,
+  };
+};
+
+const OrderUpsert = () => {
+  const { id } = useParams();
+  const isEdit = !!id;
+
+  const { user } = useAuthContext();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { showNotification } = useNotificationContext();
+
+  const { data: orderData } = useGetOrderById(id as string);
+
+  const { mutate: createOrderMutate, isPending: isCreatePending } =
+    useCreateOrder();
+  const { mutate: updateOrderMutate, isPending: isUpdatePending } =
+    useUpdateOrder();
+
+  const { formik, orderItems, setOrderItems, address, setAddress } =
+    useOrderForm(orderData, isEdit);
+
+  const handleSubmit = useCallback(
+    (values: OrderFormValues) => {
       if (!user?.id) {
         return showNotification('Không tìm thấy tài khoản', 'error');
       }
-      const payload = {
-        ...values,
-        userId: +user?.id,
-        orderItems: orderItems,
-        shipment: {
-          ...values?.shipment,
-          address:
-            values?.shipment?.method === 1
-              ? `${detailAddress}, ${ward}, ${district}, ${city}`
-              : shopAddress,
-          deliveryDate: values?.shipment?.deliveryDate ?? new Date(),
-        },
-        totalPrice: orderItems?.reduce(
-          (acc, item) => acc + (item?.price ?? 0) * (item?.quantity ?? 0),
-          0
-        ),
-      };
-      console.log('payload:', payload);
+
       if (!orderItems?.length) {
         return showNotification(
           'Không có sản phẩm nào để tạo đơn hàng',
           'error'
         );
       }
+
+      const { city, district, ward, detailAddress, shopAddress } = address;
       if (
-        (values?.shipment?.method === 1 && !ward && !detailAddress) ||
-        (values?.shipment?.method === 2 && !shopAddress)
+        (values.shipment.method === 1 && !ward && !detailAddress) ||
+        (values.shipment.method === 2 && !shopAddress)
       ) {
         return showNotification('Vui lòng chọn địa chỉ nhận hàng', 'error');
       }
+
+      const payload = {
+        ...values,
+        userId: +user.id,
+        orderItems,
+        shipment: {
+          ...values.shipment,
+          address:
+            values.shipment.method === 1
+              ? `${detailAddress}, ${ward}, ${district}, ${city}`
+              : shopAddress,
+          deliveryDate: values.shipment.deliveryDate ?? new Date(),
+        },
+        totalPrice: orderItems.reduce(
+          (acc, item) => acc + (item.price ?? 0) * (item.quantity ?? 0),
+          0
+        ),
+      };
+
       if (isEdit) {
         const { userId, ...updatePayload } = payload;
-
         updateOrderMutate(
           { id: +id, ...updatePayload },
           {
@@ -136,13 +210,7 @@ const OrderUpsert = () => {
               showNotification('Cập nhật đơn hàng thành công', 'success');
               navigate(-1);
             },
-            onError: (err: Error | AxiosError) => {
-              if (axios.isAxiosError(err)) {
-                showNotification(err.response?.data?.message, 'error');
-              } else {
-                showNotification(err.message, 'error');
-              }
-            },
+            onError: handleError,
           }
         );
       } else {
@@ -152,51 +220,144 @@ const OrderUpsert = () => {
             showNotification('Tạo đơn hàng thành công', 'success');
             navigate(-1);
           },
-          onError: (err: Error | AxiosError) => {
-            if (axios.isAxiosError(err)) {
-              showNotification(err.response?.data?.message, 'error');
-            } else {
-              showNotification(err.message, 'error');
-            }
-          },
+          onError: handleError,
         });
       }
     },
-  });
+    [
+      user?.id,
+      orderItems,
+      address,
+      isEdit,
+      id,
+      createOrderMutate,
+      updateOrderMutate,
+      queryClient,
+      showNotification,
+      navigate,
+    ]
+  );
 
-  useEffect(() => {
-    if (orderData) {
-      formik.setFieldValue('fullName', orderData?.data?.fullName);
-      formik.setFieldValue('phoneNumber', orderData?.data?.phoneNumber);
-      formik.setFieldValue('email', orderData?.data?.email);
-
-      if (orderData?.data?.shipment?.method === 1) {
-        const addressArr = orderData?.data?.shipment?.address?.split(', ');
-        setCity(addressArr[3]);
-        setDistrict(addressArr[2]);
-        setWard(addressArr[1]);
-        setDetailAddress(addressArr[0]);
+  const handleError = useCallback(
+    (err: Error | AxiosError) => {
+      if (axios.isAxiosError(err)) {
+        showNotification(err.response?.data?.message, 'error');
       } else {
-        setShopAddress(orderData?.data?.shipment?.address);
+        showNotification(err.message, 'error');
       }
+    },
+    [showNotification]
+  );
 
-      formik.setFieldValue(
-        'shipment.method',
-        orderData?.data?.shipment?.method
-      );
-      formik.setFieldValue(
-        'shipment.deliveryDate',
-        orderData?.data?.shipment?.deliveryDate
-      );
-      formik.setFieldValue('note', orderData?.data?.note);
-      setOrderItems(orderData?.data?.orderItems);
-    }
-  }, [orderData]);
+  const handleChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      formik.setFieldValue(name, value);
+    },
+    [formik]
+  );
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    formik.setFieldValue(name, value);
-  };
+  const handleAddressChange = useCallback(
+    (field: keyof AddressState, value: string) => {
+      setAddress((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    },
+    []
+  );
+
+  const handleCityChange = useCallback(
+    (value: React.SetStateAction<string>) => {
+      if (typeof value === 'function') {
+        setAddress((prev) => ({
+          ...prev,
+          city: value(prev.city),
+        }));
+      } else {
+        handleAddressChange('city', value);
+      }
+    },
+    [handleAddressChange]
+  );
+
+  const handleDistrictChange = useCallback(
+    (value: React.SetStateAction<string>) => {
+      if (typeof value === 'function') {
+        setAddress((prev) => ({
+          ...prev,
+          district: value(prev.district),
+        }));
+      } else {
+        handleAddressChange('district', value);
+      }
+    },
+    [handleAddressChange]
+  );
+
+  const handleWardChange = useCallback(
+    (value: React.SetStateAction<string>) => {
+      if (typeof value === 'function') {
+        setAddress((prev) => ({
+          ...prev,
+          ward: value(prev.ward),
+        }));
+      } else {
+        handleAddressChange('ward', value);
+      }
+    },
+    [handleAddressChange]
+  );
+
+  const handleDetailAddressChange = useCallback(
+    (value: React.SetStateAction<string>) => {
+      if (typeof value === 'function') {
+        setAddress((prev) => ({
+          ...prev,
+          detailAddress: value(prev.detailAddress),
+        }));
+      } else {
+        handleAddressChange('detailAddress', value);
+      }
+    },
+    [handleAddressChange]
+  );
+
+  const handleShopAddressChange = useCallback(
+    (value: React.SetStateAction<string>) => {
+      if (typeof value === 'function') {
+        setAddress((prev) => ({
+          ...prev,
+          shopAddress: value(prev.shopAddress),
+        }));
+      } else {
+        handleAddressChange('shopAddress', value);
+      }
+    },
+    [handleAddressChange]
+  );
+
+  const breadcrumbs = useMemo(
+    () => [
+      {
+        icon: <HomeOutlinedIcon sx={{ fontSize: 24 }} />,
+        label: '',
+        onClick: () => navigate(ROUTES.DASHBOARD),
+      },
+      {
+        label: 'Đơn hàng',
+        onClick: () => navigate(ROUTES.ORDER),
+      },
+      {
+        label: isEdit ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn hàng mới',
+      },
+    ],
+    [isEdit, navigate]
+  );
+
+  if (isEdit && !orderData) {
+    return <SuspenseLoader />;
+  }
 
   return (
     <>
@@ -204,30 +365,30 @@ const OrderUpsert = () => {
         <Breadcrumbs
           separator={<NavigateNextIcon fontSize='small' />}
           aria-label='breadcrumb'>
-          <Link
-            underline='hover'
-            color='inherit'
-            onClick={() => navigate(ROUTES.DASHBOARD)}
-            sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-            <HomeOutlinedIcon sx={{ fontSize: 24 }} />
-          </Link>
-          <Link
-            underline='hover'
-            color='inherit'
-            onClick={() => navigate(ROUTES.ORDER)}
-            sx={{ cursor: 'pointer' }}>
-            Đơn hàng
-          </Link>
-          <Typography color='text.primary'>
-            {isEdit ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn hàng mới'}
-          </Typography>
+          {breadcrumbs.map((crumb, index) => (
+            <Link
+              key={index}
+              underline='hover'
+              color='inherit'
+              onClick={crumb.onClick}
+              sx={{
+                cursor: crumb.onClick ? 'pointer' : 'default',
+                display: 'flex',
+                alignItems: 'center',
+              }}>
+              {crumb.icon}
+              {crumb.label}
+            </Link>
+          ))}
         </Breadcrumbs>
       </Box>
+
       <Typography sx={{ mb: 2, fontSize: 20, fontWeight: 600 }}>
-        {isEdit ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn   hàng mới'}:
+        {isEdit ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn hàng mới'}:
       </Typography>
+
       <Grid2 container spacing={3}>
-        <Grid2 size={6}>
+        <Grid2 size={{ xs: 12, md: 6 }}>
           <Card sx={{ mb: 3 }}>
             <CardHeader
               title='Thông tin khách hàng'
@@ -256,44 +417,29 @@ const OrderUpsert = () => {
             <Divider />
             <CardContent>
               <FormControl>
-                <Typography sx={{ mb: 2, fontWeight: 600 }}>
-                  Phương thức thanh toán
-                </Typography>
                 <RadioGroup
                   name='paymentMethodId'
-                  onChange={handleChange}
-                  value={formik?.values?.paymentMethodId}>
+                  value={formik.values.paymentMethodId}
+                  onChange={handleChange}>
                   <FormControlLabel
-                    value={payment?.data?.id}
-                    control={<Radio size='small' />}
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <img
-                          src={payment?.data?.image ?? ''}
-                          alt=''
-                          style={{
-                            width: '100%',
-                            maxWidth: '36px',
-                            height: '36px',
-                            objectFit: 'contain',
-                          }}
-                        />
-                        <Typography sx={{ ml: 1, fontSize: 14 }}>
-                          {payment?.data?.name}
-                        </Typography>
-                      </Box>
-                    }
+                    value={1}
+                    control={<Radio />}
+                    label='Thanh toán khi nhận hàng'
+                  />
+                  <FormControlLabel
+                    value={2}
+                    control={<Radio />}
+                    label='Chuyển khoản ngân hàng'
                   />
                 </RadioGroup>
-                <>{formik?.errors?.paymentMethodId}</>
               </FormControl>
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={6}>
+        <Grid2 size={{ xs: 12, md: 6 }}>
           <Card>
             <CardHeader
-              title='Địa chỉ giao hàng'
+              title='Thông tin vận chuyển'
               sx={{
                 span: {
                   fontSize: 18,
@@ -305,50 +451,51 @@ const OrderUpsert = () => {
             <CardContent>
               <ShipmentForm
                 formik={formik}
-                city={city}
-                district={district}
-                ward={ward}
-                shopAddress={shopAddress}
-                detailAddress={detailAddress}
-                setCity={setCity}
-                setDistrict={setDistrict}
-                setWard={setWard}
-                setDetailAddress={setDetailAddress}
-                setShopAddress={setShopAddress}
                 handleChange={handleChange}
+                city={address.city}
+                district={address.district}
+                ward={address.ward}
+                detailAddress={address.detailAddress}
+                shopAddress={address.shopAddress}
+                setCity={handleCityChange}
+                setDistrict={handleDistrictChange}
+                setWard={handleWardChange}
+                setDetailAddress={handleDetailAddressChange}
+                setShopAddress={handleShopAddressChange}
               />
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={12}>
+
+        <Grid2 size={{ xs: 12 }}>
           <ProductSelector
             isEdit={isEdit}
-            orderData={orderData?.data}
             orderItems={orderItems}
             setOrderItems={setOrderItems}
           />
         </Grid2>
-        <Grid2 size={12}>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              width: '100%',
-              mt: 2,
-            }}>
-            <Button onClick={() => navigate(ROUTES.ORDER)} sx={{ mr: 2 }}>
-              Trở lại
-            </Button>
-            <Button
-              variant='contained'
-              onClick={() => formik.handleSubmit()}
-              // disabled={!orderItems?.length}
-              sx={{ minWidth: 100 }}>
-              {isEdit ? 'Lưu' : 'Tạo'}
-            </Button>
-          </Box>
-        </Grid2>
       </Grid2>
+
+      <Grid2 size={{ xs: 12 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            width: '100%',
+            mt: 2,
+          }}>
+          <Button onClick={() => navigate(ROUTES.ORDER)} sx={{ mr: 2 }}>
+            Trở lại
+          </Button>
+          <Button
+            variant='contained'
+            onClick={() => handleSubmit(formik.values)}
+            sx={{ minWidth: 100 }}>
+            {isEdit ? 'Lưu' : 'Tạo'}
+          </Button>
+        </Box>
+      </Grid2>
+
       {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
     </>
   );
