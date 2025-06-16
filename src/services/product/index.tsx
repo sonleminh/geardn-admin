@@ -167,26 +167,14 @@ export const useUpdateProduct = () => {
   });
 };
 
-const deleteProduct = async (id: string) => {
-  const result = await axiosInstance.delete(`${productUrl}/${id}`);
+const deleteProduct = async (id: number) => {
+  const result = await axiosInstance.patch(`${productUrl}/${id}`);
   return result.data;
 };
 
 export const useDeleteProduct = () => {
   return useMutation({
     mutationFn: deleteProduct,
-  });
-};
-
-const deleteManyProduct = async (ids: number[]) => {
-  const result = await axiosInstance.delete(`${productUrl}`, { data: ids });
-  return result.data;
-};
-
-export const useDeleteManyProduct = () => {
-  return useMutation({
-    mutationKey: [QueryKeys.Product],
-    mutationFn: deleteManyProduct,
   });
 };
 

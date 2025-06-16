@@ -1,7 +1,6 @@
 import { useRoutes } from 'react-router-dom';
 import ProductLayout from './components/ProductLayout';
 import ProductList from './components/ProductList';
-import ProductSku from './components/ProductSkuList';
 import ProductDetail from './components/ProductDetail';
 import ProductUpsert from './components/ProductUpsert';
 import ProductSkuDetail from './components/ProductSkuDetail';

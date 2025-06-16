@@ -6,10 +6,14 @@ import {
   CardHeader,
   Chip,
   Divider,
+  FormControl,
   IconButton,
   InputAdornment,
   Link,
+  MenuItem,
   Popover,
+  Select,
+  SelectChangeEvent,
   Table,
   TableBody,
   TableCell,
@@ -39,6 +43,8 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import SearchIcon from '@mui/icons-material/Search';
+import CircleIcon from '@mui/icons-material/Circle';
+import ListIcon from '@mui/icons-material/List';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
@@ -48,7 +54,8 @@ import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 
 import { ROUTES } from '@/constants/route';
 import { useGetCategoryList } from '@/services/category';
-import { useGetProductList } from '@/services/product';
+import { useDeleteProduct, useGetProductList } from '@/services/product';
+import { QueryKeys } from '@/constants/query-key';
 
 interface Data {
   stt: number;
@@ -259,13 +266,14 @@ const FilterChips = ({
   );
 };
 
-export default function ProductList2() {
+export default function ProductList() {
   const navigate = useNavigate();
-  // const { confirmModal, showConfirmModal } = useConfirmModal();
-  // const queryClient = useQueryClient();
-  // const { showNotification } = useNotificationContext();
+  const { confirmModal, showConfirmModal } = useConfirmModal();
+  const queryClient = useQueryClient();
+  const { showNotification } = useNotificationContext();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [value, setValue] = useState('');
 
   const {
     filterAnchorEl,
@@ -286,20 +294,20 @@ export default function ProductList2() {
     categoryIds: columnFilters.category,
     search: searchQuery,
   });
+  const { mutate: deleteProductMutate } = useDeleteProduct();
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
   };
 
-  // const handleDelete = () => {
-  //   delManyPrdMutation.mutate(selected, {
-  //     onSuccess() {
-  //       queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-  //       setSelected([]);
-  //       showNotification('Xóa sản phẩm thành công', 'success');
-  //     },
-  //   });
-  // };
+  const handleDelete = (id: number) => {
+    deleteProductMutate(id, {
+      onSuccess() {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+        showNotification('Xóa sản phẩm thành công', 'success');
+      },
+    });
+  };
 
   const renderFilterContent = useCallback(() => {
     switch (activeFilterColumn) {
@@ -330,6 +338,10 @@ export default function ProductList2() {
     handleColumnFilterChange,
     handleFilterClose,
   ]);
+
+  const handleChange = (event: SelectChangeEvent) => {
+    setValue(event.target.value);
+  };
 
   return (
     <>
@@ -395,16 +407,60 @@ export default function ProductList2() {
                 <TableRow>
                   <TableCell colSpan={headCells.length}>
                     <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}>
-                      <FilterChips
-                        columnFilters={columnFilters}
-                        categoriesData={categoriesData || { data: [] }}
-                        onFilterChange={handleColumnFilterChange}
-                      />
+                      sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}>
+                        <FilterChips
+                          columnFilters={columnFilters}
+                          categoriesData={categoriesData || { data: [] }}
+                          onFilterChange={handleColumnFilterChange}
+                        />
+                      </Box>
+                      <Select
+                        disableUnderline
+                        value={value}
+                        onChange={handleChange}
+                        size='small'
+                        sx={{
+                          minHeight: 30,
+                          height: 30,
+                          fontSize: 14,
+                          '& .MuiFilledInput-root': {
+                            overflow: 'hidden',
+                            borderRadius: 1,
+                            backgroundColor: '#a77575 !important',
+                            border: '1px solid',
+                            borderColor: 'rgba(0,0,0,0.23)',
+                            '&:hover': {
+                              backgroundColor: 'transparent',
+                            },
+                            '&.Mui-focused': {
+                              backgroundColor: 'transparent',
+                              border: '2px solid',
+                            },
+                          },
+                        }}>
+                        <MenuItem value='option1'>
+                          <ListIcon sx={{ mr: 0.5, color: '', fontSize: 12 }} />
+                          Tất cả
+                        </MenuItem>
+                        <MenuItem value='option2'>
+                          <CircleIcon
+                            sx={{ mr: 0.5, color: '#00a35c', fontSize: 12 }}
+                          />
+                          Đang hoạt động
+                        </MenuItem>
+                        <MenuItem value='option3'>
+                          <CircleIcon
+                            sx={{ mr: 0.5, color: '#ff0000', fontSize: 12 }}
+                          />
+                          Đã xóa
+                        </MenuItem>
+                      </Select>
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -516,7 +572,7 @@ export default function ProductList2() {
                               <EditOutlinedIcon />
                             </ButtonWithTooltip>
                           </Box>
-                          {/* <Box>
+                          <Box>
                             <ButtonWithTooltip
                               color='error'
                               variant='outlined'
@@ -527,11 +583,12 @@ export default function ProductList2() {
                                   title: 'Xoá sản phẩm',
                                   content:
                                     'Bạn có chắc chắn muốn xoá sản phẩm này?',
+                                  onOk: () => handleDelete(product?.id),
                                 })
                               }>
                               <DeleteOutlineOutlinedIcon />
                             </ButtonWithTooltip>
-                          </Box> */}
+                          </Box>
                         </ActionButton>
                       </TableCell>
                     </TableRow>
