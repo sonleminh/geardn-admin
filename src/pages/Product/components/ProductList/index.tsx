@@ -1,6 +1,7 @@
 import {
   Box,
   Breadcrumbs,
+  Button,
   Card,
   CardContent,
   CardHeader,
@@ -26,7 +27,7 @@ import {
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import moment from 'moment';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import ActionButton from '@/components/ActionButton';
@@ -45,6 +46,8 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import SearchIcon from '@mui/icons-material/Search';
 import CircleIcon from '@mui/icons-material/Circle';
 import ListIcon from '@mui/icons-material/List';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import { NativeSelect } from '@mui/material';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
@@ -56,6 +59,9 @@ import { ROUTES } from '@/constants/route';
 import { useGetCategoryList } from '@/services/category';
 import { useDeleteProduct, useGetProductList } from '@/services/product';
 import { QueryKeys } from '@/constants/query-key';
+import { useGetEnumByContext } from '@/services/enum';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import { IEnum } from '@/interfaces/IEnum';
 
 interface Data {
   stt: number;
@@ -63,7 +69,9 @@ interface Data {
   name: string;
   category: string;
   image: string;
+  status: string;
   createdAt: string;
+  isDeleted: string;
   action: string;
 }
 
@@ -78,11 +86,13 @@ interface HeadCell {
 
 interface ColumnFilters {
   category: string[];
+  status: string[];
 }
 
 // Constants
 const INITIAL_COLUMN_FILTERS: ColumnFilters = {
   category: [],
+  status: [],
 };
 
 const headCells: readonly HeadCell[] = [
@@ -99,7 +109,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Tên sản phẩm',
     isFilter: false,
-    width: '25%',
+    width: '24%',
   },
   {
     id: 'category',
@@ -114,7 +124,15 @@ const headCells: readonly HeadCell[] = [
     id: 'image',
     disablePadding: false,
     label: 'Ảnh',
-    width: '10%',
+    width: '8%',
+  },
+  {
+    align: 'center',
+    id: 'status',
+    disablePadding: false,
+    label: 'Trạng thái',
+    width: '15%',
+    isFilter: true,
   },
   {
     align: 'center',
@@ -122,6 +140,13 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Ngày tạo',
     width: '10%',
+  },
+  {
+    align: 'center',
+    id: 'isDeleted',
+    disablePadding: false,
+    label: 'Đã xóa',
+    width: '8%',
   },
   {
     align: 'center',
@@ -134,11 +159,13 @@ const headCells: readonly HeadCell[] = [
 
 const columns: TableColumn[] = [
   { width: '60px', align: 'center', type: 'text' },
-  { width: '250px', type: 'text' },
-  { width: '180px', type: 'text' },
+  { width: '350px', type: 'text' },
+  { width: '130px', type: 'text' },
   { width: '100px', align: 'center', type: 'image' },
   { width: '150px', align: 'center', type: 'text' },
-  { width: '150px', align: 'center', type: 'action' },
+  { width: '100px', align: 'center', type: 'text' },
+  { width: '100px', align: 'center', type: 'text' },
+  { width: '100px', align: 'center', type: 'action' },
 ];
 
 // Custom hooks
@@ -214,12 +241,16 @@ interface FilterChipsProps {
   categoriesData: {
     data?: Array<ICategory>;
   };
+  productStatusEnumData: {
+    data?: Array<IEnum>;
+  };
   onFilterChange: (column: string, value: string[]) => void;
 }
 
 const FilterChips = ({
   columnFilters,
   categoriesData,
+  productStatusEnumData,
   onFilterChange,
 }: FilterChipsProps) => {
   const getFilterLabels = useCallback(
@@ -229,10 +260,16 @@ const FilterChips = ({
           (value: string) =>
             categoriesData?.data?.find((c) => c.id === +value)?.name || value
         );
+      } else if (filterKey === 'status') {
+        return values.map(
+          (value: string) =>
+            productStatusEnumData?.data?.find((e) => e.value === value)
+              ?.label || value
+        );
       }
       return [];
     },
-    [categoriesData?.data]
+    [categoriesData?.data, productStatusEnumData?.data]
   );
 
   return (
@@ -273,7 +310,8 @@ export default function ProductList() {
   const { showNotification } = useNotificationContext();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [value, setValue] = useState('');
+  const [productFilterIsDeleted, setProductFilterIsDeleted] =
+    useState<string>('');
 
   const {
     filterAnchorEl,
@@ -291,10 +329,13 @@ export default function ProductList() {
   const { data: productsData, isLoading } = useGetProductList({
     page: page + 1,
     limit: rowsPerPage,
-    categoryIds: columnFilters.category,
     search: searchQuery,
+    categoryIds: columnFilters.category,
+    status: columnFilters.status,
+    isDeleted: productFilterIsDeleted,
   });
   const { mutate: deleteProductMutate } = useDeleteProduct();
+  const { data: productStatusEnumData } = useGetEnumByContext('product-status');
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
@@ -328,6 +369,23 @@ export default function ProductList() {
             onClose={handleFilterClose}
           />
         );
+      case 'status':
+        return (
+          <TableFilter
+            title='Lọc theo trạng thái'
+            options={
+              productStatusEnumData?.data?.map((status) => ({
+                id: status.value,
+                label: status.label,
+              })) ?? []
+            }
+            selectedValues={columnFilters.status}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('status', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
       default:
         return null;
     }
@@ -337,11 +395,24 @@ export default function ProductList() {
     columnFilters.category,
     handleColumnFilterChange,
     handleFilterClose,
+    productStatusEnumData?.data,
+    columnFilters.status,
   ]);
 
-  const handleChange = (event: SelectChangeEvent) => {
-    setValue(event.target.value);
+  const handleProductFilterIsDeletedChange = (event: SelectChangeEvent) => {
+    setProductFilterIsDeleted(event.target.value);
   };
+
+  const statusMap = useMemo(
+    () =>
+      Object.fromEntries(
+        productStatusEnumData?.data?.map((item) => [item.value, item.label]) ??
+          []
+      ),
+    [productStatusEnumData?.data]
+  );
+
+  console.log('productFilterIsDeleted:', productFilterIsDeleted);
 
   return (
     <>
@@ -417,50 +488,54 @@ export default function ProductList() {
                         <FilterChips
                           columnFilters={columnFilters}
                           categoriesData={categoriesData || { data: [] }}
+                          productStatusEnumData={
+                            productStatusEnumData || { data: [] }
+                          }
                           onFilterChange={handleColumnFilterChange}
                         />
                       </Box>
-                      <Select
-                        disableUnderline
-                        value={value}
-                        onChange={handleChange}
-                        size='small'
-                        sx={{
-                          minHeight: 30,
-                          height: 30,
-                          fontSize: 14,
-                          '& .MuiFilledInput-root': {
-                            overflow: 'hidden',
-                            borderRadius: 1,
-                            backgroundColor: '#a77575 !important',
-                            border: '1px solid',
-                            borderColor: 'rgba(0,0,0,0.23)',
-                            '&:hover': {
-                              backgroundColor: 'transparent',
+                      <FormControl>
+                        <Select
+                          displayEmpty
+                          // label='Trạng thái'
+                          value={productFilterIsDeleted}
+                          onChange={handleProductFilterIsDeletedChange}
+                          size='small'
+                          sx={{
+                            width: 170,
+                            minHeight: 40,
+                            height: 40,
+                            fontSize: 14,
+                            '& .MuiFilledInput-root': {
+                              overflow: 'hidden',
+                              borderRadius: 1,
+                              backgroundColor: '#a77575 !important',
+                              border: '1px solid',
+                              borderColor: 'rgba(0,0,0,0.23)',
+                              '&:hover': {
+                                backgroundColor: 'transparent',
+                              },
+                              '&.Mui-focused': {
+                                backgroundColor: 'transparent',
+                                border: '2px solid',
+                              },
                             },
-                            '&.Mui-focused': {
-                              backgroundColor: 'transparent',
-                              border: '2px solid',
-                            },
-                          },
-                        }}>
-                        <MenuItem value='option1'>
-                          <ListIcon sx={{ mr: 0.5, color: '', fontSize: 12 }} />
-                          Tất cả
-                        </MenuItem>
-                        <MenuItem value='option2'>
-                          <CircleIcon
-                            sx={{ mr: 0.5, color: '#00a35c', fontSize: 12 }}
-                          />
-                          Đang hoạt động
-                        </MenuItem>
-                        <MenuItem value='option3'>
-                          <CircleIcon
-                            sx={{ mr: 0.5, color: '#ff0000', fontSize: 12 }}
-                          />
-                          Đã xóa
-                        </MenuItem>
-                      </Select>
+                          }}>
+                          <MenuItem value=''>Tất cả</MenuItem>
+                          <MenuItem value='false'>
+                            <CircleIcon
+                              sx={{ mr: 0.5, color: '#00a35c', fontSize: 12 }}
+                            />
+                            Đang hoạt động
+                          </MenuItem>
+                          <MenuItem value='true'>
+                            <CircleIcon
+                              sx={{ mr: 0.5, color: '#ff0000', fontSize: 12 }}
+                            />
+                            Đã xóa
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -516,10 +591,24 @@ export default function ProductList() {
                         {page * rowsPerPage + index + 1}
                       </TableCell>
                       <TableCell>
-                        <Typography>{product.name}</Typography>
+                        <Typography
+                          sx={{
+                            fontSize: 14,
+                            color: '#000',
+                            ...truncateTextByLine(2),
+                          }}>
+                          {product.name}
+                        </Typography>
                       </TableCell>
                       <TableCell align='center'>
-                        <Typography>{product.category?.name}</Typography>
+                        <Typography
+                          sx={{
+                            fontSize: 14,
+                            color: '#000',
+                            ...truncateTextByLine(2),
+                          }}>
+                          {product.category?.name}
+                        </Typography>
                       </TableCell>
                       <TableCell align='center'>
                         <Box
@@ -536,8 +625,51 @@ export default function ProductList() {
                         </Box>
                       </TableCell>
                       <TableCell align='center'>
-                        <Typography>
+                        <Button
+                          variant='outlined'
+                          color={
+                            product?.status === 'ACTIVE' ? 'success' : 'error'
+                          }
+                          size='small'
+                          sx={{
+                            fontSize: 12,
+                            textTransform: 'none',
+                          }}>
+                          {statusMap?.[product?.status] || 'Không xác định'}
+                        </Button>
+                      </TableCell>
+                      <TableCell align='center'>
+                        <Typography
+                          sx={{
+                            fontSize: 14,
+                          }}>
                           {moment(product?.createdAt).format('DD/MM/YYYY')}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align='center'>
+                        <Typography
+                          sx={{
+                            fontSize: 14,
+                          }}>
+                          {product?.isDeleted ? (
+                            <>
+                              <CircleIcon
+                                sx={{
+                                  mr: 0.5,
+                                  color: '#ff0000',
+                                  fontSize: 12,
+                                }}
+                              />
+                            </>
+                          ) : (
+                            <CircleIcon
+                              sx={{
+                                mr: 0.5,
+                                color: '#00a35c',
+                                fontSize: 12,
+                              }}
+                            />
+                          )}
                         </Typography>
                       </TableCell>
                       <TableCell align='center'>

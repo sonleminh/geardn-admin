@@ -17,24 +17,11 @@ import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
 interface IGetProductListQuery {
   page?: number;
   limit?: number;
-  categoryIds?: string[];
   search?: string;
+  categoryIds?: string[];
+  status?: string[];
+  isDeleted?: string;
 }
-
-type TProductRes = {
-  status: number;
-  message: string;
-  data: IProduct;
-};
-
-type TInitDataRes = {
-  success: boolean;
-  message: string;
-  data: {
-    categories: { id: number; name: string }[];
-    tags: { value: string; label: string }[];
-  };
-};
 
 type TUploadImageResponse = {
   success: boolean;
@@ -56,12 +43,14 @@ export const useCreateProduct = () => {
 };
 
 const getProductList = async (query?: IGetProductListQuery) => {
-  const result = await axiosInstance.get(`${productUrl}`, {
+  const result = await axiosInstance.get(`${productUrl}/admin`, {
     params: {
       page: query?.page ?? 0,
       limit: query?.limit ?? 10,
-      categoryIds: query?.categoryIds?.join(','),
       search: query?.search,
+      categoryIds: query?.categoryIds?.join(','),
+      status: query?.status?.join(','),
+      isDeleted: query?.isDeleted,
     },
   });
   return result.data as TPaginatedResponse<IProduct>;
@@ -108,7 +97,7 @@ export const useGetProductById = (id: number) => {
 
 const getProductBySlug = async (slug: string) => {
   const result = await axiosInstance.get(`${productUrl}/slug/${slug}`);
-  return result.data as TProductRes;
+  return result.data as TBaseResponse<IProduct>;
 };
 
 export const useGetProductBySlug = (slug: string) => {
@@ -141,7 +130,7 @@ export const useUploadProductsFile = () => {
 
 const getProductInitial = async () => {
   const result = await axiosInstance.get(`${productUrl}/initial-to-create`);
-  return result.data as TInitDataRes;
+  return result.data as TBaseResponse<IProduct>;
 };
 
 export const useGetProductInitial = () => {

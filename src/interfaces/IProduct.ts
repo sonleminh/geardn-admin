@@ -36,6 +36,7 @@ export interface IProduct {
     description: string;
     slug: string;
     skus: IProductSku[];
+    status: string;
     isDeleted: boolean;
     createdAt: string;
 }
