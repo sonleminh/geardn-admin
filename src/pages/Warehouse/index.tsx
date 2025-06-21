@@ -1,7 +1,7 @@
 import { useRoutes } from 'react-router-dom';
 import WarehouseLayout from './components/WarehouseLayout';
 import WarehouseUpsert from './components/WarehouseUpsert';
-import WarehousePage from './components/WarehousePage';
+import WarehouseList from './components/WarehouseList';
 
 const Warehouse = () => {
   const router = useRoutes([
@@ -11,7 +11,7 @@ const Warehouse = () => {
       children: [
         {
           path: '',
-          element: <WarehousePage />,
+          element: <WarehouseList />,
         },
         {
           path: '/update/:id',

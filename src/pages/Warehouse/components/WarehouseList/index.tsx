@@ -16,83 +16,82 @@ import {
   Typography,
 } from '@mui/material';
 import { AddCircleOutlined } from '@mui/icons-material';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import RestoreIcon from '@mui/icons-material/Restore';
 import CircleIcon from '@mui/icons-material/Circle';
-
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined';
 
 import { QueryKeys } from '@/constants/query-key';
-
-import useConfirmModal from '@/hooks/useModalConfirm';
-
-import {
-  useDeleteAttribute,
-  useDeleteAttributePermanent,
-  useGetAttributeList,
-  useRestoreAttribute,
-} from '@/services/attribute';
-
-import { truncateTextByLine } from '@/utils/css-helper.util';
-
-import { TableColumn } from '@/interfaces/ITableColumn';
 
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ActionButton from '@/components/ActionButton';
 import { TableSkeleton } from '@/components/TableSkeleton';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
+import { useNotificationContext } from '@/contexts/NotificationContext';
+
+import useConfirmModal from '@/hooks/useModalConfirm';
+
+import {
+  useDeleteWarehouse,
+  useDeleteWarehousePermanent,
+  useGetWarehouseList,
+  useRestoreWarehouse,
+} from '@/services/warehouse';
+
+import { truncateTextByLine } from '@/utils/css-helper.util';
+
+import { TableColumn } from '@/interfaces/ITableColumn';
+
 const columns: TableColumn[] = [
   { width: '60px', align: 'center', type: 'text' },
-  { width: '150px', type: 'text' },
-  { width: '150px', type: 'text' },
+  { width: '200px', type: 'text' },
+  { width: '300px', type: 'text' },
   { width: '150px', align: 'center', type: 'text' },
-  { width: '100px', align: 'center', type: 'text' },
   { width: '100px', align: 'center', type: 'action' },
 ];
 
-const AttributeList = () => {
+const WarehouseList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { showNotification } = useNotificationContext();
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
-  const { data, isLoading } = useGetAttributeList();
+  const { data, isLoading } = useGetWarehouseList();
 
-  const { mutate: deleteAttributeMutate, isPending: isDeleting } =
-    useDeleteAttribute();
-  const { mutate: restoreAttributeMutate, isPending: isRestoring } =
-    useRestoreAttribute();
+  const { mutate: deleteWarehouseMutate, isPending: isDeleting } =
+    useDeleteWarehouse();
+  const { mutate: restoreWarehouseMutate, isPending: isRestoring } =
+    useRestoreWarehouse();
   const {
-    mutate: deleteAttributePermanentMutate,
+    mutate: deleteWarehousePermanentMutate,
     isPending: isDeletingPermanent,
-  } = useDeleteAttributePermanent();
+  } = useDeleteWarehousePermanent();
 
-  const handleDeleteAttribute = (id: number) => {
-    deleteAttributeMutate(id, {
+  const handleDeleteWarehouse = (id: number) => {
+    deleteWarehouseMutate(id, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Attribute] });
-        showNotification('Xóa thuộc tính thành công', 'success');
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Warehouse] });
+        showNotification('Xóa kho hàng thành công', 'success');
       },
     });
   };
 
   const handleRestore = (id: number) => {
-    restoreAttributeMutate(id, {
+    restoreWarehouseMutate(id, {
       onSuccess() {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Attribute] });
-        showNotification('Khôi phục thuộc tính thành công', 'success');
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Warehouse] });
+        showNotification('Khôi phục kho hàng thành công', 'success');
       },
     });
   };
 
   const handleDeletePermanent = (id: number) => {
-    deleteAttributePermanentMutate(id, {
+    deleteWarehousePermanentMutate(id, {
       onSuccess() {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Attribute] });
-        showNotification('Xoá vĩnh viễn thuộc tính thành công', 'success');
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Warehouse] });
+        showNotification('Xoá vĩnh viễn kho hàng thành công', 'success');
       },
     });
   };
@@ -105,13 +104,13 @@ const AttributeList = () => {
             <ButtonWithTooltip
               variant='contained'
               onClick={() => navigate('create')}
-              title='Thêm loại thuộc tính'>
+              title='Thêm kho hàng'>
               <AddCircleOutlined />
             </ButtonWithTooltip>
           }
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Danh sách loại thuộc tính
+              Danh sách kho hàng
             </Typography>
           }
         />
@@ -122,7 +121,7 @@ const AttributeList = () => {
               <TableRow>
                 <TableCell align='center'>STT</TableCell>
                 <TableCell>Tên</TableCell>
-                <TableCell>Nhãn</TableCell>
+                <TableCell>Địa chỉ</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Đã xóa</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
@@ -135,18 +134,18 @@ const AttributeList = () => {
                 data?.data?.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell align='center'>{index + 1}</TableCell>
-                    <TableCell sx={{ width: '25%' }}>
+                    <TableCell sx={{ width: '20%' }}>
                       <Typography sx={{ ...truncateTextByLine(2) }}>
                         {item.name}
                       </Typography>
                     </TableCell>
-                    <TableCell sx={{ width: '25%' }}>
+                    <TableCell sx={{ width: '40%' }}>
                       <Typography sx={{ ...truncateTextByLine(2) }}>
-                        {item.label}
+                        {item.address}
                       </Typography>
                     </TableCell>
                     <TableCell align='center'>
-                      {moment(item?.createdAt).format('DD/MM/YYYY')}
+                      {moment(item.createdAt).format('DD/MM/YYYY')}
                     </TableCell>
                     <TableCell align='center'>
                       <Typography
@@ -195,10 +194,10 @@ const AttributeList = () => {
                               placement='left'
                               onClick={() =>
                                 showConfirmModal({
-                                  title: 'Xoá thuộc tính',
+                                  title: 'Xoá kho hàng',
                                   content:
-                                    'Bạn có chắc chắn muốn xoá thuộc tính này?',
-                                  onOk: () => handleDeleteAttribute(item?.id),
+                                    'Bạn có chắc chắn muốn xoá kho hàng này?',
+                                  onOk: () => handleDeleteWarehouse(item?.id),
                                 })
                               }>
                               <DeleteOutlineOutlinedIcon />
@@ -213,9 +212,9 @@ const AttributeList = () => {
                               placement='left'
                               onClick={() =>
                                 showConfirmModal({
-                                  title: 'Khôi phục thuộc tính',
+                                  title: 'Khôi phục kho hàng',
                                   content:
-                                    'Bạn có chắc chắn muốn khôi phục thuộc tính này?',
+                                    'Bạn có chắc chắn muốn khôi phục kho hàng này?',
                                   onOk: () => handleRestore(item?.id),
                                 })
                               }>
@@ -232,9 +231,9 @@ const AttributeList = () => {
                               placement='left'
                               onClick={() =>
                                 showConfirmModal({
-                                  title: 'Xoá vĩnh viễn thuộc tính',
+                                  title: 'Xoá vĩnh viễn kho hàng',
                                   content:
-                                    'Bạn có chắc chắn muốn xoá vĩnh viễn thuộc tính này?',
+                                    'Bạn có chắc chắn muốn xoá vĩnh viễn kho hàng này?',
                                   onOk: () => handleDeletePermanent(item?.id),
                                 })
                               }>
@@ -258,4 +257,4 @@ const AttributeList = () => {
   );
 };
 
-export default AttributeList;
+export default WarehouseList;

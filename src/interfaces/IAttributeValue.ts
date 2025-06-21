@@ -6,6 +6,7 @@ export interface IAttributeValue {
     value: string;
     createdAt: Date;
     attribute: IAttribute;
+    isDeleted?: boolean;
 }
 
 export interface ICreateAttributeValue extends Record<string, unknown>  {

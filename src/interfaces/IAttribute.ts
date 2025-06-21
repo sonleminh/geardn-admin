@@ -3,6 +3,7 @@ export interface IAttribute {
     name: string;
     label: string;
     createdAt: Date;
+    isDeleted?: boolean;
 }
 
 export interface ICreateAttribute extends Record<string, unknown>  {

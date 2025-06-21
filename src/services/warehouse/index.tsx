@@ -7,7 +7,7 @@ import {
   ICreateWarehouse,
   IUpdateWarehousePayload,
 } from '@/interfaces/IWarehouse';
-import { ICreateImportLog } from '@/interfaces/IInventorytLog';
+
 type TWarehousesRes = {
   success: boolean;
   message: string;
@@ -76,7 +76,7 @@ export const useUpdateWarehouse = () => {
 };
 
 const deleteWarehouse = async (id: number) => {
-  const result = await axiosInstance.patch(`${warehouseUrl}/${id}/soft-delete`);
+  const result = await axiosInstance.delete(`${warehouseUrl}/${id}`);
   return result.data;
 };
 
@@ -94,5 +94,16 @@ const restoreWarehouse = async (id: number) => {
 export const useRestoreWarehouse = () => {
   return useMutation({
     mutationFn: restoreWarehouse,
+  });
+};
+
+const deleteWarehousePermanent = async (id: number) => {
+  const result = await axiosInstance.delete(`${warehouseUrl}/${id}/permanent`);
+  return result.data;
+};
+
+export const useDeleteWarehousePermanent = () => {
+  return useMutation({
+    mutationFn: deleteWarehousePermanent,
   });
 };

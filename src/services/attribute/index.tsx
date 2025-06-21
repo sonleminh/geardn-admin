@@ -7,19 +7,7 @@ import {
   ICreateAttribute,
   IUpdateAttributePayload,
 } from '@/interfaces/IAttribute';
-
-type TAttributeListRes = {
-  status: number;
-  message: string;
-  data: IAttribute[];
-  total: number;
-};
-
-type TAttributeRes = {
-  data: IAttribute;
-  status: number;
-  message: string;
-};
+import { TBaseResponse } from '@/types/response.type';
 
 const attributeUrl = '/attributes';
 
@@ -36,7 +24,7 @@ export const useCreateAttribute = () => {
 
 const getAttributeById = async (id: string) => {
   const result = await axiosInstance.get(`${attributeUrl}/${id}`);
-  return (result.data as TAttributeRes).data;
+  return result.data as TBaseResponse<IAttribute>;
 };
 
 export const useGetAttributeById = (id: string) => {
@@ -51,12 +39,12 @@ export const useGetAttributeById = (id: string) => {
 
 const getAttributeList = async () => {
   const result = await axiosInstance.get(`${attributeUrl}`);
-  return result.data as TAttributeListRes;
+  return result.data as TBaseResponse<IAttribute[]>;
 };
 
 export const useGetAttributeList = () => {
   return useQuery({
-    queryKey: [QueryKeys.Product],
+    queryKey: [QueryKeys.Attribute],
     queryFn: () => getAttributeList(),
     refetchOnWindowFocus: false,
     refetchInterval: false,
@@ -83,5 +71,27 @@ const deleteAttribute = async (id: number) => {
 export const useDeleteAttribute = () => {
   return useMutation({
     mutationFn: deleteAttribute,
+  });
+};
+
+const restoreAttribute = async (id: number) => {
+  const result = await axiosInstance.patch(`${attributeUrl}/${id}/restore`);
+  return result.data;
+};
+
+export const useRestoreAttribute = () => {
+  return useMutation({
+    mutationFn: restoreAttribute,
+  });
+};
+
+const deleteAttributePermanent = async (id: number) => {
+  const result = await axiosInstance.delete(`${attributeUrl}/${id}/permanent`);
+  return result.data;
+};
+
+export const useDeleteAttributePermanent = () => {
+  return useMutation({
+    mutationFn: deleteAttributePermanent,
   });
 };
