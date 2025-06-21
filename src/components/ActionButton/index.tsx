@@ -21,7 +21,9 @@ export default function ActionButton({ children }: { children: ReactNode }) {
         <MoreVertIcon />
       </Button>
       <Popover id={id} open={open} anchorEl={anchorEl} onClose={handleClose}>
-        <Box sx={{ p: 1 }}>{children}</Box>
+        <Box sx={{ p: 1 }} onClick={handleClose}>
+          {children}
+        </Box>
       </Popover>
     </Box>
   );

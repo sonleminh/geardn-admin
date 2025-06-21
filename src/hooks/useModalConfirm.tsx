@@ -94,7 +94,7 @@ const useConfirmModal = () => {
           <Box id='modal-modal-description' sx={{ my: 2 }}>
             {modalProps?.content}
           </Box>
-          <Box sx={{ textAlign: 'center' }}>
+          <Box sx={{ textAlign: 'end' }}>
             {modalProps?.showBtnCancel && (
               <Button
                 variant='outlined'

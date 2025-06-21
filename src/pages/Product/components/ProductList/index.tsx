@@ -34,6 +34,7 @@ import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ExcelUpload from '@/components/ExcelUpload';
 import TableFilter from '@/components/TableFilter';
+import SuspenseLoader from '@/components/SuspenseLoader';
 import { TableSkeleton } from '@/components/TableSkeleton';
 import { AddCircleOutlined } from '@mui/icons-material';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
@@ -45,9 +46,9 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import SearchIcon from '@mui/icons-material/Search';
 import CircleIcon from '@mui/icons-material/Circle';
-import ListIcon from '@mui/icons-material/List';
+import RestoreIcon from '@mui/icons-material/Restore';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import { NativeSelect } from '@mui/material';
+import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
@@ -57,7 +58,12 @@ import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 
 import { ROUTES } from '@/constants/route';
 import { useGetCategoryList } from '@/services/category';
-import { useDeleteProduct, useGetProductList } from '@/services/product';
+import {
+  useDeleteProduct,
+  useDeleteProductPermanent,
+  useGetProductList,
+  useRestoreProduct,
+} from '@/services/product';
 import { QueryKeys } from '@/constants/query-key';
 import { useGetEnumByContext } from '@/services/enum';
 import { truncateTextByLine } from '@/utils/css-helper.util';
@@ -334,7 +340,14 @@ export default function ProductList() {
     status: columnFilters.status,
     isDeleted: productFilterIsDeleted,
   });
-  const { mutate: deleteProductMutate } = useDeleteProduct();
+  const { mutate: deleteProductMutate, isPending: isDeleting } =
+    useDeleteProduct();
+  const { mutate: restoreProductMutate, isPending: isRestoring } =
+    useRestoreProduct();
+  const {
+    mutate: deleteProductPermanentMutate,
+    isPending: isDeletingPermanent,
+  } = useDeleteProductPermanent();
   const { data: productStatusEnumData } = useGetEnumByContext('product-status');
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -346,6 +359,24 @@ export default function ProductList() {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
         showNotification('Xóa sản phẩm thành công', 'success');
+      },
+    });
+  };
+
+  const handleRestore = (id: number) => {
+    restoreProductMutate(id, {
+      onSuccess() {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+        showNotification('Khôi phục sản phẩm thành công', 'success');
+      },
+    });
+  };
+
+  const handleDeletePermanent = (id: number) => {
+    deleteProductPermanentMutate(id, {
+      onSuccess() {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+        showNotification('Xoá vĩnh viễn sản phẩm thành công', 'success');
       },
     });
   };
@@ -411,8 +442,6 @@ export default function ProductList() {
       ),
     [productStatusEnumData?.data]
   );
-
-  console.log('productFilterIsDeleted:', productFilterIsDeleted);
 
   return (
     <>
@@ -704,23 +733,61 @@ export default function ProductList() {
                               <EditOutlinedIcon />
                             </ButtonWithTooltip>
                           </Box>
-                          <Box>
+                          {!product?.isDeleted && (
+                            <Box mb={1}>
+                              <ButtonWithTooltip
+                                color='error'
+                                variant='outlined'
+                                title='Xoá'
+                                placement='left'
+                                onClick={() =>
+                                  showConfirmModal({
+                                    title: 'Xoá sản phẩm',
+                                    content:
+                                      'Bạn có chắc chắn muốn xoá sản phẩm này?',
+                                    onOk: () => handleDelete(product?.id),
+                                  })
+                                }>
+                                <DeleteOutlineOutlinedIcon />
+                              </ButtonWithTooltip>
+                            </Box>
+                          )}
+                          <Box mb={product?.isDeleted ? 1 : 0}>
                             <ButtonWithTooltip
-                              color='error'
                               variant='outlined'
-                              title='Xoá'
+                              title='Khôi phục'
                               placement='left'
                               onClick={() =>
                                 showConfirmModal({
-                                  title: 'Xoá sản phẩm',
+                                  title: 'Khôi phục sản phẩm',
                                   content:
-                                    'Bạn có chắc chắn muốn xoá sản phẩm này?',
-                                  onOk: () => handleDelete(product?.id),
+                                    'Bạn có chắc chắn muốn khôi phục sản phẩm này?',
+                                  onOk: () => handleRestore(product?.id),
                                 })
                               }>
-                              <DeleteOutlineOutlinedIcon />
+                              <RestoreIcon />
                             </ButtonWithTooltip>
                           </Box>
+                          {product?.isDeleted && (
+                            <Box>
+                              <ButtonWithTooltip
+                                color='error'
+                                variant='outlined'
+                                title='Xoá vĩnh viễn'
+                                placement='left'
+                                onClick={() =>
+                                  showConfirmModal({
+                                    title: 'Xoá vĩnh viễn sản phẩm',
+                                    content:
+                                      'Bạn có chắc chắn muốn xoá vĩnh viễn sản phẩm này?',
+                                    onOk: () =>
+                                      handleDeletePermanent(product?.id),
+                                  })
+                                }>
+                                <DeleteForeverOutlinedIcon />
+                              </ButtonWithTooltip>
+                            </Box>
+                          )}
                         </ActionButton>
                       </TableCell>
                     </TableRow>
@@ -765,8 +832,9 @@ export default function ProductList() {
           {renderFilterContent()}
         </Popover>
 
-        {/* {confirmModal()} */}
+        {confirmModal()}
       </Card>
+      {(isDeleting || isRestoring || isDeletingPermanent) && <SuspenseLoader />}
     </>
   );
 }

@@ -157,13 +157,35 @@ export const useUpdateProduct = () => {
 };
 
 const deleteProduct = async (id: number) => {
-  const result = await axiosInstance.patch(`${productUrl}/${id}`);
+  const result = await axiosInstance.delete(`${productUrl}/${id}`);
   return result.data;
 };
 
 export const useDeleteProduct = () => {
   return useMutation({
     mutationFn: deleteProduct,
+  });
+};
+
+const restoreProduct = async (id: number) => {
+  const result = await axiosInstance.patch(`${productUrl}/${id}/restore`);
+  return result.data;
+};
+
+export const useRestoreProduct = () => {
+  return useMutation({
+    mutationFn: restoreProduct,
+  });
+};
+
+const deleteProductPermanent = async (id: number) => {
+  const result = await axiosInstance.delete(`${productUrl}/${id}/permanent`);
+  return result.data;
+};
+
+export const useDeleteProductPermanent = () => {
+  return useMutation({
+    mutationFn: deleteProductPermanent,
   });
 };
 
