@@ -6,24 +6,13 @@ import {
   ICreateCategory,
   IUpdateCategoryPayload,
 } from '@/interfaces/ICategory';
-type TCategorysRes = {
-  success: boolean;
-  message: string;
-  data: ICategory[];
-  total: number;
-};
-
-type TCategoryById = {
-  status: number;
-  message: string;
-  data: ICategory;
-};
+import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
 
 const categoryUrl = '/categories';
 
 const getCategoryList = async () => {
   const result = await axiosInstance.get(`${categoryUrl}`);
-  return result.data as TCategorysRes;
+  return result.data as TPaginatedResponse<ICategory>;
 };
 
 export const useGetCategoryList = () => {
@@ -37,7 +26,7 @@ export const useGetCategoryList = () => {
 
 const getCategoryById = async (id: number) => {
   const result = await axiosInstance.get(`${categoryUrl}/${id}`);
-  return (result.data as TCategoryById).data;
+  return result.data as TBaseResponse<ICategory>;
 };
 
 export const useGetCategoryById = (id: number) => {
@@ -83,5 +72,27 @@ const deleteCategory = async (id: number) => {
 export const useDeleteCategory = () => {
   return useMutation({
     mutationFn: deleteCategory,
+  });
+};
+
+const restoreCategory = async (id: number) => {
+  const result = await axiosInstance.patch(`${categoryUrl}/${id}/restore`);
+  return result.data;
+};
+
+export const useRestoreCategory = () => {
+  return useMutation({
+    mutationFn: restoreCategory,
+  });
+};
+
+const deleteCategoryPermanent = async (id: number) => {
+  const result = await axiosInstance.delete(`${categoryUrl}/${id}/permanent`);
+  return result.data;
+};
+
+export const useDeleteCategoryPermanent = () => {
+  return useMutation({
+    mutationFn: deleteCategoryPermanent,
   });
 };

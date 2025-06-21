@@ -752,22 +752,24 @@ export default function ProductList() {
                               </ButtonWithTooltip>
                             </Box>
                           )}
-                          <Box mb={product?.isDeleted ? 1 : 0}>
-                            <ButtonWithTooltip
-                              variant='outlined'
-                              title='Khôi phục'
-                              placement='left'
-                              onClick={() =>
-                                showConfirmModal({
-                                  title: 'Khôi phục sản phẩm',
-                                  content:
-                                    'Bạn có chắc chắn muốn khôi phục sản phẩm này?',
-                                  onOk: () => handleRestore(product?.id),
-                                })
-                              }>
-                              <RestoreIcon />
-                            </ButtonWithTooltip>
-                          </Box>
+                          {product?.isDeleted && (
+                            <Box mb={product?.isDeleted ? 1 : 0}>
+                              <ButtonWithTooltip
+                                variant='outlined'
+                                title='Khôi phục'
+                                placement='left'
+                                onClick={() =>
+                                  showConfirmModal({
+                                    title: 'Khôi phục sản phẩm',
+                                    content:
+                                      'Bạn có chắc chắn muốn khôi phục sản phẩm này?',
+                                    onOk: () => handleRestore(product?.id),
+                                  })
+                                }>
+                                <RestoreIcon />
+                              </ButtonWithTooltip>
+                            </Box>
+                          )}
                           {product?.isDeleted && (
                             <Box>
                               <ButtonWithTooltip

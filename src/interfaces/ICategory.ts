@@ -3,6 +3,7 @@ export interface ICategory {
     name: string;
     icon: string;
     slug?: string;
+    isDeleted?: boolean;
     createdAt?: Date;
 }
 

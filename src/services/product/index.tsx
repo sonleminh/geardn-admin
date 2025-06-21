@@ -1,5 +1,4 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import queryString from 'query-string';
 import { AxiosError } from 'axios';
 import { axiosInstance } from '../axiosInstance';
 import { QueryKeys } from '@/constants/query-key';
@@ -11,7 +10,6 @@ import {
   IUpdateProductPayload,
 } from '@/interfaces/IProduct';
 import { ErrorResponse } from '@/interfaces/IError';
-import { IQuery } from '@/interfaces/IQuery';
 import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
 
 interface IGetProductListQuery {
@@ -22,12 +20,6 @@ interface IGetProductListQuery {
   status?: string[];
   isDeleted?: string;
 }
-
-type TUploadImageResponse = {
-  success: boolean;
-  message: string;
-  data: string[];
-};
 
 const productUrl = '/products';
 
@@ -210,7 +202,7 @@ const uploadImage = async (
       }
     },
   });
-  return result.data as TUploadImageResponse;
+  return result.data as TBaseResponse<string[]>;
 };
 
 export const useUploadImage = () => {
