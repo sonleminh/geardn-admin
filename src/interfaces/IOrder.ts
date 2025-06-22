@@ -1,3 +1,5 @@
+import { IProductSku } from "./IProductSku";
+
 interface ISkuAttribute {
     attribute: string;
     value: string;
@@ -16,6 +18,7 @@ export interface IOrderItem {
     productSlug: string;
     skuCode: string;
     skuAttributes: ISkuAttribute[];
+    sku: IProductSku;
 }
 
 export interface IOrder {
@@ -30,6 +33,11 @@ export interface IOrder {
         deliveryDate: Date;
     },
     paymentMethodId: number;
+    paymentMethod: {
+        id: number;
+        name: string;
+        image: string;
+    };
     flag: {
         isOnlineOrder: boolean;
     };
@@ -86,12 +94,21 @@ export interface IUpdateOrder{
         isOnlineOrder: boolean;
     };
     note: string;
+    status?: string;
     orderItems: ICreateOrderItem[]
 }
 
 export interface IUpdateOrderStatus{
     id: number;
     status: string;
+}
+
+export interface IUpdateOrderConfirm{
+    id: number;
+    skuWarehouseMapping: {
+        skuId: number;
+        warehouseId: number;
+    }[]
 }
 
 export interface IProvince {

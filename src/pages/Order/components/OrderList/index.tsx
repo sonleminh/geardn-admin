@@ -33,6 +33,8 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
+import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 
 import { addDays } from 'date-fns';
 import moment from 'moment';
@@ -140,7 +142,7 @@ const headCells: readonly HeadCell[] = [
     align: 'center',
     id: 'createdAt',
     disablePadding: false,
-    label: 'Ngày nhập',
+    label: 'Ngày tạo',
     width: '12%',
   },
   {
@@ -716,13 +718,46 @@ const OrderListPage = () => {
                         {formatPrice(order?.totalPrice)}
                       </TableCell>
                       <TableCell align='center'>
-                        {statusMap?.[order?.status] || 'Không xác định'}
+                        <Button
+                          variant='outlined'
+                          color={
+                            order?.status === 'PENDING'
+                              ? 'warning'
+                              : order?.status === 'PROCESSING'
+                              ? 'info'
+                              : order?.status === 'SHIPPED'
+                              ? 'success'
+                              : order?.status === 'DELIVERED'
+                              ? 'success'
+                              : order?.status === 'CANCELLED'
+                              ? 'error'
+                              : 'error'
+                          }
+                          size='small'
+                          sx={{
+                            fontSize: 12,
+                            textTransform: 'none',
+                          }}>
+                          {statusMap?.[order?.status] || 'Không xác định'}
+                        </Button>
                       </TableCell>
                       <TableCell align='center'>
                         {moment(order?.createdAt).format('DD/MM/YYYY')}
                       </TableCell>
                       <TableCell align='center'>
                         <ActionButton>
+                          <Box mb={1}>
+                            <ButtonWithTooltip
+                              color='primary'
+                              variant='outlined'
+                              title='Xác nhận'
+                              placement='left'
+                              onClick={() =>
+                                navigate(`${ROUTES.ORDER}/confirm/${order?.id}`)
+                              }>
+                              <DoneOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
                           <Box mb={1}>
                             <ButtonWithTooltip
                               color='primary'

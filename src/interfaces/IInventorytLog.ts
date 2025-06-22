@@ -61,6 +61,7 @@ export interface IExportLog {
 export interface ICreateExportLog extends Record<string, unknown>  {
     warehouseId: number;
     type: string;
+    orderId?: number;
     note?: string;
     items: {
         skuId: number;

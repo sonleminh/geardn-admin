@@ -526,7 +526,6 @@ export default function ProductList() {
                       <FormControl>
                         <Select
                           displayEmpty
-                          // label='Trạng thái'
                           value={productFilterIsDeleted}
                           onChange={handleProductFilterIsDeletedChange}
                           size='small'
@@ -657,7 +656,13 @@ export default function ProductList() {
                         <Button
                           variant='outlined'
                           color={
-                            product?.status === 'ACTIVE' ? 'success' : 'error'
+                            product?.status === 'ACTIVE'
+                              ? 'success'
+                              : product?.status === 'DRAFT'
+                              ? 'primary'
+                              : product?.status === 'DISCONTINUED'
+                              ? 'warning'
+                              : 'error'
                           }
                           size='small'
                           sx={{

@@ -7,6 +7,7 @@ import {
   ICreateOrder,
   IOrder,
   IUpdateOrder,
+  IUpdateOrderConfirm,
   IUpdateOrderStatus,
 } from '@/interfaces/IOrder';
 import { IQuery } from '@/interfaces/IQuery';
@@ -76,7 +77,7 @@ export const useGetOrderList = (query: IGetOrderListQuery) => {
 };
 
 const getOrderById = async (id: string) => {
-  const result = await axiosInstance.get(`${orderUrl}/${id}`);
+  const result = await axiosInstance.get(`${orderUrl}/admin/${id}`);
   return result.data as TBaseResponse<IOrder>;
 };
 
@@ -161,6 +162,18 @@ const updateOrderStatus = async (payload: IUpdateOrderStatus) => {
 export const useUpdateOrderStatus = () => {
   return useMutation({
     mutationFn: updateOrderStatus,
+  });
+};
+
+const updateOrderConfirm = async (payload: IUpdateOrderConfirm) => {
+  const { id, ...rest } = payload;
+  const result = await axiosInstance.patch(`${orderUrl}/${id}/confirm`, rest);
+  return result.data as IOrder;
+};
+
+export const useUpdateOrderConfirm = () => {
+  return useMutation({
+    mutationFn: updateOrderConfirm,
   });
 };
 

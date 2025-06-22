@@ -2,6 +2,7 @@ import { useRoutes } from 'react-router-dom';
 import OrderLayout from './components/OrderLayout';
 import OrderList from './components/OrderList';
 import OrderUpsert from './components/OrderUpsert';
+import OrderConfirm from './components/OrderConfirm';
 // import OrderLayout from './components/OrderLayout';
 // import OrderList from './components/OrderList';
 // import OrderCategoryList from './components/OrderCategoryList';
@@ -27,6 +28,11 @@ const Order = () => {
         {
           path: '/update/:id',
           element: <OrderUpsert />,
+          index: true,
+        },
+        {
+          path: '/confirm/:id',
+          element: <OrderConfirm />,
           index: true,
         },
       ],
