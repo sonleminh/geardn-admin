@@ -10,6 +10,7 @@ import {
   CardContent,
   CardHeader,
   Chip,
+  CircularProgress,
   Divider,
   IconButton,
   Link,
@@ -22,6 +23,9 @@ import {
   TablePagination,
   TableRow,
   Typography,
+  Tooltip,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 
 import { AddCircleOutlined } from '@mui/icons-material';
@@ -33,8 +37,8 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
+import SearchIcon from '@mui/icons-material/Search';
 
 import { addDays } from 'date-fns';
 import moment from 'moment';
@@ -61,6 +65,7 @@ import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 import { useGetOrderList, useUpdateOrderStatus } from '@/services/order';
 import { IOrderItem, IOrder } from '@/interfaces/IOrder';
 import { useNotificationContext } from '@/contexts/NotificationContext';
+import { IProduct } from '@/interfaces/IProduct';
 
 interface Data {
   stt: number;
@@ -82,6 +87,7 @@ interface HeadCell {
   width?: string;
 }
 interface ColumnFilters {
+  items: string[];
   status: string[];
   search: string;
   date: { fromDate: string; toDate: string };
@@ -89,6 +95,7 @@ interface ColumnFilters {
 
 // Constants
 const INITIAL_COLUMN_FILTERS: ColumnFilters = {
+  items: [],
   status: [],
   search: '',
   date: { fromDate: '', toDate: '' },
@@ -115,7 +122,7 @@ const headCells: readonly HeadCell[] = [
     id: 'info',
     disablePadding: false,
     label: 'Thông tin',
-    width: '17%',
+    width: '15%',
   },
   {
     align: 'center',
@@ -123,7 +130,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Sản phẩm',
     isFilter: true,
-    width: '34%',
+    width: '36%',
   },
   {
     align: 'center',
@@ -137,6 +144,7 @@ const headCells: readonly HeadCell[] = [
     id: 'status',
     disablePadding: false,
     label: 'Trạng thái',
+    isFilter: true,
     width: '15%',
   },
   {
@@ -234,19 +242,13 @@ const OrderItem = ({ item }: OrderItemProps) => {
 
 interface FilterChipsProps {
   columnFilters: ColumnFilters;
-  warehousesData: {
-    data?: Array<{
-      id: number;
-      name: string;
-    }>;
-  };
   productsData: {
     data?: Array<{
       id: number;
       name: string;
     }>;
   };
-  enumData: {
+  orderStatusEnumData: {
     data?: Array<IEnum>;
   };
   onFilterChange: (
@@ -257,37 +259,29 @@ interface FilterChipsProps {
 
 const FilterChips = ({
   columnFilters,
-  warehousesData,
   productsData,
-  enumData,
+  orderStatusEnumData,
   onFilterChange,
 }: FilterChipsProps) => {
   const getFilterLabels = useCallback(
     (filterKey: string, values: string[]) => {
-      if (filterKey === 'warehouse') {
-        return values.map(
-          (value: string) =>
-            warehousesData?.data?.find(
-              (w: { id: number; name: string }) => w.id === +value
-            )?.name || value
-        );
-      } else if (filterKey === 'items') {
+      if (filterKey === 'items') {
         return values.map(
           (value: string) =>
             productsData?.data?.find(
               (p: { id: number; name: string }) => p.id === +value
             )?.name || value
         );
-      } else if (filterKey === 'type') {
+      } else if (filterKey === 'status') {
         return values.map(
           (value: string) =>
-            enumData?.data?.find((e: IEnum) => e.value === value)?.label ||
-            value
+            orderStatusEnumData?.data?.find((e: IEnum) => e.value === value)
+              ?.label || value
         );
       }
       return [];
     },
-    [warehousesData?.data, productsData?.data, enumData?.data]
+    [productsData?.data, orderStatusEnumData?.data]
   );
 
   return (
@@ -326,11 +320,10 @@ const FilterChips = ({
             onDelete={() => {
               const newValues = values.filter((value: string) => {
                 const itemLabel =
-                  filterKey === 'warehouse'
-                    ? warehousesData?.data?.find((w) => w.id === +value)?.name
-                    : filterKey === 'items'
+                  filterKey === 'items'
                     ? productsData?.data?.find((p) => p.id === +value)?.name
-                    : enumData?.data?.find((e) => e.value === value)?.label;
+                    : orderStatusEnumData?.data?.find((e) => e.value === value)
+                        ?.label;
                 return itemLabel !== label;
               });
               onFilterChange(filterKey, newValues);
@@ -479,8 +472,14 @@ const usePagination = () => {
 };
 
 // Main component
-const OrderListPage = () => {
+const OrderList = () => {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
   const {
     filterAnchorEl,
     activeFilterColumn,
@@ -498,16 +497,16 @@ const OrderListPage = () => {
   const { page, rowsPerPage, handleChangePage, handleChangeRowsPerPage } =
     usePagination();
 
-  const { data: warehousesData } = useGetWarehouseList();
   const { data: productsData } = useGetProductList();
-  const { data: enumData } = useGetEnumByContext('order-status');
+  const { data: orderStatusEnumData } = useGetEnumByContext('order-status');
 
   const {
     data: ordersData,
     refetch: refetchOrders,
     isLoading: isLoadingOrders,
   } = useGetOrderList({
-    status: columnFilters.status,
+    productIds: columnFilters.items,
+    statuses: columnFilters.status,
     search: columnFilters.search,
     page: page + 1,
     limit: rowsPerPage,
@@ -516,9 +515,9 @@ const OrderListPage = () => {
   const statusMap = useMemo(
     () =>
       Object.fromEntries(
-        enumData?.data?.map((item) => [item.value, item.label]) ?? []
+        orderStatusEnumData?.data?.map((item) => [item.value, item.label]) ?? []
       ),
-    [enumData?.data]
+    [orderStatusEnumData?.data]
   );
 
   const { showNotification } = useNotificationContext();
@@ -530,7 +529,7 @@ const OrderListPage = () => {
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
   const [newStatus, setNewStatus] = useState<string>('');
 
-  const { mutate: updateOrderStatus, isLoading: isUpdatingStatus } =
+  const { mutate: updateOrderStatus, isPending: isUpdatingStatus } =
     useUpdateOrderStatus();
 
   useEffect(() => {
@@ -539,12 +538,29 @@ const OrderListPage = () => {
 
   const renderFilterContent = useCallback(() => {
     switch (activeFilterColumn) {
+      case 'items':
+        return (
+          <TableFilter
+            title='Lọc theo sản phẩm'
+            options={
+              productsData?.data?.map((product: IProduct) => ({
+                id: product.id,
+                label: product.name,
+              })) ?? []
+            }
+            selectedValues={columnFilters.items}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('items', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
       case 'status':
         return (
           <TableFilter
             title='Lọc theo trạng thái'
             options={
-              enumData?.data?.map((status: IEnum) => ({
+              orderStatusEnumData?.data?.map((status: IEnum) => ({
                 id: status.value,
                 label: status.label,
               })) ?? []
@@ -562,7 +578,8 @@ const OrderListPage = () => {
     }
   }, [
     activeFilterColumn,
-    enumData,
+    productsData,
+    orderStatusEnumData,
     columnFilters,
     handleColumnFilterChange,
     handleFilterClose,
@@ -606,48 +623,49 @@ const OrderListPage = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell colSpan={headCells.length}>
+                  <TableCell colSpan={headCells.length} sx={{ px: 0 }}>
                     <Box
                       sx={{
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center',
+                        mb: 2,
                       }}>
-                      <FilterChips
-                        columnFilters={columnFilters}
-                        warehousesData={warehousesData || { data: [] }}
-                        productsData={productsData || { data: [] }}
-                        enumData={enumData || { data: [] }}
-                        onFilterChange={handleColumnFilterChange}
-                      />
                       <Box
-                        sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Button
-                          variant='outlined'
-                          size='small'
-                          onClick={handleDateFilterClick}
-                          startIcon={<DateRangeOutlinedIcon />}
-                          sx={{
-                            textTransform: 'none',
-                            borderColor: columnFilters.date.fromDate
-                              ? 'primary.main'
-                              : 'inherit',
-                            color: columnFilters.date.fromDate
-                              ? 'primary.main'
-                              : 'inherit',
-                            '&:hover': {
-                              borderColor: 'primary.main',
-                            },
-                          }}>
-                          {columnFilters.date.fromDate
-                            ? `${moment(columnFilters.date.fromDate).format(
-                                'DD/MM/YYYY'
-                              )} - ${moment(columnFilters.date.toDate).format(
-                                'DD/MM/YYYY'
-                              )}`
-                            : 'Chọn ngày'}
-                        </Button>
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}>
+                        <FilterChips
+                          columnFilters={columnFilters}
+                          productsData={productsData || { data: [] }}
+                          orderStatusEnumData={
+                            orderStatusEnumData || { data: [] }
+                          }
+                          onFilterChange={handleColumnFilterChange}
+                        />
                       </Box>
+                    </Box>
+                    <Box>
+                      <TextField
+                        fullWidth
+                        size='small'
+                        placeholder='Tìm kiếm sản phẩm...'
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        sx={{
+                          '& .MuiInputBase-root': {
+                            minHeight: 40,
+                          },
+                        }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <SearchIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -731,39 +749,41 @@ const OrderListPage = () => {
                         {formatPrice(order?.totalPrice)}
                       </TableCell>
                       <TableCell align='center'>
-                        <Button
-                          variant='outlined'
-                          color={
-                            order?.status === 'PENDING'
-                              ? 'warning'
-                              : order?.status === 'PROCESSING'
-                              ? 'info'
-                              : order?.status === 'SHIPPED'
-                              ? 'success'
-                              : order?.status === 'DELIVERED'
-                              ? 'success'
-                              : order?.status === 'CANCELLED'
-                              ? 'error'
-                              : 'error'
-                          }
-                          size='small'
-                          onClick={(e) => {
-                            setStatusAnchorEl(e.currentTarget);
-                            setSelectedOrder(order);
-                            setNewStatus(order.status);
-                          }}
-                          sx={{ fontSize: 12, textTransform: 'none', mr: 1 }}>
-                          {statusMap?.[order?.status] || 'Không xác định'}
-                        </Button>
-                        {/* <IconButton
-                          size='small'
-                          onClick={(e) => {
-                            setStatusAnchorEl(e.currentTarget);
-                            setSelectedOrder(order);
-                            setNewStatus(order.status);
-                          }}>
-                          <EditOutlinedIcon fontSize='small' />
-                        </IconButton> */}
+                        <Tooltip title='Cập nhật trạng thái'>
+                          <Button
+                            variant='outlined'
+                            color={
+                              order?.status === 'PENDING'
+                                ? 'warning'
+                                : order?.status === 'PROCESSING'
+                                ? 'info'
+                                : order?.status === 'SHIPPED'
+                                ? 'success'
+                                : order?.status === 'DELIVERED'
+                                ? 'success'
+                                : order?.status === 'CANCELLED'
+                                ? 'error'
+                                : 'error'
+                            }
+                            // size='small'
+                            onClick={(e) => {
+                              setStatusAnchorEl(e.currentTarget);
+                              setSelectedOrder(order);
+                              setNewStatus(order.status);
+                            }}
+                            sx={{
+                              width: '100%',
+                              fontSize: 13,
+                              textTransform: 'none',
+                              cursor: 'pointer',
+                              '&:hover': {
+                                backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                              },
+                              gap: 1,
+                            }}>
+                            {statusMap?.[order?.status] || 'Không xác định'}
+                          </Button>
+                        </Tooltip>
                       </TableCell>
                       <TableCell align='center'>
                         {moment(order?.createdAt).format('DD/MM/YYYY')}
@@ -893,7 +913,7 @@ const OrderListPage = () => {
                 onChange={(e) => setNewStatus(e.target.value)}
                 style={{ width: '100%', padding: 8, fontSize: 14 }}
                 disabled={isUpdatingStatus}>
-                {enumData?.data?.map((status: IEnum) => (
+                {orderStatusEnumData?.data?.map((status: IEnum) => (
                   <option key={status.value} value={status.value}>
                     {status.label}
                   </option>
@@ -949,7 +969,11 @@ const OrderListPage = () => {
                   !newStatus ||
                   selectedOrder.status === newStatus
                 }>
-                Xác nhận
+                {isUpdatingStatus ? (
+                  <CircularProgress size={20} disableShrink thickness={3} />
+                ) : (
+                  'Xác nhận'
+                )}
               </Button>
             </Box>
           </Box>
@@ -959,4 +983,4 @@ const OrderListPage = () => {
   );
 };
 
-export default OrderListPage;
+export default OrderList;

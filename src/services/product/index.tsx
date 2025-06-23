@@ -17,7 +17,7 @@ interface IGetProductListQuery {
   limit?: number;
   search?: string;
   categoryIds?: string[];
-  status?: string[];
+  statuses?: string[];
   isDeleted?: string;
 }
 
@@ -41,7 +41,7 @@ const getProductList = async (query?: IGetProductListQuery) => {
       limit: query?.limit ?? 10,
       search: query?.search,
       categoryIds: query?.categoryIds?.join(','),
-      status: query?.status?.join(','),
+      statuses: query?.statuses?.join(','),
       isDeleted: query?.isDeleted,
     },
   });

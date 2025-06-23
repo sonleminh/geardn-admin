@@ -337,7 +337,7 @@ export default function ProductList() {
     limit: rowsPerPage,
     search: searchQuery,
     categoryIds: columnFilters.category,
-    status: columnFilters.status,
+    statuses: columnFilters.status,
     isDeleted: productFilterIsDeleted,
   });
   const { mutate: deleteProductMutate, isPending: isDeleting } =
@@ -478,36 +478,21 @@ export default function ProductList() {
             </Box>
           }
         />
-        <Box sx={{ px: 2, pb: 2 }}>
-          <TextField
-            fullWidth
-            size='small'
-            placeholder='Tìm kiếm sản phẩm...'
-            value={searchQuery}
-            onChange={handleSearchChange}
-            sx={{
-              '& .MuiInputBase-root': {
-                minHeight: 40,
-              },
-            }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
+
         <Divider />
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <CardContent
+          sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0 }}>
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell colSpan={headCells.length}>
+                  <TableCell colSpan={headCells.length} sx={{ px: 0 }}>
                     <Box
-                      sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mb: 2,
+                      }}>
                       <Box
                         sx={{
                           display: 'flex',
@@ -564,6 +549,27 @@ export default function ProductList() {
                           </MenuItem>
                         </Select>
                       </FormControl>
+                    </Box>
+                    <Box>
+                      <TextField
+                        fullWidth
+                        size='small'
+                        placeholder='Tìm kiếm sản phẩm...'
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        sx={{
+                          '& .MuiInputBase-root': {
+                            minHeight: 40,
+                          },
+                        }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <SearchIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
                     </Box>
                   </TableCell>
                 </TableRow>

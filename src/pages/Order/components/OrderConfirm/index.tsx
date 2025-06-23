@@ -74,9 +74,6 @@ const OrderConfirm = () => {
     event: SelectChangeEvent<string>
   ) => {
     const value = event.target.value;
-    const currentItem = orderData?.data?.orderItems.find(
-      (item) => item.skuId === skuId
-    );
 
     const isExist = exportItems.find((item) => item.skuId === skuId);
 

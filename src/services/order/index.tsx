@@ -10,13 +10,13 @@ import {
   IUpdateOrderConfirm,
   IUpdateOrderStatus,
 } from '@/interfaces/IOrder';
-import { IQuery } from '@/interfaces/IQuery';
 import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
 
 interface IGetOrderListQuery {
   page?: number;
   limit?: number;
-  status?: string[];
+  productIds?: string[];
+  statuses?: string[];
   search?: string;
 }
 
@@ -61,9 +61,15 @@ export const useCreateOrder = () => {
 };
 
 const getOrderList = async (query: IGetOrderListQuery) => {
-  const newParams = { ...query, page: query.page ? query.page + 1 : 1 };
-  const queryParams = queryString.stringify(newParams ?? {});
-  const result = await axiosInstance.get(`${orderUrl}?${queryParams}`);
+  const result = await axiosInstance.get(`${orderUrl}`, {
+    params: {
+      page: query?.page ?? 0,
+      limit: query?.limit ?? 10,
+      productIds: query?.productIds?.join(','),
+      statuses: query?.statuses?.join(','),
+      search: query?.search,
+    },
+  });
   return result.data as TPaginatedResponse<IOrder>;
 };
 
