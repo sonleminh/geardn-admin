@@ -58,8 +58,9 @@ import { formatPrice } from '@/utils/format-price';
 
 import { ROUTES } from '@/constants/route';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
-import { useGetOrderList } from '@/services/order';
-import { IOrderItem } from '@/interfaces/IOrder';
+import { useGetOrderList, useUpdateOrderStatus } from '@/services/order';
+import { IOrderItem, IOrder } from '@/interfaces/IOrder';
+import { useNotificationContext } from '@/contexts/NotificationContext';
 
 interface Data {
   stt: number;
@@ -113,8 +114,8 @@ const headCells: readonly HeadCell[] = [
   {
     id: 'info',
     disablePadding: false,
-    label: 'Thông tin đặt hàng',
-    width: '20%',
+    label: 'Thông tin',
+    width: '17%',
   },
   {
     align: 'center',
@@ -136,7 +137,7 @@ const headCells: readonly HeadCell[] = [
     id: 'status',
     disablePadding: false,
     label: 'Trạng thái',
-    width: '12%',
+    width: '15%',
   },
   {
     align: 'center',
@@ -520,6 +521,18 @@ const OrderListPage = () => {
     [enumData?.data]
   );
 
+  const { showNotification } = useNotificationContext();
+
+  // State for status update popover
+  const [statusAnchorEl, setStatusAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
+  const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  const [newStatus, setNewStatus] = useState<string>('');
+
+  const { mutate: updateOrderStatus, isLoading: isUpdatingStatus } =
+    useUpdateOrderStatus();
+
   useEffect(() => {
     refetchOrders();
   }, [columnFilters, refetchOrders]);
@@ -734,12 +747,23 @@ const OrderListPage = () => {
                               : 'error'
                           }
                           size='small'
-                          sx={{
-                            fontSize: 12,
-                            textTransform: 'none',
-                          }}>
+                          onClick={(e) => {
+                            setStatusAnchorEl(e.currentTarget);
+                            setSelectedOrder(order);
+                            setNewStatus(order.status);
+                          }}
+                          sx={{ fontSize: 12, textTransform: 'none', mr: 1 }}>
                           {statusMap?.[order?.status] || 'Không xác định'}
                         </Button>
+                        {/* <IconButton
+                          size='small'
+                          onClick={(e) => {
+                            setStatusAnchorEl(e.currentTarget);
+                            setSelectedOrder(order);
+                            setNewStatus(order.status);
+                          }}>
+                          <EditOutlinedIcon fontSize='small' />
+                        </IconButton> */}
                       </TableCell>
                       <TableCell align='center'>
                         {moment(order?.createdAt).format('DD/MM/YYYY')}
@@ -848,6 +872,87 @@ const OrderListPage = () => {
             ranges={dateState}
             direction='horizontal'
           />
+        </Popover>
+
+        {/* Status update popover */}
+        <Popover
+          open={Boolean(statusAnchorEl)}
+          anchorEl={statusAnchorEl}
+          onClose={() => {
+            setStatusAnchorEl(null);
+            setSelectedOrder(null);
+            setNewStatus('');
+          }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}>
+          <Box sx={{ p: 2, minWidth: 220 }}>
+            <Typography sx={{ mb: 1 }}>Cập nhật trạng thái</Typography>
+            <Box sx={{ mb: 2 }}>
+              <select
+                value={newStatus}
+                onChange={(e) => setNewStatus(e.target.value)}
+                style={{ width: '100%', padding: 8, fontSize: 14 }}
+                disabled={isUpdatingStatus}>
+                {enumData?.data?.map((status: IEnum) => (
+                  <option key={status.value} value={status.value}>
+                    {status.label}
+                  </option>
+                ))}
+              </select>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+              <Button
+                size='small'
+                onClick={() => {
+                  setStatusAnchorEl(null);
+                  setSelectedOrder(null);
+                  setNewStatus('');
+                }}
+                disabled={isUpdatingStatus}>
+                Hủy
+              </Button>
+              <Button
+                size='small'
+                variant='contained'
+                onClick={() => {
+                  if (selectedOrder && newStatus) {
+                    updateOrderStatus(
+                      {
+                        id: selectedOrder.id,
+                        oldStatus: selectedOrder.status,
+                        newStatus,
+                      },
+                      {
+                        onSuccess: () => {
+                          showNotification(
+                            'Cập nhật trạng thái thành công',
+                            'success'
+                          );
+                          setStatusAnchorEl(null);
+                          setSelectedOrder(null);
+                          setNewStatus('');
+                          refetchOrders();
+                        },
+                        onError: () => {
+                          showNotification(
+                            'Cập nhật trạng thái thất bại',
+                            'error'
+                          );
+                        },
+                      }
+                    );
+                  }
+                }}
+                disabled={
+                  isUpdatingStatus ||
+                  !selectedOrder ||
+                  !newStatus ||
+                  selectedOrder.status === newStatus
+                }>
+                Xác nhận
+              </Button>
+            </Box>
+          </Box>
         </Popover>
       </Card>
     </>

@@ -22,7 +22,7 @@ export interface IOrderItem {
 }
 
 export interface IOrder {
-    id: string;
+    id: number;
     userId: string;
     fullName: string;
     phoneNumber: string;
@@ -100,7 +100,8 @@ export interface IUpdateOrder{
 
 export interface IUpdateOrderStatus{
     id: number;
-    status: string;
+    oldStatus: string;
+    newStatus: string;
 }
 
 export interface IUpdateOrderConfirm{
