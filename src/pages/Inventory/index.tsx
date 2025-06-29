@@ -4,13 +4,13 @@ import InventoryPage from './components/InventoryPage';
 import InventoryLayout from './components/InventoryLayout';
 import InventoryByProduct from './components/InventoryByProduct';
 
-import InventoryImportPage from './components/InventoryImportPage';
-import InventoryExportPage from './components/InventoryExportPage';
-import InventoryAdjustmentPage from './components/InventoryAdjusmentPage';
+import InventoryImportPage from './components/InventoryImportList';
+import InventoryExportList from './components/InventoryExportList';
+import InventoryAdjustmentPage from './components/InventoryAdjusmentList';
 
-import CreateInventoryImportPage from './components/InventoryImportPage/CreateInventoryImport';
-import CreateInventoryExportPage from './components/InventoryExportPage/CreateInventoryExport';
-import CreateInventoryAdjustmentPage from './components/InventoryAdjusmentPage/CreateInventoryAdjustment';
+import CreateInventoryImportPage from './components/InventoryImportList/CreateInventoryImport';
+import CreateInventoryExportPage from './components/InventoryExportList/CreateInventoryExport';
+import CreateInventoryAdjustmentPage from './components/InventoryAdjusmentList/CreateInventoryAdjustment';
 
 const Inventory = () => {
   const router = useRoutes([
@@ -37,7 +37,7 @@ const Inventory = () => {
         },
         {
           path: '/export',
-          element: <InventoryExportPage />,
+          element: <InventoryExportList />,
         },
         {
           path: '/export/create',

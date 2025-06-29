@@ -488,7 +488,7 @@ const usePagination = () => {
 };
 
 // Main component
-const InventoryExportPage = () => {
+const InventoryExportList = () => {
   const navigate = useNavigate();
   const {
     filterAnchorEl,
@@ -860,4 +860,4 @@ const InventoryExportPage = () => {
   );
 };
 
-export default InventoryExportPage;
+export default InventoryExportList;

@@ -489,7 +489,7 @@ const usePagination = () => {
 };
 
 // Main component
-const InventoryAdjustmentPage = () => {
+const InventoryAdjustmentList = () => {
   const navigate = useNavigate();
   const {
     filterAnchorEl,
@@ -898,4 +898,4 @@ const InventoryAdjustmentPage = () => {
   );
 };
 
-export default InventoryAdjustmentPage;
+export default InventoryAdjustmentList;

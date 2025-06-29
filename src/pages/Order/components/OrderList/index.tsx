@@ -89,7 +89,6 @@ interface HeadCell {
 interface ColumnFilters {
   items: string[];
   status: string[];
-  search: string;
   date: { fromDate: string; toDate: string };
 }
 
@@ -97,7 +96,6 @@ interface ColumnFilters {
 const INITIAL_COLUMN_FILTERS: ColumnFilters = {
   items: [],
   status: [],
-  search: '',
   date: { fromDate: '', toDate: '' },
 };
 
@@ -476,10 +474,6 @@ const OrderList = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
-  };
-
   const {
     filterAnchorEl,
     activeFilterColumn,
@@ -507,10 +501,14 @@ const OrderList = () => {
   } = useGetOrderList({
     productIds: columnFilters.items,
     statuses: columnFilters.status,
-    search: columnFilters.search,
+    search: searchQuery,
     page: page + 1,
     limit: rowsPerPage,
   });
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
 
   const statusMap = useMemo(
     () =>
