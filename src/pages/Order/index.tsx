@@ -3,6 +3,7 @@ import OrderLayout from './components/OrderLayout';
 import OrderList from './components/OrderList';
 import OrderUpsert from './components/OrderUpsert';
 import OrderConfirm from './components/OrderConfirm';
+import OrderUpdateHistoryList from './components/OrderUpdateHistoryList';
 // import OrderLayout from './components/OrderLayout';
 // import OrderList from './components/OrderList';
 // import OrderCategoryList from './components/OrderCategoryList';
@@ -33,6 +34,11 @@ const Order = () => {
         {
           path: '/confirm/:id',
           element: <OrderConfirm />,
+          index: true,
+        },
+        {
+          path: '/update-history',
+          element: <OrderUpdateHistoryList />,
           index: true,
         },
       ],

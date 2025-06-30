@@ -11,12 +11,21 @@ import {
   IUpdateOrderStatus,
 } from '@/interfaces/IOrder';
 import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
+import { IOrderUpdateHistoryLog } from '@/interfaces/IOrderUpdateHistoryLog';
 
 interface IGetOrderListQuery {
   page?: number;
   limit?: number;
   productIds?: string[];
   statuses?: string[];
+  search?: string;
+}
+
+interface IGetOrderUpdateHistoryListQuery {
+  page?: number;
+  limit?: number;
+  fromDate?: string;
+  toDate?: string;
   search?: string;
 }
 
@@ -97,53 +106,29 @@ export const useGetOrderById = (id: string) => {
   });
 };
 
-const getProvinceList = async () => {
-  const result = await axiosInstance.get(`${provinceUrl}`, {
-    withCredentials: false,
+const getOrderUpdateHistoryList = async (
+  query: IGetOrderUpdateHistoryListQuery
+) => {
+  const result = await axiosInstance.get(`${orderUrl}/update-history-logs`, {
+    params: {
+      page: query?.page ?? 0,
+      limit: query?.limit ?? 10,
+      search: query?.search,
+      fromDate: query?.fromDate,
+      toDate: query?.toDate,
+    },
   });
-  return result.data as TBaseResponse<IProvince[]>;
+  return result.data as TPaginatedResponse<IOrderUpdateHistoryLog>;
 };
 
-export const useGetProvinceList = () => {
+export const useGetOrderUpdateHistoryList = (
+  query: IGetOrderUpdateHistoryListQuery
+) => {
   return useQuery({
-    queryKey: ['provinces'],
-    queryFn: () => getProvinceList(),
+    queryKey: [QueryKeys.Order, query],
+    queryFn: () => getOrderUpdateHistoryList(query),
     refetchOnWindowFocus: false,
     refetchInterval: false,
-  });
-};
-
-const getProvince = async (code: number | undefined) => {
-  const result = await axiosInstance.get(`${provinceUrl}/${code}`, {
-    withCredentials: false,
-  });
-  return result.data as TBaseResponse<IProvince>;
-};
-
-export const useGetProvince = (code: number | undefined) => {
-  return useQuery({
-    queryKey: ['province', code],
-    queryFn: () => getProvince(code),
-    refetchOnWindowFocus: false,
-    refetchInterval: false,
-    enabled: !!code,
-  });
-};
-
-const getDistrict = async (code: number | undefined) => {
-  const result = await axiosInstance.get(`${provinceUrl}/d/${code}`, {
-    withCredentials: false,
-  });
-  return result.data as TBaseResponse<IDistrict>;
-};
-
-export const useGetDistrict = (code: number | undefined) => {
-  return useQuery({
-    queryKey: ['district'],
-    queryFn: () => getDistrict(code),
-    refetchOnWindowFocus: false,
-    refetchInterval: false,
-    enabled: !!code,
   });
 };
 
@@ -191,5 +176,55 @@ const deleteOrder = async (id: string) => {
 export const useDeleteOrder = () => {
   return useMutation({
     mutationFn: deleteOrder,
+  });
+};
+
+const getProvinceList = async () => {
+  const result = await axiosInstance.get(`${provinceUrl}`, {
+    withCredentials: false,
+  });
+  return result.data as TBaseResponse<IProvince[]>;
+};
+
+export const useGetProvinceList = () => {
+  return useQuery({
+    queryKey: ['provinces'],
+    queryFn: () => getProvinceList(),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+  });
+};
+
+const getProvince = async (code: number | undefined) => {
+  const result = await axiosInstance.get(`${provinceUrl}/${code}`, {
+    withCredentials: false,
+  });
+  return result.data as TBaseResponse<IProvince>;
+};
+
+export const useGetProvince = (code: number | undefined) => {
+  return useQuery({
+    queryKey: ['province', code],
+    queryFn: () => getProvince(code),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    enabled: !!code,
+  });
+};
+
+const getDistrict = async (code: number | undefined) => {
+  const result = await axiosInstance.get(`${provinceUrl}/d/${code}`, {
+    withCredentials: false,
+  });
+  return result.data as TBaseResponse<IDistrict>;
+};
+
+export const useGetDistrict = (code: number | undefined) => {
+  return useQuery({
+    queryKey: ['district'],
+    queryFn: () => getDistrict(code),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+    enabled: !!code,
   });
 };

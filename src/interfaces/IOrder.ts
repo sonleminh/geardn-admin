@@ -43,6 +43,7 @@ export interface IOrder {
     };
     note: '';
     orderItems: IOrderItem[];
+    orderCode: string;
     totalPrice: number;
     status: string;
     createdAt: Date;
