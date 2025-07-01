@@ -104,14 +104,14 @@ const headCells: readonly HeadCell[] = [
     align: 'center',
     id: 'oldStatus',
     disablePadding: false,
-    label: 'Trạng thái cũ',
+    label: 'Trạng thái mới',
     width: '15%',
   },
   {
     align: 'center',
     id: 'newStatus',
     disablePadding: false,
-    label: 'Trạng thái mới',
+    label: 'Trạng thái cũ',
     width: '12%',
   },
   {
@@ -493,15 +493,15 @@ const OrderUpdateHistoryList = () => {
                           <Button
                             variant='outlined'
                             color={
-                              orderUpdateHistory?.newStatus === 'PENDING'
+                              orderUpdateHistory?.oldStatus === 'PENDING'
                                 ? 'warning'
-                                : orderUpdateHistory?.newStatus === 'PROCESSING'
+                                : orderUpdateHistory?.oldStatus === 'PROCESSING'
                                 ? 'info'
-                                : orderUpdateHistory?.newStatus === 'SHIPPED'
+                                : orderUpdateHistory?.oldStatus === 'SHIPPED'
                                 ? 'success'
-                                : orderUpdateHistory?.newStatus === 'DELIVERED'
+                                : orderUpdateHistory?.oldStatus === 'DELIVERED'
                                 ? 'success'
-                                : orderUpdateHistory?.newStatus === 'CANCELLED'
+                                : orderUpdateHistory?.oldStatus === 'CANCELLED'
                                 ? 'error'
                                 : 'error'
                             }

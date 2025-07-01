@@ -109,7 +109,10 @@ const InventoryByProduct = () => {
                             objectFit: 'contain',
                           },
                         }}>
-                        <img src={item?.imageUrl} className='thumbnail' />
+                        <img
+                          src={item?.imageUrl ?? stockData?.data?.images?.[0]}
+                          className='thumbnail'
+                        />
                       </Box>
                     </TableCell>
                     <TableCell>
@@ -121,7 +124,7 @@ const InventoryByProduct = () => {
                                 {item?.attributeValue?.value}
                               </Typography>
                             ))
-                          : ''}
+                          : 'Không có'}
                       </Box>
                     </TableCell>
                     <TableCell>
