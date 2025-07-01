@@ -16,16 +16,20 @@ import {
 } from '@/services/category';
 import {
   Box,
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
   CardHeader,
   Divider,
   FormControl,
+  Link,
   SxProps,
   Theme,
   Typography,
 } from '@mui/material';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import { createSchema, updateSchema } from '../utils/schema/categorySchema';
 import ImageUpload from '@/components/ImageUpload';
 import { ROUTES } from '@/constants/route';
@@ -79,8 +83,8 @@ const CategoryUpsert = () => {
 
   useEffect(() => {
     if (categoryData) {
-      formik.setFieldValue('name', categoryData?.name);
-      formik.setFieldValue('icon', categoryData?.icon);
+      formik.setFieldValue('name', categoryData?.data?.name);
+      formik.setFieldValue('icon', categoryData?.data?.icon);
     }
   }, [categoryData]);
 
@@ -94,55 +98,79 @@ const CategoryUpsert = () => {
   };
 
   return (
-    <Card sx={{ mt: 3, borderRadius: 2 }}>
-      <CardHeader
-        title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            {isEdit ? 'Sửa danh mục' : 'Thêm danh mục'}
-          </Typography>
-        }
-      />
-      <Divider />
-
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <FormControl>
-          <Input
-            id='name'
-            label='Tên danh mục'
-            name='name'
-            variant='filled'
-            required
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.name}
-              </Box>
-            }
-            value={formik?.values.name}
-            onChange={handleChangeValue}
-          />
-        </FormControl>
-        <ImageUpload
-          title={'Ảnh icon:'}
-          value={formik?.values?.icon}
-          onUploadChange={handleIconImage}
+    <>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{ mb: 3 }}>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+        </Link>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.CATEGORY)}
+          sx={{ cursor: 'pointer' }}>
+          Danh mục
+        </Link>
+        <Typography color='text.primary'>
+          {isEdit ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới'}
+        </Typography>
+      </Breadcrumbs>
+      <Card sx={{ mt: 3, borderRadius: 2 }}>
+        <CardHeader
+          title={
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+              {isEdit ? 'Sửa danh mục' : 'Thêm danh mục'}
+            </Typography>
+          }
         />
-        {isEdit && categoryData && (
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography sx={{ mr: 1 }}>Slug:</Typography>
-            <Typography>{categoryData?.slug}</Typography>
+        <Divider />
+
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <FormControl>
+            <Input
+              id='name'
+              label='Tên danh mục'
+              name='name'
+              variant='filled'
+              required
+              helperText={
+                <Box component={'span'} sx={helperTextStyle}>
+                  {formik.errors.name}
+                </Box>
+              }
+              value={formik?.values.name}
+              onChange={handleChangeValue}
+            />
+          </FormControl>
+          <ImageUpload
+            title={'Ảnh icon:'}
+            value={formik?.values?.icon}
+            onUploadChange={handleIconImage}
+          />
+          {isEdit && categoryData && (
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography sx={{ mr: 1 }}>Slug:</Typography>
+              <Typography>{categoryData?.data?.slug}</Typography>
+            </Box>
+          )}
+          <Box sx={{ textAlign: 'end' }}>
+            <Button onClick={() => navigate(ROUTES.CATEGORY)} sx={{ mr: 2 }}>
+              Trở lại
+            </Button>
+            <Button variant='contained' onClick={() => formik.handleSubmit()}>
+              Thêm
+            </Button>
           </Box>
-        )}
-        <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate(ROUTES.CATEGORY)} sx={{ mr: 2 }}>
-            Trở lại
-          </Button>
-          <Button variant='contained' onClick={() => formik.handleSubmit()}>
-            Thêm
-          </Button>
-        </Box>
-      </CardContent>
-      {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
-    </Card>
+        </CardContent>
+        {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
+      </Card>
+    </>
   );
 };
 

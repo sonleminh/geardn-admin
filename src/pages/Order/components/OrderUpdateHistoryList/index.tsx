@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Chip,
   Divider,
   IconButton,
   InputAdornment,
@@ -26,13 +25,8 @@ import {
   Typography,
 } from '@mui/material';
 
-import { AddCircleOutlined } from '@mui/icons-material';
 import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import SearchIcon from '@mui/icons-material/Search';
@@ -41,21 +35,9 @@ import { addDays } from 'date-fns';
 import moment from 'moment';
 import { DateRangePicker, RangeKeyDict } from 'react-date-range';
 
-import ActionButton from '@/components/ActionButton';
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import TableFilter from '@/components/TableFilter';
 import { TableSkeleton } from '@/components/TableSkeleton';
 
 import { useGetEnumByContext } from '@/services/enum';
-import { useGetImportLogList } from '@/services/inventory';
-import { useGetProductList } from '@/services/product';
-import { useGetWarehouseList } from '@/services/warehouse';
-
-import { IEnum } from '@/interfaces/IEnum';
-import { IImportLogItem } from '@/interfaces/IInventorytLog';
-
-import { truncateTextByLine } from '@/utils/css-helper.util';
-import { formatPrice } from '@/utils/format-price';
 
 import { ROUTES } from '@/constants/route';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
@@ -150,124 +132,11 @@ const columns: TableColumn[] = [
   { width: '120px', align: 'center', type: 'text' },
 ];
 
-interface FilterChipsProps {
-  columnFilters: ColumnFilters;
-  warehousesData: {
-    data?: Array<{
-      id: number;
-      name: string;
-    }>;
-  };
-  productsData: {
-    data?: Array<{
-      id: number;
-      name: string;
-    }>;
-  };
-  enumData: {
-    data?: Array<IEnum>;
-  };
-  onFilterChange: (
-    column: string,
-    value: string | string[] | { fromDate: string; toDate: string }
-  ) => void;
-}
-
-const FilterChips = ({
-  columnFilters,
-  warehousesData,
-  productsData,
-  enumData,
-  onFilterChange,
-}: FilterChipsProps) => {
-  const getFilterLabels = useCallback(
-    (filterKey: string, values: string[]) => {
-      if (filterKey === 'warehouse') {
-        return values.map(
-          (value: string) =>
-            warehousesData?.data?.find(
-              (w: { id: number; name: string }) => w.id === +value
-            )?.name || value
-        );
-      } else if (filterKey === 'items') {
-        return values.map(
-          (value: string) =>
-            productsData?.data?.find(
-              (p: { id: number; name: string }) => p.id === +value
-            )?.name || value
-        );
-      } else if (filterKey === 'type') {
-        return values.map(
-          (value: string) =>
-            enumData?.data?.find((e: IEnum) => e.value === value)?.label ||
-            value
-        );
-      }
-      return [];
-    },
-    [warehousesData?.data, productsData?.data, enumData?.data]
-  );
-
-  return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      <FilterListIcon />
-      {Object.entries(columnFilters).map(([filterKey, filterValues]) => {
-        if (filterKey === 'date') {
-          const dateValues = filterValues as {
-            fromDate: string;
-            toDate: string;
-          };
-          if (!dateValues.fromDate || !dateValues.toDate) return null;
-          return (
-            <Chip
-              key='date-filter'
-              label={`${moment(dateValues.fromDate).format(
-                'DD/MM/YYYY'
-              )} - ${moment(dateValues.toDate).format('DD/MM/YYYY')}`}
-              onDelete={() => {
-                onFilterChange('date', { fromDate: '', toDate: '' });
-              }}
-              size='small'
-            />
-          );
-        }
-
-        const values = filterValues as string[];
-        if (values.length === 0) return null;
-
-        const filterLabels = getFilterLabels(filterKey, values);
-
-        return filterLabels.map((label) => (
-          <Chip
-            key={`${filterKey}-${label}`}
-            label={label}
-            onDelete={() => {
-              const newValues = values.filter((value: string) => {
-                const itemLabel =
-                  filterKey === 'warehouse'
-                    ? warehousesData?.data?.find((w) => w.id === +value)?.name
-                    : filterKey === 'items'
-                    ? productsData?.data?.find((p) => p.id === +value)?.name
-                    : enumData?.data?.find((e) => e.value === value)?.label;
-                return itemLabel !== label;
-              });
-              onFilterChange(filterKey, newValues);
-            }}
-            size='small'
-            sx={{ maxWidth: 120 }}
-          />
-        ));
-      })}
-    </Box>
-  );
-};
-
 // Custom hooks
 const useFilterState = () => {
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
     null
   );
-  const [activeFilterColumn, setActiveFilterColumn] = useState<string>('');
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>(
     INITIAL_COLUMN_FILTERS
   );
@@ -276,30 +145,15 @@ const useFilterState = () => {
     useState<null | HTMLElement>(null);
 
   const handleFilterClick = useCallback(
-    (event: React.MouseEvent<HTMLElement>, column: string) => {
+    (event: React.MouseEvent<HTMLElement>) => {
       setFilterAnchorEl(event.currentTarget);
-      setActiveFilterColumn(column);
     },
     []
   );
 
   const handleFilterClose = useCallback(() => {
     setFilterAnchorEl(null);
-    setActiveFilterColumn('');
   }, []);
-
-  const handleColumnFilterChange = useCallback(
-    (
-      column: string,
-      value: string | string[] | { fromDate: string; toDate: string }
-    ) => {
-      setColumnFilters((prev) => ({
-        ...prev,
-        [column]: value,
-      }));
-    },
-    []
-  );
 
   const handleDateRangeChange = useCallback((rangesByKey: RangeKeyDict) => {
     const selection = rangesByKey.selection;
@@ -359,13 +213,11 @@ const useFilterState = () => {
 
   return {
     filterAnchorEl,
-    activeFilterColumn,
     columnFilters,
     dateState,
     dateFilterAnchorEl,
     handleFilterClick,
     handleFilterClose,
-    handleColumnFilterChange,
     handleDateRangeChange,
     handleDateFilterClick,
     handleDateFilterClose,
@@ -403,13 +255,11 @@ const OrderUpdateHistoryList = () => {
 
   const {
     filterAnchorEl,
-    activeFilterColumn,
     columnFilters,
     dateState,
     dateFilterAnchorEl,
     handleFilterClick,
     handleFilterClose,
-    handleColumnFilterChange,
     handleDateRangeChange,
     handleDateFilterClick,
     handleDateFilterClose,
@@ -580,7 +430,7 @@ const OrderUpdateHistoryList = () => {
                           })()}
                           <IconButton
                             size='small'
-                            onClick={(e) => handleFilterClick(e, headCell.id)}
+                            onClick={handleFilterClick}
                             sx={{ ml: 1 }}>
                             <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
                           </IconButton>

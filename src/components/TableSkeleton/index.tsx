@@ -6,14 +6,12 @@ import { TableCell } from '@mui/material';
 
 import { TableRow } from '@mui/material';
 
+import { TableColumn } from '@/interfaces/ITableColumn';
+
 // src/components/TableSkeleton/index.tsx
 interface TableSkeletonProps {
   rowsPerPage: number;
-  columns: {
-    width?: string;
-    align?: 'left' | 'center' | 'right';
-    type?: 'text' | 'image' | 'action' | 'complex';
-  }[];
+  columns: TableColumn[];
 }
 
 export const TableSkeleton = ({ rowsPerPage, columns }: TableSkeletonProps) => {
@@ -56,10 +54,25 @@ export const TableSkeleton = ({ rowsPerPage, columns }: TableSkeletonProps) => {
                 </Box>
               )}
               {(!column.type || column.type === 'text') && (
-                <Skeleton
-                  width={`calc(${column.width} - 32px)`}
-                  sx={{ boxSizing: 'border-box' }}
-                />
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent:
+                      column.align === 'right'
+                        ? 'flex-end'
+                        : column.align === 'center'
+                        ? 'center'
+                        : 'flex-start',
+                    width: '100%',
+                  }}>
+                  <Skeleton
+                    width={column.width}
+                    sx={{
+                      boxSizing: 'border-box',
+                      maxWidth: '100%',
+                    }}
+                  />
+                </Box>
               )}
             </TableCell>
           ))}

@@ -8,6 +8,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import {
   Box,
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
@@ -16,10 +17,13 @@ import {
   Divider,
   FormControl,
   InputLabel,
+  Link,
   SxProps,
   Theme,
   Typography,
 } from '@mui/material';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 
 import Input from '@/components/Input';
 import ImageUpload from '@/components/ImageUpload';
@@ -35,7 +39,6 @@ import {
   useUpdatePayment,
 } from '@/services/payment';
 
-import { createSchema, updateSchema } from '../utils/schema/categorySchema';
 import { ROUTES } from '@/constants/route';
 
 const PaymentUpsert = () => {
@@ -106,78 +109,106 @@ const PaymentUpsert = () => {
   };
 
   return (
-    <Card sx={{ mt: 3, borderRadius: 2 }}>
-      <CardHeader
-        title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            {isEdit ? 'Sửa hình thức thanh toán' : 'Thêm hình thức thanh toán'}
-          </Typography>
-        }
-      />
-      <Divider />
-
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <FormControl>
-          <Input
-            id='key'
-            label='Key'
-            name='key'
-            variant='filled'
-            required
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.key}
-              </Box>
-            }
-            value={formik?.values.key}
-            onChange={handleChangeValue}
-          />
-        </FormControl>
-        <FormControl>
-          <Input
-            id='name'
-            label='Tên'
-            name='name'
-            variant='filled'
-            required
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik?.errors?.name}
-              </Box>
-            }
-            value={formik?.values?.name}
-            onChange={handleChangeValue}
-          />
-        </FormControl>
-        <ImageUpload
-          title={'Ảnh:'}
-          value={formik?.values?.image}
-          onUploadChange={handleMethodImage}
+    <>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{ mb: 3 }}>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+        </Link>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.PAYMENT)}
+          sx={{ cursor: 'pointer' }}>
+          Phương thức thanh toán
+        </Link>
+        <Typography color='text.primary'>
+          {isEdit
+            ? 'Chỉnh sửa phương thức thanh toán'
+            : 'Thêm phương thức thanh toán mới'}
+        </Typography>
+      </Breadcrumbs>
+      <Card sx={{ mt: 3, borderRadius: 2 }}>
+        <CardHeader
+          title={
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+              {isEdit
+                ? 'Sửa hình thức thanh toán'
+                : 'Thêm hình thức thanh toán'}
+            </Typography>
+          }
         />
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <InputLabel htmlFor='isDisabled' sx={{ cursor: 'pointer' }}>
-            Vô hiệu hoá:
-          </InputLabel>
-          <Checkbox
-            id='isDisabled'
-            name='isDisabled'
-            checked={formik?.values?.isDisabled ?? false}
-            onChange={handleChangeValue}
-            inputProps={{ 'aria-label': 'controlled' }}
-          />
-        </Box>
+        <Divider />
 
-        <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate(ROUTES.PAYMENT)} sx={{ mr: 2 }}>
-            Trở lại
-          </Button>
-          <Button variant='contained' onClick={() => formik.handleSubmit()}>
-            Thêm
-          </Button>
-        </Box>
-      </CardContent>
-      {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
-    </Card>
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <FormControl>
+            <Input
+              id='key'
+              label='Key'
+              name='key'
+              variant='filled'
+              required
+              helperText={
+                <Box component={'span'} sx={helperTextStyle}>
+                  {formik.errors.key}
+                </Box>
+              }
+              value={formik?.values.key}
+              onChange={handleChangeValue}
+            />
+          </FormControl>
+          <FormControl>
+            <Input
+              id='name'
+              label='Tên'
+              name='name'
+              variant='filled'
+              required
+              helperText={
+                <Box component={'span'} sx={helperTextStyle}>
+                  {formik?.errors?.name}
+                </Box>
+              }
+              value={formik?.values?.name}
+              onChange={handleChangeValue}
+            />
+          </FormControl>
+          <ImageUpload
+            title={'Ảnh:'}
+            value={formik?.values?.image}
+            onUploadChange={handleMethodImage}
+          />
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <InputLabel htmlFor='isDisabled' sx={{ cursor: 'pointer' }}>
+              Vô hiệu hoá:
+            </InputLabel>
+            <Checkbox
+              id='isDisabled'
+              name='isDisabled'
+              checked={formik?.values?.isDisabled ?? false}
+              onChange={handleChangeValue}
+              inputProps={{ 'aria-label': 'controlled' }}
+            />
+          </Box>
+
+          <Box sx={{ textAlign: 'end' }}>
+            <Button onClick={() => navigate(ROUTES.PAYMENT)} sx={{ mr: 2 }}>
+              Trở lại
+            </Button>
+            <Button variant='contained' onClick={() => formik.handleSubmit()}>
+              Thêm
+            </Button>
+          </Box>
+        </CardContent>
+        {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
+      </Card>
+    </>
   );
 };
 

@@ -1,6 +1,9 @@
 import { ChangeEvent, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+
 import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
@@ -17,12 +20,14 @@ import {
 } from '@/services/warehouse';
 import {
   Box,
+  Breadcrumbs,
   Button,
   Card,
   CardContent,
   CardHeader,
   Divider,
   FormControl,
+  Link,
   SxProps,
   Theme,
   Typography,
@@ -91,60 +96,88 @@ const WarehouseUpsert = () => {
   };
 
   return (
-    <Card sx={{ mt: 3, borderRadius: 2 }}>
-      <CardHeader
-        title={
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            {isEdit ? 'Sửa kho hàng' : 'Thêm kho hàng'}
-          </Typography>
-        }
-      />
-      <Divider />
+    <>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{ mb: 3 }}>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+        </Link>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.WAREHOUSE)}
+          sx={{ cursor: 'pointer' }}>
+          Kho hàng
+        </Link>
+        <Typography color='text.primary'>
+          {isEdit ? 'Chỉnh sửa kho hàng' : 'Thêm kho hàng mới'}
+        </Typography>
+      </Breadcrumbs>
 
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <FormControl>
-          <Input
-            id='name'
-            label='Tên kho hàng'
-            name='name'
-            variant='filled'
-            required
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.name}
-              </Box>
-            }
-            value={formik?.values.name}
-            onChange={handleChangeValue}
-          />
-        </FormControl>
-        <FormControl>
-          <Input
-            id='address'
-            label='Địa chỉ'
-            name='address'
-            variant='filled'
-            required
-            helperText={
-              <Box component={'span'} sx={helperTextStyle}>
-                {formik.errors.address}
-              </Box>
-            }
-            value={formik?.values.address}
-            onChange={handleChangeValue}
-          />
-        </FormControl>
-        <Box sx={{ textAlign: 'end' }}>
-          <Button onClick={() => navigate(ROUTES.WAREHOUSE)} sx={{ mr: 2 }}>
-            Trở lại
-          </Button>
-          <Button variant='contained' onClick={() => formik.handleSubmit()}>
-            Thêm
-          </Button>
-        </Box>
-      </CardContent>
-      {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
-    </Card>
+      <Typography sx={{ mb: 2, fontSize: 20, fontWeight: 600 }}>
+        {isEdit ? 'Chỉnh sửa kho hàng' : 'Thêm kho hàng mới'}:
+      </Typography>
+      <Card sx={{ mt: 3, borderRadius: 2 }}>
+        <CardHeader
+          title={
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+              {isEdit ? 'Sửa kho hàng' : 'Thêm kho hàng'}
+            </Typography>
+          }
+        />
+        <Divider />
+
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <FormControl>
+            <Input
+              id='name'
+              label='Tên kho hàng'
+              name='name'
+              variant='filled'
+              required
+              helperText={
+                <Box component={'span'} sx={helperTextStyle}>
+                  {formik.errors.name}
+                </Box>
+              }
+              value={formik?.values.name}
+              onChange={handleChangeValue}
+            />
+          </FormControl>
+          <FormControl>
+            <Input
+              id='address'
+              label='Địa chỉ'
+              name='address'
+              variant='filled'
+              required
+              helperText={
+                <Box component={'span'} sx={helperTextStyle}>
+                  {formik.errors.address}
+                </Box>
+              }
+              value={formik?.values.address}
+              onChange={handleChangeValue}
+            />
+          </FormControl>
+          <Box sx={{ textAlign: 'end' }}>
+            <Button onClick={() => navigate(ROUTES.WAREHOUSE)} sx={{ mr: 2 }}>
+              Trở lại
+            </Button>
+            <Button variant='contained' onClick={() => formik.handleSubmit()}>
+              Thêm
+            </Button>
+          </Box>
+        </CardContent>
+        {(isCreatePending || isUpdatePending) && <SuspenseLoader />}
+      </Card>
+    </>
   );
 };
 
