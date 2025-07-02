@@ -11,6 +11,7 @@ export const QueryKeys = {
     Order: 'ORDER',
     Payment: 'PAYMENT',
     Product: 'PRODUCT',
+    ProfitRevenueDailyStats: 'PROFIT_REVENUE_DAILY_STATS',
     Sku: 'SKU',
     Stock: 'STOCK',
     Warehouse: 'WAREHOUSE'

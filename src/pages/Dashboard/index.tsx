@@ -8,6 +8,55 @@ import {
   Link,
   Typography,
 } from '@mui/material';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+const lineData = {
+  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+  datasets: [
+    {
+      label: 'Số lượng đơn hàng',
+      data: [65, 59, 80, 81, 56, 55, 40],
+      fill: false,
+      borderColor: 'rgb(75, 192, 192)',
+      tension: 0.1,
+    },
+  ],
+};
+
+const lineOptions = {
+  responsive: true,
+  plugins: {
+    legend: {
+      display: true,
+      position: 'top' as const,
+    },
+    title: {
+      display: true,
+      text: 'Biểu đồ số lượng đơn hàng theo tháng',
+    },
+  },
+};
 
 const Dashboard = () => {
   const queryClient = useQueryClient();
@@ -62,9 +111,7 @@ const Dashboard = () => {
               </Grid2>
               <Divider />
               <Grid2 size={6}>
-                <Box sx={{ p: 4 }}>
-                  <Typography>Thống kê danh mục</Typography>
-                </Box>
+                <Line data={lineData} options={lineOptions} />
               </Grid2>
             </Grid2>
           </Box>
