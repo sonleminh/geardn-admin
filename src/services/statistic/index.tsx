@@ -6,6 +6,40 @@ import { QueryKeys } from '@/constants/query-key';
 
 const statisticUrl = '/statistics';
 
+interface IOverviewStats {
+  totalRevenue: number;
+  totalProfit: number;
+  totalOrders: number;
+  pendingOrders: number;
+  bestSellingProduct: {
+    productId: number;
+    productName: string;
+    imageUrl: string;
+    quantitySold: number;
+    revenue: number;
+  };
+  topCategories: {
+    categoryId: number;
+    categoryName: string;
+    quantitySold: number;
+    revenue: number;
+  }[];
+}
+
+const getOverviewStats = async () => {
+  const result = await axiosInstance.get(`${statisticUrl}/overview`);
+  return result.data as TBaseResponse<IOverviewStats>;
+};
+
+export const useGetOverviewStats = () => {
+  return useQuery({
+    queryKey: [],
+    queryFn: () => getOverviewStats(),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+  });
+};
+
 const getProfitRevenueDailyStats = async (query: {
   fromDate: Date;
   toDate: Date;
@@ -19,7 +53,7 @@ const getProfitRevenueDailyStats = async (query: {
       },
     }
   );
-  return result.data as TBaseResponse<IProfitRevenueDailyStats>;
+  return result.data as TBaseResponse<IProfitRevenueDailyStats[]>;
 };
 
 export const useGetProfitRevenueDailyStats = (query: {
