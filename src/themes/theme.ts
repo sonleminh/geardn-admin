@@ -8,6 +8,13 @@ export const theme = ()=> createTheme({
         },
     },
     components: {
+        MuiCssBaseline: {
+            styleOverrides: {
+              body: {
+                backgroundColor: '#f3f3f3',
+              },
+            },
+          },
         MuiButtonBase: {
             styleOverrides: {
                 root: {
