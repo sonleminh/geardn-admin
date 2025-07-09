@@ -169,7 +169,8 @@ const Dashboard = () => {
     fromDate: dateRange[0].startDate,
     toDate: dateRange[0].endDate,
   });
-  const { data: overviewStats } = useGetOverviewStats();
+  const { data: overviewStats, isLoading: isLoadingOverviewStats } =
+    useGetOverviewStats();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   queryClient.invalidateQueries({ queryKey: ['Product'] });
@@ -340,6 +341,7 @@ const Dashboard = () => {
               </Box>
               <TopCategoriesChart
                 topCategories={overviewStats?.data?.topCategories || []}
+                isLoading={isLoadingOverviewStats}
               />
             </CardContent>
           </Card>

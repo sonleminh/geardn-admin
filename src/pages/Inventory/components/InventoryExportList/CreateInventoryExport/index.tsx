@@ -143,15 +143,6 @@ const CreateInventoryExportPage = () => {
 
     const sku = skusData?.data?.find((sku) => sku?.id === +skuId);
 
-    console.log('sku:', sku?.stocks);
-    console.log('formik?.values?.warehouseId:', formik?.values?.warehouseId);
-    console.log(
-      'skuc:',
-      sku?.stocks?.find(
-        (stock) => stock?.skuId === +formik?.values?.warehouseId
-      )
-    );
-
     if (editItemIndex !== null && sku && skuId) {
       const updatedExportItems = exportItems;
       updatedExportItems[editItemIndex] = {

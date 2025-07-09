@@ -67,8 +67,6 @@ const OrderConfirm = () => {
 
   const [exportItems, setExportItems] = useState<IExportItem[]>([]);
 
-  console.log('exportItems:', exportItems);
-
   const handleSelectWarehouse = (
     skuId: number,
     event: SelectChangeEvent<string>

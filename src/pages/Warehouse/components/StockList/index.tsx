@@ -66,8 +66,6 @@ const StockList = () => {
   const { mutate: deleteWarehouseMutate } = useDeleteWarehouse();
   const { data: stocksData } = useGetStocksByWarehouse(warehouseId);
 
-  console.log('stocksData', stocksData?.data);
-
   useEffect(() => {
     if (!warehouseId && warehousesData?.data?.length) {
       setWarehouseId(warehousesData.data[0].id);
@@ -90,8 +88,6 @@ const StockList = () => {
   const handleWarehouseIdChange = (event: SelectChangeEvent<number>) => {
     setWarehouseId(+event.target.value);
   };
-
-  console.log('warehouseId', warehouseId);
 
   return (
     <Card sx={{ borderRadius: 2 }}>

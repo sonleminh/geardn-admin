@@ -144,7 +144,6 @@ const DashboardDrawer = ({
 }) => {
   const theme = useTheme();
 
-  console.log('attribute', location.pathname.includes('attribute'));
   return (
     <Drawer
       sx={{

@@ -1,11 +1,14 @@
 import { IProfitRevenueDailyStats } from '@/interfaces/IProfitRevenueDailyStats';
-import { Box } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
+import Skeleton from '@mui/material/Skeleton';
 import React, { useMemo } from 'react';
 import { Doughnut, Line } from 'react-chartjs-2';
 import { format, subDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from 'chart.js';
+import LoadingBackdrop from '@/components/LoadingBackdrop';
+import CircularProgressWithLabel from '@/components/CircularProgress';
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
@@ -16,11 +19,15 @@ interface ITopCategories {
   revenue: number;
 }
 
-const TopCategoriesChart = ({
-  topCategories,
-}: {
+interface TopCategoriesChartProps {
   topCategories: ITopCategories[];
-}) => {
+  isLoading?: boolean;
+}
+
+function TopCategoriesChart({
+  topCategories,
+  isLoading = false,
+}: TopCategoriesChartProps) {
   const topCategoryChartData = useMemo(
     () => ({
       labels: topCategories.map((c) => c.categoryName),
@@ -32,7 +39,7 @@ const TopCategoriesChart = ({
         },
       ],
     }),
-    []
+    [topCategories]
   );
 
   const topCategoryChartOptions = useMemo(
@@ -66,9 +73,27 @@ const TopCategoriesChart = ({
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Doughnut data={topCategoryChartData} options={topCategoryChartOptions} />
+      {isLoading ? (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            height: '100%',
+          }}>
+          <CircularProgress size={120} sx={{ my: 2 }} />
+          <Skeleton variant='text' width={200} height={40} />
+          <Skeleton variant='text' width={200} height={40} />
+        </Box>
+      ) : (
+        <Doughnut
+          data={topCategoryChartData}
+          options={topCategoryChartOptions}
+        />
+      )}
     </Box>
   );
-};
+}
 
 export default TopCategoriesChart;

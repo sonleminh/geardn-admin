@@ -78,8 +78,6 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
     Number(productId)
   );
 
-  console.log('orderItems:', orderItems);
-
   useEffect(() => {
     if (selectedSkuId && productData?.data) {
       setSelectedSku(

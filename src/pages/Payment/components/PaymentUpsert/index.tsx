@@ -52,7 +52,6 @@ const PaymentUpsert = () => {
   const numericId = id ? Number(id) : undefined;
 
   const { data: paymentData } = useGetPaymentById(numericId as number);
-  console.log('paymentData', paymentData);
   const { mutate: createPaymentMutate, isPending: isCreatePending } =
     useCreatePayment();
   const { mutate: updatePaymentMutate, isPending: isUpdatePending } =

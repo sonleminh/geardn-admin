@@ -82,8 +82,6 @@ const CreateInventoryAdjustmentPage = () => {
   const [editItemIndex, setEditItemIndex] = useState<number | null>(null);
   const [adjustmentItems, setAdjustmentItems] = useState<IAdjustmentItem[]>([]);
 
-  console.log('adjustmentItems', adjustmentItems);
-
   const { data: warehousesData } = useGetWarehouseList();
   const { data: adjustmentTypeData } = useGetEnumByContext('adjustment-type');
   const { data: adjustmentReasonData } =

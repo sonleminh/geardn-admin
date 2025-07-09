@@ -241,7 +241,6 @@ const ProductSkuUpsert = () => {
     const updAttributeList = attributeList?.filter(
       (_, index) => index !== attributeIndex
     );
-    console.log('updAttributeList', updAttributeList);
     if (updAttributeList?.length === 0) {
       setIsEditAttribute(false);
     }

@@ -216,7 +216,6 @@ export const useUploadImage = () => {
       onProgress: (progress: number) => void;
     }) => uploadImage(files, onProgress),
     onError(error: AxiosError<ErrorResponse>) {
-      console.log('error', error);
       showNotification(
         error?.response?.data?.message || 'Upload failed',
         'error'

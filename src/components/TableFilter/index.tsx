@@ -30,8 +30,6 @@ const TableFilter = ({
   sx,
   onClose,
 }: TableFilterProps) => {
-  console.log('selectedValues', selectedValues);
-  console.log('selectedValues', selectedValues);
   return (
     <>
       <Box sx={{ p: 2, minWidth: 200, ...sx }}>
@@ -51,8 +49,6 @@ const TableFilter = ({
                     : selectedValues.filter(
                         (id) => id !== option.id.toString()
                       );
-                  console.log('e.target.checked', e.target.checked);
-                  console.log('newValue', newValue);
                   onFilterChange(newValue);
                 }}
               />
