@@ -35,38 +35,38 @@ import TopProductsCarousel from './components/TopProductsCarousel';
 const fakeProducts = [
   {
     id: 1,
-    name: 'Nb-F80',
-    image:
+    productName: 'Nb-F80',
+    productImage:
       'https://anphat.com.vn/media/product/33286_gia_do_man_hinh_north_bayou_17_3.png',
   },
   {
     id: 2,
-    name: 'Dell Ultrasharp U2725QE',
-    image:
+    productName: 'Dell Ultrasharp U2725QE',
+    productImage:
       'https://anphat.com.vn/media/product/52309_m__n_h__nh_dell_ultrasharp_u2725qe__1_.jpg',
   },
   {
     id: 3,
-    name: 'Nb-F80',
-    image:
+    productName: 'Nb-F80',
+    productImage:
       'https://anphat.com.vn/media/product/33286_gia_do_man_hinh_north_bayou_17_3.png',
   },
   {
     id: 4,
-    name: 'Dell Ultrasharp U2725QE',
-    image:
+    productName: 'Dell Ultrasharp U2725QE',
+    productImage:
       'https://anphat.com.vn/media/product/52309_m__n_h__nh_dell_ultrasharp_u2725qe__1_.jpg',
   },
   {
     id: 5,
-    name: 'Nb-F80',
-    image:
+    productName: 'Nb-F80',
+    productImage:
       'https://anphat.com.vn/media/product/33286_gia_do_man_hinh_north_bayou_17_3.png',
   },
   {
     id: 6,
-    name: 'Dell Ultrasharp U2725QE',
-    image:
+    productName: 'Dell Ultrasharp U2725QE',
+    productImage:
       'https://anphat.com.vn/media/product/52309_m__n_h__nh_dell_ultrasharp_u2725qe__1_.jpg',
   },
 ];
@@ -378,29 +378,19 @@ const Dashboard = () => {
                 Top danh mục
               </Typography>
               <TopCategoriesChart
-                topCategories={overviewStats?.data?.topCategories || []}
+                topCategories={overviewStats?.data?.bestSellingCategory || []}
                 isLoading={isLoadingOverviewStats}
               />
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={6}>
+        <Grid2 size={12}>
           <Card>
             <CardContent>
-              <Typography sx={{ mb: 4, fontSize: 20, fontWeight: 500 }}>
-                Top sản phẩm
-              </Typography>
               <TopProductsCarousel
-                products={fakeProducts}
+                products={overviewStats?.data?.bestSellingProduct || []}
                 isLoading={isLoadingOverviewStats}
               />
-            </CardContent>
-          </Card>
-        </Grid2>
-        <Grid2 size={6}>
-          <Card>
-            <CardContent>
-              <Typography>Bảng thống kê</Typography>
             </CardContent>
           </Card>
         </Grid2>

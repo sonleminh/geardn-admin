@@ -15,10 +15,10 @@ interface IOverviewStats {
     productId: number;
     productName: string;
     imageUrl: string;
-    quantitySold: number;
-    revenue: number;
-  };
-  topCategories: {
+    quantity: number;
+    price: number;
+  }[];
+  bestSellingCategory: {
     categoryId: number;
     categoryName: string;
     quantitySold: number;
