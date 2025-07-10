@@ -15,7 +15,7 @@ interface IOverviewStats {
     productId: number;
     productName: string;
     imageUrl: string;
-    quantity: number;
+    quantitySold: number;
     price: number;
   }[];
   bestSellingCategory: {

@@ -19,7 +19,7 @@ interface IProduct {
   productId: number;
   productName: string;
   imageUrl: string;
-  quantity: number;
+  quantitySold: number;
   price: number;
 }
 
@@ -78,7 +78,7 @@ function TopProductsCarousel({
           0: { slidesPerView: 1, spaceBetween: 0 },
           600: { slidesPerView: 2, spaceBetween: 16 },
           1200: { slidesPerView: 3.2, spaceBetween: 24 },
-          1500: { slidesPerView: 4, spaceBetween: 32 },
+          1500: { slidesPerView: 5, spaceBetween: 10 },
         }}
         className='mySwiper'>
         {products.map((product) => (

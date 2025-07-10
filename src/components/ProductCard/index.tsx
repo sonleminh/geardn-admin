@@ -12,20 +12,21 @@ const ProductCard = ({
     productId: number;
     productName: string;
     imageUrl: string;
-    quantity: number;
+    quantitySold: number;
     price: number;
   };
 }) => {
   return (
-    <Link href={``}>
+    <Box
+      sx={{
+        p: 2,
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+      }}>
       <Box
         sx={{
-          bgcolor: '#fff',
-          borderRadius: '8px',
           overflow: 'hidden',
           ':hover': {
-            boxShadow:
-              '0 1px 3px 0 rgba(0, 0, 0, .1), 0 1px 2px -1px rgba(0, 0, 0, .1)',
             '& img': {
               transform: 'scale(1.05)',
             },
@@ -33,18 +34,18 @@ const ProductCard = ({
         }}>
         <Box
           sx={{
-            height: 100,
             img: {
-              width: 100,
-              height: 100,
+              width: '100%',
+              // height: 100,
               mr: 1,
               objectFit: 'contain',
+              transition: 'all 0.5s ease',
             },
           }}>
           <img src={data?.imageUrl} alt={data?.productName} />
         </Box>
       </Box>
-      <Box sx={{ p: '12px' }}>
+      <Box sx={{ pt: '12px' }}>
         <Typography
           sx={{
             height: 42,
@@ -55,8 +56,21 @@ const ProductCard = ({
           }}>
           {data?.productName}
         </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}>
+          <Typography sx={{ fontWeight: 500 }}>
+            {formatPrice(data?.price)}
+          </Typography>
+          <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
+            Sold: {data?.quantitySold}
+          </Typography>
+        </Box>
       </Box>
-    </Link>
+    </Box>
   );
 };
 

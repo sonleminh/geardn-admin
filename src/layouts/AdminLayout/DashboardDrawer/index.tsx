@@ -4,6 +4,7 @@ import StoreMallDirectoryOutlinedIcon from '@mui/icons-material/StoreMallDirecto
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
@@ -31,6 +32,18 @@ import { DrawerMenuWrapper } from '../styled';
 import LOGO from '@/assets/geardn-logo.png';
 
 const menuList = [
+  {
+    item: (
+      <ListItem>
+        <ListItemButton component={NavLink} to={ROUTES.STATISTIC}>
+          <ListItemIcon>
+            <InsertChartOutlinedIcon />
+          </ListItemIcon>
+          <ListItemText primary={'Thống kê'} />
+        </ListItemButton>
+      </ListItem>
+    ),
+  },
   {
     item: (
       <ListItem>
