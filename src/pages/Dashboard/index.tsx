@@ -25,51 +25,13 @@ import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import {
   useGetOverviewStats,
-  useGetProfitRevenueDailyStats,
+  useGetRevenueProfitStats,
 } from '@/services/statistic';
 import { formatPrice } from '@/utils/format-price';
 import RevevueProfitChart from './components/RevevueProfitChart';
 import TopCategoriesChart from './components/TopCategoriesChart';
 import TopProductsCarousel from './components/TopProductsCarousel';
-
-const fakeProducts = [
-  {
-    id: 1,
-    productName: 'Nb-F80',
-    productImage:
-      'https://anphat.com.vn/media/product/33286_gia_do_man_hinh_north_bayou_17_3.png',
-  },
-  {
-    id: 2,
-    productName: 'Dell Ultrasharp U2725QE',
-    productImage:
-      'https://anphat.com.vn/media/product/52309_m__n_h__nh_dell_ultrasharp_u2725qe__1_.jpg',
-  },
-  {
-    id: 3,
-    productName: 'Nb-F80',
-    productImage:
-      'https://anphat.com.vn/media/product/33286_gia_do_man_hinh_north_bayou_17_3.png',
-  },
-  {
-    id: 4,
-    productName: 'Dell Ultrasharp U2725QE',
-    productImage:
-      'https://anphat.com.vn/media/product/52309_m__n_h__nh_dell_ultrasharp_u2725qe__1_.jpg',
-  },
-  {
-    id: 5,
-    productName: 'Nb-F80',
-    productImage:
-      'https://anphat.com.vn/media/product/33286_gia_do_man_hinh_north_bayou_17_3.png',
-  },
-  {
-    id: 6,
-    productName: 'Dell Ultrasharp U2725QE',
-    productImage:
-      'https://anphat.com.vn/media/product/52309_m__n_h__nh_dell_ultrasharp_u2725qe__1_.jpg',
-  },
-];
+import DateRangeMenu from '@/components/DateRangeMenu';
 
 // Card styles
 const cardIconBox = (bgcolor: string) => ({
@@ -152,50 +114,6 @@ function SummaryCard({
   );
 }
 
-interface DateRangeMenuProps {
-  anchorEl: null | HTMLElement;
-  open: boolean;
-  onClose: () => void;
-  onSelect: (daysAgo: number) => void;
-  dateRange: Array<{ startDate: Date; endDate: Date; key: string }>;
-  onRangeChange: (rangesByKey: RangeKeyDict) => void;
-}
-
-function DateRangeMenu({
-  anchorEl,
-  open,
-  onClose,
-  onSelect,
-  dateRange,
-  onRangeChange,
-}: DateRangeMenuProps) {
-  return (
-    <Menu
-      anchorEl={anchorEl}
-      open={open}
-      onClose={onClose}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-      PaperProps={{ sx: { p: 1, minWidth: 200 } }}>
-      <MenuItem onClick={() => onSelect(7)}>7 ngày trước</MenuItem>
-      <MenuItem onClick={() => onSelect(14)}>14 ngày trước</MenuItem>
-      <MenuItem onClick={() => onSelect(30)}>30 ngày trước</MenuItem>
-      <Divider sx={{ my: 1 }} />
-      <Box sx={{ p: 1 }}>
-        <DateRange
-          ranges={dateRange}
-          onChange={onRangeChange}
-          months={1}
-          direction='horizontal'
-          showDateDisplay={false}
-          showMonthAndYearPickers={false}
-          rangeColors={['#1976d2']}
-        />
-      </Box>
-    </Menu>
-  );
-}
-
 const Dashboard = () => {
   const queryClient = useQueryClient();
   const [dateRange, setDateRange] = useState([
@@ -205,7 +123,7 @@ const Dashboard = () => {
       key: 'selection',
     },
   ]);
-  const { data: profitRevenueDailyStats } = useGetProfitRevenueDailyStats({
+  const { data: revenueProfitStats } = useGetRevenueProfitStats({
     fromDate: dateRange[0].startDate,
     toDate: dateRange[0].endDate,
   });
@@ -366,7 +284,9 @@ const Dashboard = () => {
                 onRangeChange={handleDateRangeChange}
               />
               <RevevueProfitChart
-                profitRevenueDailyStats={profitRevenueDailyStats?.data || []}
+                revenueProfitStats={
+                  revenueProfitStats?.data?.revenueProfitData || []
+                }
               />
             </CardContent>
           </Card>

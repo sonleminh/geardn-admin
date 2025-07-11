@@ -1,14 +1,9 @@
-import { IProfitRevenueDailyStats } from '@/interfaces/IProfitRevenueDailyStats';
 import { Box, CircularProgress } from '@mui/material';
 import Skeleton from '@mui/material/Skeleton';
-import React, { useMemo } from 'react';
-import { Doughnut, Line } from 'react-chartjs-2';
-import { format, subDays } from 'date-fns';
-import { vi } from 'date-fns/locale';
+import { useMemo } from 'react';
+import { Doughnut } from 'react-chartjs-2';
 
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from 'chart.js';
-import LoadingBackdrop from '@/components/LoadingBackdrop';
-import CircularProgressWithLabel from '@/components/CircularProgress';
+import { ArcElement, Chart as ChartJS, Legend, Title, Tooltip } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 

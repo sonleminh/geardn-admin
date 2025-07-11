@@ -1,4 +1,3 @@
-import { IProfitRevenueDailyStats } from '@/interfaces/IProfitRevenueDailyStats';
 import { Box } from '@mui/material';
 import React, { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
@@ -15,6 +14,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { IRevenueProfitDateDataStats } from '@/interfaces/IRevenueProfitStats';
 
 ChartJS.register(
   CategoryScale,
@@ -27,12 +27,12 @@ ChartJS.register(
 );
 
 const RevevueProfitChart = ({
-  profitRevenueDailyStats,
+  revenueProfitStats,
 }: {
-  profitRevenueDailyStats: IProfitRevenueDailyStats[];
+  revenueProfitStats: IRevenueProfitDateDataStats[];
 }) => {
   const chartData = useMemo(() => {
-    if (!profitRevenueDailyStats) {
+    if (!revenueProfitStats) {
       return {
         labels: [],
         datasets: [
@@ -56,13 +56,15 @@ const RevevueProfitChart = ({
       };
     }
 
-    const labels = profitRevenueDailyStats.map((item: any) =>
+    const labels = revenueProfitStats.map((item: IRevenueProfitDateDataStats) =>
       format(new Date(item.date), 'dd/MM', { locale: vi })
     );
-    const revenueData = profitRevenueDailyStats.map(
-      (item: any) => item.revenue
+    const revenueData = revenueProfitStats.map(
+      (item: IRevenueProfitDateDataStats) => item.revenue
     );
-    const profitData = profitRevenueDailyStats.map((item: any) => item.profit);
+    const profitData = revenueProfitStats.map(
+      (item: IRevenueProfitDateDataStats) => item.profit
+    );
 
     return {
       labels,
@@ -87,7 +89,7 @@ const RevevueProfitChart = ({
         },
       ],
     };
-  }, [profitRevenueDailyStats]);
+  }, [revenueProfitStats]);
 
   const chartOptions = useMemo(
     () => ({

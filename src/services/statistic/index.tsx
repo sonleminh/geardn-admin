@@ -1,4 +1,4 @@
-import { IProfitRevenueDailyStats } from '@/interfaces/IProfitRevenueDailyStats';
+import { IRevenueProfitStats } from '@/interfaces/IRevenueProfitStats';
 import { axiosInstance } from '../axiosInstance';
 import { TBaseResponse } from '@/types/response.type';
 import { useQuery } from '@tanstack/react-query';
@@ -40,29 +40,26 @@ export const useGetOverviewStats = () => {
   });
 };
 
-const getProfitRevenueDailyStats = async (query: {
+const getRevenueProfitStats = async (query: {
   fromDate: Date;
   toDate: Date;
 }) => {
-  const result = await axiosInstance.get(
-    `${statisticUrl}/profit-revenue-daily`,
-    {
-      params: {
-        fromDate: query.fromDate.toISOString(),
-        toDate: query.toDate.toISOString(),
-      },
-    }
-  );
-  return result.data as TBaseResponse<IProfitRevenueDailyStats[]>;
+  const result = await axiosInstance.get(`${statisticUrl}/revenue-profit`, {
+    params: {
+      fromDate: query.fromDate.toISOString(),
+      toDate: query.toDate.toISOString(),
+    },
+  });
+  return result.data as TBaseResponse<IRevenueProfitStats>;
 };
 
-export const useGetProfitRevenueDailyStats = (query: {
+export const useGetRevenueProfitStats = (query: {
   fromDate: Date;
   toDate: Date;
 }) => {
   return useQuery({
-    queryKey: [QueryKeys.ProfitRevenueDailyStats, query],
-    queryFn: () => getProfitRevenueDailyStats(query),
+    queryKey: [QueryKeys.RevenueProfitDailyStats, query],
+    queryFn: () => getRevenueProfitStats(query),
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
