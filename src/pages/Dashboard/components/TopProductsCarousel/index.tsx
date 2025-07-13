@@ -28,10 +28,7 @@ interface TopProductsCarouselProps {
   isLoading?: boolean;
 }
 
-function TopProductsCarousel({
-  products,
-  isLoading = false,
-}: TopProductsCarouselProps) {
+function TopProductsCarousel({ products }: TopProductsCarouselProps) {
   return (
     <Box sx={{ width: '100%' }}>
       <Box

@@ -2,7 +2,6 @@ import { Box } from '@mui/material';
 import React, { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { format, subDays } from 'date-fns';
-import { vi } from 'date-fns/locale';
 
 import {
   Chart as ChartJS,
@@ -14,7 +13,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { IRevenueProfitDateDataStats } from '@/interfaces/IRevenueProfitStats';
+import { IRevenueProfitDateStats } from '@/interfaces/IRevenueProfitStats';
+import { vi } from 'date-fns/locale';
 
 ChartJS.register(
   CategoryScale,
@@ -26,11 +26,55 @@ ChartJS.register(
   Legend
 );
 
+const phake = [
+  {
+    date: '2025-07-05T00:00:00.000Z',
+    revenue: 0,
+    profit: 0,
+  },
+  {
+    date: '2025-07-06T00:00:00.000Z',
+    revenue: 0,
+    profit: 0,
+  },
+  {
+    date: '2025-07-07T00:00:00.000Z',
+    revenue: 0,
+    profit: 0,
+  },
+  {
+    date: '2025-07-08T00:00:00.000Z',
+    revenue: 0,
+    profit: 0,
+  },
+  {
+    date: '2025-07-09T00:00:00.000Z',
+    revenue: 319000,
+    profit: 68642.89285714281,
+  },
+  {
+    date: '2025-07-10T00:00:00.000Z',
+    revenue: 0,
+    profit: 0,
+  },
+  {
+    date: '2025-07-11T00:00:00.000Z',
+    revenue: 0,
+    profit: 0,
+  },
+  {
+    date: '2025-07-12T00:00:00.000Z',
+    revenue: 0,
+    profit: 0,
+  },
+];
+
 const RevevueProfitChart = ({
   revenueProfitStats,
 }: {
-  revenueProfitStats: IRevenueProfitDateDataStats[];
+  revenueProfitStats: IRevenueProfitDateStats[];
 }) => {
+  console.log('revenueprofit:', revenueProfitStats);
   const chartData = useMemo(() => {
     if (!revenueProfitStats) {
       return {
@@ -56,14 +100,15 @@ const RevevueProfitChart = ({
       };
     }
 
-    const labels = revenueProfitStats.map((item: IRevenueProfitDateDataStats) =>
+    const labels = revenueProfitStats.map((item: IRevenueProfitDateStats) =>
       format(new Date(item.date), 'dd/MM', { locale: vi })
     );
+
     const revenueData = revenueProfitStats.map(
-      (item: IRevenueProfitDateDataStats) => item.revenue
+      (item: IRevenueProfitDateStats) => item.revenue
     );
     const profitData = revenueProfitStats.map(
-      (item: IRevenueProfitDateDataStats) => item.profit
+      (item: IRevenueProfitDateStats) => item.profit
     );
 
     return {

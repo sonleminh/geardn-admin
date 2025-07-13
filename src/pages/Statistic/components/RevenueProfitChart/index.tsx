@@ -210,8 +210,7 @@ const RevenueProfitChart = () => {
             Doanh thu
           </Typography>
           <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
-            {/* {formatPrice(RevenueProfitDailyStats?.data[0].revenue || 0)} */}
-            {formatPrice(20000000)}
+            {formatPrice(revenueProfitStats?.data.totalRevenue || 0)}
           </Typography>
         </Box>
         <Divider orientation='vertical' flexItem />
@@ -220,8 +219,7 @@ const RevenueProfitChart = () => {
             Lợi nhuận
           </Typography>
           <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
-            {/* {formatPrice(RevenueProfitDailyStats?.data[0].profit || 0)} */}
-            {formatPrice(10000000)}
+            {formatPrice(revenueProfitStats?.data.totalProfit || 0)}
           </Typography>
         </Box>
       </Box>
@@ -234,7 +232,7 @@ const RevenueProfitChart = () => {
         onRangeChange={handleDateRangeChange}
       />
       <Box sx={{ width: '100%', height: 320, p: 0, m: 0 }}>
-        {/* <Line data={chartData} options={chartOptions} /> */}
+        <Line data={chartData} options={chartOptions} />
       </Box>
     </>
   );
