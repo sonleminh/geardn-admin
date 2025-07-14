@@ -1,20 +1,21 @@
 import { NavLink } from 'react-router-dom';
 
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
+import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined';
+import PaymentIcon from '@mui/icons-material/Payment';
 import StoreMallDirectoryOutlinedIcon from '@mui/icons-material/StoreMallDirectoryOutlined';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
-import WarehouseOutlinedIcon from '@mui/icons-material/WarehouseOutlined';
-import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
-import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ListAltIcon from '@mui/icons-material/ListAlt';
-import MonitorIcon from '@mui/icons-material/Monitor';
-import PaymentIcon from '@mui/icons-material/Payment';
-import StyleIcon from '@mui/icons-material/Style';
+import StyleOutlinedIcon from '@mui/icons-material/StyleOutlined';
+import { BiCategory } from 'react-icons/bi';
+import { FiPackage } from 'react-icons/fi';
 
-import { IconButton, Link, useTheme } from '@mui/material';
+import { IconButton, Link, styled, useTheme } from '@mui/material';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
@@ -23,25 +24,57 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import { styled } from '@mui/material/styles';
 
+import LOGO from '@/assets/geardn-logo.png';
 import MultipleListItem from '@/components/MultipleListItem';
 import { ROUTES } from '@/constants/route';
 import React from 'react';
 import { DrawerMenuWrapper } from '../styled';
-import LOGO from '@/assets/geardn-logo.png';
 
 const menuList = [
   {
     item: (
-      <ListItem>
-        <ListItemButton component={NavLink} to={ROUTES.STATISTIC}>
-          <ListItemIcon>
-            <InsertChartOutlinedIcon />
-          </ListItemIcon>
-          <ListItemText primary={'Thống kê'} />
-        </ListItemButton>
-      </ListItem>
+      <MultipleListItem
+        mainIcon={<FilterAltOutlinedIcon />}
+        mainLabel='Thống kê'
+        active={location.pathname.includes('statistic')}
+        options={[
+          {
+            to: ROUTES.STATISTIC_REVENUE_PROFIT,
+            icon: <MonetizationOnOutlinedIcon />,
+            label: 'Doanh thu',
+          },
+          {
+            to: ROUTES.STATISTIC_ORDER,
+            icon: <ShoppingBagOutlinedIcon />,
+            label: 'Đơn hàng',
+          },
+          {
+            to: ROUTES.STATISTIC_REVENUE_PROFIT,
+            icon: <AccountCircleOutlinedIcon />,
+            label: 'Người dùng',
+          },
+          {
+            to: ROUTES.STATISTIC_ORDER,
+            icon: <Inventory2OutlinedIcon />,
+            label: 'Tồn kho',
+          },
+          {
+            to: ROUTES.STATISTIC_REVENUE_PROFIT,
+            icon: (
+              <Box
+                sx={{
+                  svg: {
+                    fontSize: 24,
+                  },
+                }}>
+                <FiPackage />
+              </Box>
+            ),
+            label: 'Sản phẩm',
+          },
+        ]}
+      />
     ),
   },
   {
@@ -61,7 +94,7 @@ const menuList = [
       <ListItem>
         <ListItemButton component={NavLink} to={ROUTES.INVENTORY}>
           <ListItemIcon>
-            <WarehouseOutlinedIcon />
+            <Inventory2OutlinedIcon />
           </ListItemIcon>
           <ListItemText primary={'Tồn kho'} />
         </ListItemButton>
@@ -85,7 +118,14 @@ const menuList = [
       <ListItem>
         <ListItemButton component={NavLink} to={ROUTES.PRODUCT}>
           <ListItemIcon>
-            <MonitorIcon />
+            <Box
+              sx={{
+                svg: {
+                  fontSize: 24,
+                },
+              }}>
+              <FiPackage />
+            </Box>
           </ListItemIcon>
           <ListItemText primary={'Sản phẩm'} />
         </ListItemButton>
@@ -97,7 +137,12 @@ const menuList = [
       <ListItem>
         <ListItemButton component={NavLink} to={ROUTES.CATEGORY}>
           <ListItemIcon>
-            <ListAltIcon />
+            <Box
+              sx={{
+                fontSize: 24,
+              }}>
+              <BiCategory />
+            </Box>
           </ListItemIcon>
           <ListItemText primary={'Danh mục'} />
         </ListItemButton>
@@ -113,12 +158,12 @@ const menuList = [
         options={[
           {
             to: ROUTES.ATTRIBUTE,
-            icon: <StyleIcon />,
+            icon: <StyleOutlinedIcon />,
             label: 'Loại thuộc tính',
           },
           {
             to: ROUTES.ATTRIBUTE_VALUE,
-            icon: <LocalOfferIcon />,
+            icon: <LocalOfferOutlinedIcon />,
             label: 'Giá trị thuộc tính',
           },
         ]}

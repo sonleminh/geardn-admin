@@ -94,7 +94,23 @@ const routes = [
             element: <Product />,
           },
           {
-            path: `${ROUTES.STATISTIC}/*`,
+            path: `${ROUTES.STATISTIC_REVENUE_PROFIT}`,
+            element: <Statistic />,
+          },
+          {
+            path: `${ROUTES.STATISTIC_ORDER}`,
+            element: <Statistic />,
+          },
+          {
+            path: `${ROUTES.STATISTIC_USER}`,
+            element: <Statistic />,
+          },
+          {
+            path: `${ROUTES.STATISTIC_STOCK}`,
+            element: <Statistic />,
+          },
+          {
+            path: `${ROUTES.PRODUCT}`,
             element: <Statistic />,
           },
           {

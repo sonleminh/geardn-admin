@@ -26,49 +26,6 @@ ChartJS.register(
   Legend
 );
 
-const phake = [
-  {
-    date: '2025-07-05T00:00:00.000Z',
-    revenue: 0,
-    profit: 0,
-  },
-  {
-    date: '2025-07-06T00:00:00.000Z',
-    revenue: 0,
-    profit: 0,
-  },
-  {
-    date: '2025-07-07T00:00:00.000Z',
-    revenue: 0,
-    profit: 0,
-  },
-  {
-    date: '2025-07-08T00:00:00.000Z',
-    revenue: 0,
-    profit: 0,
-  },
-  {
-    date: '2025-07-09T00:00:00.000Z',
-    revenue: 319000,
-    profit: 68642.89285714281,
-  },
-  {
-    date: '2025-07-10T00:00:00.000Z',
-    revenue: 0,
-    profit: 0,
-  },
-  {
-    date: '2025-07-11T00:00:00.000Z',
-    revenue: 0,
-    profit: 0,
-  },
-  {
-    date: '2025-07-12T00:00:00.000Z',
-    revenue: 0,
-    profit: 0,
-  },
-];
-
 const RevevueProfitChart = ({
   revenueProfitStats,
 }: {
