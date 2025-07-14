@@ -9,11 +9,15 @@ import {
   Grid2,
   Typography,
 } from '@mui/material';
-import { useGetOverviewStats } from '@/services/statistic';
+import {
+  useGetOverviewStats,
+  useGetRevenueProfitStats,
+} from '@/services/statistic';
 import RevenueProfitChart from './components/RevenueProfitChart';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
 import { formatPrice } from '@/utils/format-price';
+import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined';
 
 const cardIconBox = (bgcolor: string) => ({
   display: 'flex',
@@ -27,68 +31,41 @@ const cardIconBox = (bgcolor: string) => ({
   p: 1,
 });
 const cardTitle = { fontSize: 20, fontWeight: 500 };
-const cardSubTitle = { color: '#828384', fontSize: 15, fontWeight: 500 };
-const cardValue = { mb: 2, fontSize: 24, fontWeight: 600 };
-const cardTrend = {
-  display: 'flex',
-  alignItems: 'center',
-  fontSize: 14,
-  fontWeight: 500,
-};
 
-interface SummaryCardProps {
+interface InfoCardProps {
   icon: React.ReactNode;
   title: string;
-  subtitle?: string;
-  value: React.ReactNode;
-  trend?: React.ReactNode;
-  extra?: React.ReactNode;
+  content: React.ReactNode;
   bgcolor?: string;
   iconBg?: string;
 }
 
-function SummaryCard({
+function InfoCard({
   icon,
   title,
-  subtitle,
-  value,
-  trend,
-  extra,
+  content,
   bgcolor = '#fff',
   iconBg = '#ebebeb',
-}: SummaryCardProps) {
+}: InfoCardProps) {
   return (
     <Card
       sx={{
         bgcolor,
         color: bgcolor === '#000' ? '#fff' : undefined,
-        borderRadius: 8,
+        borderRadius: '2px',
       }}>
-      <CardContent sx={{ p: 4 }}>
+      <CardContent sx={{ p: 2 }}>
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
             mb: 3,
           }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Box sx={cardIconBox(iconBg)}>{icon}</Box>
-            <Box>
-              <Typography sx={cardTitle}>{title}</Typography>
-              {subtitle && (
-                <Typography sx={cardSubTitle}>{subtitle}</Typography>
-              )}
-            </Box>
-          </Box>
-          <ChevronRightOutlinedIcon
-            sx={{ color: bgcolor === '#000' ? '#fff' : undefined }}
-          />
+          <Box sx={cardIconBox(iconBg)}>{icon}</Box>
+          <Typography sx={cardTitle}>{title}</Typography>
         </Box>
-        <Typography sx={cardValue}>{value}</Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          {trend}
-          {extra}
+          {content}
         </Box>
       </CardContent>
     </Card>
@@ -96,23 +73,40 @@ function SummaryCard({
 }
 
 const Statistic = () => {
+  // const { data: revenueProfitStats, isLoading: isLoadingRevenueProfitStats } =
+  //   useGetRevenueProfitStats({
+  //     fromDate: new Date(new Date().setDate(new Date().getDate() - 7)),
+  //     toDate: new Date(),
+  //   });
   return (
-    <Container maxWidth='lg'>
+    <Container maxWidth='xl'>
       <Grid2 container spacing={3}>
-        <Grid2 size={9}>
+        <Grid2 size={12}>
           <Card>
             <CardContent>
               <RevenueProfitChart />
             </CardContent>
           </Card>
         </Grid2>
-        <Grid2 size={3}>
-          {/* <SummaryCard
-            icon={<ShoppingBagIcon sx={{ fontSize: 28 }} />}
+        <Grid2 size={6}>
+          <Card>
+            <CardContent>
+              <RevenueProfitChart />
+            </CardContent>
+          </Card>
+        </Grid2>
+        <Grid2 size={6}>
+          <InfoCard
+            icon={<MonetizationOnOutlinedIcon sx={{ fontSize: 28 }} />}
             title='Tổng doanh số'
-            subtitle={`${overviewStats?.data?.totalOrders} đơn hàng`}
-            value={formatPrice(overviewStats?.data?.totalRevenue || 0)}
-          /> */}
+            content={
+              <Typography>
+                {/* {formatPrice(revenueProfitStats?.data?.totalRevenue || 0)} */}
+              </Typography>
+            }
+            // subtitle={`${overviewStats?.data?.totalOrders} đơn hàng`}
+            // value={formatPrice(overviewStats?.data?.totalRevenue || 0)}
+          />
         </Grid2>
       </Grid2>
     </Container>

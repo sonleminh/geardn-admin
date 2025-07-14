@@ -123,7 +123,7 @@ const ProductSkuUpsert = () => {
     validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
-      if (!skuId) {
+      if (isEdit && !skuId) {
         throw new Error('skuId is missing');
       }
       if (attributeId || attributeValueId) {

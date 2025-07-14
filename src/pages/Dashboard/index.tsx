@@ -81,7 +81,7 @@ function SummaryCard({
       sx={{
         bgcolor,
         color: bgcolor === '#000' ? '#fff' : undefined,
-        borderRadius: 8,
+        borderRadius: 4,
       }}>
       <CardContent sx={{ p: 4 }}>
         <Box
@@ -168,9 +168,9 @@ const Dashboard = () => {
   };
 
   return (
-    <Container maxWidth='lg'>
+    <Container maxWidth='xl'>
       <Grid2 container spacing={3}>
-        <Grid2 size={4.5}>
+        <Grid2 size={3}>
           <SummaryCard
             icon={<ShoppingBagIcon sx={{ fontSize: 28 }} />}
             title='Tổng doanh số'
@@ -200,12 +200,39 @@ const Dashboard = () => {
             iconBg='#58595a'
           />
         </Grid2>
-        <Grid2 size={4.5}>
+        <Grid2 size={3}>
           <SummaryCard
             icon={<VisibilityIcon sx={{ fontSize: 24 }} />}
             title='Lượt truy cập'
             subtitle='Avg.time: 4:20m'
             value='696'
+            trend={
+              <Typography sx={cardTrend}>
+                <TrendingUpIcon sx={{ mr: 1 }} />
+                <Typography component='span' sx={{ fontWeight: 500 }}>
+                  +19%
+                </Typography>
+              </Typography>
+            }
+            extra={
+              <Typography sx={cardTrend}>
+                <Typography component='span' sx={{ mr: 1, fontWeight: 500 }}>
+                  +69
+                </Typography>
+                <Typography
+                  component='span'
+                  sx={{ fontWeight: 500, color: '#828384' }}>
+                  tuần này
+                </Typography>
+              </Typography>
+            }
+          />
+        </Grid2>
+        <Grid2 size={3}>
+          <SummaryCard
+            icon={<PendingActionsIcon sx={{ fontSize: 28 }} />}
+            title='Đơn hàng đang xử lý'
+            value={overviewStats?.data?.pendingOrders}
             trend={
               <Typography sx={cardTrend}>
                 <TrendingUpIcon sx={{ mr: 1 }} />

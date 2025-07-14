@@ -67,7 +67,7 @@ function TopCategoriesChart({
   );
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '80%', mx: 'auto' }}>
       {isLoading ? (
         <Box
           sx={{
