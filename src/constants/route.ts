@@ -8,6 +8,7 @@ export const ROUTES = {
     ORDER: '/order',
     PAYMENT: '/payment',
     PRODUCT: '/product',
+    STATISTIC: '/statistic',
     STATISTIC_ORDER: '/statistic/order',
     STATISTIC_PRODUCT: '/statistic/product',
     STATISTIC_REVENUE_PROFIT: '/statistic/revenue-profit',

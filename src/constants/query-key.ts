@@ -12,6 +12,7 @@ export const QueryKeys = {
     Payment: 'PAYMENT',
     Product: 'PRODUCT',
     RevenueProfitDailyStats: 'PROFIT_REVENUE_DAILY_STATS',
+    RevenueProfitSummaryStats: 'PROFIT_REVENUE_SUMMARY_STATS',
     Sku: 'SKU',
     Stock: 'STOCK',
     Warehouse: 'WAREHOUSE'

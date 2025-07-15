@@ -6,6 +6,11 @@ export interface IRevenueProfitDateStats {
 
 export interface IRevenueProfitStats {
     revenueProfitData: IRevenueProfitDateStats[];
-    totalRevenue: number;
-    totalProfit: number;
+    revenue: number;
+    profit: number;
+}
+
+export interface IRevenueProfitSummaryStats {
+    revenue: number;
+    profit: number;
 }

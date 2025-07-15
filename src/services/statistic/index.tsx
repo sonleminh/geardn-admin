@@ -1,4 +1,7 @@
-import { IRevenueProfitStats } from '@/interfaces/IRevenueProfitStats';
+import {
+  IRevenueProfitStats,
+  IRevenueProfitSummaryStats,
+} from '@/interfaces/IRevenueProfitStats';
 import { axiosInstance } from '../axiosInstance';
 import { TBaseResponse } from '@/types/response.type';
 import { useQuery } from '@tanstack/react-query';
@@ -60,6 +63,22 @@ export const useGetRevenueProfitStats = (query: {
   return useQuery({
     queryKey: [QueryKeys.RevenueProfitDailyStats, query],
     queryFn: () => getRevenueProfitStats(query),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+  });
+};
+
+const getRevenueProfitSummaryStats = async () => {
+  const result = await axiosInstance.get(
+    `${statisticUrl}/revenue-profit-summary`
+  );
+  return result.data as TBaseResponse<IRevenueProfitSummaryStats>;
+};
+
+export const useGetRevenueProfitSummaryStats = () => {
+  return useQuery({
+    queryKey: [QueryKeys.RevenueProfitDailyStats],
+    queryFn: () => getRevenueProfitSummaryStats(),
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });

@@ -186,7 +186,7 @@ const RevenueProfitChart = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          mb: 2,
+          mb: 4,
         }}>
         <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
           Doanh thu và lợi nhuận
@@ -210,7 +210,7 @@ const RevenueProfitChart = () => {
             Doanh thu
           </Typography>
           <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
-            {formatPrice(revenueProfitStats?.data.totalRevenue || 0)}
+            {formatPrice(revenueProfitStats?.data.revenue || 0)}
           </Typography>
         </Box>
         <Divider orientation='vertical' flexItem />
@@ -219,7 +219,7 @@ const RevenueProfitChart = () => {
             Lợi nhuận
           </Typography>
           <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
-            {formatPrice(revenueProfitStats?.data.totalProfit || 0)}
+            {formatPrice(revenueProfitStats?.data.profit || 0)}
           </Typography>
         </Box>
       </Box>
