@@ -1,145 +1,403 @@
-import React from 'react';
-import { useRoutes } from 'react-router-dom';
-import StatisticLayout from './components/StatisticLayout';
+import React, { useMemo, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Line } from 'react-chartjs-2';
+import { format, subDays } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import { RangeKeyDict } from 'react-date-range';
+
 import {
-  Button,
   Box,
+  Button,
   Card,
   CardContent,
-  Container,
-  Grid2,
-  Typography,
   Divider,
+  Typography,
+  Breadcrumbs,
+  Link,
 } from '@mui/material';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+
+import DateRangeMenu from '@/components/DateRangeMenu';
+import { ROUTES } from '@/constants/route';
+import { formatPrice } from '@/utils/format-price';
 import {
-  useGetOverviewStats,
   useGetRevenueProfitStats,
   useGetRevenueProfitSummaryStats,
 } from '@/services/statistic';
-import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
-import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
-import { formatPrice } from '@/utils/format-price';
-import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined';
-import RevenueProfitChart from '../RevenueProfitChart';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import { IRevenueProfitDateStats } from '@/interfaces/IRevenueProfitStats';
 
-const cardIconBox = (bgcolor: string) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  width: 48,
-  height: 48,
-  mr: 2,
-  bgcolor,
-  borderRadius: 3,
-  p: 1,
-});
-
-interface InfoCardProps {
-  icon: React.ReactNode;
-  title: string;
-  content: React.ReactNode;
-  bgcolor?: string;
-  iconBg?: string;
-}
-
-function InfoCard({
-  icon,
-  title,
-  content,
-  bgcolor = '#fff',
-  iconBg = '#ebebeb',
-}: InfoCardProps) {
-  return (
-    <Card
-      sx={{
-        bgcolor,
-        color: bgcolor === '#000' ? '#fff' : undefined,
-        borderRadius: '2px',
-      }}>
-      <CardContent>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            mb: 3,
-          }}>
-          <Box sx={cardIconBox(iconBg)}>{icon}</Box>
-          <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-            {title}
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          {content}
-        </Box>
-      </CardContent>
-    </Card>
-  );
-}
-
+// =====================
+// Helper Types & Components
+// =====================
 interface SummaryStatProps {
   label: string;
-  value: number;
+  value: React.ReactNode;
+  icon: React.ReactNode;
   iconBg: string;
 }
 
-function SummaryStat({ label, value, iconBg }: SummaryStatProps) {
+const valueStyle = (value: number) => ({
+  fontSize: 28,
+  fontWeight: 500,
+  color: value < 0 ? 'red' : 'green',
+});
+
+const SummaryStat: React.FC<SummaryStatProps> = ({
+  label,
+  value,
+  icon,
+  iconBg,
+}) => {
   return (
-    <Box className='flex flex-col justify-between'>
-      <Box className='flex items-center'>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+      }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Box
           sx={{
             display: 'flex',
-            alignItems: 'center',
             justifyContent: 'center',
+            alignItems: 'center',
             width: 48,
             height: 48,
-            mr: 1,
+            mr: 2,
             bgcolor: iconBg,
             borderRadius: '50%',
-            p: 1,
           }}>
-          <AttachMoneyIcon />
+          {icon}
         </Box>
         <Typography sx={{ fontSize: 16, fontWeight: 500 }}>{label}</Typography>
       </Box>
-      <Typography sx={{ fontSize: 24, fontWeight: 500 }}>
-        {formatPrice(value)}
-      </Typography>
+      <Typography>{value}</Typography>
     </Box>
   );
-}
+};
 
-const RevenueProfit = () => {
+// =====================
+// RevenueProfit Component
+// =====================
+const RevenueProfit: React.FC = () => {
+  const navigate = useNavigate();
+
+  // ----------- State -----------
+  const [dateRange, setDateRange] = useState<
+    [{ startDate: Date; endDate: Date; key: string }]
+  >([
+    {
+      startDate: new Date(new Date().setDate(new Date().getDate() - 7)),
+      endDate: new Date(),
+      key: 'selection',
+    },
+  ]);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  // ----------- Data Fetching -----------
   const { data: revenueProfitSummaryStats } = useGetRevenueProfitSummaryStats();
-  const summaryStats = [
-    {
-      label: 'Tổng doanh thu',
-      value: revenueProfitSummaryStats?.data.revenue || 0,
-      iconBg: '#afe9bb',
+  const summaryStats = useMemo(
+    () => [
+      {
+        label: 'Tổng doanh thu',
+        value: (
+          <Typography sx={{ fontSize: 28, fontWeight: 500 }}>
+            {formatPrice(
+              revenueProfitSummaryStats?.data.totals.totalRevenue || 0
+            )}
+          </Typography>
+        ),
+        icon: <AttachMoneyIcon sx={{ color: '#fff' }} />,
+        iconBg: '#000',
+      },
+
+      {
+        label: 'Tăng trưởng tháng',
+        value: (
+          <Typography
+            sx={valueStyle(
+              revenueProfitSummaryStats?.data.growth.revenuePercent || 0
+            )}>
+            {revenueProfitSummaryStats?.data.growth.revenuePercent.toFixed(2) ||
+              0}{' '}
+            %
+          </Typography>
+        ),
+        icon: <TrendingUpIcon sx={{ color: '#fff' }} />,
+        iconBg: '#59b35c',
+      },
+      {
+        label: 'Tổng lợi nhuận',
+        value: (
+          <Typography sx={{ fontSize: 28, fontWeight: 500 }}>
+            {formatPrice(
+              revenueProfitSummaryStats?.data.totals.totalProfit || 0
+            )}
+          </Typography>
+        ),
+        icon: <AttachMoneyIcon sx={{ color: '#fff' }} />,
+        iconBg: '#000',
+      },
+      {
+        label: 'Tăng trưởng tháng',
+        value: (
+          <Typography
+            sx={valueStyle(
+              revenueProfitSummaryStats?.data.growth.profitPercent || 0
+            )}>
+            {revenueProfitSummaryStats?.data.growth.profitPercent.toFixed(2) ||
+              0}{' '}
+            %
+          </Typography>
+        ),
+        icon: <TrendingUpIcon sx={{ color: '#fff' }} />,
+        iconBg: '#59b35c',
+      },
+    ],
+    [revenueProfitSummaryStats]
+  );
+
+  const { data: revenueProfitStats } = useGetRevenueProfitStats({
+    fromDate: dateRange[0].startDate,
+    toDate: dateRange[0].endDate,
+  });
+
+  // ----------- Memoized Values -----------
+  const chartData = useMemo(() => {
+    if (!revenueProfitStats) {
+      return {
+        labels: [],
+        datasets: [
+          {
+            label: 'Doanh thu',
+            data: [],
+            fill: false,
+            borderColor: '#000',
+            backgroundColor: '#fff',
+            tension: 0.1,
+          },
+          {
+            label: 'Lợi nhuận',
+            data: [],
+            fill: false,
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.1,
+          },
+        ],
+      };
+    }
+
+    const labels = revenueProfitStats?.data?.revenueProfitData.map(
+      (item: IRevenueProfitDateStats) => {
+        console.log('item', item.date);
+        return format(new Date(item.date), 'dd/MM', { locale: vi });
+      }
+    );
+    const revenueData = revenueProfitStats?.data?.revenueProfitData.map(
+      (item: IRevenueProfitDateStats) => item.revenue
+    );
+    const profitData = revenueProfitStats?.data?.revenueProfitData.map(
+      (item: IRevenueProfitDateStats) => item.profit
+    );
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Doanh thu (VNĐ)',
+          data: revenueData,
+          fill: false,
+          borderColor: '#000',
+          backgroundColor: '#fff',
+          tension: 0.4,
+          yAxisID: 'y',
+        },
+        {
+          label: 'Lợi nhuận (VNĐ)',
+          data: profitData,
+          fill: false,
+          borderColor: '#59b35c',
+          backgroundColor: '#fff',
+          tension: 0.4,
+          yAxisID: 'y',
+        },
+      ],
+    };
+  }, [revenueProfitStats]);
+
+  const chartOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top' as const,
+        },
+        title: {
+          display: true,
+          // text: 'Biểu đồ doanh thu và lợi nhuận theo ngày',
+        },
+      },
+      scales: {
+        x: {
+          display: true,
+          title: {
+            display: true,
+            // text: 'Ngày',
+          },
+        },
+        y: {
+          display: true,
+          title: {
+            display: true,
+            // text: 'Số tiền (VNĐ)',
+          },
+        },
+      },
+    }),
+    []
+  );
+
+  // ----------- Handlers -----------
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget),
+    []
+  );
+  const handleClose = useCallback(() => setAnchorEl(null), []);
+  const handleDateSelect = useCallback(
+    (daysAgo: number) => {
+      const endDate = new Date();
+      const startDate = subDays(new Date(), daysAgo);
+      setDateRange([{ startDate, endDate, key: 'selection' }]);
+      handleClose();
     },
-    {
-      label: 'Tổng lợi nhuận',
-      value: revenueProfitSummaryStats?.data.profit || 0,
-      iconBg: '#ffcdd2',
-    },
-  ];
+    [handleClose]
+  );
+  const handleDateRangeChange = useCallback((rangesByKey: RangeKeyDict) => {
+    const selection = rangesByKey.selection;
+    if (selection.startDate && selection.endDate) {
+      setDateRange([
+        {
+          startDate: selection.startDate,
+          endDate: selection.endDate,
+          key: 'selection',
+        },
+      ]);
+    }
+  }, []);
+
+  const getDateDisplayText = useCallback(() => {
+    const { startDate, endDate } = dateRange[0];
+    if (!startDate || !endDate) return 'Chọn ngày';
+    if (startDate.getTime() === endDate.getTime()) {
+      return format(startDate, 'dd/MM/yyyy', { locale: vi });
+    }
+    return `${format(startDate, 'dd/MM/yyyy', { locale: vi })} - ${format(
+      endDate,
+      'dd/MM/yyyy',
+      { locale: vi }
+    )}`;
+  }, [dateRange]);
+
   return (
-    <Card>
-      <CardContent sx={{ p: 4 }}>
-        <RevenueProfitChart />
-        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
-          {summaryStats.map((stat, idx) => (
-            <React.Fragment key={stat.label}>
-              <SummaryStat {...stat} />
-              {idx < summaryStats.length - 1 && (
-                <Divider orientation='vertical' flexItem />
-              )}
-            </React.Fragment>
-          ))}
-        </Box>
-      </CardContent>
-    </Card>
+    <>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{ mb: 3 }}>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+        </Link>
+        <Typography color='text.primary'>Thống kê</Typography>
+        <Typography color='text.primary'>Doanh thu & Lợi nhuận</Typography>
+      </Breadcrumbs>
+      <Card>
+        <CardContent sx={{ p: 4 }}>
+          <>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                mb: 4,
+              }}>
+              <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+                Doanh thu và lợi nhuận
+              </Typography>
+              <Button
+                variant='outlined'
+                onClick={handleClick}
+                endIcon={<KeyboardArrowDownIcon />}
+                sx={{ minWidth: 150 }}>
+                {getDateDisplayText()}
+              </Button>
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-evenly',
+              }}>
+              <Box>
+                <Typography sx={{ color: '#696969' }}>Doanh thu</Typography>
+                <Typography
+                  sx={{ fontSize: 20, fontWeight: 600, color: '#333' }}>
+                  {formatPrice(
+                    revenueProfitSummaryStats?.data.totals.totalRevenue || 0
+                  )}
+                </Typography>
+              </Box>
+              <Divider orientation='vertical' flexItem />
+              <Box>
+                <Typography sx={{ color: '#696969' }}>Lợi nhuận</Typography>
+                <Typography
+                  sx={{ fontSize: 20, fontWeight: 600, color: '#333' }}>
+                  {formatPrice(
+                    revenueProfitSummaryStats?.data.totals.totalProfit || 0
+                  )}
+                </Typography>
+              </Box>
+            </Box>
+            <DateRangeMenu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              onSelect={handleDateSelect}
+              dateRange={dateRange}
+              onRangeChange={handleDateRangeChange}
+            />
+            <Box sx={{ width: '100%', height: 400, p: 0, m: 0 }}>
+              <Line data={chartData} options={chartOptions} />
+            </Box>
+          </>
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+            {summaryStats.map((stat, idx) => (
+              <Box
+                key={stat.label}
+                sx={{
+                  width: '25%',
+                  borderLeft: idx !== 0 ? '1px solid #e0e0e0' : 'none',
+                }}>
+                <Box sx={{ pl: idx !== 0 ? 4 : 0 }}>
+                  <SummaryStat {...stat} />
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        </CardContent>
+      </Card>
+    </>
   );
 };
 

@@ -5,12 +5,20 @@ export interface IRevenueProfitDateStats {
 }
 
 export interface IRevenueProfitStats {
-    revenueProfitData: IRevenueProfitDateStats[];
-    revenue: number;
-    profit: number;
+  revenueProfitData: IRevenueProfitDateStats[];
+  totals: {
+    totalRevenue: number;
+    totalProfit: number;
+  };
 }
 
 export interface IRevenueProfitSummaryStats {
-    revenue: number;
-    profit: number;
+  totals: {
+    totalRevenue: number;
+    totalProfit: number;
+  };
+  growth: {
+    revenuePercent: number;
+    profitPercent: number;
+  };
 }
