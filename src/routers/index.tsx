@@ -93,14 +93,14 @@ const routes = [
             path: `${ROUTES.PRODUCT}/*`,
             element: <Product />,
           },
-          {
-            path: `${ROUTES.STATISTIC}/*`,
-            element: <Statistic />,
-          },
           // {
           //   path: `${ROUTES.STATISTIC_REVENUE_PROFIT}`,
           //   element: <Statistic />,
           // },
+          {
+            path: `${ROUTES.STATISTIC}/*`,
+            element: <Statistic />,
+          },
           // {
           //   path: `${ROUTES.STATISTIC_ORDER}`,
           //   element: <Statistic />,
@@ -114,7 +114,7 @@ const routes = [
           //   element: <Statistic />,
           // },
           // {
-          //   path: `${ROUTES.PRODUCT}`,
+          //   path: `${ROUTES.STATISTIC_PRODUCT}`,
           //   element: <Statistic />,
           // },
           {

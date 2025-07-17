@@ -38,11 +38,9 @@ export interface IOrderStats {
 
 export interface IOrderSummaryStats {
   totals: {
-    totalRevenue: number;
-    totalProfit: number;
+    delivered: number;
+    pending: number;
+    canceled: number;
   };
-  growth: {
-    revenuePercent: number;
-    profitPercent: number;
-  };
+  growth: { delivered: number };
 }

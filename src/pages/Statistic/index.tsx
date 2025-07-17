@@ -3,6 +3,9 @@ import { useRoutes } from 'react-router-dom';
 import StatisticLayout from './components/StatisticLayout';
 import RevenueProfit from './components/RevenueProfit';
 import Order from './components/Order';
+import UserStats from './components/UserStats';
+import StockStats from './components/StockStats';
+import ProductStats from './components/ProductStats';
 
 const Statistic = () => {
   const router = useRoutes([
@@ -18,6 +21,21 @@ const Statistic = () => {
         {
           path: '/order',
           element: <Order />,
+          index: true,
+        },
+        {
+          path: '/user',
+          element: <UserStats />,
+          index: true,
+        },
+        {
+          path: '/stock',
+          element: <StockStats />,
+          index: true,
+        },
+        {
+          path: '/product',
+          element: <ProductStats />,
           index: true,
         },
       ],

@@ -71,7 +71,7 @@ const SummaryStat: React.FC<SummaryStatProps> = ({
         </Box>
         <Typography sx={{ fontSize: 16, fontWeight: 500 }}>{label}</Typography>
       </Box>
-      <Typography>{value}</Typography>
+      {value}
     </Box>
   );
 };
@@ -375,7 +375,7 @@ const RevenueProfit: React.FC = () => {
           <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
             {summaryStats.map((stat, idx) => (
               <Box
-                key={stat.label}
+                key={idx}
                 sx={{
                   width: '25%',
                   borderLeft: idx !== 0 ? '1px solid #e0e0e0' : 'none',

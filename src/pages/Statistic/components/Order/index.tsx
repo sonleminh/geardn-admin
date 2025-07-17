@@ -20,11 +20,13 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 
 import DateRangeMenu from '@/components/DateRangeMenu';
 import { ROUTES } from '@/constants/route';
 import { formatPrice } from '@/utils/format-price';
 import {
+  useGetOrderSummaryStats,
   useGetRevenueProfitStats,
   useGetRevenueProfitSummaryStats,
 } from '@/services/statistic';
@@ -92,20 +94,18 @@ const Order: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  // ----------- Data Fetching -----------
-  const { data: revenueProfitSummaryStats } = useGetRevenueProfitSummaryStats();
+  const { data: orderSummaryStats } = useGetOrderSummaryStats();
+
   const summaryStats = useMemo(
     () => [
       {
-        label: 'Tổng doanh thu',
+        label: 'Tổng đơn hàng',
         value: (
           <Typography sx={{ fontSize: 28, fontWeight: 500 }}>
-            {formatPrice(
-              revenueProfitSummaryStats?.data.totals.totalRevenue || 0
-            )}
+            {formatPrice(orderSummaryStats?.data.totals.delivered || 0)}
           </Typography>
         ),
-        icon: <AttachMoneyIcon sx={{ color: '#fff' }} />,
+        icon: <ShoppingBagOutlinedIcon sx={{ color: '#fff' }} />,
         iconBg: '#000',
       },
 
@@ -140,19 +140,15 @@ const Order: React.FC = () => {
         label: 'Tăng trưởng tháng',
         value: (
           <Typography
-            sx={valueStyle(
-              revenueProfitSummaryStats?.data.growth.profitPercent || 0
-            )}>
-            {revenueProfitSummaryStats?.data.growth.profitPercent.toFixed(2) ||
-              0}{' '}
-            %
+            sx={valueStyle(orderSummaryStats?.data.growth.delivered || 0)}>
+            {orderSummaryStats?.data.growth.delivered.toFixed(2) || 0} %
           </Typography>
         ),
         icon: <TrendingUpIcon sx={{ color: '#fff' }} />,
         iconBg: '#59b35c',
       },
     ],
-    [revenueProfitSummaryStats]
+    [orderSummaryStats]
   );
 
   const { data: revenueProfitStats } = useGetRevenueProfitStats({
@@ -313,7 +309,7 @@ const Order: React.FC = () => {
         <Typography color='text.primary'>Thống kê</Typography>
         <Typography color='text.primary'>Doanh thu & Lợi nhuận</Typography>
       </Breadcrumbs>
-      <Card>
+      {/* <Card>
         <CardContent sx={{ p: 4 }}>
           <>
             <Box
@@ -324,7 +320,7 @@ const Order: React.FC = () => {
                 mb: 4,
               }}>
               <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-                Doanh thu và lợi nhuận
+                Đơn hàng
               </Typography>
               <Button
                 variant='outlined'
@@ -341,22 +337,18 @@ const Order: React.FC = () => {
                 justifyContent: 'space-evenly',
               }}>
               <Box>
-                <Typography sx={{ color: '#696969' }}>Doanh thu</Typography>
+                <Typography sx={{ color: '#696969' }}>Tổng đơn hàng</Typography>
                 <Typography
                   sx={{ fontSize: 20, fontWeight: 600, color: '#333' }}>
-                  {formatPrice(
-                    revenueProfitSummaryStats?.data.totals.totalRevenue || 0
-                  )}
+                  {formatPrice(orderSummaryStats?.data.totals.delivered || 0)}
                 </Typography>
               </Box>
               <Divider orientation='vertical' flexItem />
               <Box>
-                <Typography sx={{ color: '#696969' }}>Lợi nhuận</Typography>
+                <Typography sx={{ color: '#696969' }}>Đang xử lý</Typography>
                 <Typography
                   sx={{ fontSize: 20, fontWeight: 600, color: '#333' }}>
-                  {formatPrice(
-                    revenueProfitSummaryStats?.data.totals.totalProfit || 0
-                  )}
+                  {formatPrice(orderSummaryStats?.data.totals.pending || 0)}
                 </Typography>
               </Box>
             </Box>
@@ -387,7 +379,7 @@ const Order: React.FC = () => {
             ))}
           </Box>
         </CardContent>
-      </Card>
+      </Card> */}
     </>
   );
 };
