@@ -2,6 +2,7 @@ import { useRoutes } from 'react-router-dom';
 
 import StatisticLayout from './components/StatisticLayout';
 import RevenueProfit from './components/RevenueProfit';
+import Order from './components/Order';
 
 const Statistic = () => {
   const router = useRoutes([
@@ -12,6 +13,11 @@ const Statistic = () => {
         {
           path: '/revenue-profit',
           element: <RevenueProfit />,
+          index: true,
+        },
+        {
+          path: '/order',
+          element: <Order />,
           index: true,
         },
       ],

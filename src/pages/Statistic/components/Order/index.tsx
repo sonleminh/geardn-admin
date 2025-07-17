@@ -76,7 +76,7 @@ const SummaryStat: React.FC<SummaryStatProps> = ({
   );
 };
 
-const RevenueProfit: React.FC = () => {
+const Order: React.FC = () => {
   const navigate = useNavigate();
 
   // ----------- State -----------
@@ -392,4 +392,4 @@ const RevenueProfit: React.FC = () => {
   );
 };
 
-export default RevenueProfit;
+export default Order;

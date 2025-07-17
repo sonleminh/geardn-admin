@@ -13,7 +13,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { IRevenueProfitDateStats } from '@/interfaces/IRevenueProfitStats';
+import { IRevenueProfitDateStats } from '@/interfaces/IStats';
 import { vi } from 'date-fns/locale';
 
 ChartJS.register(
