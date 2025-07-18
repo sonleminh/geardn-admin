@@ -1,4 +1,5 @@
 import {
+  IOrderStats,
   IOrderSummaryStats,
   IRevenueProfitStats,
   IRevenueProfitSummaryStats,
@@ -92,7 +93,7 @@ const getOrderStats = async (query: { fromDate: Date; toDate: Date }) => {
       toDate: query.toDate.toISOString(),
     },
   });
-  return result.data as TBaseResponse<IRevenueProfitStats>;
+  return result.data as TBaseResponse<IOrderStats>;
 };
 
 export const useGetOrderStats = (query: { fromDate: Date; toDate: Date }) => {
@@ -113,7 +114,7 @@ export const useGetOrderSummaryStats = () => {
   return useQuery({
     queryKey: [QueryKeys.RevenueProfitDailyStats],
     queryFn: () => getOrderSummaryStats(),
-    refetchOnWindowFocus: false,
-    refetchInterval: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 };

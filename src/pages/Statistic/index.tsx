@@ -2,7 +2,7 @@ import { useRoutes } from 'react-router-dom';
 
 import StatisticLayout from './components/StatisticLayout';
 import RevenueProfit from './components/RevenueProfit';
-import Order from './components/Order';
+import Order from './components/OrderStats';
 import UserStats from './components/UserStats';
 import StockStats from './components/StockStats';
 import ProductStats from './components/ProductStats';

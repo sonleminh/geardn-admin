@@ -79,7 +79,6 @@ const SummaryStat: React.FC<SummaryStatProps> = ({
 const RevenueProfit: React.FC = () => {
   const navigate = useNavigate();
 
-  // ----------- State -----------
   const [dateRange, setDateRange] = useState<
     [{ startDate: Date; endDate: Date; key: string }]
   >([
@@ -92,7 +91,6 @@ const RevenueProfit: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
-  // ----------- Data Fetching -----------
   const { data: revenueProfitSummaryStats } = useGetRevenueProfitSummaryStats();
   const summaryStats = useMemo(
     () => [
@@ -114,10 +112,11 @@ const RevenueProfit: React.FC = () => {
         value: (
           <Typography
             sx={valueStyle(
-              revenueProfitSummaryStats?.data.growth.revenuePercent || 0
+              revenueProfitSummaryStats?.data?.growth?.revenuePercent || 0
             )}>
-            {revenueProfitSummaryStats?.data.growth.revenuePercent.toFixed(2) ||
-              0}{' '}
+            {revenueProfitSummaryStats?.data?.growth?.revenuePercent?.toFixed(
+              2
+            ) || 0}{' '}
             %
           </Typography>
         ),
@@ -141,10 +140,11 @@ const RevenueProfit: React.FC = () => {
         value: (
           <Typography
             sx={valueStyle(
-              revenueProfitSummaryStats?.data.growth.profitPercent || 0
+              revenueProfitSummaryStats?.data?.growth?.profitPercent || 0
             )}>
-            {revenueProfitSummaryStats?.data.growth.profitPercent.toFixed(2) ||
-              0}{' '}
+            {revenueProfitSummaryStats?.data?.growth?.profitPercent?.toFixed(
+              2
+            ) || 0}{' '}
             %
           </Typography>
         ),
@@ -187,7 +187,6 @@ const RevenueProfit: React.FC = () => {
 
     const labels = revenueProfitStats?.data?.revenueProfitStatsData.map(
       (item: IRevenueProfitDateStats) => {
-        console.log('item', item.date);
         return format(new Date(item.date), 'dd/MM', { locale: vi });
       }
     );
@@ -340,7 +339,7 @@ const RevenueProfit: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'space-evenly',
               }}>
-              <Box>
+              <Box sx={{ textAlign: 'center' }}>
                 <Typography sx={{ color: '#696969' }}>Doanh thu</Typography>
                 <Typography
                   sx={{ fontSize: 20, fontWeight: 600, color: '#333' }}>
@@ -350,7 +349,7 @@ const RevenueProfit: React.FC = () => {
                 </Typography>
               </Box>
               <Divider orientation='vertical' flexItem />
-              <Box>
+              <Box sx={{ textAlign: 'center' }}>
                 <Typography sx={{ color: '#696969' }}>Lợi nhuận</Typography>
                 <Typography
                   sx={{ fontSize: 20, fontWeight: 600, color: '#333' }}>

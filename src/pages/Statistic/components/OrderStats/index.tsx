@@ -1,36 +1,35 @@
-import React, { useMemo, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Line } from 'react-chartjs-2';
 import { format, subDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Line } from 'react-chartjs-2';
 import { RangeKeyDict } from 'react-date-range';
+import { useNavigate } from 'react-router-dom';
 
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Divider,
-  Typography,
-  Breadcrumbs,
-  Link,
-} from '@mui/material';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import {
+  Box,
+  Breadcrumbs,
+  Button,
+  Card,
+  CardContent,
+  Link,
+  Typography,
+} from '@mui/material';
 
 import DateRangeMenu from '@/components/DateRangeMenu';
 import { ROUTES } from '@/constants/route';
-import { formatPrice } from '@/utils/format-price';
+import { IOrderDateStats } from '@/interfaces/IStats';
 import {
+  useGetOrderStats,
   useGetOrderSummaryStats,
-  useGetRevenueProfitStats,
-  useGetRevenueProfitSummaryStats,
 } from '@/services/statistic';
-import { IRevenueProfitDateStats } from '@/interfaces/IStats';
+import { formatPrice } from '@/utils/format-price';
+
 interface SummaryStatProps {
   label: string;
   value: React.ReactNode;
@@ -73,15 +72,14 @@ const SummaryStat: React.FC<SummaryStatProps> = ({
         </Box>
         <Typography sx={{ fontSize: 16, fontWeight: 500 }}>{label}</Typography>
       </Box>
-      <Typography>{value}</Typography>
+      {value}
     </Box>
   );
 };
 
-const Order: React.FC = () => {
+const OrderStats: React.FC = () => {
   const navigate = useNavigate();
 
-  // ----------- State -----------
   const [dateRange, setDateRange] = useState<
     [{ startDate: Date; endDate: Date; key: string }]
   >([
@@ -102,7 +100,7 @@ const Order: React.FC = () => {
         label: 'Tổng đơn hàng',
         value: (
           <Typography sx={{ fontSize: 28, fontWeight: 500 }}>
-            {formatPrice(orderSummaryStats?.data.totals.delivered || 0)}
+            {orderSummaryStats?.data.totals.delivered || 0}
           </Typography>
         ),
         icon: <ShoppingBagOutlinedIcon sx={{ color: '#fff' }} />,
@@ -113,12 +111,8 @@ const Order: React.FC = () => {
         label: 'Tăng trưởng tháng',
         value: (
           <Typography
-            sx={valueStyle(
-              revenueProfitSummaryStats?.data.growth.revenuePercent || 0
-            )}>
-            {revenueProfitSummaryStats?.data.growth.revenuePercent.toFixed(2) ||
-              0}{' '}
-            %
+            sx={valueStyle(orderSummaryStats?.data?.growth?.delivered || 0)}>
+            {orderSummaryStats?.data?.growth?.delivered?.toFixed(2) || 0} %
           </Typography>
         ),
         icon: <TrendingUpIcon sx={{ color: '#fff' }} />,
@@ -128,9 +122,7 @@ const Order: React.FC = () => {
         label: 'Tổng lợi nhuận',
         value: (
           <Typography sx={{ fontSize: 28, fontWeight: 500 }}>
-            {formatPrice(
-              revenueProfitSummaryStats?.data.totals.totalProfit || 0
-            )}
+            {orderSummaryStats?.data.totals.delivered || 0}
           </Typography>
         ),
         icon: <AttachMoneyIcon sx={{ color: '#fff' }} />,
@@ -140,8 +132,8 @@ const Order: React.FC = () => {
         label: 'Tăng trưởng tháng',
         value: (
           <Typography
-            sx={valueStyle(orderSummaryStats?.data.growth.delivered || 0)}>
-            {orderSummaryStats?.data.growth.delivered.toFixed(2) || 0} %
+            sx={valueStyle(orderSummaryStats?.data?.growth?.delivered || 0)}>
+            {orderSummaryStats?.data?.growth?.delivered?.toFixed(2) || 0} %
           </Typography>
         ),
         icon: <TrendingUpIcon sx={{ color: '#fff' }} />,
@@ -151,73 +143,49 @@ const Order: React.FC = () => {
     [orderSummaryStats]
   );
 
-  const { data: revenueProfitStats } = useGetRevenueProfitStats({
+  const { data: orderStats } = useGetOrderStats({
     fromDate: dateRange[0].startDate,
     toDate: dateRange[0].endDate,
   });
 
   const chartData = useMemo(() => {
-    if (!revenueProfitStats) {
+    if (!orderStats) {
       return {
         labels: [],
         datasets: [
           {
-            label: 'Doanh thu',
+            label: 'Đơn hàng',
             data: [],
             fill: false,
             borderColor: '#000',
             backgroundColor: '#fff',
             tension: 0.1,
           },
-          {
-            label: 'Lợi nhuận',
-            data: [],
-            fill: false,
-            borderColor: 'rgb(255, 99, 132)',
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            tension: 0.1,
-          },
         ],
       };
     }
 
-    const labels = revenueProfitStats?.data?.revenueProfitStatsData.map(
-      (item: IRevenueProfitDateStats) => {
-        console.log('item', item.date);
-        return format(new Date(item.date), 'dd/MM', { locale: vi });
-      }
-    );
-    const revenueData = revenueProfitStats?.data?.revenueProfitStatsData.map(
-      (item: IRevenueProfitDateStats) => item.revenue
-    );
-    const profitData = revenueProfitStats?.data?.revenueProfitStatsData.map(
-      (item: IRevenueProfitDateStats) => item.profit
-    );
+    const labels = orderStats?.data?.orderStats.map((item: IOrderDateStats) => {
+      return format(new Date(item.date), 'dd/MM', { locale: vi });
+    });
 
     return {
       labels,
       datasets: [
         {
-          label: 'Doanh thu (VNĐ)',
-          data: revenueData,
+          label: 'Đơn hàng',
+          data: orderStats?.data?.orderStats.map(
+            (item: IOrderDateStats) => item.orders
+          ),
           fill: false,
           borderColor: '#000',
           backgroundColor: '#fff',
           tension: 0.4,
           yAxisID: 'y',
         },
-        {
-          label: 'Lợi nhuận (VNĐ)',
-          data: profitData,
-          fill: false,
-          borderColor: '#59b35c',
-          backgroundColor: '#fff',
-          tension: 0.4,
-          yAxisID: 'y',
-        },
       ],
     };
-  }, [revenueProfitStats]);
+  }, [orderStats]);
 
   const chartOptions = useMemo(
     () => ({
@@ -307,9 +275,9 @@ const Order: React.FC = () => {
           <HomeOutlinedIcon sx={{ fontSize: 24 }} />
         </Link>
         <Typography color='text.primary'>Thống kê</Typography>
-        <Typography color='text.primary'>Doanh thu & Lợi nhuận</Typography>
+        <Typography color='text.primary'>Đơn hàng</Typography>
       </Breadcrumbs>
-      {/* <Card>
+      <Card>
         <CardContent sx={{ p: 4 }}>
           <>
             <Box
@@ -336,19 +304,11 @@ const Order: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'space-evenly',
               }}>
-              <Box>
+              <Box sx={{ textAlign: 'center' }}>
                 <Typography sx={{ color: '#696969' }}>Tổng đơn hàng</Typography>
                 <Typography
                   sx={{ fontSize: 20, fontWeight: 600, color: '#333' }}>
-                  {formatPrice(orderSummaryStats?.data.totals.delivered || 0)}
-                </Typography>
-              </Box>
-              <Divider orientation='vertical' flexItem />
-              <Box>
-                <Typography sx={{ color: '#696969' }}>Đang xử lý</Typography>
-                <Typography
-                  sx={{ fontSize: 20, fontWeight: 600, color: '#333' }}>
-                  {formatPrice(orderSummaryStats?.data.totals.pending || 0)}
+                  {orderSummaryStats?.data?.totals?.delivered || 0}
                 </Typography>
               </Box>
             </Box>
@@ -367,7 +327,7 @@ const Order: React.FC = () => {
           <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
             {summaryStats.map((stat, idx) => (
               <Box
-                key={stat.label}
+                key={idx}
                 sx={{
                   width: '25%',
                   borderLeft: idx !== 0 ? '1px solid #e0e0e0' : 'none',
@@ -379,9 +339,9 @@ const Order: React.FC = () => {
             ))}
           </Box>
         </CardContent>
-      </Card> */}
+      </Card>
     </>
   );
 };
 
-export default Order;
+export default OrderStats;

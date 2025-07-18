@@ -50,17 +50,17 @@ const menuList = [
             label: 'Đơn hàng',
           },
           {
-            to: ROUTES.STATISTIC_REVENUE_PROFIT,
+            to: ROUTES.STATISTIC_USER,
             icon: <AccountCircleOutlinedIcon />,
             label: 'Người dùng',
           },
           {
-            to: ROUTES.STATISTIC_ORDER,
+            to: ROUTES.STATISTIC_STOCK,
             icon: <Inventory2OutlinedIcon />,
             label: 'Tồn kho',
           },
           {
-            to: ROUTES.STATISTIC_REVENUE_PROFIT,
+            to: ROUTES.STATISTIC_PRODUCT,
             icon: (
               <Box
                 sx={{

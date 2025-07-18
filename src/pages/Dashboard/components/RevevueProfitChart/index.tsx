@@ -31,7 +31,6 @@ const RevevueProfitChart = ({
 }: {
   revenueProfitStats: IRevenueProfitDateStats[];
 }) => {
-  console.log('revenueprofit:', revenueProfitStats);
   const chartData = useMemo(() => {
     if (!revenueProfitStats) {
       return {

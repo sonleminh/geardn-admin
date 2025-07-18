@@ -21,6 +21,7 @@ import Payment from '@/pages/Payment';
 import Product from '@/pages/Product';
 import Order from '@/pages/Order';
 import Statistic from '@/pages/Statistic';
+import RevenueProfit from '@/pages/Statistic/components/RevenueProfit';
 
 const Loader =
   <P extends object>(Component: React.ComponentType<P>): React.FC<P> =>
@@ -93,30 +94,10 @@ const routes = [
             path: `${ROUTES.PRODUCT}/*`,
             element: <Product />,
           },
-          // {
-          //   path: `${ROUTES.STATISTIC_REVENUE_PROFIT}`,
-          //   element: <Statistic />,
-          // },
           {
             path: `${ROUTES.STATISTIC}/*`,
             element: <Statistic />,
           },
-          // {
-          //   path: `${ROUTES.STATISTIC_ORDER}`,
-          //   element: <Statistic />,
-          // },
-          // {
-          //   path: `${ROUTES.STATISTIC_USER}`,
-          //   element: <Statistic />,
-          // },
-          // {
-          //   path: `${ROUTES.STATISTIC_STOCK}`,
-          //   element: <Statistic />,
-          // },
-          // {
-          //   path: `${ROUTES.STATISTIC_PRODUCT}`,
-          //   element: <Statistic />,
-          // },
           {
             path: `${ROUTES.WAREHOUSE}/*`,
             element: <Warehouse />,
