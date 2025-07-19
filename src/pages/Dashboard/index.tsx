@@ -31,7 +31,6 @@ import RevevueProfitChart from './components/RevevueProfitChart';
 import TopCategoriesChart from './components/TopCategoriesChart';
 import DateRangeMenu from '@/components/DateRangeMenu';
 
-// Card styles
 const cardIconBox = (bgcolor: string) => ({
   display: 'flex',
   alignItems: 'center',

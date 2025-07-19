@@ -1,4 +1,3 @@
-import { IProduct } from "./IProduct";
 import { IProductSku } from "./IProductSku";
 import { IWarehouse } from "./IWarehouse";
 
@@ -19,7 +18,7 @@ export interface IStockProductSkuItem extends IProductSku {
     costPrice: number;
 }
 
-export interface IStockByWarehouseItem {
+export interface IStockItem {
     id: number;
     name: number;
     images: string[];

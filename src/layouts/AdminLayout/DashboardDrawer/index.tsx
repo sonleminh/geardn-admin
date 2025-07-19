@@ -104,18 +104,6 @@ const menuList = [
   {
     item: (
       <ListItem>
-        <ListItemButton component={NavLink} to={ROUTES.WAREHOUSE}>
-          <ListItemIcon>
-            <StoreMallDirectoryOutlinedIcon />
-          </ListItemIcon>
-          <ListItemText primary={'Kho hàng'} />
-        </ListItemButton>
-      </ListItem>
-    ),
-  },
-  {
-    item: (
-      <ListItem>
         <ListItemButton component={NavLink} to={ROUTES.PRODUCT}>
           <ListItemIcon>
             <Box
@@ -168,6 +156,18 @@ const menuList = [
           },
         ]}
       />
+    ),
+  },
+  {
+    item: (
+      <ListItem>
+        <ListItemButton component={NavLink} to={ROUTES.WAREHOUSE}>
+          <ListItemIcon>
+            <StoreMallDirectoryOutlinedIcon />
+          </ListItemIcon>
+          <ListItemText primary={'Kho hàng'} />
+        </ListItemButton>
+      </ListItem>
     ),
   },
   {

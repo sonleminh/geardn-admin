@@ -73,6 +73,7 @@ interface Data {
   stt: number;
   id: number;
   name: string;
+  variation: string;
   category: string;
   image: string;
   status: string;
@@ -108,7 +109,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'STT',
     isFilter: false,
-    width: '7%',
+    width: '5%',
   },
   {
     id: 'name',
@@ -116,6 +117,13 @@ const headCells: readonly HeadCell[] = [
     label: 'Tên sản phẩm',
     isFilter: false,
     width: '24%',
+  },
+  {
+    id: 'variation',
+    disablePadding: false,
+    align: 'center',
+    label: 'Biến thế',
+    width: '10%',
   },
   {
     id: 'category',
@@ -142,13 +150,6 @@ const headCells: readonly HeadCell[] = [
   },
   {
     align: 'center',
-    id: 'createdAt',
-    disablePadding: false,
-    label: 'Ngày tạo',
-    width: '10%',
-  },
-  {
-    align: 'center',
     id: 'isDeleted',
     disablePadding: false,
     label: 'Đã xóa',
@@ -164,11 +165,11 @@ const headCells: readonly HeadCell[] = [
 ];
 
 const columns: TableColumn[] = [
-  { width: '60px', align: 'center', type: 'text' },
-  { width: '350px', type: 'text' },
+  { width: '50px', align: 'center', type: 'text' },
+  { width: '280px', type: 'text' },
+  { width: '100px', align: 'center', type: 'text' },
   { width: '130px', type: 'text' },
   { width: '100px', align: 'center', type: 'image' },
-  { width: '150px', align: 'center', type: 'text' },
   { width: '100px', align: 'center', type: 'text' },
   { width: '100px', align: 'center', type: 'text' },
   { width: '100px', align: 'center', type: 'action' },
@@ -634,6 +635,26 @@ export default function ProductList() {
                           {product.name}
                         </Typography>
                       </TableCell>
+                      <TableCell>
+                        <Link
+                          href={`${ROUTES.PRODUCT}/${product.id}/sku`}
+                          sx={{
+                            py: 0.5,
+                            bgcolor: '#ececec',
+                            color: '#3e3e3e',
+                            border: '1px solid #cccccc',
+                            borderRadius: 1,
+                            fontSize: 13,
+                            textAlign: 'center',
+                            textDecoration: 'none',
+                            ...truncateTextByLine(1),
+                            '&:hover': {
+                              bgcolor: '#e3e3e3',
+                            },
+                          }}>
+                          {product.skus.length} biến thể
+                        </Link>
+                      </TableCell>
                       <TableCell align='center'>
                         <Typography
                           sx={{
@@ -677,14 +698,6 @@ export default function ProductList() {
                           }}>
                           {statusMap?.[product?.status] || 'Không xác định'}
                         </Button>
-                      </TableCell>
-                      <TableCell align='center'>
-                        <Typography
-                          sx={{
-                            fontSize: 14,
-                          }}>
-                          {moment(product?.createdAt).format('DD/MM/YYYY')}
-                        </Typography>
                       </TableCell>
                       <TableCell align='center'>
                         <Typography
