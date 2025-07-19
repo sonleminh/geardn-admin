@@ -54,11 +54,11 @@ const menuList = [
             icon: <AccountCircleOutlinedIcon />,
             label: 'Người dùng',
           },
-          {
-            to: ROUTES.STATISTIC_STOCK,
-            icon: <Inventory2OutlinedIcon />,
-            label: 'Tồn kho',
-          },
+          // {
+          //   to: ROUTES.STATISTIC_STOCK,
+          //   icon: <Inventory2OutlinedIcon />,
+          //   label: 'Tồn kho',
+          // },
           {
             to: ROUTES.STATISTIC_PRODUCT,
             icon: (

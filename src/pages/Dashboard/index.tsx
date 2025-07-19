@@ -6,13 +6,11 @@ import {
   Card,
   CardContent,
   Container,
-  Divider,
   Grid2,
-  Menu,
-  MenuItem,
+  Skeleton,
   Typography,
 } from '@mui/material';
-import { DateRange, RangeKeyDict } from 'react-date-range';
+import { RangeKeyDict } from 'react-date-range';
 import { format, subDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -21,6 +19,7 @@ import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import PendingOutlinedIcon from '@mui/icons-material/PendingOutlined';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 import {
@@ -30,7 +29,6 @@ import {
 import { formatPrice } from '@/utils/format-price';
 import RevevueProfitChart from './components/RevevueProfitChart';
 import TopCategoriesChart from './components/TopCategoriesChart';
-import TopProductsCarousel from './components/TopProductsCarousel';
 import DateRangeMenu from '@/components/DateRangeMenu';
 
 // Card styles
@@ -38,16 +36,24 @@ const cardIconBox = (bgcolor: string) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  width: 48,
-  height: 48,
+  width: { lg: 42, xl: 48 },
+  height: { lg: 42, xl: 48 },
   mr: 2,
   bgcolor,
   borderRadius: 3,
   p: 1,
 });
-const cardTitle = { fontSize: 20, fontWeight: 500 };
-const cardSubTitle = { color: '#828384', fontSize: 15, fontWeight: 500 };
-const cardValue = { mb: 2, fontSize: 24, fontWeight: 600 };
+const cardTitle = {
+  fontSize: { lg: 18, xl: 20 },
+  fontWeight: 500,
+  lineHeight: { lg: 1.2, xl: 1.3 },
+};
+const cardSubTitle = {
+  color: '#828384',
+  fontSize: { lg: 14, xl: 15 },
+  fontWeight: 500,
+};
+const cardValue = { mb: 2, fontSize: { lg: 22, xl: 24 }, fontWeight: 600 };
 const cardTrend = {
   display: 'flex',
   alignItems: 'center',
@@ -64,6 +70,7 @@ interface SummaryCardProps {
   extra?: React.ReactNode;
   bgcolor?: string;
   iconBg?: string;
+  isLoading?: boolean;
 }
 
 function SummaryCard({
@@ -75,6 +82,7 @@ function SummaryCard({
   extra,
   bgcolor = '#fff',
   iconBg = '#ebebeb',
+  isLoading = false,
 }: SummaryCardProps) {
   return (
     <Card
@@ -83,7 +91,7 @@ function SummaryCard({
         color: bgcolor === '#000' ? '#fff' : undefined,
         borderRadius: 4,
       }}>
-      <CardContent sx={{ p: 4 }}>
+      <CardContent sx={{ p: { lg: 3, xl: 4 } }}>
         <Box
           sx={{
             display: 'flex',
@@ -92,11 +100,57 @@ function SummaryCard({
             mb: 3,
           }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Box sx={cardIconBox(iconBg)}>{icon}</Box>
+            <Box sx={cardIconBox(iconBg)}>
+              {isLoading ? (
+                <Skeleton
+                  variant='circular'
+                  width={24}
+                  height={24}
+                  sx={{
+                    bgcolor:
+                      bgcolor === '#000'
+                        ? 'rgba(255, 255, 255, 0.3)'
+                        : undefined,
+                  }}
+                />
+              ) : (
+                icon
+              )}
+            </Box>
             <Box>
-              <Typography sx={cardTitle}>{title}</Typography>
-              {subtitle && (
-                <Typography sx={cardSubTitle}>{subtitle}</Typography>
+              {isLoading ? (
+                <>
+                  <Skeleton
+                    variant='text'
+                    width={120}
+                    height={24}
+                    sx={{
+                      mb: 1,
+                      bgcolor:
+                        bgcolor === '#000'
+                          ? 'rgba(255, 255, 255, 0.3)'
+                          : undefined,
+                    }}
+                  />
+                  <Skeleton
+                    variant='text'
+                    width={80}
+                    height={16}
+                    sx={{
+                      bgcolor:
+                        bgcolor === '#000'
+                          ? 'rgba(255, 255, 255, 0.3)'
+                          : undefined,
+                    }}
+                  />
+                </>
+              ) : (
+                <>
+                  <Typography sx={cardTitle}>{title}</Typography>
+                  {subtitle && (
+                    <Typography sx={cardSubTitle}>{subtitle}</Typography>
+                  )}
+                </>
               )}
             </Box>
           </Box>
@@ -104,10 +158,48 @@ function SummaryCard({
             sx={{ color: bgcolor === '#000' ? '#fff' : undefined }}
           />
         </Box>
-        <Typography sx={cardValue}>{value}</Typography>
+        {isLoading ? (
+          <Skeleton
+            variant='text'
+            width={100}
+            height={32}
+            sx={{
+              mb: 2,
+              bgcolor:
+                bgcolor === '#000' ? 'rgba(255, 255, 255, 0.3)' : undefined,
+            }}
+          />
+        ) : (
+          <Typography sx={cardValue}>{value}</Typography>
+        )}
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          {trend}
-          {extra}
+          {isLoading ? (
+            <>
+              <Skeleton
+                variant='text'
+                width={80}
+                height={20}
+                sx={{
+                  bgcolor:
+                    bgcolor === '#000' ? 'rgba(255, 255, 255, 0.3)' : undefined,
+                }}
+              />
+              <Skeleton
+                variant='text'
+                width={80}
+                height={20}
+                sx={{
+                  bgcolor:
+                    bgcolor === '#000' ? 'rgba(255, 255, 255, 0.3)' : undefined,
+                }}
+              />
+            </>
+          ) : (
+            <>
+              {trend}
+              {extra}
+            </>
+          )}
         </Box>
       </CardContent>
     </Card>
@@ -172,7 +264,7 @@ const Dashboard = () => {
       <Grid2 container spacing={3}>
         <Grid2 size={3}>
           <SummaryCard
-            icon={<ShoppingBagIcon sx={{ fontSize: 28 }} />}
+            icon={<ShoppingBagIcon sx={{ fontSize: { lg: 24, xl: 28 } }} />}
             title='Tổng doanh số'
             subtitle={`${overviewStats?.data?.totalOrders} đơn hàng`}
             value={formatPrice(overviewStats?.data?.totalRevenue || 0)}
@@ -198,6 +290,7 @@ const Dashboard = () => {
             }
             bgcolor='#000'
             iconBg='#58595a'
+            isLoading={isLoadingOverviewStats}
           />
         </Grid2>
         <Grid2 size={3}>
@@ -226,6 +319,7 @@ const Dashboard = () => {
                 </Typography>
               </Typography>
             }
+            isLoading={isLoadingOverviewStats}
           />
         </Grid2>
         <Grid2 size={3}>
@@ -253,33 +347,36 @@ const Dashboard = () => {
                 </Typography>
               </Typography>
             }
+            isLoading={isLoadingOverviewStats}
           />
         </Grid2>
+
         <Grid2 size={3}>
           <SummaryCard
-            icon={<PendingActionsIcon sx={{ fontSize: 28 }} />}
-            title='Đơn hàng đang xử lý'
-            value={overviewStats?.data?.pendingOrders}
+            icon={<PendingOutlinedIcon sx={{ fontSize: 28 }} />}
+            title='...'
+            value={0}
             trend={
               <Typography sx={cardTrend}>
                 <TrendingUpIcon sx={{ mr: 1 }} />
                 <Typography component='span' sx={{ fontWeight: 500 }}>
-                  +19%
+                  ...
                 </Typography>
               </Typography>
             }
             extra={
               <Typography sx={cardTrend}>
                 <Typography component='span' sx={{ mr: 1, fontWeight: 500 }}>
-                  +69
+                  ...
                 </Typography>
                 <Typography
                   component='span'
                   sx={{ fontWeight: 500, color: '#828384' }}>
-                  tuần này
+                  ...
                 </Typography>
               </Typography>
             }
+            isLoading={isLoadingOverviewStats}
           />
         </Grid2>
         <Grid2 size={9}>
@@ -312,12 +409,13 @@ const Dashboard = () => {
               />
               <RevevueProfitChart
                 revenueProfitStats={
-                  revenueProfitStats?.data?.revenueProfitData || []
+                  revenueProfitStats?.data?.revenueProfitStatsData || []
                 }
               />
             </CardContent>
           </Card>
         </Grid2>
+
         <Grid2 size={3}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
@@ -331,6 +429,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </Grid2>
+        {/* 
         <Grid2 size={12}>
           <Card>
             <CardContent>
@@ -340,7 +439,7 @@ const Dashboard = () => {
               />
             </CardContent>
           </Card>
-        </Grid2>
+        </Grid2> */}
       </Grid2>
     </Container>
   );

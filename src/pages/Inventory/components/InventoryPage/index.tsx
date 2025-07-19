@@ -127,7 +127,7 @@ const InventoryPage = () => {
           sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
           <HomeOutlinedIcon sx={{ fontSize: 24 }} />
         </Link>
-        <Typography color='text.primary'>Kho hàng</Typography>
+        <Typography color='text.primary'>Tồn kho</Typography>
       </Breadcrumbs>
       <Card sx={{ borderRadius: 2 }}>
         <Card>
