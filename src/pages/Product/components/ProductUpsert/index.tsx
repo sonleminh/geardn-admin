@@ -31,6 +31,7 @@ import {
   CardHeader,
   Divider,
   FormControl,
+  FormControlLabel,
   FormHelperText,
   Grid2,
   InputLabel,
@@ -38,6 +39,7 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  Switch,
   SxProps,
   TextField,
   Theme,
@@ -61,6 +63,7 @@ const ProductUpsert = () => {
   const { data: productData } = useGetProductById(id ? +id : 0);
   const { data: categoryList } = useGetCategoryList();
   const { data: tagData } = useGetEnumByContext('product-tag');
+  const { data: statusData } = useGetEnumByContext('product-status');
 
   const { mutate: createProductMutate, isPending: isCreatePending } =
     useCreateProduct();
@@ -81,6 +84,8 @@ const ProductUpsert = () => {
       },
       description: '',
       slug: '',
+      status: '',
+      isVisible: true,
     },
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
@@ -140,6 +145,8 @@ const ProductUpsert = () => {
       );
       formik.setFieldValue('slug', productData?.data?.slug);
       setTags(productData?.data?.tags);
+      formik.setFieldValue('status', productData?.data?.status);
+      formik.setFieldValue('isVisible', productData?.data?.isVisible);
     }
   }, [productData, initData]);
 
@@ -157,7 +164,12 @@ const ProductUpsert = () => {
   };
 
   const handleSelectChange = (e: SelectChangeEvent<unknown>) => {
-    formik.setFieldValue('categoryId', e.target.value);
+    const { name, value } = e.target;
+    formik.setFieldValue(name, value);
+  };
+
+  const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    formik.setFieldValue('isVisible', e.target.checked);
   };
 
   const handleUploadResult = (result: string[]) => {
@@ -263,19 +275,26 @@ const ProductUpsert = () => {
                 />
               </FormControl>
               <FormControl fullWidth margin='normal'>
-                <Typography mb={1}>
-                  Mô tả:
-                  <Typography component={'span'} color='red'>
-                    *
-                  </Typography>
-                </Typography>
-                <CKEditor
-                  onChange={(value: string) =>
-                    formik.setFieldValue('description', value)
-                  }
-                  value={formik.values.description ?? ''}
-                  helperText={formik?.errors?.description}
-                />
+                <FormControl variant='filled' fullWidth>
+                  <InputLabel>Trạng thái</InputLabel>
+                  <Select
+                    disableUnderline
+                    size='small'
+                    name='status'
+                    onChange={handleSelectChange}
+                    value={formik?.values?.status}>
+                    {statusData?.data?.map((item) => (
+                      <MenuItem key={item.value} value={item?.value}>
+                        {item.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText>
+                    <Box component={'span'} sx={helperTextStyle}>
+                      {formik.errors?.status}
+                    </Box>
+                  </FormHelperText>
+                </FormControl>
               </FormControl>
               <FormControl fullWidth margin='normal'>
                 <Autocomplete
@@ -315,10 +334,36 @@ const ProductUpsert = () => {
                 </FormHelperText>
               </FormControl>
               <FormControl fullWidth margin='normal'>
+                <Box sx={{ textAlign: 'start' }}>
+                  <FormControlLabel
+                    value={formik?.values?.isVisible}
+                    control={
+                      <Switch
+                        color='primary'
+                        checked={formik?.values?.isVisible}
+                        onChange={handleSwitchChange}
+                      />
+                    }
+                    label='Hiển thị:'
+                    labelPlacement='start'
+                    sx={{ ml: 0 }}
+                  />
+                </Box>
+              </FormControl>
+              <FormControl fullWidth margin='normal'>
                 <Typography mb={1}>
-                  Trạng thái:{' '}
-                  {productData?.data?.isDeleted ? 'Đã xóa' : 'Hoạt động'}
+                  Mô tả:
+                  <Typography component={'span'} color='red'>
+                    *
+                  </Typography>
                 </Typography>
+                <CKEditor
+                  onChange={(value: string) =>
+                    formik.setFieldValue('description', value)
+                  }
+                  value={formik.values.description ?? ''}
+                  helperText={formik?.errors?.description}
+                />
               </FormControl>
             </CardContent>
           </Card>
@@ -396,7 +441,7 @@ const ProductUpsert = () => {
             width: '100%',
             mt: 2,
           }}>
-          <Button onClick={() => navigate(ROUTES.PRODUCT)} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate(-1)} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button

@@ -15,7 +15,6 @@ import {
   Popover,
   Select,
   SelectChangeEvent,
-  Switch,
   Table,
   TableBody,
   TableCell,
@@ -32,6 +31,10 @@ import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import ActionButton from '@/components/ActionButton';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
+import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ExcelUpload from '@/components/ExcelUpload';
 import TableFilter from '@/components/TableFilter';
@@ -79,7 +82,6 @@ interface Data {
   category: string;
   image: string;
   status: string;
-  isVisible: boolean;
   createdAt: string;
   isDeleted: string;
   action: string;
@@ -119,7 +121,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Tên sản phẩm',
     isFilter: false,
-    width: '22%',
+    width: '24%',
   },
   {
     align: 'center',
@@ -141,22 +143,15 @@ const headCells: readonly HeadCell[] = [
     align: 'center',
     label: 'Danh mục',
     isFilter: true,
-    width: '13%',
+    width: '18%',
   },
   {
     align: 'center',
     id: 'status',
     disablePadding: false,
     label: 'Trạng thái',
-    width: '12%',
+    width: '15%',
     isFilter: true,
-  },
-  {
-    align: 'center',
-    id: 'isVisible',
-    disablePadding: false,
-    label: 'Hiển thị',
-    width: '10%',
   },
   {
     align: 'center',
@@ -171,9 +166,8 @@ const columns: TableColumn[] = [
   { width: '50px', align: 'center', type: 'text' },
   { width: '280px', type: 'text' },
   { width: '100px', align: 'center', type: 'image' },
-  { width: '130px', type: 'text' },
   { width: '100px', align: 'center', type: 'text' },
-  { width: '100px', align: 'center', type: 'text' },
+  { width: '130px', align: 'center', type: 'text' },
   { width: '100px', align: 'center', type: 'text' },
   { width: '100px', align: 'center', type: 'action' },
 ];
@@ -313,7 +307,7 @@ const FilterChips = ({
   );
 };
 
-export default function ProductList() {
+export default function ProductDeleted() {
   const navigate = useNavigate();
   const { confirmModal, showConfirmModal } = useConfirmModal();
   const queryClient = useQueryClient();
@@ -340,10 +334,16 @@ export default function ProductList() {
     search: searchQuery,
     categoryIds: columnFilters.category,
     statuses: columnFilters.status,
-    isDeleted: 'false',
+    isDeleted: 'true',
   });
   const { mutate: deleteProductMutate, isPending: isDeleting } =
     useDeleteProduct();
+  const { mutate: restoreProductMutate, isPending: isRestoring } =
+    useRestoreProduct();
+  const {
+    mutate: deleteProductPermanentMutate,
+    isPending: isDeletingPermanent,
+  } = useDeleteProductPermanent();
   const { data: productStatusEnumData } = useGetEnumByContext('product-status');
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -355,6 +355,24 @@ export default function ProductList() {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
         showNotification('Xóa sản phẩm thành công', 'success');
+      },
+    });
+  };
+
+  const handleRestore = (id: number) => {
+    restoreProductMutate(id, {
+      onSuccess() {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+        showNotification('Khôi phục sản phẩm thành công', 'success');
+      },
+    });
+  };
+
+  const handleDeletePermanent = (id: number) => {
+    deleteProductPermanentMutate(id, {
+      onSuccess() {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+        showNotification('Xoá vĩnh viễn sản phẩm thành công', 'success');
       },
     });
   };
@@ -408,6 +426,10 @@ export default function ProductList() {
     columnFilters.status,
   ]);
 
+  const handleProductFilterIsDeletedChange = (event: SelectChangeEvent) => {
+    setProductFilterIsDeleted(event.target.value);
+  };
+
   const statusMap = useMemo(
     () =>
       Object.fromEntries(
@@ -430,32 +452,37 @@ export default function ProductList() {
           sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
           <HomeOutlinedIcon sx={{ fontSize: 24 }} />
         </Link>
-        <Typography color='text.primary'>Danh sách sản phẩm</Typography>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.PRODUCT)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          Danh sách sản phẩm
+        </Link>
+        <Typography color='text.primary'>Đã xoá</Typography>
       </Breadcrumbs>
       <Card sx={{ mt: 3, borderRadius: 2 }}>
         <CardHeader
           title={
-            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Danh sách sản phẩm
-            </Typography>
-          }
-          action={
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <ExcelUpload />
-              <ButtonWithTooltip
-                variant='outlined'
-                onClick={() => navigate('deleted')}
-                title='Đã xoá'
-                sx={{ textTransform: 'none' }}>
-                <AutoDeleteOutlinedIcon />
-              </ButtonWithTooltip>
-              <ButtonWithTooltip
-                variant='contained'
-                onClick={() => navigate('create')}
-                title='Thêm sản phẩm'
-                sx={{ textTransform: 'none' }}>
-                <AddCircleOutlined />
-              </ButtonWithTooltip>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Link
+                onClick={() => navigate(ROUTES.PRODUCT)}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  mr: 2,
+                  cursor: 'pointer',
+                  '&:hover': {
+                    color: '#aeaeae',
+                  },
+                }}>
+                <ChevronLeftIcon sx={{ fontSize: 28 }} />
+              </Link>
+
+              <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+                Danh sách sản phẩm đã xoá
+              </Typography>
             </Box>
           }
         />
@@ -617,6 +644,7 @@ export default function ProductList() {
                           {product.category?.name}
                         </Typography>
                       </TableCell>
+
                       <TableCell align='center'>
                         <Button
                           variant='outlined'
@@ -638,14 +666,6 @@ export default function ProductList() {
                           {statusMap?.[product?.status] || 'Không xác định'}
                         </Button>
                       </TableCell>
-
-                      <TableCell align='center'>
-                        <Switch
-                          color='primary'
-                          checked={product?.isVisible}
-                          // onChange={handleSwitchChange}
-                        />
-                      </TableCell>
                       <TableCell align='center'>
                         <ActionButton>
                           <Box mb={1}>
@@ -654,7 +674,9 @@ export default function ProductList() {
                               variant='outlined'
                               title='Xem chi tiết'
                               placement='left'
-                              onClick={() => navigate(`${product.id}`)}>
+                              onClick={() =>
+                                navigate(`${ROUTES.PRODUCT}/${product.id}`)
+                              }>
                               <InfoOutlinedIcon />
                             </ButtonWithTooltip>
                           </Box>
@@ -674,25 +696,71 @@ export default function ProductList() {
                               variant='outlined'
                               title='Chỉnh sửa'
                               placement='left'
-                              onClick={() => navigate(`update/${product.id}`)}>
+                              onClick={() =>
+                                navigate(
+                                  `${ROUTES.PRODUCT}/update/${product.id}`
+                                )
+                              }>
                               <EditOutlinedIcon />
                             </ButtonWithTooltip>
                           </Box>
-                          <ButtonWithTooltip
-                            color='error'
-                            variant='outlined'
-                            title='Xoá'
-                            placement='left'
-                            onClick={() =>
-                              showConfirmModal({
-                                title: 'Xoá sản phẩm',
-                                content:
-                                  'Bạn có chắc chắn muốn xoá sản phẩm này?',
-                                onOk: () => handleDelete(product?.id),
-                              })
-                            }>
-                            <DeleteOutlineOutlinedIcon />
-                          </ButtonWithTooltip>
+                          {!product?.isDeleted && (
+                            <Box mb={1}>
+                              <ButtonWithTooltip
+                                color='error'
+                                variant='outlined'
+                                title='Xoá'
+                                placement='left'
+                                onClick={() =>
+                                  showConfirmModal({
+                                    title: 'Xoá sản phẩm',
+                                    content:
+                                      'Bạn có chắc chắn muốn xoá sản phẩm này?',
+                                    onOk: () => handleDelete(product?.id),
+                                  })
+                                }>
+                                <DeleteOutlineOutlinedIcon />
+                              </ButtonWithTooltip>
+                            </Box>
+                          )}
+                          {product?.isDeleted && (
+                            <Box mb={product?.isDeleted ? 1 : 0}>
+                              <ButtonWithTooltip
+                                variant='outlined'
+                                title='Khôi phục'
+                                placement='left'
+                                onClick={() =>
+                                  showConfirmModal({
+                                    title: 'Khôi phục sản phẩm',
+                                    content:
+                                      'Bạn có chắc chắn muốn khôi phục sản phẩm này?',
+                                    onOk: () => handleRestore(product?.id),
+                                  })
+                                }>
+                                <RestoreIcon />
+                              </ButtonWithTooltip>
+                            </Box>
+                          )}
+                          {product?.isDeleted && (
+                            <Box>
+                              <ButtonWithTooltip
+                                color='error'
+                                variant='outlined'
+                                title='Xoá vĩnh viễn'
+                                placement='left'
+                                onClick={() =>
+                                  showConfirmModal({
+                                    title: 'Xoá vĩnh viễn sản phẩm',
+                                    content:
+                                      'Bạn có chắc chắn muốn xoá vĩnh viễn sản phẩm này?',
+                                    onOk: () =>
+                                      handleDeletePermanent(product?.id),
+                                  })
+                                }>
+                                <DeleteForeverOutlinedIcon />
+                              </ButtonWithTooltip>
+                            </Box>
+                          )}
                         </ActionButton>
                       </TableCell>
                     </TableRow>
@@ -739,7 +807,7 @@ export default function ProductList() {
 
         {confirmModal()}
       </Card>
-      {isDeleting && <SuspenseLoader />}
+      {(isDeleting || isRestoring || isDeletingPermanent) && <SuspenseLoader />}
     </>
   );
 }

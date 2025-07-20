@@ -6,6 +6,7 @@ import ProductUpsert from './components/ProductUpsert';
 import ProductSkuDetail from './components/ProductSkuDetail';
 import ProductSkuUpsert from './components/ProductSkuUpsert';
 import ProductSkuList from './components/ProductSkuList';
+import ProductDeleted from './components/ProductDeleted';
 
 const Product = () => {
   const router = useRoutes([
@@ -49,6 +50,10 @@ const Product = () => {
         {
           path: '/sku/update/:skuId',
           element: <ProductSkuUpsert />,
+        },
+        {
+          path: 'deleted',
+          element: <ProductDeleted />,
         },
       ],
     },

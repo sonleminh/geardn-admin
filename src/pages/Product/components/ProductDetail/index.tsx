@@ -16,18 +16,32 @@ import {
   Chip,
   Divider,
   FormControl,
+  FormControlLabel,
   Grid2,
   Link,
+  Switch,
   Typography,
 } from '@mui/material';
 
 import { ROUTES } from '@/constants/route';
+import { useMemo } from 'react';
+import { useGetEnumByContext } from '@/services/enum';
 
 const ProductUpsert = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const { data: productData } = useGetProductById(id ? +id : 0);
+  const { data: productStatusEnumData } = useGetEnumByContext('product-status');
+
+  const statusMap = useMemo(
+    () =>
+      Object.fromEntries(
+        productStatusEnumData?.data?.map((item) => [item.value, item.label]) ??
+          []
+      ),
+    [productStatusEnumData?.data]
+  );
 
   return (
     <>
@@ -97,6 +111,7 @@ const ProductUpsert = () => {
                     <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                       {productData?.data?.images?.map((item) => (
                         <Box
+                          key={item}
                           sx={{
                             height: 80,
                             img: {
@@ -112,6 +127,73 @@ const ProductUpsert = () => {
                       ))}
                     </Box>
                   </Box>
+                  <FormControl fullWidth margin='normal'>
+                    <Typography>
+                      Trạng thái:
+                      <Button
+                        variant='outlined'
+                        color={
+                          productData?.data?.status === 'ACTIVE'
+                            ? 'success'
+                            : productData?.data?.status === 'DRAFT'
+                            ? 'primary'
+                            : productData?.data?.status === 'DISCONTINUED'
+                            ? 'warning'
+                            : 'error'
+                        }
+                        size='small'
+                        sx={{
+                          width: 120,
+                          ml: 2,
+                          fontSize: 13,
+                          textTransform: 'none',
+                        }}>
+                        {statusMap?.[productData?.data?.status ?? ''] ||
+                          'Không xác định'}
+                      </Button>
+                    </Typography>
+                  </FormControl>
+                </FormControl>
+                <FormControl fullWidth margin='normal'>
+                  <Box sx={{ display: 'flex' }}>
+                    <Typography mr={2}>Tag:</Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+                      {productData?.data?.tags && productData?.data?.tags.length
+                        ? productData?.data?.tags?.map((item) => (
+                            <Chip
+                              key={item?.value}
+                              label={item?.label}
+                              sx={{
+                                minWidth: '80px',
+                                mr: 1,
+                                fontSize: 14,
+                                borderRadius: 1,
+                                border: '1px solid #ccc',
+                                backgroundColor: '#fff',
+                                color: '#000',
+                              }}
+                            />
+                          ))
+                        : 'Không có'}
+                    </Box>
+                  </Box>
+                </FormControl>
+                <FormControl fullWidth margin='normal'>
+                  <Box sx={{ textAlign: 'start' }}>
+                    <FormControlLabel
+                      value={productData?.data?.isVisible}
+                      control={
+                        <Switch
+                          color='primary'
+                          checked={productData?.data?.isVisible}
+                          disabled
+                        />
+                      }
+                      label='Hiển thị:'
+                      labelPlacement='start'
+                      sx={{ ml: 0 }}
+                    />
+                  </Box>
                 </FormControl>
                 <FormControl fullWidth margin='normal'>
                   <Typography mb={1}>Mô tả:</Typography>
@@ -121,33 +203,6 @@ const ProductUpsert = () => {
                       disabled
                     />
                   </Box>
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <Box sx={{ display: 'flex' }}>
-                    <Typography mr={2}>Tag:</Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                      {productData?.data?.tags?.map((item) => (
-                        <Chip
-                          label={item?.label}
-                          sx={{
-                            minWidth: '80px',
-                            mr: 1,
-                            fontSize: 14,
-                            borderRadius: 1,
-                            border: '1px solid #ccc',
-                            backgroundColor: '#fff',
-                            color: '#000',
-                          }}
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                </FormControl>
-                <FormControl fullWidth margin='normal'>
-                  <Typography>
-                    Trạng thái:{' '}
-                    {productData?.data?.isDeleted ? 'Đã xóa' : 'Hoạt động'}
-                  </Typography>
                 </FormControl>
               </CardContent>
             </Card>
@@ -192,7 +247,7 @@ const ProductUpsert = () => {
                     variant='filled'
                     size='small'
                     disabled
-                    value={productData?.data?.details?.weight}
+                    value={productData?.data?.details?.weight ?? ''}
                   />
                 </FormControl>
                 <FormControl fullWidth margin='normal'>
@@ -229,7 +284,7 @@ const ProductUpsert = () => {
               Trở lại
             </Button>
             <Button
-              variant='outlined'
+              variant='contained'
               onClick={() => navigate(`/product/update/${id}`)}>
               Chỉnh sửa
             </Button>

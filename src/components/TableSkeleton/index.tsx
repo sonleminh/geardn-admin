@@ -30,7 +30,9 @@ export const TableSkeleton = ({ rowsPerPage, columns }: TableSkeletonProps) => {
                 boxSizing: 'border-box',
               }}>
               {column.type === 'image' && (
-                <Skeleton variant='rectangular' width={40} height={40} />
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Skeleton variant='rectangular' width={40} height={40} />
+                </Box>
               )}
               {column.type === 'action' && (
                 <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
