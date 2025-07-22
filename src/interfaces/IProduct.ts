@@ -36,6 +36,7 @@ export interface IProduct {
     description: string;
     slug: string;
     skus: IProductSku[];
+    totalStock: number;
     status:  'DRAFT' | 'ACTIVE' | 'OUT_OF_STOCK' | 'DISCONTINUED';
     isVisible: boolean;
     isDeleted: boolean;
@@ -65,6 +66,11 @@ export interface IUpdateProductPayload {
     brand: string;
     details: IDetails;
     description?: string;
+}
+
+export interface IUpdateProductIsVisiblePayload {
+    id: number;
+    isVisible: boolean;
 }
 
 export interface IProductPayload extends Record<string, unknown>  {

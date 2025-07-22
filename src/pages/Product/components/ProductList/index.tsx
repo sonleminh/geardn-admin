@@ -7,14 +7,10 @@ import {
   CardHeader,
   Chip,
   Divider,
-  FormControl,
   IconButton,
   InputAdornment,
   Link,
-  MenuItem,
   Popover,
-  Select,
-  SelectChangeEvent,
   Switch,
   Table,
   TableBody,
@@ -27,17 +23,18 @@ import {
   Typography,
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
-import moment from 'moment';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ExcelUpload from '@/components/ExcelUpload';
-import TableFilter from '@/components/TableFilter';
 import SuspenseLoader from '@/components/SuspenseLoader';
+import TableFilter from '@/components/TableFilter';
 import { TableSkeleton } from '@/components/TableSkeleton';
 import { AddCircleOutlined } from '@mui/icons-material';
+import AutoDeleteOutlinedIcon from '@mui/icons-material/AutoDeleteOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -46,11 +43,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import SearchIcon from '@mui/icons-material/Search';
-import CircleIcon from '@mui/icons-material/Circle';
-import RestoreIcon from '@mui/icons-material/Restore';
-import AutoDeleteOutlinedIcon from '@mui/icons-material/AutoDeleteOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined';
+import { FiPackage } from 'react-icons/fi';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
@@ -58,26 +51,26 @@ import useConfirmModal from '@/hooks/useModalConfirm';
 import { ICategory } from '@/interfaces/ICategory';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 
+import { QueryKeys } from '@/constants/query-key';
 import { ROUTES } from '@/constants/route';
+import { IEnum } from '@/interfaces/IEnum';
 import { useGetCategoryList } from '@/services/category';
+import { useGetEnumByContext } from '@/services/enum';
 import {
   useDeleteProduct,
-  useDeleteProductPermanent,
   useGetProductList,
-  useRestoreProduct,
+  useUpdateProductIsVisible,
 } from '@/services/product';
-import { QueryKeys } from '@/constants/query-key';
-import { useGetEnumByContext } from '@/services/enum';
 import { truncateTextByLine } from '@/utils/css-helper.util';
-import { IEnum } from '@/interfaces/IEnum';
 
 interface Data {
   stt: number;
   id: number;
   name: string;
+  image: string;
   variation: string;
   category: string;
-  image: string;
+  stock: number;
   status: string;
   isVisible: boolean;
   createdAt: string;
@@ -119,7 +112,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Tên sản phẩm',
     isFilter: false,
-    width: '22%',
+    width: '26%',
   },
   {
     align: 'center',
@@ -144,11 +137,18 @@ const headCells: readonly HeadCell[] = [
     width: '13%',
   },
   {
+    id: 'stock',
+    disablePadding: false,
+    align: 'center',
+    label: 'Tồn kho',
+    width: '8%',
+  },
+  {
     align: 'center',
     id: 'status',
     disablePadding: false,
     label: 'Trạng thái',
-    width: '12%',
+    width: '14%',
     isFilter: true,
   },
   {
@@ -156,14 +156,14 @@ const headCells: readonly HeadCell[] = [
     id: 'isVisible',
     disablePadding: false,
     label: 'Hiển thị',
-    width: '10%',
+    width: '8%',
   },
   {
     align: 'center',
     id: 'action',
     disablePadding: false,
     label: 'Hành động',
-    width: '10%',
+    width: '8%',
   },
 ];
 
@@ -172,6 +172,7 @@ const columns: TableColumn[] = [
   { width: '280px', type: 'text' },
   { width: '100px', align: 'center', type: 'image' },
   { width: '130px', type: 'text' },
+  { width: '100px', align: 'center', type: 'text' },
   { width: '100px', align: 'center', type: 'text' },
   { width: '100px', align: 'center', type: 'text' },
   { width: '100px', align: 'center', type: 'text' },
@@ -320,6 +321,9 @@ export default function ProductList() {
   const { showNotification } = useNotificationContext();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [updateIsVisibleId, setUpdateIsVisibleId] = useState<number | null>(
+    null
+  );
 
   const {
     filterAnchorEl,
@@ -342,6 +346,10 @@ export default function ProductList() {
     statuses: columnFilters.status,
     isDeleted: 'false',
   });
+  const {
+    mutate: updateProductIsVisibleMutate,
+    isPending: isUpdatingIsVisible,
+  } = useUpdateProductIsVisible();
   const { mutate: deleteProductMutate, isPending: isDeleting } =
     useDeleteProduct();
   const { data: productStatusEnumData } = useGetEnumByContext('product-status');
@@ -357,6 +365,25 @@ export default function ProductList() {
         showNotification('Xóa sản phẩm thành công', 'success');
       },
     });
+  };
+
+  const handleUpdateIsVisible = (id: number, isVisible: boolean) => {
+    setUpdateIsVisibleId(id);
+    updateProductIsVisibleMutate(
+      { id, isVisible },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
+          showNotification(
+            'Cập nhật trạng thái hiển thị thành công',
+            'success'
+          );
+        },
+        onError: () => {
+          showNotification('Cập nhật trạng thái hiển thị thất bại', 'error');
+        },
+      }
+    );
   };
 
   const renderFilterContent = useCallback(() => {
@@ -576,10 +603,10 @@ export default function ProductList() {
                       <TableCell align='center'>
                         <Box
                           sx={{
-                            height: 40,
+                            height: 48,
                             img: {
-                              width: 40,
-                              height: 40,
+                              width: 48,
+                              height: 48,
                               mr: 1,
                               objectFit: 'contain',
                             },
@@ -592,7 +619,7 @@ export default function ProductList() {
                           href={`${ROUTES.PRODUCT}/${product.id}/sku`}
                           sx={{
                             py: 0.5,
-                            bgcolor: '#ececec',
+                            bgcolor: '#f8f8f8',
                             color: '#3e3e3e',
                             border: '1px solid #cccccc',
                             borderRadius: 1,
@@ -601,12 +628,13 @@ export default function ProductList() {
                             textDecoration: 'none',
                             ...truncateTextByLine(1),
                             '&:hover': {
-                              bgcolor: '#e3e3e3',
+                              bgcolor: '#eeeeee',
                             },
                           }}>
                           {product.skus.length} biến thể
                         </Link>
                       </TableCell>
+
                       <TableCell align='center'>
                         <Typography
                           sx={{
@@ -616,6 +644,26 @@ export default function ProductList() {
                           }}>
                           {product.category?.name}
                         </Typography>
+                      </TableCell>
+                      <TableCell align='center'>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: 1.5,
+                          }}>
+                          <Box
+                            sx={{
+                              width: 24,
+                              height: 24,
+                              mb: 0.3,
+                              fontSize: 24,
+                            }}>
+                            <FiPackage />
+                          </Box>
+                          <Typography>{product?.totalStock}</Typography>
+                        </Box>
                       </TableCell>
                       <TableCell align='center'>
                         <Button
@@ -643,7 +691,13 @@ export default function ProductList() {
                         <Switch
                           color='primary'
                           checked={product?.isVisible}
-                          // onChange={handleSwitchChange}
+                          onChange={(_, checked) =>
+                            handleUpdateIsVisible(product.id, checked)
+                          }
+                          disabled={
+                            isUpdatingIsVisible &&
+                            product.id === updateIsVisibleId
+                          }
                         />
                       </TableCell>
                       <TableCell align='center'>

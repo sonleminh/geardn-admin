@@ -7,6 +7,7 @@ import { useNotificationContext } from '@/contexts/NotificationContext';
 import {
   ICreateProduct,
   IProduct,
+  IUpdateProductIsVisiblePayload,
   IUpdateProductPayload,
 } from '@/interfaces/IProduct';
 import { ErrorResponse } from '@/interfaces/IError';
@@ -139,12 +140,29 @@ export const useGetProductInitial = () => {
 const updateProduct = async (payload: IUpdateProductPayload) => {
   const { id, ...rest } = payload;
   const result = await axiosInstance.patch(`${productUrl}/${id}`, rest);
-  return result.data as IProduct;
+  return result.data as TBaseResponse<IProduct>;
 };
 
 export const useUpdateProduct = () => {
   return useMutation({
     mutationFn: updateProduct,
+  });
+};
+
+const updateProductIsVisible = async (
+  payload: IUpdateProductIsVisiblePayload
+) => {
+  const { id, ...rest } = payload;
+  const result = await axiosInstance.patch(
+    `${productUrl}/${id}/is-visible`,
+    rest
+  );
+  return result.data as TBaseResponse<IProduct>;
+};
+
+export const useUpdateProductIsVisible = () => {
+  return useMutation({
+    mutationFn: updateProductIsVisible,
   });
 };
 
