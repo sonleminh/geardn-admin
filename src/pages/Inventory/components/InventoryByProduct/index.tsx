@@ -168,7 +168,7 @@ const InventoryByProduct = () => {
                             </Typography>
                             <Typography component='span' sx={{ ml: 1 }}>
                               {formatPrice(
-                                item?.stocks?.[index]?.costPrice ?? 0
+                                item?.stocks?.[index]?.unitCost ?? 0
                               )}
                             </Typography>
                           </Typography>

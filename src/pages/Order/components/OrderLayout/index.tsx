@@ -4,7 +4,7 @@ import { Outlet } from 'react-router-dom';
 const OrderLayout = () => {
   return (
     <>
-      <Container maxWidth='lg'>
+      <Container maxWidth='xl'>
         <Outlet />
       </Container>
     </>

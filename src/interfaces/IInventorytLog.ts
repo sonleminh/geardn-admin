@@ -6,7 +6,7 @@ export interface IImportLogItem {
     importLogId: number;
     skuId: number;
     quantity: number;
-    costPrice: number;
+    unitCost: number;
     note?: string;
     sku: IProductSku;
 }
@@ -31,7 +31,7 @@ export interface ICreateImportLog extends Record<string, unknown>  {
     items: {
         skuId: number;
         quantity: number;
-        costPrice: number;
+        unitCost: number;
     }[];
 }
 
@@ -40,7 +40,7 @@ export interface IExportLogItem {
     exportLogId: number;
     skuId: number;
     quantity: number;
-    costPrice: number;
+    unitCost: number;
     note?: string;
     sku: IProductSku;
 }
@@ -66,7 +66,7 @@ export interface ICreateExportLog extends Record<string, unknown>  {
     items: {
         skuId: number;
         quantity: number;
-        costPrice: number;
+        unitCost: number;
     }[];
 }
 
@@ -76,7 +76,7 @@ export interface IAdjustmentLogItem {
     skuId: number;
     quantityBefore: number;
     quantityChange: number;
-    costPriceBefore: number;
+    unitCostBefore: number;
     sku: IProductSku;
 }
 
@@ -102,6 +102,6 @@ export interface ICreateAdjustmentLog extends Record<string, unknown>  {
         skuId: number;
         quantityBefore: number;
         quantityChange: number;
-        costPriceBefore: number;
+        unitCostBefore: number;
     }[];
 }

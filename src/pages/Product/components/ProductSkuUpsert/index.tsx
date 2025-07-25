@@ -49,7 +49,7 @@ import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
 const createSchema = Yup.object().shape({
-  price: Yup.number()
+  sellingPrice: Yup.number()
     .required('Vui lòng nhập giá bán')
     .min(0, 'Giá bán phải lớn hơn hoặc bằng 0')
     .typeError('Giá bán phải là số'),
@@ -57,7 +57,7 @@ const createSchema = Yup.object().shape({
 });
 
 const updateSchema = Yup.object().shape({
-  price: Yup.number()
+  sellingPrice: Yup.number()
     .required('Vui lòng nhập giá bán')
     .min(0, 'Giá bán phải lớn hơn hoặc bằng 0')
     .typeError('Giá bán phải là số'),
@@ -104,7 +104,7 @@ const ProductSkuUpsert = () => {
 
   useEffect(() => {
     if (skuData) {
-      formik.setFieldValue('price', skuData?.data?.price);
+      formik.setFieldValue('sellingPrice', skuData?.data?.sellingPrice);
       formik.setFieldValue('imageUrl', skuData?.data?.imageUrl);
       setAttributeList(
         skuData?.data?.productSkuAttributes?.map((item) => ({
@@ -117,7 +117,7 @@ const ProductSkuUpsert = () => {
 
   const formik = useFormik({
     initialValues: {
-      price: '',
+      sellingPrice: '',
       imageUrl: '',
     },
     validationSchema: isEdit ? updateSchema : createSchema,
@@ -131,7 +131,7 @@ const ProductSkuUpsert = () => {
       }
       const payload = {
         ...values,
-        price: +values.price,
+        sellingPrice: +values.sellingPrice,
         imageUrl: values.imageUrl === '' ? null : values.imageUrl,
         attributeValues: attributeList?.map((item) => ({
           attributeValueId: +item.attributeValueId,
@@ -400,17 +400,17 @@ const ProductSkuUpsert = () => {
                 <FormControl fullWidth>
                   <Input
                     label='Giá bán'
-                    name='price'
+                    name='sellingPrice'
                     variant='filled'
                     type='number'
                     size='small'
                     required
                     helperText={
                       <Box component={'span'} sx={helperTextStyle}>
-                        {formik.errors.price}
+                        {formik.errors.sellingPrice}
                       </Box>
                     }
-                    value={formik?.values.price}
+                    value={formik?.values.sellingPrice}
                     onChange={handleChangeValue}
                   />
                 </FormControl>

@@ -55,7 +55,7 @@ import { formatPrice } from '@/utils/format-price';
 interface IExportItem {
   sku: IProductSku;
   quantity: string;
-  costPrice: string;
+  unitCost: string;
 }
 
 const schema = Yup.object().shape({
@@ -101,7 +101,7 @@ const CreateInventoryExportPage = () => {
         items: exportItems?.map((item) => ({
           skuId: +item.sku.id,
           quantity: +item.quantity,
-          costPrice: +item.costPrice,
+          unitCost: +item.unitCost,
         })),
       };
 
@@ -148,12 +148,12 @@ const CreateInventoryExportPage = () => {
       updatedExportItems[editItemIndex] = {
         sku: sku,
         quantity: quantity,
-        costPrice:
+        unitCost:
           sku?.stocks
             ?.find(
               (stock) => stock?.warehouseId === +formik?.values?.warehouseId
             )
-            ?.costPrice?.toString() ?? '',
+            ?.unitCost?.toString() ?? '',
       };
       setExportItems(updatedExportItems);
       setProductId(undefined);
@@ -166,12 +166,12 @@ const CreateInventoryExportPage = () => {
           {
             sku: sku,
             quantity: quantity,
-            costPrice:
+            unitCost:
               sku?.stocks
                 ?.find(
                   (stock) => stock?.warehouseId === +formik?.values?.warehouseId
                 )
-                ?.costPrice?.toString() ?? '',
+                ?.unitCost?.toString() ?? '',
           },
         ]);
       }
@@ -465,7 +465,7 @@ const CreateInventoryExportPage = () => {
                             {item?.quantity}
                           </TableCell>
                           <TableCell sx={{ fontSize: 12 }} align='right'>
-                            {formatPrice(+item?.costPrice)}
+                            {formatPrice(+item?.unitCost)}
                           </TableCell>
                           <TableCell align='center'>
                             <Button

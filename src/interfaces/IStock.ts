@@ -6,7 +6,7 @@ export interface IStock {
     skuId: number;
     warehouseId: number;
     quantity: number;
-    costPrice: number;
+    unitCost: number;
 
     sku: IProductSku;
     warehouse: IWarehouse;
@@ -15,7 +15,7 @@ export interface IStock {
 
 export interface IStockProductSkuItem extends IProductSku {
     quantity: number;
-    costPrice: number;
+    unitCost: number;
 }
 
 export interface IStockItem {

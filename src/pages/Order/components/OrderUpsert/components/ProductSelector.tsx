@@ -160,7 +160,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
       productId: +productId,
       skuId: +selectedSkuId,
       quantity: +quantity,
-      price: selectedSku?.price ?? 0,
+      sellingPrice: selectedSku?.sellingPrice ?? 0,
       imageUrl: selectedSku?.imageUrl
         ? selectedSku?.imageUrl ?? ''
         : productData?.data?.images[0] ?? '',
@@ -216,7 +216,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
 
   const totalAmount = () => {
     return orderItems?.reduce(
-      (acc, item) => acc + (item?.price ?? 0) * (item?.quantity ?? 0),
+      (acc, item) => acc + (item?.sellingPrice ?? 0) * (item?.quantity ?? 0),
       0
     );
   };
@@ -530,7 +530,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
                           {item.quantity}
                         </TableCell>
                         <TableCell sx={{ fontSize: 12 }} align='right'>
-                          {formatPrice(item?.price)}
+                          {formatPrice(item?.sellingPrice)}
                         </TableCell>
                         <TableCell align='center'>
                           <Button

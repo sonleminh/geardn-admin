@@ -59,7 +59,7 @@ interface IAdjustmentItem {
   sku: IProductSku;
   quantityBefore: string;
   quantityChange: string;
-  costPriceBefore: string;
+  unitCostBefore: string;
 }
 
 const schema = Yup.object().shape({
@@ -110,7 +110,7 @@ const CreateInventoryAdjustmentPage = () => {
         note: values.note,
         items: adjustmentItems?.map((item) => ({
           skuId: +item.sku.id,
-          costPriceBefore: +item.costPriceBefore,
+          unitCostBefore: +item.unitCostBefore,
           quantityBefore: +item.quantityBefore,
           quantityChange: +item.quantityChange,
         })),
@@ -169,12 +169,12 @@ const CreateInventoryAdjustmentPage = () => {
       const updatedAdjustmentItems = adjustmentItems;
       updatedAdjustmentItems[editItemIndex] = {
         sku: sku,
-        costPriceBefore:
+        unitCostBefore:
           sku?.stocks
             ?.find(
               (stock) => stock?.warehouseId === +formik?.values?.warehouseId
             )
-            ?.costPrice?.toString() ?? '',
+            ?.unitCost?.toString() ?? '',
         quantityBefore:
           sku?.stocks
             ?.find(
@@ -200,12 +200,12 @@ const CreateInventoryAdjustmentPage = () => {
                 )
                 ?.quantity?.toString() ?? '',
             quantityChange: quantityChange,
-            costPriceBefore:
+            unitCostBefore:
               sku?.stocks
                 ?.find(
                   (stock) => stock?.warehouseId === +formik?.values?.warehouseId
                 )
-                ?.costPrice?.toString() ?? '',
+                ?.unitCost?.toString() ?? '',
           },
         ]);
       }
@@ -540,7 +540,7 @@ const CreateInventoryAdjustmentPage = () => {
                             {item.quantityChange}
                           </TableCell>
                           <TableCell sx={{ fontSize: 12 }} align='right'>
-                            {formatPrice(+item?.costPriceBefore)}
+                            {formatPrice(+item?.unitCostBefore)}
                           </TableCell>
                           <TableCell align='center'>
                             <Button

@@ -57,7 +57,7 @@ import { formatPrice } from '@/utils/format-price';
 interface IImportItem {
   sku: IProductSku;
   quantity: string;
-  costPrice: string;
+  unitCost: string;
 }
 
 const schema = Yup.object().shape({
@@ -73,7 +73,7 @@ const CreateInventoryImportPage = () => {
 
   const [productId, setProductId] = useState<number>();
   const [skuId, setSkuId] = useState<string>('');
-  const [costPrice, setCostPrice] = useState<string>('');
+  const [unitCost, setunitCost] = useState<string>('');
   const [quantity, setQuantity] = useState<string>('');
   const [isEditItem, setIsEditItem] = useState<boolean>(false);
   const [editItemIndex, setEditItemIndex] = useState<number | null>(null);
@@ -106,7 +106,7 @@ const CreateInventoryImportPage = () => {
         note: values.note,
         items: importItems?.map((item) => ({
           skuId: +item.sku.id,
-          costPrice: +item.costPrice,
+          unitCost: +item.unitCost,
           quantity: +item.quantity,
         })),
       };
@@ -123,13 +123,13 @@ const CreateInventoryImportPage = () => {
 
   useEffect(() => {
     if (transferFromWarehouseId && skuId) {
-      setCostPrice(
+      setunitCost(
         skusData?.data
           ?.find((sku) => sku?.id === +skuId)
           ?.stocks?.find(
             (stock) => stock?.warehouseId === +transferFromWarehouseId
           )
-          ?.costPrice?.toString() ?? ''
+          ?.unitCost?.toString() ?? ''
       );
     }
   }, [skusData?.data, transferFromWarehouseId, skuId]);
@@ -162,24 +162,24 @@ const CreateInventoryImportPage = () => {
       const updatedImportItems = importItems;
       updatedImportItems[editItemIndex] = {
         sku: sku,
-        costPrice: costPrice,
+        unitCost: unitCost,
         quantity: quantity,
       };
       setImportItems(updatedImportItems);
       setProductId(undefined);
       setSkuId('');
-      setCostPrice('');
+      setunitCost('');
       setQuantity('');
     } else {
-      if (sku && skuId && quantity && costPrice) {
+      if (sku && skuId && quantity && unitCost) {
         setImportItems((prev) => [
           ...prev,
-          { sku: sku, quantity: quantity, costPrice: costPrice },
+          { sku: sku, quantity: quantity, unitCost: unitCost },
         ]);
       }
       setProductId(undefined);
       setSkuId('');
-      setCostPrice('');
+      setunitCost('');
       setQuantity('');
     }
   };
@@ -188,7 +188,7 @@ const CreateInventoryImportPage = () => {
     setIsEditItem(true);
     setProductId(item?.sku?.product?.id);
     setSkuId(item?.sku?.id?.toString() ?? '');
-    setCostPrice(item?.costPrice.toString() ?? '');
+    setunitCost(item?.unitCost.toString() ?? '');
     setQuantity(item?.quantity.toString() ?? '');
     setEditItemIndex(index);
   };
@@ -206,7 +206,7 @@ const CreateInventoryImportPage = () => {
   const handleDeleteCurrentItem = () => {
     setProductId(undefined);
     setSkuId('');
-    setCostPrice('');
+    setunitCost('');
     setQuantity('');
   };
 
@@ -363,7 +363,7 @@ const CreateInventoryImportPage = () => {
                                 `
                                       )
                                       .join('- ')
-                                  : ''}
+                                  : 'Không có phân loại'}
                               </Typography>
                               <Typography
                                 component={'span'}
@@ -386,14 +386,14 @@ const CreateInventoryImportPage = () => {
                 <Grid2 size={12}>
                   <FormControl fullWidth>
                     <Input
-                      id='costPrice'
+                      id='unitCost'
                       label='Giá nhập'
-                      name='costPrice'
+                      name='unitCost'
                       variant='filled'
                       type='number'
                       disabled={formik?.values?.type === 'TRANSFER'}
-                      value={costPrice}
-                      onChange={(e) => setCostPrice(e?.target?.value)}
+                      value={unitCost}
+                      onChange={(e) => setunitCost(e?.target?.value)}
                     />
                   </FormControl>
                 </Grid2>
@@ -433,7 +433,7 @@ const CreateInventoryImportPage = () => {
                   <Button
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='contained'
-                    disabled={!productId || !skuId || !costPrice || !quantity}
+                    disabled={!productId || !skuId || !unitCost || !quantity}
                     onClick={handleSaveItem}>
                     Lưu
                   </Button>
@@ -441,7 +441,7 @@ const CreateInventoryImportPage = () => {
                     sx={{ ml: 2, textTransform: 'initial' }}
                     variant='outlined'
                     onClick={handleDeleteCurrentItem}
-                    disabled={!productId || !skuId || !costPrice || !quantity}>
+                    disabled={!productId || !skuId || !unitCost || !quantity}>
                     Xóa
                   </Button>
                 </Box>
@@ -520,7 +520,7 @@ const CreateInventoryImportPage = () => {
                             {item.quantity}
                           </TableCell>
                           <TableCell sx={{ fontSize: 12 }} align='right'>
-                            {formatPrice(+item?.costPrice)}
+                            {formatPrice(+item?.unitCost)}
                           </TableCell>
                           <TableCell align='center'>
                             <Button

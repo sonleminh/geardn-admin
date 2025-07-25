@@ -13,7 +13,7 @@ const ProductCard = ({
     productName: string;
     imageUrl: string;
     quantitySold: number;
-    price: number;
+    sellingPrice: number;
   };
 }) => {
   return (
@@ -63,7 +63,7 @@ const ProductCard = ({
             alignItems: 'center',
           }}>
           <Typography sx={{ fontWeight: 500 }}>
-            {formatPrice(data?.price)}
+            {formatPrice(data?.sellingPrice)}
           </Typography>
           <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
             Sold: {data?.quantitySold}

@@ -179,7 +179,7 @@ const ExportLogItem = ({ item }: ExportLogItemProps) => {
   const productName = item?.sku?.product?.name;
   const imageUrl = item?.sku?.imageUrl ?? item?.sku?.product?.images?.[0];
   const quantity = item?.quantity;
-  const costPrice = item?.costPrice;
+  const unitCost = item?.unitCost;
   const attributes = item?.sku?.productSkuAttributes;
 
   return (
@@ -217,7 +217,7 @@ const ExportLogItem = ({ item }: ExportLogItemProps) => {
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography sx={{ fontSize: 13 }}>SL: {quantity}</Typography>
           <Typography sx={{ fontSize: 13 }}>
-            Giá nhập: {formatPrice(costPrice)}
+            Giá nhập: {formatPrice(unitCost)}
           </Typography>
         </Box>
       </Box>

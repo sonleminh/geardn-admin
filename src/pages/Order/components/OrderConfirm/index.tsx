@@ -372,7 +372,7 @@ const OrderConfirm = () => {
                             SL: {item?.quantity}
                           </Typography>
                           <Typography sx={{ fontSize: 13 }}>
-                            Giá: {formatPrice(item?.price)}
+                            Giá: {formatPrice(item?.sellingPrice)}
                           </Typography>
                         </TableCell>
                         <TableCell>

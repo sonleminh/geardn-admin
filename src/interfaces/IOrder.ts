@@ -11,8 +11,8 @@ export interface IOrderItem {
     productId: number;
     skuId: number;
     quantity: number;
-    price: number;
-    costPrice?: number;
+    sellingPrice: number;
+    unitCost?: number;
     imageUrl: string;
     productName: string;
     productSlug: string;
@@ -54,8 +54,8 @@ export interface ICreateOrderItem {
     productId: number;
     skuId: number;
     quantity: number;
-    price: number;
-    costPrice?: number;
+    sellingPrice: number;
+    unitCost?: number;
     imageUrl: string;
     productName: string;
     productSlug: string;

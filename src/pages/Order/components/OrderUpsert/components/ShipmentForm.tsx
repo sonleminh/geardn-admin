@@ -99,8 +99,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
           }
         />
       </RadioGroup>
-
-      {formik?.values?.shipment?.method === 1 ? (
+      {formik?.values?.shipment?.method == 1 ? (
         <>
           <FormControl
             sx={{

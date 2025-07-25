@@ -1,6 +1,9 @@
-import { Box, FormControl, SxProps, Theme } from '@mui/material';
+import { Box, FormControl, SxProps, Theme, Typography } from '@mui/material';
 import Input from '@/components/Input';
 import { FormikProps } from 'formik';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 
 interface FormValues {
   fullName: string;
@@ -71,6 +74,38 @@ const CustomerForm: React.FC<CustomerInfoFormProps> = ({
           }
           value={formik?.values?.phoneNumber}
           onChange={handleChange}
+        />
+      </FormControl>
+      <FormControl
+        sx={{
+          '.MuiOutlinedInput-notchedOutline': {
+            borderColor: 'rgba(0,0,0,0.23) !important',
+          },
+          '.date-picker': {
+            width: '100%',
+            height: 50,
+            pl: 5,
+            fontSize: 15,
+          },
+          '.react-datepicker__calendar-icon': {
+            position: 'absolute',
+            top: '50%',
+            transform: 'translateY(-50%)',
+          },
+        }}
+        fullWidth
+        margin='dense'>
+        <Typography sx={{ mb: 1 }}>Thời gian nhận hàng:</Typography>
+        <DatePicker
+          showTimeSelect
+          showIcon
+          icon={<CalendarTodayOutlinedIcon />}
+          selected={formik?.values?.shipment?.deliveryDate}
+          onChange={(e) => formik.setFieldValue('shipment.delivery_date', e)}
+          dateFormat='dd/MM/yyyy HH:mm'
+          // timeFormat='HH:mm'
+          timeFormat='HH:mm'
+          className='date-picker'
         />
       </FormControl>
     </Box>

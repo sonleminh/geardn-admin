@@ -6,7 +6,7 @@ export interface IProductSku {
     id: number;
     productId: number;
     sku: string;
-    price: number;
+    sellingPrice: number;
     imageUrl: string;
     productSkuAttributes: IProductSkuAttribute[]
     stocks: IStock[]
@@ -16,7 +16,7 @@ export interface IProductSku {
 
 export interface ICreateProductSku extends Record<string, unknown>  {
     productId?: number;
-    price: number;
+    sellingPrice: number;
     imageUrl: string | null;
     attributeValues: {
         attributeValueId: number
@@ -24,7 +24,7 @@ export interface ICreateProductSku extends Record<string, unknown>  {
 }
 export interface IUpdateProductSkuPayload {
     id: number;
-    price: number;
+    sellingPrice: number;
     imageUrl: string | null;
     attributeValues: {
         attributeValueId: number

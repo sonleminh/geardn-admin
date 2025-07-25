@@ -99,6 +99,8 @@ const useOrderForm = (
     onSubmit: () => {}, // Will be set in the component
   });
 
+  console.log('shipment', formik.values.shipment);
+
   useEffect(() => {
     if (orderData) {
       formik.setFieldValue('fullName', orderData.data.fullName);
@@ -387,7 +389,7 @@ const OrderUpsert = () => {
         {isEdit ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn hàng mới'}:
       </Typography>
 
-      <Grid2 container spacing={3}>
+      <Grid2 container spacing={4}>
         <Grid2 size={{ xs: 12, md: 6 }}>
           <Card sx={{ mb: 3 }}>
             <CardHeader
@@ -404,7 +406,7 @@ const OrderUpsert = () => {
               <CustomerForm formik={formik} handleChange={handleChange} />
             </CardContent>
           </Card>
-          <Card>
+          {/* <Card>
             <CardHeader
               title='Phương thức thanh toán'
               sx={{
@@ -434,7 +436,7 @@ const OrderUpsert = () => {
                 </RadioGroup>
               </FormControl>
             </CardContent>
-          </Card>
+          </Card> */}
         </Grid2>
         <Grid2 size={{ xs: 12, md: 6 }}>
           <Card>

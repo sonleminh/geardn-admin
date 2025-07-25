@@ -20,7 +20,7 @@ interface IProduct {
   productName: string;
   imageUrl: string;
   quantitySold: number;
-  price: number;
+  sellingPrice: number;
 }
 
 interface TopProductsCarouselProps {

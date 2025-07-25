@@ -181,7 +181,7 @@ const OrderItem = ({ item }: OrderItemProps) => {
   const productName = item?.productName;
   const imageUrl = item?.imageUrl;
   const quantity = item?.quantity;
-  const price = item?.price;
+  const sellingPrice = item?.sellingPrice;
   const attributes = item?.skuAttributes;
 
   return (
@@ -218,7 +218,9 @@ const OrderItem = ({ item }: OrderItemProps) => {
         </Typography>
 
         <Typography sx={{ fontSize: 13 }}>SL: {quantity}</Typography>
-        <Typography sx={{ fontSize: 13 }}>Giá: {formatPrice(price)}</Typography>
+        <Typography sx={{ fontSize: 13 }}>
+          Giá: {formatPrice(sellingPrice)}
+        </Typography>
       </Box>
       <Box
         sx={{

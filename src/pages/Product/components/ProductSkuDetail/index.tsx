@@ -87,11 +87,11 @@ const ProductSkuDetail = () => {
                 <FormControl fullWidth>
                   <Input
                     label='Giá bán'
-                    name='price'
+                    name='sellingPrice'
                     variant='filled'
                     type='number'
                     size='small'
-                    value={skuData?.data?.price ?? ''}
+                    value={skuData?.data?.sellingPrice ?? ''}
                   />
                 </FormControl>
                 <FormControl fullWidth margin='normal'>
