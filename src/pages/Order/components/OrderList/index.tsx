@@ -800,18 +800,22 @@ const OrderList = () => {
                       </TableCell>
                       <TableCell align='center'>
                         <ActionButton>
-                          <Box mb={1}>
-                            <ButtonWithTooltip
-                              color='primary'
-                              variant='outlined'
-                              title='Xác nhận'
-                              placement='left'
-                              onClick={() =>
-                                navigate(`${ROUTES.ORDER}/confirm/${order?.id}`)
-                              }>
-                              <DoneOutlinedIcon />
-                            </ButtonWithTooltip>
-                          </Box>
+                          {order?.status === 'PENDING' && (
+                            <Box mb={1}>
+                              <ButtonWithTooltip
+                                color='primary'
+                                variant='outlined'
+                                title='Xác nhận'
+                                placement='left'
+                                onClick={() =>
+                                  navigate(
+                                    `${ROUTES.ORDER}/confirm/${order?.id}`
+                                  )
+                                }>
+                                <DoneOutlinedIcon />
+                              </ButtonWithTooltip>
+                            </Box>
+                          )}
                           <Box mb={1}>
                             <ButtonWithTooltip
                               color='primary'

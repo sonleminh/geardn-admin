@@ -1,4 +1,12 @@
-import { Box, FormControl, SxProps, Theme, Typography } from '@mui/material';
+import {
+  Box,
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  SxProps,
+  Theme,
+  Typography,
+} from '@mui/material';
 import Input from '@/components/Input';
 import { FormikProps } from 'formik';
 import DatePicker from 'react-datepicker';
@@ -18,16 +26,22 @@ interface FormValues {
     isOnlineOrder: boolean;
   };
   note: string;
+  confirmedAt: Date | null;
+  completedAt: Date | null;
 }
 
 interface CustomerInfoFormProps {
   formik: FormikProps<FormValues>;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isCompleted: boolean;
+  setIsCompleted: (value: boolean) => void;
 }
 
 const CustomerForm: React.FC<CustomerInfoFormProps> = ({
   formik,
   handleChange,
+  isCompleted,
+  setIsCompleted,
 }) => {
   return (
     <Box>
@@ -76,38 +90,61 @@ const CustomerForm: React.FC<CustomerInfoFormProps> = ({
           onChange={handleChange}
         />
       </FormControl>
-      <FormControl
-        sx={{
-          '.MuiOutlinedInput-notchedOutline': {
-            borderColor: 'rgba(0,0,0,0.23) !important',
-          },
-          '.date-picker': {
-            width: '100%',
-            height: 50,
-            pl: 5,
-            fontSize: 15,
-          },
-          '.react-datepicker__calendar-icon': {
-            position: 'absolute',
-            top: '50%',
-            transform: 'translateY(-50%)',
-          },
-        }}
-        fullWidth
-        margin='dense'>
-        <Typography sx={{ mb: 1 }}>Thời gian nhận hàng:</Typography>
-        <DatePicker
-          showTimeSelect
-          showIcon
-          icon={<CalendarTodayOutlinedIcon />}
-          selected={formik?.values?.shipment?.deliveryDate}
-          onChange={(e) => formik.setFieldValue('shipment.delivery_date', e)}
-          dateFormat='dd/MM/yyyy HH:mm'
-          // timeFormat='HH:mm'
-          timeFormat='HH:mm'
-          className='date-picker'
+      <FormControl margin='dense'>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isCompleted}
+              onChange={(e) => {
+                setIsCompleted(e.target.checked);
+                if (e.target.checked) {
+                  formik.setFieldValue('status', 'DELIVERED');
+                  formik.setFieldValue('confirmedAt', new Date());
+                  formik.setFieldValue('completedAt', new Date());
+                } else {
+                  formik.setFieldValue('confirmedAt', null);
+                  formik.setFieldValue('completedAt', null);
+                }
+              }}
+            />
+          }
+          label='Đã hoàn thành'
         />
       </FormControl>
+      {isCompleted && (
+        <FormControl
+          sx={{
+            '.MuiOutlinedInput-notchedOutline': {
+              borderColor: 'rgba(0,0,0,0.23) !important',
+            },
+            '.date-picker': {
+              width: '100%',
+              height: 50,
+              pl: 5,
+              fontSize: 15,
+            },
+            '.react-datepicker__calendar-icon': {
+              position: 'absolute',
+              top: '50%',
+              transform: 'translateY(-50%)',
+            },
+          }}
+          fullWidth
+          margin='dense'>
+          <Typography sx={{ mb: 1 }}>Thời gian hoàn thành:</Typography>
+          <DatePicker
+            showTimeSelect
+            showIcon
+            icon={<CalendarTodayOutlinedIcon />}
+            selected={formik?.values?.completedAt}
+            onChange={(e) => formik.setFieldValue('completedAt', e)}
+            dateFormat='dd/MM/yyyy HH:mm'
+            // timeFormat='HH:mm'
+            timeFormat='HH:mm'
+            className='date-picker'
+          />
+        </FormControl>
+      )}
     </Box>
   );
 };

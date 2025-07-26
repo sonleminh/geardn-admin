@@ -65,6 +65,9 @@ interface OrderFormValues {
     isOnlineOrder: boolean;
   };
   note: string;
+  status: string;
+  confirmedAt: Date | null;
+  completedAt: Date | null;
 }
 
 const useOrderForm = (
@@ -94,12 +97,13 @@ const useOrderForm = (
         isOnlineOrder: false,
       },
       note: '',
+      status: 'PENDING',
+      confirmedAt: null,
+      completedAt: null,
     },
     validateOnChange: false,
     onSubmit: () => {}, // Will be set in the component
   });
-
-  console.log('shipment', formik.values.shipment);
 
   useEffect(() => {
     if (orderData) {
@@ -151,6 +155,8 @@ const OrderUpsert = () => {
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
 
+  const [isCompleted, setIsCompleted] = useState<boolean>(false);
+
   const { data: orderData } = useGetOrderById(id as string);
 
   const { mutate: createOrderMutate, isPending: isCreatePending } =
@@ -163,6 +169,7 @@ const OrderUpsert = () => {
 
   const handleSubmit = useCallback(
     (values: OrderFormValues) => {
+      console.log('values', values);
       if (!user?.id) {
         return showNotification('Không tìm thấy tài khoản', 'error');
       }
@@ -195,7 +202,7 @@ const OrderUpsert = () => {
           deliveryDate: values.shipment.deliveryDate ?? new Date(),
         },
         totalPrice: orderItems.reduce(
-          (acc, item) => acc + (item.price ?? 0) * (item.quantity ?? 0),
+          (acc, item) => acc + (item.sellingPrice ?? 0) * (item.quantity ?? 0),
           0
         ),
       };
@@ -339,6 +346,15 @@ const OrderUpsert = () => {
     [handleAddressChange]
   );
 
+  // const handleCompletedChange = useCallback(
+  //   (value: boolean) => {
+  //     setIsCompleted(value);
+  //   },
+  //   []
+  // );
+
+  console.log('completedAt:', formik.values.completedAt);
+
   const breadcrumbs = useMemo(
     () => [
       {
@@ -403,7 +419,12 @@ const OrderUpsert = () => {
             />
             <Divider />
             <CardContent>
-              <CustomerForm formik={formik} handleChange={handleChange} />
+              <CustomerForm
+                formik={formik}
+                handleChange={handleChange}
+                isCompleted={isCompleted}
+                setIsCompleted={setIsCompleted}
+              />
             </CardContent>
           </Card>
           {/* <Card>

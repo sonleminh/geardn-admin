@@ -38,6 +38,8 @@ interface FormValues {
     isOnlineOrder: boolean;
   };
   note: string;
+  confirmedAt: Date | null;
+  completedAt: Date | null;
 }
 
 interface ShipmentFormProps {
