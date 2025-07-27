@@ -16,6 +16,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
+import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 
 import Input from '@/components/Input';
 import { IDistrict, IWards, IProvince } from '@/interfaces/IOrder';
@@ -24,6 +25,7 @@ import {
   useGetProvince,
   useGetProvinceList,
 } from '@/services/order';
+import DatePicker from 'react-datepicker';
 
 interface FormValues {
   fullName: string;
@@ -240,6 +242,38 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
           </Select>
         </FormControl>
       )}
+      <FormControl
+        sx={{
+          '.MuiOutlinedInput-notchedOutline': {
+            borderColor: 'rgba(0,0,0,0.23) !important',
+          },
+          '.date-picker': {
+            width: '100%',
+            height: 50,
+            pl: 5,
+            fontSize: 15,
+          },
+          '.react-datepicker__calendar-icon': {
+            position: 'absolute',
+            top: '50%',
+            transform: 'translateY(-50%)',
+          },
+        }}
+        fullWidth
+        margin='dense'>
+        <Typography sx={{ mb: 1 }}>Thời gian chọn giao hàng:</Typography>
+        <DatePicker
+          showTimeSelect
+          showIcon
+          icon={<CalendarTodayOutlinedIcon />}
+          selected={formik?.values?.shipment?.deliveryDate}
+          onChange={(e) => formik.setFieldValue('shipment.deliveryDate', e)}
+          dateFormat='dd/MM/yyyy HH:mm'
+          // timeFormat='HH:mm'
+          timeFormat='HH:mm'
+          className='date-picker'
+        />
+      </FormControl>
       <FormControl
         variant='filled'
         fullWidth

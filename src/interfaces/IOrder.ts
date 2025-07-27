@@ -46,6 +46,8 @@ export interface IOrder {
     orderCode: string;
     totalPrice: number;
     status: string;
+    confirmedAt: Date;
+    completedAt: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -88,14 +90,13 @@ export interface IUpdateOrder{
     shipment: {
         method: number;
         address: string;
-        deliveryDate: Date;
+        deliveryDate: Date | null;
     };
     paymentMethodId: number;
     flag: {
         isOnlineOrder: boolean;
     };
     note: string;
-    status?: string;
     orderItems: ICreateOrderItem[]
 }
 

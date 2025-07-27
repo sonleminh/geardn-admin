@@ -65,7 +65,6 @@ interface OrderFormValues {
     isOnlineOrder: boolean;
   };
   note: string;
-  status: string;
   confirmedAt: Date | null;
   completedAt: Date | null;
 }
@@ -83,6 +82,8 @@ const useOrderForm = (
     shopAddress: '',
   });
 
+  console.log('address:', address);
+
   const formik = useFormik<OrderFormValues>({
     initialValues: {
       fullName: '',
@@ -90,7 +91,7 @@ const useOrderForm = (
       email: '',
       shipment: {
         method: 1,
-        deliveryDate: isEdit ? null : moment().toDate(),
+        deliveryDate: null,
       },
       paymentMethodId: 1,
       flag: {
@@ -196,10 +197,10 @@ const OrderUpsert = () => {
         shipment: {
           ...values.shipment,
           address:
-            values.shipment.method === 1
+            values.shipment.method == 1
               ? `${detailAddress}, ${ward}, ${district}, ${city}`
               : shopAddress,
-          deliveryDate: values.shipment.deliveryDate ?? new Date(),
+          deliveryDate: values.shipment.deliveryDate,
         },
         totalPrice: orderItems.reduce(
           (acc, item) => acc + (item.sellingPrice ?? 0) * (item.quantity ?? 0),

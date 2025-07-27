@@ -217,7 +217,7 @@ const OrderConfirm = () => {
             <Divider />
             <CardContent>
               <Grid2 container spacing={3}>
-                <Grid2 size={{ xs: 12, md: 3.5 }}>
+                <Grid2 size={{ xs: 12, md: 4 }}>
                   <Typography sx={{ mb: 1, fontWeight: 500 }}>
                     Tên khách hàng:
                   </Typography>
@@ -226,7 +226,7 @@ const OrderConfirm = () => {
                   </Typography>
                   <Typography sx={{ fontWeight: 500 }}>Email:</Typography>
                 </Grid2>
-                <Grid2 size={{ xs: 12, md: 8.5 }}>
+                <Grid2 size={{ xs: 12, md: 8 }}>
                   <Typography sx={{ mb: 1 }}>
                     {orderData?.data?.fullName ?? ''}
                   </Typography>
@@ -251,29 +251,29 @@ const OrderConfirm = () => {
             <Divider />
             <CardContent>
               <Grid2 container spacing={3}>
-                <Grid2 size={{ xs: 12, md: 3.5 }}>
+                <Grid2 size={{ xs: 12, md: 4 }}>
                   <Typography sx={{ mb: 1, fontWeight: 500 }}>
                     Ngày đặt hàng:
                   </Typography>
                   <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Ngày giao hàng:
+                    Thời gian giao hàng:
                   </Typography>
                   <Typography sx={{ mb: 1, fontWeight: 500 }}>
                     Vận chuyển:
                   </Typography>
                   <Typography sx={{ fontWeight: 500 }}>Địa chỉ:</Typography>
                 </Grid2>
-                <Grid2 size={{ xs: 12, md: 8.5 }}>
+                <Grid2 size={{ xs: 12, md: 8 }}>
                   <Typography sx={{ mb: 1 }}>
-                    {moment(orderData?.data?.createdAt).format('DD/MM/YYYY')}
+                    {moment(orderData?.data?.completedAt).format('DD/MM/YYYY')}
                   </Typography>
                   <Typography sx={{ mb: 1 }}>
                     {moment(orderData?.data?.shipment?.deliveryDate).format(
-                      'DD/MM/YYYY'
+                      'DD/MM/YYYY HH:mm'
                     )}
                   </Typography>
                   <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.shipment?.method === 1
+                    {orderData?.data?.shipment?.method == 1
                       ? 'Giao hàng tận nơi'
                       : 'Nhận tại cửa hàng'}
                   </Typography>

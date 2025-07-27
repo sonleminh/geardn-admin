@@ -759,41 +759,57 @@ const OrderList = () => {
                         {formatPrice(order?.totalPrice)}
                       </TableCell>
                       <TableCell align='center'>
-                        <Tooltip title='Cập nhật trạng thái'>
-                          <Button
-                            variant='outlined'
-                            color={
-                              order?.status === 'PENDING'
-                                ? 'warning'
-                                : order?.status === 'PROCESSING'
-                                ? 'info'
-                                : order?.status === 'SHIPPED'
-                                ? 'success'
-                                : order?.status === 'DELIVERED'
-                                ? 'success'
-                                : order?.status === 'CANCELLED'
-                                ? 'error'
-                                : 'error'
-                            }
-                            // size='small'
-                            onClick={(e) => {
-                              setStatusAnchorEl(e.currentTarget);
-                              setSelectedOrder(order);
-                              setNewStatus(order.status);
-                            }}
+                        {order?.status === 'PENDING' ? (
+                          <Link
+                            href={`${ROUTES.ORDER}/confirm/${order?.id}`}
                             sx={{
-                              width: '100%',
-                              fontSize: 13,
-                              textTransform: 'none',
-                              cursor: 'pointer',
-                              '&:hover': {
-                                backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                              textDecoration: 'none',
+                              color: 'primary.main',
+                              button: {
+                                textTransform: 'none',
                               },
-                              gap: 1,
                             }}>
-                            {statusMap?.[order?.status] || 'Không xác định'}
-                          </Button>
-                        </Tooltip>
+                            <Button variant='outlined' color='warning'>
+                              Chờ xác nhận
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Tooltip title='Cập nhật trạng thái'>
+                            <Button
+                              variant='outlined'
+                              color={
+                                order?.status === 'PENDING'
+                                  ? 'warning'
+                                  : order?.status === 'PROCESSING'
+                                  ? 'info'
+                                  : order?.status === 'SHIPPED'
+                                  ? 'success'
+                                  : order?.status === 'DELIVERED'
+                                  ? 'success'
+                                  : order?.status === 'CANCELLED'
+                                  ? 'error'
+                                  : 'error'
+                              }
+                              // size='small'
+                              onClick={(e) => {
+                                setStatusAnchorEl(e.currentTarget);
+                                setSelectedOrder(order);
+                                setNewStatus(order.status);
+                              }}
+                              sx={{
+                                width: '100%',
+                                fontSize: 13,
+                                textTransform: 'none',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                                },
+                                gap: 1,
+                              }}>
+                              {statusMap?.[order?.status] || 'Không xác định'}
+                            </Button>
+                          </Tooltip>
+                        )}
                       </TableCell>
                       <TableCell align='center'>
                         {moment(order?.createdAt).format('DD/MM/YYYY')}
