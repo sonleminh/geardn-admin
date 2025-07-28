@@ -516,7 +516,7 @@ const OrderList = () => {
   const statusMap = useMemo(
     () =>
       Object.fromEntries(
-        orderStatusEnumData?.data?.map((item) => [item.value, item.label]) ?? []
+        orderStatusEnumData?.data.map((item) => [item.value, item.label]) ?? []
       ),
     [orderStatusEnumData?.data]
   );
@@ -943,11 +943,13 @@ const OrderList = () => {
                 onChange={(e) => setNewStatus(e.target.value)}
                 style={{ width: '100%', padding: 8, fontSize: 14 }}
                 disabled={isUpdatingStatus}>
-                {orderStatusEnumData?.data?.map((status: IEnum) => (
-                  <option key={status.value} value={status.value}>
-                    {status.label}
-                  </option>
-                ))}
+                {orderStatusEnumData?.data
+                  ?.filter((status: IEnum) => status.value !== 'PENDING')
+                  ?.map((status: IEnum) => (
+                    <option key={status.value} value={status.value}>
+                      {status.label}
+                    </option>
+                  ))}
               </select>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>

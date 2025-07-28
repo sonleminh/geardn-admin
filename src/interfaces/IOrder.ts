@@ -67,9 +67,9 @@ export interface ICreateOrderItem {
 
 export interface ICreateOrder extends Record<string, unknown>  {
     userId: number;
-    fullName: string;
-    phoneNumber: string;
-    email: string;
+    fullName: string | null;
+    phoneNumber: string | null;
+    email: string | null;
     shipment: {
         method: number;
         address: string;
@@ -79,14 +79,14 @@ export interface ICreateOrder extends Record<string, unknown>  {
     flag: {
         isOnlineOrder: boolean;
     };
-    note: string;
+    note: string | null;
     orderItems: ICreateOrderItem[]
 }
 export interface IUpdateOrder{
     id: number;
-    fullName: string;
-    phoneNumber: string;
-    email: string;
+    fullName: string | null;
+    phoneNumber: string | null;
+    email: string | null;
     shipment: {
         method: number;
         address: string;
@@ -96,7 +96,7 @@ export interface IUpdateOrder{
     flag: {
         isOnlineOrder: boolean;
     };
-    note: string;
+    note: string | null;
     orderItems: ICreateOrderItem[]
 }
 

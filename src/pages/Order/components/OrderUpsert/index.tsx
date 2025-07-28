@@ -1,6 +1,5 @@
 import axios, { AxiosError } from 'axios';
 import { useFormik } from 'formik';
-import moment from 'moment';
 import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -12,12 +11,8 @@ import {
   CardContent,
   CardHeader,
   Divider,
-  FormControl,
-  FormControlLabel,
   Grid2,
   Link,
-  Radio,
-  RadioGroup,
   Typography,
 } from '@mui/material';
 
@@ -69,10 +64,7 @@ interface OrderFormValues {
   completedAt: Date | null;
 }
 
-const useOrderForm = (
-  orderData: { data: IOrder } | undefined,
-  isEdit: boolean
-) => {
+const useOrderForm = (orderData: { data: IOrder } | undefined) => {
   const [orderItems, setOrderItems] = useState<ICreateOrderItem[]>([]);
   const [address, setAddress] = useState<AddressState>({
     city: '',
@@ -81,8 +73,6 @@ const useOrderForm = (
     detailAddress: '',
     shopAddress: '',
   });
-
-  console.log('address:', address);
 
   const formik = useFormik<OrderFormValues>({
     initialValues: {
@@ -98,7 +88,6 @@ const useOrderForm = (
         isOnlineOrder: false,
       },
       note: '',
-      status: 'PENDING',
       confirmedAt: null,
       completedAt: null,
     },
@@ -166,11 +155,11 @@ const OrderUpsert = () => {
     useUpdateOrder();
 
   const { formik, orderItems, setOrderItems, address, setAddress } =
-    useOrderForm(orderData, isEdit);
+    useOrderForm(orderData);
 
   const handleSubmit = useCallback(
     (values: OrderFormValues) => {
-      console.log('values', values);
+      console.log('values:', values);
       if (!user?.id) {
         return showNotification('Không tìm thấy tài khoản', 'error');
       }
@@ -190,12 +179,26 @@ const OrderUpsert = () => {
         return showNotification('Vui lòng chọn địa chỉ nhận hàng', 'error');
       }
 
-      const payload = {
+      // Process form values - trim whitespace and convert empty strings to null for API
+      const processField = (value: string) => {
+        const trimmed = value?.trim();
+        return trimmed === '' ? null : trimmed;
+      };
+
+      const processedValues = {
         ...values,
+        fullName: processField(values.fullName),
+        phoneNumber: processField(values.phoneNumber),
+        email: processField(values.email),
+        note: processField(values.note),
+      };
+
+      const payload = {
+        ...processedValues,
         userId: +user.id,
         orderItems,
         shipment: {
-          ...values.shipment,
+          ...processedValues.shipment,
           address:
             values.shipment.method == 1
               ? `${detailAddress}, ${ward}, ${district}, ${city}`
@@ -346,15 +349,6 @@ const OrderUpsert = () => {
     },
     [handleAddressChange]
   );
-
-  // const handleCompletedChange = useCallback(
-  //   (value: boolean) => {
-  //     setIsCompleted(value);
-  //   },
-  //   []
-  // );
-
-  console.log('completedAt:', formik.values.completedAt);
 
   const breadcrumbs = useMemo(
     () => [

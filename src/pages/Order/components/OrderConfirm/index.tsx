@@ -228,12 +228,14 @@ const OrderConfirm = () => {
                 </Grid2>
                 <Grid2 size={{ xs: 12, md: 8 }}>
                   <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.fullName ?? ''}
+                    {orderData?.data?.fullName ?? 'Không có'}
                   </Typography>
                   <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.phoneNumber ?? ''}
+                    {orderData?.data?.phoneNumber ?? 'Không có'}
                   </Typography>
-                  <Typography>{orderData?.data?.email ?? ''}</Typography>
+                  <Typography>
+                    {orderData?.data?.email ?? 'Không có'}
+                  </Typography>
                 </Grid2>
               </Grid2>
             </CardContent>
@@ -265,12 +267,18 @@ const OrderConfirm = () => {
                 </Grid2>
                 <Grid2 size={{ xs: 12, md: 8 }}>
                   <Typography sx={{ mb: 1 }}>
-                    {moment(orderData?.data?.completedAt).format('DD/MM/YYYY')}
+                    {orderData?.data?.completedAt
+                      ? moment(orderData?.data?.completedAt).format(
+                          'DD/MM/YYYY'
+                        )
+                      : 'Không có'}
                   </Typography>
                   <Typography sx={{ mb: 1 }}>
-                    {moment(orderData?.data?.shipment?.deliveryDate).format(
-                      'DD/MM/YYYY HH:mm'
-                    )}
+                    {orderData?.data?.shipment?.deliveryDate
+                      ? moment(orderData?.data?.shipment?.deliveryDate).format(
+                          'DD/MM/YYYY HH:mm'
+                        )
+                      : 'Không có'}
                   </Typography>
                   <Typography sx={{ mb: 1 }}>
                     {orderData?.data?.shipment?.method == 1

@@ -240,6 +240,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
               variant='filled'
               margin='dense'
               fullWidth
+              // disabled={orderData?.status !== 'PENDING'}
               sx={selectStyle}>
               <InputLabel>Danh mục</InputLabel>
               <LoadingSelect

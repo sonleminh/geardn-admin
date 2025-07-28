@@ -98,7 +98,6 @@ const CustomerForm: React.FC<CustomerInfoFormProps> = ({
               onChange={(e) => {
                 setIsCompleted(e.target.checked);
                 if (e.target.checked) {
-                  // formik.setFieldValue('status', 'DELIVERED');
                   formik.setFieldValue('confirmedAt', new Date());
                   formik.setFieldValue('completedAt', new Date());
                 } else {

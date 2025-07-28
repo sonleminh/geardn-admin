@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import DatePicker from 'react-datepicker';
 
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Autocomplete,
@@ -96,6 +98,7 @@ const CreateInventoryImportPage = () => {
       warehouseId: '',
       type: '',
       note: '',
+      importDate: new Date(),
     },
     validationSchema: schema,
     validateOnChange: false,
@@ -104,6 +107,7 @@ const CreateInventoryImportPage = () => {
         warehouseId: +values.warehouseId,
         type: values.type,
         note: values.note,
+        importDate: formik?.values?.importDate,
         items: importItems?.map((item) => ({
           skuId: +item.sku.id,
           unitCost: +item.unitCost,
@@ -296,6 +300,38 @@ const CreateInventoryImportPage = () => {
             </Select>
           </FormControl>
         )}
+
+        <FormControl
+          sx={{
+            '.MuiOutlinedInput-notchedOutline': {
+              borderColor: 'rgba(0,0,0,0.23) !important',
+            },
+            '.date-picker': {
+              width: '100%',
+              height: 50,
+              pl: 5,
+              fontSize: 15,
+            },
+            '.react-datepicker__calendar-icon': {
+              position: 'absolute',
+              top: '50%',
+              transform: 'translateY(-50%)',
+            },
+          }}
+          fullWidth
+          margin='dense'>
+          <Typography sx={{ mb: 1 }}>Thời gian nhập hàng:</Typography>
+          <DatePicker
+            showTimeSelect
+            showIcon
+            icon={<CalendarTodayOutlinedIcon />}
+            selected={formik?.values?.importDate}
+            onChange={(e) => formik.setFieldValue('importDate', e)}
+            dateFormat='dd/MM/yyyy HH:mm'
+            timeFormat='HH:mm'
+            className='date-picker'
+          />
+        </FormControl>
         <Grid2 container spacing={2}>
           <Grid2 size={6}>
             <Box>
