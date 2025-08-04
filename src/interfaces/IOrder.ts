@@ -104,6 +104,7 @@ export interface IUpdateOrderStatus{
     id: number;
     oldStatus: string;
     newStatus: string;
+    note: string | null;
 }
 
 export interface IUpdateOrderConfirm{

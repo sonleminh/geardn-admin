@@ -49,6 +49,7 @@ interface Data {
   user: string;
   oldStatus: string;
   newStatus: string;
+  note: string;
   createdAt: Date;
 }
 
@@ -92,34 +93,41 @@ const headCells: readonly HeadCell[] = [
     id: 'order',
     disablePadding: false,
     label: 'Đơn hàng',
-    width: '15%',
+    width: '18%',
   },
   {
     id: 'user',
     disablePadding: false,
     label: 'Người cập nhật',
-    width: '10%',
+    width: '15%',
   },
   {
     align: 'center',
     id: 'oldStatus',
     disablePadding: false,
     label: 'Trạng thái mới',
-    width: '15%',
+    width: '13%',
   },
   {
     align: 'center',
     id: 'newStatus',
     disablePadding: false,
     label: 'Trạng thái cũ',
-    width: '12%',
+    width: '13%',
+  },
+  {
+    align: 'center',
+    id: 'note',
+    disablePadding: false,
+    label: 'Ghi chú',
+    width: '20%',
   },
   {
     align: 'center',
     id: 'createdAt',
     disablePadding: false,
     label: 'Ngày cập nhật',
-    width: '12%',
+    width: '14%',
   },
 ];
 
@@ -514,6 +522,9 @@ const OrderUpdateHistoryList = () => {
                             {statusMap?.[orderUpdateHistory?.oldStatus] ||
                               'Không xác định'}
                           </Button>
+                        </TableCell>
+                        <TableCell align='center'>
+                          {orderUpdateHistory?.note ?? 'Không có'}
                         </TableCell>
                         <TableCell align='center'>
                           {moment(orderUpdateHistory?.createdAt).format(

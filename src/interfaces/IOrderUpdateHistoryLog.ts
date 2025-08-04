@@ -7,5 +7,6 @@ export interface IOrderUpdateHistoryLog {
   user: IUser;
   oldStatus: string;
   newStatus: string;
+  note: string;
   createdAt: Date;
 }

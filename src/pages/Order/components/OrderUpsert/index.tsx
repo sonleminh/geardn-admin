@@ -221,17 +221,18 @@ const OrderUpsert = () => {
                 queryKey: [QueryKeys.Order],
               });
               showNotification('Cập nhật đơn hàng thành công', 'success');
-              navigate(-1);
+              // navigate(-1);
             },
             onError: handleError,
           }
         );
       } else {
+        console.log('payload:', payload);
         createOrderMutate(payload as ICreateOrder, {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
             showNotification('Tạo đơn hàng thành công', 'success');
-            navigate(-1);
+            // navigate(-1);
           },
           onError: handleError,
         });

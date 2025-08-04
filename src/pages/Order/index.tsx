@@ -4,6 +4,7 @@ import OrderList from './components/OrderList';
 import OrderUpsert from './components/OrderUpsert';
 import OrderConfirm from './components/OrderConfirm';
 import OrderUpdateHistoryList from './components/OrderUpdateHistoryList';
+import OrderCancel from './components/OrderCancel';
 // import OrderLayout from './components/OrderLayout';
 // import OrderList from './components/OrderList';
 // import OrderCategoryList from './components/OrderCategoryList';

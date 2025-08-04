@@ -29,17 +29,16 @@ import {
 } from '@mui/material';
 
 import { AddCircleOutlined } from '@mui/icons-material';
-import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 
 import { addDays } from 'date-fns';
 import moment from 'moment';
@@ -51,12 +50,9 @@ import TableFilter from '@/components/TableFilter';
 import { TableSkeleton } from '@/components/TableSkeleton';
 
 import { useGetEnumByContext } from '@/services/enum';
-import { useGetImportLogList } from '@/services/inventory';
 import { useGetProductList } from '@/services/product';
-import { useGetWarehouseList } from '@/services/warehouse';
 
 import { IEnum } from '@/interfaces/IEnum';
-import { IImportLogItem } from '@/interfaces/IInventorytLog';
 
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
@@ -67,6 +63,7 @@ import { useGetOrderList, useUpdateOrderStatus } from '@/services/order';
 import { IOrderItem, IOrder } from '@/interfaces/IOrder';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { IProduct } from '@/interfaces/IProduct';
+import useConfirmModal from '@/hooks/useModalConfirm';
 
 interface Data {
   stt: number;
@@ -422,13 +419,6 @@ const useFilterState = () => {
     }));
   }, []);
 
-  const handleDateFilterClick = useCallback(
-    (event: React.MouseEvent<HTMLElement>) => {
-      setDateFilterAnchorEl(event.currentTarget);
-    },
-    []
-  );
-
   const handleDateFilterClose = useCallback(() => {
     setDateFilterAnchorEl(null);
   }, []);
@@ -443,7 +433,6 @@ const useFilterState = () => {
     handleFilterClose,
     handleColumnFilterChange,
     handleDateRangeChange,
-    handleDateFilterClick,
     handleDateFilterClose,
   };
 };
@@ -476,6 +465,8 @@ const usePagination = () => {
 const OrderList = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [updateStatusNote, setUpdateStatusNote] = useState('');
+  const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const {
     filterAnchorEl,
@@ -487,7 +478,6 @@ const OrderList = () => {
     handleFilterClose,
     handleColumnFilterChange,
     handleDateRangeChange,
-    handleDateFilterClick,
     handleDateFilterClose,
   } = useFilterState();
 
@@ -532,6 +522,31 @@ const OrderList = () => {
 
   const { mutate: updateOrderStatus, isPending: isUpdatingStatus } =
     useUpdateOrderStatus();
+
+  // Define status hierarchy to prevent backward status changes
+  // This ensures users can't select previous statuses (e.g., can't go from SHIPPED back to PROCESSING)
+  const getAvailableStatuses = (currentStatus: string) => {
+    const statusHierarchy = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+    const currentIndex = statusHierarchy.indexOf(currentStatus);
+
+    // If current status is not in hierarchy (e.g., CANCELLED), allow all statuses
+    if (currentIndex === -1) {
+      return (
+        orderStatusEnumData?.data?.filter(
+          (status: IEnum) => status.value !== 'PENDING'
+        ) || []
+      );
+    }
+
+    // Return only statuses that are at or after the current status in hierarchy
+    // This prevents backward status changes while allowing forward progression
+    return (
+      orderStatusEnumData?.data?.filter((status: IEnum) => {
+        const statusIndex = statusHierarchy.indexOf(status.value);
+        return statusIndex >= currentIndex && status.value !== 'PENDING';
+      }) || []
+    );
+  };
 
   useEffect(() => {
     refetchOrders();
@@ -778,9 +793,7 @@ const OrderList = () => {
                             <Button
                               variant='outlined'
                               color={
-                                order?.status === 'PENDING'
-                                  ? 'warning'
-                                  : order?.status === 'PROCESSING'
+                                order?.status === 'PROCESSING'
                                   ? 'info'
                                   : order?.status === 'SHIPPED'
                                   ? 'success'
@@ -797,7 +810,7 @@ const OrderList = () => {
                                 setNewStatus(order.status);
                               }}
                               sx={{
-                                width: '100%',
+                                width: 120,
                                 fontSize: 13,
                                 textTransform: 'none',
                                 cursor: 'pointer',
@@ -848,9 +861,18 @@ const OrderList = () => {
                             <ButtonWithTooltip
                               color='error'
                               variant='outlined'
-                              title='Xoá'
-                              placement='left'>
-                              <DeleteOutlineOutlinedIcon />
+                              title='Hủy đơn hàng'
+                              placement='left'
+                              onClick={() => {
+                                showConfirmModal({
+                                  title: 'Bạn có muốn hủy đơn hàng này không?',
+                                  cancelText: 'Quay lại',
+                                  // onOk: () => handleDeleteCategory(item?.id),
+                                  okText: 'Hủy',
+                                  btnOkColor: 'error',
+                                });
+                              }}>
+                              <CancelOutlinedIcon />
                             </ButtonWithTooltip>
                           </Box>
                         </ActionButton>
@@ -938,20 +960,48 @@ const OrderList = () => {
           <Box sx={{ p: 2, minWidth: 220 }}>
             <Typography sx={{ mb: 1 }}>Cập nhật trạng thái</Typography>
             <Box sx={{ mb: 2 }}>
-              <select
-                value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value)}
-                style={{ width: '100%', padding: 8, fontSize: 14 }}
-                disabled={isUpdatingStatus}>
-                {orderStatusEnumData?.data
-                  ?.filter((status: IEnum) => status.value !== 'PENDING')
-                  ?.map((status: IEnum) => (
-                    <option key={status.value} value={status.value}>
-                      {status.label}
-                    </option>
-                  ))}
-              </select>
+              {selectedOrder &&
+              getAvailableStatuses(selectedOrder.status)?.length > 0 ? (
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  style={{ width: '100%', padding: 8, fontSize: 14 }}
+                  disabled={isUpdatingStatus}>
+                  {getAvailableStatuses(selectedOrder.status)?.map(
+                    (status: IEnum) => (
+                      <option key={status.value} value={status.value}>
+                        {status.label}
+                      </option>
+                    )
+                  )}
+                </select>
+              ) : (
+                <Typography
+                  sx={{
+                    color: 'text.secondary',
+                    fontSize: 14,
+                    fontStyle: 'italic',
+                  }}>
+                  Không có trạng thái nào khả dụng để chuyển đổi
+                </Typography>
+              )}
             </Box>
+            <textarea
+              placeholder='Ghi chú:'
+              name='note'
+              rows={4}
+              onChange={(e) => setUpdateStatusNote(e.target.value)}
+              value={updateStatusNote ?? ''}
+              style={{
+                width: '100%',
+                padding: '8.5px 14px',
+                border: '1px solid rgba(0, 0, 0, 0.23)',
+                borderRadius: '4px',
+                fontSize: 14,
+              }}
+              onFocus={(e) => (e.target.style.outline = '1px solid #000')}
+              onBlur={(e) => (e.target.style.outline = 'none')}
+            />
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
               <Button
                 size='small'
@@ -973,6 +1023,10 @@ const OrderList = () => {
                         id: selectedOrder.id,
                         oldStatus: selectedOrder.status,
                         newStatus,
+                        note:
+                          updateStatusNote?.trim() === ''
+                            ? null
+                            : updateStatusNote,
                       },
                       {
                         onSuccess: () => {
@@ -999,7 +1053,8 @@ const OrderList = () => {
                   isUpdatingStatus ||
                   !selectedOrder ||
                   !newStatus ||
-                  selectedOrder.status === newStatus
+                  selectedOrder.status === newStatus ||
+                  getAvailableStatuses(selectedOrder.status)?.length === 0
                 }>
                 {isUpdatingStatus ? (
                   <CircularProgress size={20} disableShrink thickness={3} />
@@ -1010,6 +1065,7 @@ const OrderList = () => {
             </Box>
           </Box>
         </Popover>
+        {confirmModal()}
       </Card>
     </>
   );
