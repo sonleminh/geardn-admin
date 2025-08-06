@@ -4,6 +4,7 @@ import { axiosInstance } from '../axiosInstance';
 import { QueryKeys } from '@/constants/query-key';
 
 import {
+  ICancelOrder,
   ICreateOrder,
   IOrder,
   IUpdateOrder,
@@ -168,14 +169,15 @@ export const useUpdateOrderConfirm = () => {
   });
 };
 
-const deleteOrder = async (id: string) => {
-  const result = await axiosInstance.delete(`${orderUrl}/${id}`);
+const cancelOrder = async (payload: ICancelOrder) => {
+  const { id, ...rest } = payload;
+  const result = await axiosInstance.patch(`${orderUrl}/${id}/cancel`, rest);
   return result.data;
 };
 
-export const useDeleteOrder = () => {
+export const useCancelOrder = () => {
   return useMutation({
-    mutationFn: deleteOrder,
+    mutationFn: cancelOrder,
   });
 };
 

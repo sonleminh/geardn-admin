@@ -1,4 +1,3 @@
-// React and React Router
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,8 +8,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Chip,
-  CircularProgress,
   Divider,
   IconButton,
   Link,
@@ -29,10 +26,8 @@ import {
 } from '@mui/material';
 
 import { AddCircleOutlined } from '@mui/icons-material';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
@@ -40,9 +35,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 
-import { addDays } from 'date-fns';
 import moment from 'moment';
-import { DateRangePicker, RangeKeyDict } from 'react-date-range';
+import { DateRangePicker } from 'react-date-range';
 
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
@@ -54,419 +48,35 @@ import { useGetProductList } from '@/services/product';
 
 import { IEnum } from '@/interfaces/IEnum';
 
-import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
 
 import { ROUTES } from '@/constants/route';
-import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
-import { useGetOrderList, useUpdateOrderStatus } from '@/services/order';
-import { IOrderItem, IOrder } from '@/interfaces/IOrder';
+import {
+  useCancelOrder,
+  useGetOrderList,
+  useUpdateOrderStatus,
+} from '@/services/order';
+import { IOrder } from '@/interfaces/IOrder';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import { IProduct } from '@/interfaces/IProduct';
 import useConfirmModal from '@/hooks/useModalConfirm';
+import { OrderItem } from './components/OrderItem';
+import { FilterChips } from './components/FilterChips';
+import useOrderListFilter from '@/hooks/useOrderListFilter';
+import usePagination from '@/hooks/usePagination';
+import { headCells, columns } from './constants';
+import { getAvailableStatuses } from './utils/orderStatusUtils';
+import StatusUpdatePopover from './components/StatusUpdatePopover';
+import OrderActionConfirmModal from './components/OrderActionConfirmModal';
 
-interface Data {
-  stt: number;
-  info: string;
-  items: IOrderItem[];
-  status: string;
-  totalPrice: number;
-  createdAt: Date;
-  note: string;
-  action: string;
-}
-
-interface HeadCell {
-  align?: ColumnAlign;
-  disablePadding: boolean;
-  id: keyof Data;
-  label: string;
-  isFilter?: boolean;
-  width?: string;
-}
-interface ColumnFilters {
-  items: string[];
-  status: string[];
-  date: { fromDate: string; toDate: string };
-}
-
-// Constants
-const INITIAL_COLUMN_FILTERS: ColumnFilters = {
-  items: [],
-  status: [],
-  date: { fromDate: '', toDate: '' },
-};
-
-const INITIAL_DATE_STATE = [
-  {
-    startDate: new Date(),
-    endDate: addDays(new Date(), 7),
-    key: 'selection',
-  },
-];
-
-const headCells: readonly HeadCell[] = [
-  {
-    align: 'center',
-    id: 'stt',
-    disablePadding: false,
-    label: 'STT',
-    isFilter: false,
-    width: '2%',
-  },
-  {
-    id: 'info',
-    disablePadding: false,
-    label: 'Thông tin',
-    width: '15%',
-  },
-  {
-    align: 'center',
-    id: 'items',
-    disablePadding: false,
-    label: 'Sản phẩm',
-    isFilter: true,
-    width: '36%',
-  },
-  {
-    align: 'center',
-    id: 'totalPrice',
-    disablePadding: false,
-    label: 'Tổng tiền',
-    width: '10%',
-  },
-  {
-    align: 'center',
-    id: 'status',
-    disablePadding: false,
-    label: 'Trạng thái',
-    isFilter: true,
-    width: '15%',
-  },
-  {
-    align: 'center',
-    id: 'createdAt',
-    disablePadding: false,
-    label: 'Ngày tạo',
-    width: '12%',
-  },
-  {
-    align: 'center',
-    id: 'action',
-    disablePadding: false,
-    label: 'Hành động',
-    width: '10%',
-  },
-];
-
-const columns: TableColumn[] = [
-  { width: '60px', align: 'center', type: 'text' },
-  { width: '100px', type: 'text' },
-  { width: '300px', type: 'complex' },
-  { width: '120px', align: 'center', type: 'text' },
-  { width: '120px', align: 'center', type: 'text' },
-  { width: '120px', align: 'center', type: 'text' },
-  { width: '120px', align: 'center', type: 'action' },
-];
-
-// Components
-interface OrderItemProps {
-  item: IOrderItem;
-}
-
-const OrderItem = ({ item }: OrderItemProps) => {
-  const productName = item?.productName;
-  const imageUrl = item?.imageUrl;
-  const quantity = item?.quantity;
-  const sellingPrice = item?.sellingPrice;
-  const attributes = item?.skuAttributes;
-
-  return (
-    <Box
-      my={1}
-      sx={{
-        display: 'flex',
-        p: 1,
-        bgcolor: '#fafafa',
-        border: '1px solid #dadada',
-        borderRadius: 1,
-      }}>
-      <Box
-        sx={{
-          height: 40,
-          '.thumbnail': {
-            width: 40,
-            height: 40,
-            mr: 1,
-            objectFit: 'contain',
-          },
-        }}>
-        <img src={imageUrl} className='thumbnail' alt={productName} />
-      </Box>
-      <Box>
-        <Typography
-          sx={{
-            // width: 80,
-            fontSize: 14,
-            fontWeight: 500,
-            ...truncateTextByLine(1),
-          }}>
-          {productName}
-        </Typography>
-
-        <Typography sx={{ fontSize: 13 }}>SL: {quantity}</Typography>
-        <Typography sx={{ fontSize: 13 }}>
-          Giá: {formatPrice(sellingPrice)}
-        </Typography>
-      </Box>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          ml: 2,
-        }}>
-        {attributes?.length
-          ? attributes.map((attr, index) => (
-              <Typography key={index} sx={{ fontSize: 13 }}>
-                {attr?.attribute}: {attr?.value}
-              </Typography>
-            ))
-          : null}
-      </Box>
-    </Box>
-  );
-};
-
-interface FilterChipsProps {
-  columnFilters: ColumnFilters;
-  productsData: {
-    data?: Array<{
-      id: number;
-      name: string;
-    }>;
-  };
-  orderStatusEnumData: {
-    data?: Array<IEnum>;
-  };
-  onFilterChange: (
-    column: string,
-    value: string | string[] | { fromDate: string; toDate: string }
-  ) => void;
-}
-
-const FilterChips = ({
-  columnFilters,
-  productsData,
-  orderStatusEnumData,
-  onFilterChange,
-}: FilterChipsProps) => {
-  const getFilterLabels = useCallback(
-    (filterKey: string, values: string[]) => {
-      if (filterKey === 'items') {
-        return values.map(
-          (value: string) =>
-            productsData?.data?.find(
-              (p: { id: number; name: string }) => p.id === +value
-            )?.name || value
-        );
-      } else if (filterKey === 'status') {
-        return values.map(
-          (value: string) =>
-            orderStatusEnumData?.data?.find((e: IEnum) => e.value === value)
-              ?.label || value
-        );
-      }
-      return [];
-    },
-    [productsData?.data, orderStatusEnumData?.data]
-  );
-
-  return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      <FilterListIcon />
-      {Object.entries(columnFilters).map(([filterKey, filterValues]) => {
-        if (filterKey === 'date') {
-          const dateValues = filterValues as {
-            fromDate: string;
-            toDate: string;
-          };
-          if (!dateValues.fromDate || !dateValues.toDate) return null;
-          return (
-            <Chip
-              key='date-filter'
-              label={`${moment(dateValues.fromDate).format(
-                'DD/MM/YYYY'
-              )} - ${moment(dateValues.toDate).format('DD/MM/YYYY')}`}
-              onDelete={() => {
-                onFilterChange('date', { fromDate: '', toDate: '' });
-              }}
-              size='small'
-            />
-          );
-        }
-
-        const values = filterValues as string[];
-        if (values.length === 0) return null;
-
-        const filterLabels = getFilterLabels(filterKey, values);
-
-        return filterLabels.map((label) => (
-          <Chip
-            key={`${filterKey}-${label}`}
-            label={label}
-            onDelete={() => {
-              const newValues = values.filter((value: string) => {
-                const itemLabel =
-                  filterKey === 'items'
-                    ? productsData?.data?.find((p) => p.id === +value)?.name
-                    : orderStatusEnumData?.data?.find((e) => e.value === value)
-                        ?.label;
-                return itemLabel !== label;
-              });
-              onFilterChange(filterKey, newValues);
-            }}
-            size='small'
-            sx={{ maxWidth: 120 }}
-          />
-        ));
-      })}
-    </Box>
-  );
-};
-
-// Custom hooks
-const useFilterState = () => {
-  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
-    null
-  );
-  const [activeFilterColumn, setActiveFilterColumn] = useState<string>('');
-  const [columnFilters, setColumnFilters] = useState<ColumnFilters>(
-    INITIAL_COLUMN_FILTERS
-  );
-  const [dateState, setDateState] = useState(INITIAL_DATE_STATE);
-  const [dateFilterAnchorEl, setDateFilterAnchorEl] =
-    useState<null | HTMLElement>(null);
-
-  const handleFilterClick = useCallback(
-    (event: React.MouseEvent<HTMLElement>, column: string) => {
-      setFilterAnchorEl(event.currentTarget);
-      setActiveFilterColumn(column);
-    },
-    []
-  );
-
-  const handleFilterClose = useCallback(() => {
-    setFilterAnchorEl(null);
-    setActiveFilterColumn('');
-  }, []);
-
-  const handleColumnFilterChange = useCallback(
-    (
-      column: string,
-      value: string | string[] | { fromDate: string; toDate: string }
-    ) => {
-      setColumnFilters((prev) => ({
-        ...prev,
-        [column]: value,
-      }));
-    },
-    []
-  );
-
-  const handleDateRangeChange = useCallback((rangesByKey: RangeKeyDict) => {
-    const selection = rangesByKey.selection;
-    if (!selection?.startDate || !selection?.endDate) return;
-
-    setDateState([
-      {
-        startDate: selection.startDate,
-        endDate: selection.endDate,
-        key: 'selection',
-      },
-    ]);
-
-    const fromDate = new Date(
-      Date.UTC(
-        selection.startDate.getFullYear(),
-        selection.startDate.getMonth(),
-        selection.startDate.getDate(),
-        0,
-        0,
-        0,
-        0
-      )
-    );
-
-    const toDate = new Date(
-      Date.UTC(
-        selection.endDate.getFullYear(),
-        selection.endDate.getMonth(),
-        selection.endDate.getDate(),
-        23,
-        59,
-        59,
-        999
-      )
-    );
-
-    setColumnFilters((prev) => ({
-      ...prev,
-      date: {
-        fromDate: fromDate.toISOString().split('T')[0],
-        toDate: toDate.toISOString().split('T')[0],
-      },
-    }));
-  }, []);
-
-  const handleDateFilterClose = useCallback(() => {
-    setDateFilterAnchorEl(null);
-  }, []);
-
-  return {
-    filterAnchorEl,
-    activeFilterColumn,
-    columnFilters,
-    dateState,
-    dateFilterAnchorEl,
-    handleFilterClick,
-    handleFilterClose,
-    handleColumnFilterChange,
-    handleDateRangeChange,
-    handleDateFilterClose,
-  };
-};
-
-const usePagination = () => {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-
-  const handleChangePage = useCallback((event: unknown, newPage: number) => {
-    setPage(newPage);
-  }, []);
-
-  const handleChangeRowsPerPage = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      setRowsPerPage(parseInt(event.target.value, 10));
-      setPage(0);
-    },
-    []
-  );
-
-  return {
-    page,
-    rowsPerPage,
-    handleChangePage,
-    handleChangeRowsPerPage,
-  };
-};
-
-// Main component
 const OrderList = () => {
   const navigate = useNavigate();
+  const { confirmModal, showConfirmModal } = useConfirmModal();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [updateStatusNote, setUpdateStatusNote] = useState('');
-  const { confirmModal, showConfirmModal } = useConfirmModal();
+  const [orderReasonCode, setOrderReasonCode] = useState('');
+  const [cancelReason, setCancelReason] = useState('');
 
   const {
     filterAnchorEl,
@@ -479,13 +89,15 @@ const OrderList = () => {
     handleColumnFilterChange,
     handleDateRangeChange,
     handleDateFilterClose,
-  } = useFilterState();
+  } = useOrderListFilter();
 
   const { page, rowsPerPage, handleChangePage, handleChangeRowsPerPage } =
     usePagination();
 
   const { data: productsData } = useGetProductList();
   const { data: orderStatusEnumData } = useGetEnumByContext('order-status');
+  const { data: orderReasonCodeEnumData } =
+    useGetEnumByContext('order-reason-code');
 
   const {
     data: ordersData,
@@ -503,6 +115,16 @@ const OrderList = () => {
     setSearchQuery(event.target.value);
   };
 
+  // Modal state for cancel/delivery-failed
+  const [actionModalOpen, setActionModalOpen] = useState(false);
+  const [actionType, setActionType] = useState<
+    'cancel' | 'delivery-failed' | null
+  >(null);
+  const [actionOrder, setActionOrder] = useState<IOrder | null>(null);
+  const [actionReason, setActionReason] = useState('');
+  const [actionNote, setActionNote] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+
   const statusMap = useMemo(
     () =>
       Object.fromEntries(
@@ -518,39 +140,85 @@ const OrderList = () => {
     null
   );
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  console.log('selectedOrder', selectedOrder);
   const [newStatus, setNewStatus] = useState<string>('');
 
   const { mutate: updateOrderStatus, isPending: isUpdatingStatus } =
     useUpdateOrderStatus();
-
-  // Define status hierarchy to prevent backward status changes
-  // This ensures users can't select previous statuses (e.g., can't go from SHIPPED back to PROCESSING)
-  const getAvailableStatuses = (currentStatus: string) => {
-    const statusHierarchy = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
-    const currentIndex = statusHierarchy.indexOf(currentStatus);
-
-    // If current status is not in hierarchy (e.g., CANCELLED), allow all statuses
-    if (currentIndex === -1) {
-      return (
-        orderStatusEnumData?.data?.filter(
-          (status: IEnum) => status.value !== 'PENDING'
-        ) || []
-      );
-    }
-
-    // Return only statuses that are at or after the current status in hierarchy
-    // This prevents backward status changes while allowing forward progression
-    return (
-      orderStatusEnumData?.data?.filter((status: IEnum) => {
-        const statusIndex = statusHierarchy.indexOf(status.value);
-        return statusIndex >= currentIndex && status.value !== 'PENDING';
-      }) || []
-    );
-  };
+  const { mutate: cancelOrder, isPending: isCancelingOrder } = useCancelOrder();
 
   useEffect(() => {
     refetchOrders();
   }, [columnFilters, refetchOrders]);
+
+  // Handler for opening modal
+  const openActionModal = (
+    type: 'cancel' | 'delivery-failed',
+    order: IOrder
+  ) => {
+    setActionType(type);
+    setActionOrder(order);
+    setActionReason('');
+    setActionNote('');
+    setActionModalOpen(true);
+  };
+
+  // Handler for confirming action
+  const handleActionConfirm = async () => {
+    if (!actionOrder || !actionType) return;
+    setActionLoading(true);
+    if (actionType === 'cancel') {
+      // Call cancel mutation (if you have a cancelOrder mutation, use it here)
+      // For now, use updateOrderStatus with CANCELED
+      cancelOrder(
+        {
+          id: actionOrder.id,
+          oldStatus: actionOrder.status,
+          cancelReasonCode: actionReason,
+          cancelReason: actionNote?.trim() === '' ? null : actionNote,
+        },
+        {
+          onSuccess: () => {
+            showNotification('Đã hủy đơn hàng thành công', 'success');
+            setActionModalOpen(false);
+            setActionOrder(null);
+            setActionType(null);
+            setActionLoading(false);
+            refetchOrders();
+          },
+          onError: () => {
+            showNotification('Hủy đơn hàng thất bại', 'error');
+            setActionLoading(false);
+          },
+        }
+      );
+    } else if (actionType === 'delivery-failed') {
+      // Use updateOrderStatus with DELIVERY_FAILED
+      updateOrderStatus(
+        {
+          id: actionOrder.id,
+          oldStatus: actionOrder.status,
+          newStatus: 'DELIVERY_FAILED',
+          note: actionNote?.trim() === '' ? null : actionNote,
+          cancelReasonCode: actionReason,
+        },
+        {
+          onSuccess: () => {
+            showNotification('Đã xác nhận giao thất bại', 'success');
+            setActionModalOpen(false);
+            setActionOrder(null);
+            setActionType(null);
+            setActionLoading(false);
+            refetchOrders();
+          },
+          onError: () => {
+            showNotification('Xác nhận giao thất bại thất bại', 'error');
+            setActionLoading(false);
+          },
+        }
+      );
+    }
+  };
 
   const renderFilterContent = useCallback(() => {
     switch (activeFilterColumn) {
@@ -857,21 +525,25 @@ const OrderList = () => {
                               <EditOutlinedIcon />
                             </ButtonWithTooltip>
                           </Box>
+                          <Box sx={{ mb: 1 }}>
+                            <ButtonWithTooltip
+                              color='error'
+                              variant='outlined'
+                              title='Giao thất bại'
+                              placement='left'
+                              onClick={() =>
+                                openActionModal('delivery-failed', order)
+                              }>
+                              <CancelOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
                           <Box>
                             <ButtonWithTooltip
                               color='error'
                               variant='outlined'
                               title='Hủy đơn hàng'
                               placement='left'
-                              onClick={() => {
-                                showConfirmModal({
-                                  title: 'Bạn có muốn hủy đơn hàng này không?',
-                                  cancelText: 'Quay lại',
-                                  // onOk: () => handleDeleteCategory(item?.id),
-                                  okText: 'Hủy',
-                                  btnOkColor: 'error',
-                                });
-                              }}>
+                              onClick={() => openActionModal('cancel', order)}>
                               <CancelOutlinedIcon />
                             </ButtonWithTooltip>
                           </Box>
@@ -947,7 +619,7 @@ const OrderList = () => {
         </Popover>
 
         {/* Status update popover */}
-        <Popover
+        <StatusUpdatePopover
           open={Boolean(statusAnchorEl)}
           anchorEl={statusAnchorEl}
           onClose={() => {
@@ -955,116 +627,62 @@ const OrderList = () => {
             setSelectedOrder(null);
             setNewStatus('');
           }}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'left' }}>
-          <Box sx={{ p: 2, minWidth: 220 }}>
-            <Typography sx={{ mb: 1 }}>Cập nhật trạng thái</Typography>
-            <Box sx={{ mb: 2 }}>
-              {selectedOrder &&
-              getAvailableStatuses(selectedOrder.status)?.length > 0 ? (
-                <select
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                  style={{ width: '100%', padding: 8, fontSize: 14 }}
-                  disabled={isUpdatingStatus}>
-                  {getAvailableStatuses(selectedOrder.status)?.map(
-                    (status: IEnum) => (
-                      <option key={status.value} value={status.value}>
-                        {status.label}
-                      </option>
-                    )
-                  )}
-                </select>
-              ) : (
-                <Typography
-                  sx={{
-                    color: 'text.secondary',
-                    fontSize: 14,
-                    fontStyle: 'italic',
-                  }}>
-                  Không có trạng thái nào khả dụng để chuyển đổi
-                </Typography>
-              )}
-            </Box>
-            <textarea
-              placeholder='Ghi chú:'
-              name='note'
-              rows={4}
-              onChange={(e) => setUpdateStatusNote(e.target.value)}
-              value={updateStatusNote ?? ''}
-              style={{
-                width: '100%',
-                padding: '8.5px 14px',
-                border: '1px solid rgba(0, 0, 0, 0.23)',
-                borderRadius: '4px',
-                fontSize: 14,
-              }}
-              onFocus={(e) => (e.target.style.outline = '1px solid #000')}
-              onBlur={(e) => (e.target.style.outline = 'none')}
-            />
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-              <Button
-                size='small'
-                onClick={() => {
-                  setStatusAnchorEl(null);
-                  setSelectedOrder(null);
-                  setNewStatus('');
-                }}
-                disabled={isUpdatingStatus}>
-                Hủy
-              </Button>
-              <Button
-                size='small'
-                variant='contained'
-                onClick={() => {
-                  if (selectedOrder && newStatus) {
-                    updateOrderStatus(
-                      {
-                        id: selectedOrder.id,
-                        oldStatus: selectedOrder.status,
-                        newStatus,
-                        note:
-                          updateStatusNote?.trim() === ''
-                            ? null
-                            : updateStatusNote,
-                      },
-                      {
-                        onSuccess: () => {
-                          showNotification(
-                            'Cập nhật trạng thái thành công',
-                            'success'
-                          );
-                          setStatusAnchorEl(null);
-                          setSelectedOrder(null);
-                          setNewStatus('');
-                          refetchOrders();
-                        },
-                        onError: () => {
-                          showNotification(
-                            'Cập nhật trạng thái thất bại',
-                            'error'
-                          );
-                        },
-                      }
+          selectedOrder={selectedOrder}
+          newStatus={newStatus}
+          setNewStatus={setNewStatus}
+          updateStatusNote={updateStatusNote}
+          setUpdateStatusNote={setUpdateStatusNote}
+          isUpdatingStatus={isUpdatingStatus}
+          getAvailableStatuses={(status) =>
+            getAvailableStatuses(status, orderStatusEnumData)
+          }
+          orderStatusEnumData={orderStatusEnumData}
+          onConfirm={() => {
+            if (selectedOrder && newStatus) {
+              updateOrderStatus(
+                {
+                  id: selectedOrder.id,
+                  oldStatus: selectedOrder.status,
+                  newStatus,
+                  note:
+                    updateStatusNote?.trim() === '' ? null : updateStatusNote,
+                },
+                {
+                  onSuccess: () => {
+                    showNotification(
+                      'Cập nhật trạng thái thành công',
+                      'success'
                     );
-                  }
-                }}
-                disabled={
-                  isUpdatingStatus ||
-                  !selectedOrder ||
-                  !newStatus ||
-                  selectedOrder.status === newStatus ||
-                  getAvailableStatuses(selectedOrder.status)?.length === 0
-                }>
-                {isUpdatingStatus ? (
-                  <CircularProgress size={20} disableShrink thickness={3} />
-                ) : (
-                  'Xác nhận'
-                )}
-              </Button>
-            </Box>
-          </Box>
-        </Popover>
+                    setStatusAnchorEl(null);
+                    setSelectedOrder(null);
+                    setNewStatus('');
+                    refetchOrders();
+                  },
+                  onError: () => {
+                    showNotification('Cập nhật trạng thái thất bại', 'error');
+                  },
+                }
+              );
+            }
+          }}
+        />
+        <OrderActionConfirmModal
+          open={actionModalOpen}
+          onClose={() => setActionModalOpen(false)}
+          onConfirm={handleActionConfirm}
+          title={
+            actionType === 'cancel'
+              ? 'Bạn có muốn hủy đơn hàng này không?'
+              : 'Xác nhận giao thất bại?'
+          }
+          reasonOptions={orderReasonCodeEnumData?.data || []}
+          reasonValue={actionReason}
+          onReasonChange={setActionReason}
+          noteValue={actionNote}
+          onNoteChange={setActionNote}
+          loading={actionLoading}
+          confirmText={actionType === 'cancel' ? 'Hủy' : 'Xác nhận'}
+        />
         {confirmModal()}
       </Card>
     </>

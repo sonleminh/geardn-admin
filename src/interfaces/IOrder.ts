@@ -115,6 +115,13 @@ export interface IUpdateOrderConfirm{
     }[]
 }
 
+export interface ICancelOrder{
+    id: number;
+    oldStatus: string;
+    cancelReasonCode: string;
+    cancelReason: string;
+}
+
 export interface IProvince {
     name: string;
     code: number;
