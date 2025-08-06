@@ -10,8 +10,6 @@ export function getAvailableStatuses(currentStatus: string, orderStatusEnumData?
     'PROCESSING',
     'SHIPPED',
     'DELIVERED',
-    'DELIVERY_FAILED',
-    'CANCELED',
   ];
   const currentIndex = statusHierarchy.indexOf(currentStatus);
   if (currentIndex === -1) {

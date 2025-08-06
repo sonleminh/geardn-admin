@@ -1,0 +1,625 @@
+// React and React Router
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import {
+  Box,
+  Breadcrumbs,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Divider,
+  IconButton,
+  InputAdornment,
+  Link,
+  Popover,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material';
+
+import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import SearchIcon from '@mui/icons-material/Search';
+
+import { addDays } from 'date-fns';
+import moment from 'moment';
+import { DateRangePicker, RangeKeyDict } from 'react-date-range';
+
+import { TableSkeleton } from '@/components/TableSkeleton';
+
+import { useGetEnumByContext } from '@/services/enum';
+
+import { ROUTES } from '@/constants/route';
+import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
+import { useGetOrderReturnRequestList } from '@/services/order';
+import { OrderItem } from '../OrderList/components/OrderItem';
+import { formatPrice } from '@/utils/format-price';
+
+interface Data {
+  stt: number;
+  info: string;
+  items: string;
+  status: string;
+  totalPrice: string;
+  reasonCode: string;
+  createdAt: Date;
+}
+
+interface HeadCell {
+  align?: ColumnAlign;
+  disablePadding: boolean;
+  id: keyof Data;
+  label: string;
+  isFilter?: boolean;
+  width?: string;
+}
+interface ColumnFilters {
+  order: string[];
+  date: { fromDate: string; toDate: string };
+}
+
+// Constants
+const INITIAL_COLUMN_FILTERS: ColumnFilters = {
+  order: [],
+  date: { fromDate: '', toDate: '' },
+};
+
+const INITIAL_DATE_STATE = [
+  {
+    startDate: new Date(),
+    endDate: addDays(new Date(), 7),
+    key: 'selection',
+  },
+];
+
+const headCells: readonly HeadCell[] = [
+  {
+    align: 'center',
+    id: 'stt',
+    disablePadding: false,
+    label: 'STT',
+    isFilter: false,
+    width: '7%',
+  },
+  {
+    id: 'info',
+    disablePadding: false,
+    label: 'Thông tin',
+    width: '15%',
+  },
+  {
+    align: 'center',
+    id: 'items',
+    disablePadding: false,
+    label: 'Sản phẩm',
+    isFilter: true,
+    width: '36%',
+  },
+  {
+    align: 'center',
+    id: 'totalPrice',
+    disablePadding: false,
+    label: 'Tổng tiền',
+    width: '10%',
+  },
+  {
+    align: 'center',
+    id: 'status',
+    disablePadding: false,
+    label: 'Trạng thái',
+    width: '13%',
+  },
+  {
+    align: 'center',
+    id: 'reasonCode',
+    disablePadding: false,
+    label: 'Lý do',
+    width: '20%',
+  },
+
+  {
+    align: 'center',
+    id: 'createdAt',
+    disablePadding: false,
+    label: 'Ngày cập nhật',
+    width: '14%',
+  },
+];
+
+const columns: TableColumn[] = [
+  { width: '60px', align: 'center', type: 'text' },
+  { width: '120px', type: 'text' },
+  { width: '120px', align: 'center', type: 'text' },
+  { width: '120px', align: 'center', type: 'text' },
+  { width: '120px', align: 'center', type: 'text' },
+  { width: '120px', align: 'center', type: 'text' },
+];
+
+// Custom hooks
+const useFilterState = () => {
+  const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
+  const [columnFilters, setColumnFilters] = useState<ColumnFilters>(
+    INITIAL_COLUMN_FILTERS
+  );
+  const [dateState, setDateState] = useState(INITIAL_DATE_STATE);
+  const [dateFilterAnchorEl, setDateFilterAnchorEl] =
+    useState<null | HTMLElement>(null);
+
+  const handleFilterClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      setFilterAnchorEl(event.currentTarget);
+    },
+    []
+  );
+
+  const handleFilterClose = useCallback(() => {
+    setFilterAnchorEl(null);
+  }, []);
+
+  const handleDateRangeChange = useCallback((rangesByKey: RangeKeyDict) => {
+    const selection = rangesByKey.selection;
+    if (!selection?.startDate || !selection?.endDate) return;
+
+    setDateState([
+      {
+        startDate: selection.startDate,
+        endDate: selection.endDate,
+        key: 'selection',
+      },
+    ]);
+
+    const fromDate = new Date(
+      Date.UTC(
+        selection.startDate.getFullYear(),
+        selection.startDate.getMonth(),
+        selection.startDate.getDate(),
+        0,
+        0,
+        0,
+        0
+      )
+    );
+
+    const toDate = new Date(
+      Date.UTC(
+        selection.endDate.getFullYear(),
+        selection.endDate.getMonth(),
+        selection.endDate.getDate(),
+        23,
+        59,
+        59,
+        999
+      )
+    );
+
+    setColumnFilters((prev) => ({
+      ...prev,
+      date: {
+        fromDate: fromDate.toISOString().split('T')[0],
+        toDate: toDate.toISOString().split('T')[0],
+      },
+    }));
+  }, []);
+
+  const handleDateFilterClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      setDateFilterAnchorEl(event.currentTarget);
+    },
+    []
+  );
+
+  const handleDateFilterClose = useCallback(() => {
+    setDateFilterAnchorEl(null);
+  }, []);
+
+  return {
+    filterAnchorEl,
+    columnFilters,
+    dateState,
+    dateFilterAnchorEl,
+    handleFilterClick,
+    handleFilterClose,
+    handleDateRangeChange,
+    handleDateFilterClick,
+    handleDateFilterClose,
+  };
+};
+
+const usePagination = () => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleChangePage = useCallback((event: unknown, newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const handleChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0);
+    },
+    []
+  );
+
+  return {
+    page,
+    rowsPerPage,
+    handleChangePage,
+    handleChangeRowsPerPage,
+  };
+};
+
+// Main component
+const OrderReturnRequestList = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const {
+    filterAnchorEl,
+    columnFilters,
+    dateState,
+    dateFilterAnchorEl,
+    handleFilterClick,
+    handleFilterClose,
+    handleDateRangeChange,
+    handleDateFilterClick,
+    handleDateFilterClose,
+  } = useFilterState();
+
+  const { data: orderReturnStatusEnumData } =
+    useGetEnumByContext('return-status');
+  const { data: orderReasonCodeEnumData } =
+    useGetEnumByContext('order-reason-code');
+
+  const { page, rowsPerPage, handleChangePage, handleChangeRowsPerPage } =
+    usePagination();
+
+  const {
+    data: orderReturnRequestsData,
+    refetch: refetchOrderReturnRequests,
+    isLoading: isLoadingOrderReturnRequests,
+  } = useGetOrderReturnRequestList({
+    fromDate: columnFilters.date.fromDate,
+    toDate: columnFilters.date.toDate,
+    search: searchQuery,
+    page: page + 1,
+    limit: rowsPerPage,
+  });
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
+  useEffect(() => {
+    refetchOrderReturnRequests();
+  }, [columnFilters, refetchOrderReturnRequests]);
+
+  const statusMap = useMemo(
+    () =>
+      Object.fromEntries(
+        orderReturnStatusEnumData?.data?.map((item) => [
+          item.value,
+          item.label,
+        ]) ?? []
+      ),
+    [orderReturnStatusEnumData?.data]
+  );
+
+  const reasonMap = useMemo(
+    () =>
+      Object.fromEntries(
+        orderReasonCodeEnumData?.data?.map((item) => [
+          item.value,
+          item.label,
+        ]) ?? []
+      ),
+    [orderReasonCodeEnumData?.data]
+  );
+
+  return (
+    <>
+      <Breadcrumbs
+        separator={<NavigateNextIcon fontSize='small' />}
+        aria-label='breadcrumb'
+        sx={{ mb: 3 }}>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.DASHBOARD)}
+          sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+          <HomeOutlinedIcon sx={{ fontSize: 24 }} />
+        </Link>
+        <Link
+          underline='hover'
+          color='inherit'
+          onClick={() => navigate(ROUTES.ORDER)}
+          sx={{ cursor: 'pointer' }}>
+          Đơn hàng
+        </Link>
+        <Typography color='text.primary'>Danh sách đơn hoàn</Typography>
+      </Breadcrumbs>
+      <Card>
+        <CardHeader
+          title={
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+              Danh sách yêu cầu hoàn hàng
+            </Typography>
+          }
+        />
+        <Divider />
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell colSpan={headCells.length}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'end',
+                          width: '100%',
+                          mb: 2,
+                        }}>
+                        <Button
+                          variant='outlined'
+                          size='small'
+                          onClick={handleDateFilterClick}
+                          startIcon={<DateRangeOutlinedIcon />}
+                          sx={{
+                            textTransform: 'none',
+                            borderColor: columnFilters.date.fromDate
+                              ? 'primary.main'
+                              : 'inherit',
+                            color: columnFilters.date.fromDate
+                              ? 'primary.main'
+                              : 'inherit',
+                            '&:hover': {
+                              borderColor: 'primary.main',
+                            },
+                          }}>
+                          {columnFilters.date.fromDate
+                            ? `${moment(columnFilters.date.fromDate).format(
+                                'DD/MM/YYYY'
+                              )} - ${moment(columnFilters.date.toDate).format(
+                                'DD/MM/YYYY'
+                              )}`
+                            : 'Chọn ngày'}
+                        </Button>
+                      </Box>
+                    </Box>
+                    <Box>
+                      <TextField
+                        fullWidth
+                        size='small'
+                        placeholder='Tìm kiếm sản phẩm...'
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        sx={{
+                          '& .MuiInputBase-root': {
+                            minHeight: 40,
+                          },
+                        }}
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <SearchIcon />
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                    </Box>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  {headCells?.map((headCell) => (
+                    <TableCell
+                      key={headCell.id}
+                      align={headCell.align ?? 'left'}
+                      padding={headCell.disablePadding ? 'none' : 'normal'}
+                      sx={{ width: headCell.width }}>
+                      {headCell.label}
+                      {headCell.isFilter ? (
+                        <>
+                          {' '}
+                          {(() => {
+                            const filterValue =
+                              columnFilters[
+                                headCell.id as keyof typeof columnFilters
+                              ];
+                            if (
+                              Array.isArray(filterValue) &&
+                              filterValue.length > 0
+                            ) {
+                              return (
+                                <Typography
+                                  component='span'
+                                  sx={{ fontSize: 14 }}>
+                                  ({filterValue.length})
+                                </Typography>
+                              );
+                            }
+                            return null;
+                          })()}
+                          <IconButton
+                            size='small'
+                            onClick={handleFilterClick}
+                            sx={{ ml: 1 }}>
+                            <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </>
+                      ) : null}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {isLoadingOrderReturnRequests ? (
+                  <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
+                ) : orderReturnRequestsData?.data?.length ? (
+                  orderReturnRequestsData?.data?.map(
+                    (orderReturnRequest, index) => (
+                      <TableRow key={orderReturnRequest?.id || index}>
+                        <TableCell align='center'>
+                          {page * rowsPerPage + index + 1}
+                        </TableCell>
+
+                        <TableCell>
+                          <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
+                            {orderReturnRequest?.order?.fullName}
+                          </Typography>
+                          <Typography sx={{ fontSize: 14 }}>
+                            {orderReturnRequest?.order?.phoneNumber}
+                          </Typography>
+                          <Typography
+                            sx={{
+                              maxWidth: 100,
+                              fontSize: 14,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}>
+                            {orderReturnRequest?.order?.email}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Box>
+                            {orderReturnRequest?.order?.orderItems?.map(
+                              (orderItem) => (
+                                <OrderItem
+                                  key={orderItem?.id}
+                                  item={orderItem}
+                                />
+                              )
+                            )}
+                          </Box>
+                        </TableCell>
+                        <TableCell align='center'>
+                          {formatPrice(orderReturnRequest?.order?.totalPrice)}
+                        </TableCell>
+                        <TableCell align='center'>
+                          <Button
+                            variant='outlined'
+                            sx={{
+                              width: '120px',
+                              fontSize: 13,
+                              textTransform: 'none',
+                              cursor: 'pointer',
+                              '&:hover': {
+                                backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                              },
+                              gap: 1,
+                            }}>
+                            {statusMap?.[orderReturnRequest?.status] ||
+                              'Không xác định'}
+                          </Button>
+                        </TableCell>
+
+                        <TableCell align='center'>
+                          <Button
+                            sx={{
+                              width: '120px',
+                              fontSize: 13,
+                              textTransform: 'none',
+                            }}>
+                            {reasonMap?.[orderReturnRequest?.reasonCode] ||
+                              'Không xác định'}
+                          </Button>
+                        </TableCell>
+                        <TableCell align='center'>
+                          {moment(orderReturnRequest?.createdAt).format(
+                            'DD/MM/YYYY'
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  )
+                ) : (
+                  <TableRow>
+                    <TableCell align='center' colSpan={7}>
+                      Không có dữ liệu
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            component='div'
+            count={orderReturnRequestsData?.meta?.total || 0}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[10, 20, 30, 50]}
+            labelRowsPerPage='Số hàng mỗi trang'
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}-${to} của ${count !== -1 ? count : `hơn ${to}`}`
+            }
+          />
+        </CardContent>
+
+        <Popover
+          open={Boolean(filterAnchorEl)}
+          anchorEl={filterAnchorEl}
+          onClose={handleFilterClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'left',
+          }}>
+          {/* {renderFilterContent()} */}
+        </Popover>
+
+        <Popover
+          open={Boolean(dateFilterAnchorEl)}
+          anchorEl={dateFilterAnchorEl}
+          onClose={handleDateFilterClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          PaperProps={{
+            sx: {
+              p: 2,
+              mt: 1,
+            },
+          }}>
+          <DateRangePicker
+            onChange={handleDateRangeChange}
+            moveRangeOnFirstSelection={false}
+            months={2}
+            ranges={dateState}
+            direction='horizontal'
+          />
+        </Popover>
+      </Card>
+    </>
+  );
+};
+
+export default OrderReturnRequestList;

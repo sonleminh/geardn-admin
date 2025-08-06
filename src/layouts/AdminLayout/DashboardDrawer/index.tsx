@@ -11,6 +11,7 @@ import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlin
 import PaymentIcon from '@mui/icons-material/Payment';
 import StoreMallDirectoryOutlinedIcon from '@mui/icons-material/StoreMallDirectoryOutlined';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import StyleOutlinedIcon from '@mui/icons-material/StyleOutlined';
 import { BiCategory } from 'react-icons/bi';
 import { FiPackage } from 'react-icons/fi';
@@ -35,7 +36,7 @@ const menuList = [
   {
     item: (
       <MultipleListItem
-        mainIcon={<FilterAltOutlinedIcon />}
+        mainIcon={<AnalyticsOutlinedIcon />}
         mainLabel='Thống kê'
         active={location.pathname.includes('statistic')}
         options={[

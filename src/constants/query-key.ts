@@ -9,6 +9,7 @@ export const QueryKeys = {
     Inventory: 'INVENTORY',
     Model: 'MODEL',
     Order: 'ORDER',
+    OrderReturnRequest: 'ORDER_RETURN_REQUEST',
     Payment: 'PAYMENT',
     Product: 'PRODUCT',
     RevenueProfitDailyStats: 'PROFIT_REVENUE_DAILY_STATS',

@@ -13,12 +13,22 @@ import {
 } from '@/interfaces/IOrder';
 import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
 import { IOrderUpdateHistoryLog } from '@/interfaces/IOrderUpdateHistoryLog';
+import { IOrderReturnRequest } from '@/interfaces/IOrderReturnRequest';
 
 interface IGetOrderListQuery {
   page?: number;
   limit?: number;
   productIds?: string[];
   statuses?: string[];
+  search?: string;
+}
+
+interface IGetOrderReturnRequestListQuery {
+  page?: number;
+  limit?: number;
+  productIds?: string[];
+  fromDate?: string;
+  toDate?: string;
   search?: string;
 }
 
@@ -92,6 +102,31 @@ export const useGetOrderList = (query: IGetOrderListQuery) => {
   });
 };
 
+const getOrderReturnRequestList = async (
+  query: IGetOrderReturnRequestListQuery
+) => {
+  const result = await axiosInstance.get(`${orderUrl}/return-requests`, {
+    params: {
+      page: query?.page ?? 0,
+      limit: query?.limit ?? 10,
+      productIds: query?.productIds?.join(','),
+      search: query?.search,
+    },
+  });
+  return result.data as TPaginatedResponse<IOrderReturnRequest>;
+};
+
+export const useGetOrderReturnRequestList = (
+  query: IGetOrderReturnRequestListQuery
+) => {
+  return useQuery({
+    queryKey: [QueryKeys.OrderReturnRequest, query],
+    queryFn: () => getOrderReturnRequestList(query),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+  });
+};
+
 const getOrderById = async (id: string) => {
   const result = await axiosInstance.get(`${orderUrl}/admin/${id}`);
   return result.data as TBaseResponse<IOrder>;
@@ -114,9 +149,9 @@ const getOrderUpdateHistoryList = async (
     params: {
       page: query?.page ?? 0,
       limit: query?.limit ?? 10,
-      search: query?.search,
       fromDate: query?.fromDate,
       toDate: query?.toDate,
+      search: query?.search,
     },
   });
   return result.data as TPaginatedResponse<IOrderUpdateHistoryLog>;

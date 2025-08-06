@@ -68,6 +68,7 @@ import { headCells, columns } from './constants';
 import { getAvailableStatuses } from './utils/orderStatusUtils';
 import StatusUpdatePopover from './components/StatusUpdatePopover';
 import OrderActionConfirmModal from './components/OrderActionConfirmModal';
+import { TbTruckOff } from 'react-icons/tb';
 
 const OrderList = () => {
   const navigate = useNavigate();
@@ -293,6 +294,29 @@ const OrderList = () => {
           }
           action={
             <Box sx={{ display: 'flex', gap: 1 }}>
+              <ButtonWithTooltip
+                variant='outlined'
+                title='Danh sách đơn hoàn'
+                onClick={() => navigate(`${ROUTES.ORDER}/return-requests`)}
+                sx={{ textTransform: 'none' }}>
+                <Box
+                  sx={{
+                    height: 24,
+                    img: {
+                      width: 24,
+                      height: 24,
+                      mr: 1,
+                      objectFit: 'contain',
+                    },
+                  }}>
+                  <img
+                    src={
+                      'https://cdn-icons-png.flaticon.com/512/4989/4989753.png'
+                    }
+                    alt={''}
+                  />
+                </Box>
+              </ButtonWithTooltip>
               <ButtonWithTooltip
                 variant='outlined'
                 onClick={() => navigate(`${ROUTES.ORDER}/update-history`)}
@@ -533,8 +557,19 @@ const OrderList = () => {
                               placement='left'
                               onClick={() =>
                                 openActionModal('delivery-failed', order)
-                              }>
-                              <CancelOutlinedIcon />
+                              }
+                              sx={{
+                                height: 36,
+                                pt: 0,
+                              }}>
+                              <Box
+                                sx={{
+                                  width: 24,
+                                  height: 24,
+                                  fontSize: 24,
+                                }}>
+                                <TbTruckOff />
+                              </Box>
                             </ButtonWithTooltip>
                           </Box>
                           <Box>

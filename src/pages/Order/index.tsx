@@ -5,6 +5,7 @@ import OrderUpsert from './components/OrderUpsert';
 import OrderConfirm from './components/OrderConfirm';
 import OrderUpdateHistoryList from './components/OrderUpdateHistoryList';
 import OrderCancel from './components/OrderCancel';
+import OrderReturnRequestList from './components/OrderReturnRequestList';
 // import OrderLayout from './components/OrderLayout';
 // import OrderList from './components/OrderList';
 // import OrderCategoryList from './components/OrderCategoryList';
@@ -40,6 +41,11 @@ const Order = () => {
         {
           path: '/update-history',
           element: <OrderUpdateHistoryList />,
+          index: true,
+        },
+        {
+          path: '/return-request',
+          element: <OrderReturnRequestList />,
           index: true,
         },
       ],
