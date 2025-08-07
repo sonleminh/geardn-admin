@@ -28,6 +28,7 @@ import {
 import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -44,15 +45,19 @@ import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 import { useGetOrderReturnRequestList } from '@/services/order';
 import { OrderItem } from '../OrderList/components/OrderItem';
 import { formatPrice } from '@/utils/format-price';
+import ActionButton from '@/components/ActionButton';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 
 interface Data {
   stt: number;
+  type: string;
   info: string;
   items: string;
   status: string;
   totalPrice: string;
   reasonCode: string;
   createdAt: Date;
+  action: string;
 }
 
 interface HeadCell {
@@ -89,13 +94,20 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'STT',
     isFilter: false,
-    width: '7%',
+    width: '4%',
+  },
+  {
+    align: 'center',
+    id: 'type',
+    disablePadding: false,
+    label: 'Loại',
+    width: '10%',
   },
   {
     id: 'info',
     disablePadding: false,
     label: 'Thông tin',
-    width: '15%',
+    width: '14%',
   },
   {
     align: 'center',
@@ -103,7 +115,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Sản phẩm',
     isFilter: true,
-    width: '36%',
+    width: '25%',
   },
   {
     align: 'center',
@@ -117,22 +129,28 @@ const headCells: readonly HeadCell[] = [
     id: 'status',
     disablePadding: false,
     label: 'Trạng thái',
-    width: '13%',
+    width: '8%',
   },
   {
     align: 'center',
     id: 'reasonCode',
     disablePadding: false,
     label: 'Lý do',
-    width: '20%',
+    width: '11%',
   },
-
   {
     align: 'center',
     id: 'createdAt',
     disablePadding: false,
-    label: 'Ngày cập nhật',
-    width: '14%',
+    label: 'Ngày tạo',
+    width: '10%',
+  },
+  {
+    align: 'center',
+    id: 'action',
+    disablePadding: false,
+    label: 'Hành động',
+    width: '8%',
   },
 ];
 
@@ -328,6 +346,13 @@ const OrderReturnRequestList = () => {
     [orderReasonCodeEnumData?.data]
   );
 
+  // Mapping for order return request types to Vietnamese labels
+  const orderReturnTypeMap: Record<string, string> = {
+    CANCEL: 'Đơn hủy',
+    DELIVERY_FAIL: 'Giao thất bại',
+    RETURN: 'Đơn hoàn',
+  };
+
   return (
     <>
       <Breadcrumbs
@@ -359,12 +384,13 @@ const OrderReturnRequestList = () => {
           }
         />
         <Divider />
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <CardContent
+          sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0 }}>
           <TableContainer>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell colSpan={headCells.length}>
+                  <TableCell colSpan={headCells.length} sx={{ px: 0 }}>
                     <Box
                       sx={{
                         display: 'flex',
@@ -480,7 +506,11 @@ const OrderReturnRequestList = () => {
                         <TableCell align='center'>
                           {page * rowsPerPage + index + 1}
                         </TableCell>
-
+                        <TableCell align='center'>
+                          {orderReturnTypeMap[
+                            orderReturnRequest?.type as string
+                          ] || orderReturnRequest?.type}
+                        </TableCell>
                         <TableCell>
                           <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
                             {orderReturnRequest?.order?.fullName}
@@ -514,6 +544,7 @@ const OrderReturnRequestList = () => {
                         <TableCell align='center'>
                           {formatPrice(orderReturnRequest?.order?.totalPrice)}
                         </TableCell>
+
                         <TableCell align='center'>
                           <Button
                             variant='outlined'
@@ -533,20 +564,33 @@ const OrderReturnRequestList = () => {
                         </TableCell>
 
                         <TableCell align='center'>
-                          <Button
-                            sx={{
-                              width: '120px',
-                              fontSize: 13,
-                              textTransform: 'none',
-                            }}>
-                            {reasonMap?.[orderReturnRequest?.reasonCode] ||
-                              'Không xác định'}
-                          </Button>
+                          {reasonMap?.[orderReturnRequest?.reasonCode] ||
+                            'Không xác định'}
                         </TableCell>
                         <TableCell align='center'>
                           {moment(orderReturnRequest?.createdAt).format(
                             'DD/MM/YYYY'
                           )}
+                        </TableCell>
+                        <TableCell align='center'>
+                          <ActionButton>
+                            {orderReturnRequest?.status === 'PENDING' && (
+                              <Box mb={1}>
+                                <ButtonWithTooltip
+                                  color='primary'
+                                  variant='outlined'
+                                  title='Xác nhận'
+                                  placement='left'
+                                  onClick={() =>
+                                    navigate(
+                                      `${ROUTES.ORDER}/confirm/${orderReturnRequest?.id}`
+                                    )
+                                  }>
+                                  <DoneOutlinedIcon />
+                                </ButtonWithTooltip>
+                              </Box>
+                            )}
+                          </ActionButton>
                         </TableCell>
                       </TableRow>
                     )

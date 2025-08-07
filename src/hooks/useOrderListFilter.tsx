@@ -101,6 +101,13 @@ const useOrderListFilter = () => {
     }));
   }, []);
 
+  const handleDateFilterClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      setDateFilterAnchorEl(event.currentTarget);
+    },
+    []
+  );
+
   const handleDateFilterClose = useCallback(() => {
     setDateFilterAnchorEl(null);
   }, []);
@@ -115,6 +122,7 @@ const useOrderListFilter = () => {
     handleFilterClose,
     handleColumnFilterChange,
     handleDateRangeChange,
+    handleDateFilterClick,
     handleDateFilterClose,
   };
 };

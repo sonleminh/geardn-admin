@@ -34,6 +34,7 @@ import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
 
 import moment from 'moment';
 import { DateRangePicker } from 'react-date-range';
@@ -54,6 +55,7 @@ import { ROUTES } from '@/constants/route';
 import {
   useCancelOrder,
   useGetOrderList,
+  useUpdateDeliveryFailed,
   useUpdateOrderStatus,
 } from '@/services/order';
 import { IOrder } from '@/interfaces/IOrder';
@@ -89,6 +91,7 @@ const OrderList = () => {
     handleFilterClose,
     handleColumnFilterChange,
     handleDateRangeChange,
+    handleDateFilterClick,
     handleDateFilterClose,
   } = useOrderListFilter();
 
@@ -107,9 +110,11 @@ const OrderList = () => {
   } = useGetOrderList({
     productIds: columnFilters.items,
     statuses: columnFilters.status,
-    search: searchQuery,
     page: page + 1,
     limit: rowsPerPage,
+    fromDate: columnFilters.date.fromDate,
+    toDate: columnFilters.date.toDate,
+    search: searchQuery,
   });
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,6 +152,8 @@ const OrderList = () => {
   const { mutate: updateOrderStatus, isPending: isUpdatingStatus } =
     useUpdateOrderStatus();
   const { mutate: cancelOrder, isPending: isCancelingOrder } = useCancelOrder();
+  const { mutate: updateDeliveryFailed, isPending: isUpdatingDeliveryFailed } =
+    useUpdateDeliveryFailed();
 
   useEffect(() => {
     refetchOrders();
@@ -195,13 +202,12 @@ const OrderList = () => {
       );
     } else if (actionType === 'delivery-failed') {
       // Use updateOrderStatus with DELIVERY_FAILED
-      updateOrderStatus(
+      updateDeliveryFailed(
         {
           id: actionOrder.id,
           oldStatus: actionOrder.status,
-          newStatus: 'DELIVERY_FAILED',
-          note: actionNote?.trim() === '' ? null : actionNote,
-          cancelReasonCode: actionReason,
+          reasonCode: actionReason,
+          reasonNote: actionNote?.trim() === '' ? null : actionNote,
         },
         {
           onSuccess: () => {
@@ -297,7 +303,7 @@ const OrderList = () => {
               <ButtonWithTooltip
                 variant='outlined'
                 title='Danh sách đơn hoàn'
-                onClick={() => navigate(`${ROUTES.ORDER}/return-requests`)}
+                onClick={() => navigate(`${ROUTES.ORDER}/return-request`)}
                 sx={{ textTransform: 'none' }}>
                 <Box
                   sx={{
@@ -335,7 +341,8 @@ const OrderList = () => {
           }
         />
         <Divider />
-        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <CardContent
+          sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0 }}>
           <TableContainer>
             <Table>
               <TableHead>
@@ -352,6 +359,7 @@ const OrderList = () => {
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
+                          width: '100%',
                         }}>
                         <FilterChips
                           columnFilters={columnFilters}
@@ -361,6 +369,31 @@ const OrderList = () => {
                           }
                           onFilterChange={handleColumnFilterChange}
                         />
+                        <Button
+                          variant='outlined'
+                          size='small'
+                          onClick={handleDateFilterClick}
+                          startIcon={<DateRangeOutlinedIcon />}
+                          sx={{
+                            textTransform: 'none',
+                            borderColor: columnFilters.date.fromDate
+                              ? 'primary.main'
+                              : 'inherit',
+                            color: columnFilters.date.fromDate
+                              ? 'primary.main'
+                              : 'inherit',
+                            '&:hover': {
+                              borderColor: 'primary.main',
+                            },
+                          }}>
+                          {columnFilters.date.fromDate
+                            ? `${moment(columnFilters.date.fromDate).format(
+                                'DD/MM/YYYY'
+                              )} - ${moment(columnFilters.date.toDate).format(
+                                'DD/MM/YYYY'
+                              )}`
+                            : 'Chọn ngày'}
+                        </Button>
                       </Box>
                     </Box>
                     <Box>
@@ -491,15 +524,19 @@ const OrderList = () => {
                                   ? 'success'
                                   : order?.status === 'DELIVERED'
                                   ? 'success'
-                                  : order?.status === 'CANCELLED'
+                                  : order?.status === 'CANCELED'
                                   ? 'error'
                                   : 'error'
                               }
-                              // size='small'
                               onClick={(e) => {
-                                setStatusAnchorEl(e.currentTarget);
-                                setSelectedOrder(order);
-                                setNewStatus(order.status);
+                                if (
+                                  order?.status !== 'CANCELED' &&
+                                  order?.status !== 'DELIVERY_FAILED'
+                                ) {
+                                  setStatusAnchorEl(e.currentTarget);
+                                  setSelectedOrder(order);
+                                  setNewStatus(order.status);
+                                }
                               }}
                               sx={{
                                 width: 120,
@@ -549,39 +586,47 @@ const OrderList = () => {
                               <EditOutlinedIcon />
                             </ButtonWithTooltip>
                           </Box>
-                          <Box sx={{ mb: 1 }}>
-                            <ButtonWithTooltip
-                              color='error'
-                              variant='outlined'
-                              title='Giao thất bại'
-                              placement='left'
-                              onClick={() =>
-                                openActionModal('delivery-failed', order)
-                              }
-                              sx={{
-                                height: 36,
-                                pt: 0,
-                              }}>
-                              <Box
-                                sx={{
-                                  width: 24,
-                                  height: 24,
-                                  fontSize: 24,
-                                }}>
-                                <TbTruckOff />
+                          {order?.status !== 'PENDING' &&
+                            order?.status !== 'CANCELED' &&
+                            order?.status !== 'DELIVERY_FAILED' && (
+                              <Box sx={{ mb: 1 }}>
+                                <ButtonWithTooltip
+                                  color='error'
+                                  variant='outlined'
+                                  title='Giao thất bại'
+                                  placement='left'
+                                  onClick={() =>
+                                    openActionModal('delivery-failed', order)
+                                  }
+                                  sx={{
+                                    height: 36,
+                                    pt: 0,
+                                  }}>
+                                  <Box
+                                    sx={{
+                                      width: 24,
+                                      height: 24,
+                                      fontSize: 24,
+                                    }}>
+                                    <TbTruckOff />
+                                  </Box>
+                                </ButtonWithTooltip>
                               </Box>
-                            </ButtonWithTooltip>
-                          </Box>
-                          <Box>
-                            <ButtonWithTooltip
-                              color='error'
-                              variant='outlined'
-                              title='Hủy đơn hàng'
-                              placement='left'
-                              onClick={() => openActionModal('cancel', order)}>
-                              <CancelOutlinedIcon />
-                            </ButtonWithTooltip>
-                          </Box>
+                            )}
+                          {order?.status !== 'CANCELED' && (
+                            <Box>
+                              <ButtonWithTooltip
+                                color='error'
+                                variant='outlined'
+                                title='Hủy đơn hàng'
+                                placement='left'
+                                onClick={() =>
+                                  openActionModal('cancel', order)
+                                }>
+                                <CancelOutlinedIcon />
+                              </ButtonWithTooltip>
+                            </Box>
+                          )}
                         </ActionButton>
                       </TableCell>
                     </TableRow>

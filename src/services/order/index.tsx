@@ -7,6 +7,7 @@ import {
   ICancelOrder,
   ICreateOrder,
   IOrder,
+  IUpdateDeliveryFailed,
   IUpdateOrder,
   IUpdateOrderConfirm,
   IUpdateOrderStatus,
@@ -20,6 +21,8 @@ interface IGetOrderListQuery {
   limit?: number;
   productIds?: string[];
   statuses?: string[];
+  fromDate?: string;
+  toDate?: string;
   search?: string;
 }
 
@@ -87,6 +90,8 @@ const getOrderList = async (query: IGetOrderListQuery) => {
       limit: query?.limit ?? 10,
       productIds: query?.productIds?.join(','),
       statuses: query?.statuses?.join(','),
+      fromDate: query?.fromDate,
+      toDate: query?.toDate,
       search: query?.search,
     },
   });
@@ -201,6 +206,21 @@ const updateOrderConfirm = async (payload: IUpdateOrderConfirm) => {
 export const useUpdateOrderConfirm = () => {
   return useMutation({
     mutationFn: updateOrderConfirm,
+  });
+};
+
+const updateDeliveryFailed = async (payload: IUpdateDeliveryFailed) => {
+  const { id, ...rest } = payload;
+  const result = await axiosInstance.patch(
+    `${orderUrl}/${id}/delivery-failed`,
+    rest
+  );
+  return result.data;
+};
+
+export const useUpdateDeliveryFailed = () => {
+  return useMutation({
+    mutationFn: updateDeliveryFailed,
   });
 };
 

@@ -488,7 +488,7 @@ const OrderUpsert = () => {
 
         <Grid2 size={{ xs: 12 }}>
           <ProductSelector
-            isEdit={isEdit}
+            orderData={orderData?.data}
             orderItems={orderItems}
             setOrderItems={setOrderItems}
           />

@@ -119,9 +119,15 @@ export interface ICancelOrder{
     id: number;
     oldStatus: string;
     cancelReasonCode: string;
-    cancelReason: string;
+    cancelReason: string | null;
 }
 
+export interface IUpdateDeliveryFailed{
+    id: number;
+    oldStatus: string;
+    reasonCode: string;
+    reasonNote: string | null;
+}
 export interface IProvince {
     name: string;
     code: number;

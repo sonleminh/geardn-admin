@@ -47,19 +47,18 @@ import { IProductSku } from '@/interfaces/IProductSku';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 
 interface ProductSelectorProps {
-  isEdit: boolean;
   orderData?: IOrder;
   orderItems: ICreateOrderItem[];
   setOrderItems: React.Dispatch<React.SetStateAction<ICreateOrderItem[]>>;
 }
 
 const ProductSelector: React.FC<ProductSelectorProps> = ({
-  isEdit,
   orderData,
   orderItems,
   setOrderItems,
 }) => {
   const { showNotification } = useNotificationContext();
+  console.log('orderData', orderData);
 
   const [categoryId, setCategoryId] = useState<string>('');
   const [productId, setProductId] = useState<string>('');
@@ -240,7 +239,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
               variant='filled'
               margin='dense'
               fullWidth
-              // disabled={orderData?.status !== 'PENDING'}
+              disabled={orderData?.status !== 'PENDING'}
               sx={selectStyle}>
               <InputLabel>Danh mục</InputLabel>
               <LoadingSelect
@@ -266,6 +265,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
               variant='filled'
               margin='dense'
               fullWidth
+              disabled={orderData?.status !== 'PENDING'}
               sx={selectStyle}>
               <InputLabel>Sản phẩm</InputLabel>
               <LoadingSelect
@@ -291,6 +291,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
               variant='filled'
               margin='dense'
               fullWidth
+              disabled={orderData?.status !== 'PENDING'}
               sx={selectStyle}>
               <InputLabel>Phân loại sản phẩm</InputLabel>
               <LoadingSelect
@@ -367,17 +368,10 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
                   <Grid2 size={6}>
                     <Typography>
                       Kho:{' '}
-                      {
-                        //   isEdit &&
-                        // orderData &&
-                        // isOrderItemEdit &&
-                        // itemIndex &&
-                        // itemIndex > orderData?.items?.length &&
-                        selectedSku?.stocks?.reduce(
-                          (acc, stock) => acc + stock?.quantity,
-                          0
-                        )
-                      }
+                      {selectedSku?.stocks?.reduce(
+                        (acc, stock) => acc + stock?.quantity,
+                        0
+                      )}
                     </Typography>
                   </Grid2>
                 </Grid2>
@@ -391,24 +385,10 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
                 margin='dense'
                 size='small'
                 type='number'
-                disabled={!selectedSku?.stocks?.length}
-                // disabled={
-                //   !isEdit &&
-                //   selectedSku?.stocks?.reduce(
-                //     (acc, stock) => acc + stock?.quantity,
-                //     0
-                //   ) === 0
-                //     ? true
-                //     : false
-                // }
-                // onKeyDown={(e) => {
-                //   if (e.key === '-') {
-                //     e.preventDefault();
-                //   }
-                //   if (quantity === '' && (e.key === '0' || e.key === 'Enter')) {
-                //     e.preventDefault();
-                //   }
-                // }}
+                disabled={
+                  !selectedSku?.stocks?.length ||
+                  orderData?.status !== 'PENDING'
+                }
                 onChange={(e) => {
                   const value = e.target.value;
                   if (
@@ -542,6 +522,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
                               mr: 1,
                             }}
                             variant='outlined'
+                            disabled={orderData?.status !== 'PENDING'}
                             onClick={() => {
                               handleEditOrderItem(item, index);
                             }}>
@@ -550,6 +531,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
                           <Button
                             sx={{ minWidth: 20, width: 20, height: 30 }}
                             variant='outlined'
+                            disabled={orderData?.status !== 'PENDING'}
                             onClick={() => handleDeleteOrderItem(index)}>
                             <DeleteOutlineOutlinedIcon sx={{ fontSize: 14 }} />
                           </Button>
