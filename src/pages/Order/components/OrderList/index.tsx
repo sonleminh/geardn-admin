@@ -146,7 +146,6 @@ const OrderList = () => {
     null
   );
   const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
-  console.log('selectedOrder', selectedOrder);
   const [newStatus, setNewStatus] = useState<string>('');
 
   const { mutate: updateOrderStatus, isPending: isUpdatingStatus } =

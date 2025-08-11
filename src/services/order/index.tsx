@@ -14,7 +14,10 @@ import {
 } from '@/interfaces/IOrder';
 import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
 import { IOrderUpdateHistoryLog } from '@/interfaces/IOrderUpdateHistoryLog';
-import { IOrderReturnRequest } from '@/interfaces/IOrderReturnRequest';
+import {
+  IOrderReturnRequest,
+  IUpdateOrderReturnRequestStatus,
+} from '@/interfaces/IOrderReturnRequest';
 
 interface IGetOrderListQuery {
   page?: number;
@@ -194,6 +197,23 @@ const updateOrderStatus = async (payload: IUpdateOrderStatus) => {
 export const useUpdateOrderStatus = () => {
   return useMutation({
     mutationFn: updateOrderStatus,
+  });
+};
+
+const updateOrderReturnRequestStatus = async (
+  payload: IUpdateOrderReturnRequestStatus
+) => {
+  const { id, ...rest } = payload;
+  const result = await axiosInstance.patch(
+    `${orderUrl}/return-requests/${id}/status`,
+    rest
+  );
+  return result.data as IOrderReturnRequest;
+};
+
+export const useUpdateOrderReturnRequestStatus = () => {
+  return useMutation({
+    mutationFn: updateOrderReturnRequestStatus,
   });
 };
 

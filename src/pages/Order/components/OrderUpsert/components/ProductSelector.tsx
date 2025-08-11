@@ -50,15 +50,16 @@ interface ProductSelectorProps {
   orderData?: IOrder;
   orderItems: ICreateOrderItem[];
   setOrderItems: React.Dispatch<React.SetStateAction<ICreateOrderItem[]>>;
+  isEdit: boolean;
 }
 
 const ProductSelector: React.FC<ProductSelectorProps> = ({
   orderData,
   orderItems,
   setOrderItems,
+  isEdit,
 }) => {
   const { showNotification } = useNotificationContext();
-  console.log('orderData', orderData);
 
   const [categoryId, setCategoryId] = useState<string>('');
   const [productId, setProductId] = useState<string>('');
@@ -239,7 +240,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
               variant='filled'
               margin='dense'
               fullWidth
-              disabled={orderData?.status !== 'PENDING'}
+              disabled={orderData?.status !== 'PENDING' && isEdit}
               sx={selectStyle}>
               <InputLabel>Danh mục</InputLabel>
               <LoadingSelect
@@ -265,7 +266,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
               variant='filled'
               margin='dense'
               fullWidth
-              disabled={orderData?.status !== 'PENDING'}
+              disabled={orderData?.status !== 'PENDING' && isEdit}
               sx={selectStyle}>
               <InputLabel>Sản phẩm</InputLabel>
               <LoadingSelect
@@ -291,7 +292,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
               variant='filled'
               margin='dense'
               fullWidth
-              disabled={orderData?.status !== 'PENDING'}
+              disabled={orderData?.status !== 'PENDING' && isEdit}
               sx={selectStyle}>
               <InputLabel>Phân loại sản phẩm</InputLabel>
               <LoadingSelect
@@ -387,7 +388,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
                 type='number'
                 disabled={
                   !selectedSku?.stocks?.length ||
-                  orderData?.status !== 'PENDING'
+                  (orderData?.status !== 'PENDING' && isEdit)
                 }
                 onChange={(e) => {
                   const value = e.target.value;
@@ -522,7 +523,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
                               mr: 1,
                             }}
                             variant='outlined'
-                            disabled={orderData?.status !== 'PENDING'}
+                            disabled={orderData?.status !== 'PENDING' && isEdit}
                             onClick={() => {
                               handleEditOrderItem(item, index);
                             }}>
@@ -531,7 +532,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
                           <Button
                             sx={{ minWidth: 20, width: 20, height: 30 }}
                             variant='outlined'
-                            disabled={orderData?.status !== 'PENDING'}
+                            disabled={orderData?.status !== 'PENDING' && isEdit}
                             onClick={() => handleDeleteOrderItem(index)}>
                             <DeleteOutlineOutlinedIcon sx={{ fontSize: 14 }} />
                           </Button>

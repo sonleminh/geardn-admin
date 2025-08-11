@@ -12,7 +12,7 @@ interface IOrderReturnItem {
 }
 
 export interface IOrderReturnRequest {
-  id: string;
+  id: number;
   orderId: number;
   status: string;
   type: string
@@ -30,4 +30,10 @@ export interface IOrderReturnRequest {
   approvedBy: IUser
 
   orderReturnItems: IOrderReturnItem[]
+}
+
+export interface IUpdateOrderReturnRequestStatus{
+  id: number;
+  oldStatus: string;
+  newStatus: string;
 }

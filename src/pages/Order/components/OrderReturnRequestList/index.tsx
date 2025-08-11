@@ -22,6 +22,7 @@ import {
   TablePagination,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 
@@ -42,11 +43,18 @@ import { useGetEnumByContext } from '@/services/enum';
 
 import { ROUTES } from '@/constants/route';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
-import { useGetOrderReturnRequestList } from '@/services/order';
+import {
+  useGetOrderReturnRequestList,
+  useUpdateOrderReturnRequestStatus,
+} from '@/services/order';
 import { OrderItem } from '../OrderList/components/OrderItem';
 import { formatPrice } from '@/utils/format-price';
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import { IOrderReturnRequest } from '@/interfaces/IOrderReturnRequest';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import StatusUpdatePopover from './components/StatusUpdatePopover';
+import { getAvailableStatuses } from './utils/orderStatusUtils';
 
 interface Data {
   stt: number;
@@ -156,11 +164,14 @@ const headCells: readonly HeadCell[] = [
 
 const columns: TableColumn[] = [
   { width: '60px', align: 'center', type: 'text' },
-  { width: '120px', type: 'text' },
+  { width: '100px', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
+  { width: '300px', align: 'center', type: 'complex' },
+  { width: '100px', align: 'center', type: 'text' },
+  { width: '100px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
-  { width: '120px', align: 'center', type: 'text' },
-  { width: '120px', align: 'center', type: 'text' },
+  { width: '100px', align: 'center', type: 'text' },
+  { width: '100px', align: 'center', type: 'text' },
 ];
 
 // Custom hooks
@@ -282,7 +293,14 @@ const usePagination = () => {
 // Main component
 const OrderReturnRequestList = () => {
   const navigate = useNavigate();
+  const { showNotification } = useNotificationContext();
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusAnchorEl, setStatusAnchorEl] = useState<null | HTMLElement>(
+    null
+  );
+  const [selectedRequest, setSelectedRequest] =
+    useState<IOrderReturnRequest | null>(null);
+  const [newStatus, setNewStatus] = useState<string>('');
 
   const {
     filterAnchorEl,
@@ -315,6 +333,11 @@ const OrderReturnRequestList = () => {
     page: page + 1,
     limit: rowsPerPage,
   });
+
+  const {
+    mutate: updateOrderReturnRequestStatus,
+    isPending: isUpdatingStatus,
+  } = useUpdateOrderReturnRequestStatus();
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
@@ -546,21 +569,61 @@ const OrderReturnRequestList = () => {
                         </TableCell>
 
                         <TableCell align='center'>
-                          <Button
-                            variant='outlined'
-                            sx={{
-                              width: '120px',
-                              fontSize: 13,
-                              textTransform: 'none',
-                              cursor: 'pointer',
-                              '&:hover': {
-                                backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                              },
-                              gap: 1,
-                            }}>
-                            {statusMap?.[orderReturnRequest?.status] ||
-                              'Không xác định'}
-                          </Button>
+                          {orderReturnRequest?.status === 'APPROVED' ? (
+                            <Link
+                              href={`${ROUTES.ORDER}/return-request/confirm/${orderReturnRequest?.id}`}
+                              sx={{
+                                textDecoration: 'none',
+                                color: 'primary.main',
+                                button: {
+                                  textTransform: 'none',
+                                },
+                              }}>
+                              <Button variant='outlined' color='warning'>
+                                Đã duyệt
+                              </Button>
+                            </Link>
+                          ) : (
+                            <Tooltip title='Cập nhật trạng thái'>
+                              <Button
+                                variant='outlined'
+                                // color={
+                                //   order?.status === 'PROCESSING'
+                                //     ? 'info'
+                                //     : order?.status === 'SHIPPED'
+                                //     ? 'success'
+                                //     : order?.status === 'DELIVERED'
+                                //     ? 'success'
+                                //     : order?.status === 'CANCELED'
+                                //     ? 'error'
+                                //     : 'error'
+                                // }
+                                onClick={(e) => {
+                                  if (
+                                    orderReturnRequest?.status !==
+                                      'COMPLETED' &&
+                                    orderReturnRequest?.status !== 'CANCELED'
+                                  ) {
+                                    setStatusAnchorEl(e.currentTarget);
+                                    setSelectedRequest(orderReturnRequest);
+                                    setNewStatus(orderReturnRequest.status);
+                                  }
+                                }}
+                                sx={{
+                                  width: 120,
+                                  fontSize: 13,
+                                  textTransform: 'none',
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                                  },
+                                  gap: 1,
+                                }}>
+                                {statusMap?.[orderReturnRequest?.status] ||
+                                  'Không xác định'}
+                              </Button>
+                            </Tooltip>
+                          )}
                         </TableCell>
 
                         <TableCell align='center'>
@@ -661,6 +724,50 @@ const OrderReturnRequestList = () => {
             direction='horizontal'
           />
         </Popover>
+
+        <StatusUpdatePopover
+          open={Boolean(statusAnchorEl)}
+          anchorEl={statusAnchorEl}
+          onClose={() => {
+            setStatusAnchorEl(null);
+            setSelectedRequest(null);
+            setNewStatus('');
+          }}
+          selectedRequest={selectedRequest}
+          newStatus={newStatus}
+          setNewStatus={setNewStatus}
+          isUpdatingStatus={isUpdatingStatus}
+          getAvailableStatuses={(status) =>
+            getAvailableStatuses(status, orderReturnStatusEnumData)
+          }
+          returnRequestStatusEnumData={orderReturnStatusEnumData}
+          onConfirm={() => {
+            if (selectedRequest && newStatus) {
+              updateOrderReturnRequestStatus(
+                {
+                  id: selectedRequest.id,
+                  oldStatus: selectedRequest.status,
+                  newStatus,
+                },
+                {
+                  onSuccess: () => {
+                    showNotification(
+                      'Cập nhật trạng thái thành công',
+                      'success'
+                    );
+                    setStatusAnchorEl(null);
+                    setSelectedRequest(null);
+                    setNewStatus('');
+                    refetchOrderReturnRequests();
+                  },
+                  onError: () => {
+                    showNotification('Cập nhật trạng thái thất bại', 'error');
+                  },
+                }
+              );
+            }
+          }}
+        />
       </Card>
     </>
   );

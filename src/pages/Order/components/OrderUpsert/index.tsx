@@ -491,6 +491,7 @@ const OrderUpsert = () => {
             orderData={orderData?.data}
             orderItems={orderItems}
             setOrderItems={setOrderItems}
+            isEdit={isEdit}
           />
         </Grid2>
       </Grid2>
