@@ -41,6 +41,11 @@ import { useNotificationContext } from '@/contexts/NotificationContext';
 import { QueryKeys } from '@/constants/query-key';
 import { useQueryClient } from '@tanstack/react-query';
 import SuspenseLoader from '@/components/SuspenseLoader';
+import {
+  useCompleteReturnRequest,
+  useGetOrderReturnRequestById,
+} from '@/services/order-return-request';
+import { IOrderItem } from '@/interfaces/IOrder';
 
 interface IExportItem {
   skuId: number;
@@ -53,13 +58,17 @@ const OrderReturnRequestConfirm = () => {
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
 
-  const { data: orderData } = useGetOrderById(id as string);
+  const { data: orderReturnRequestData } = useGetOrderReturnRequestById(
+    id as string
+  );
   const { data: warehouseData } = useGetWarehouseList();
   //   const { mutate: updateOrderStatus, isPending: isUpdateOrderStatusPending } =
   //     useUpdateOrderStatus();
 
-  const { mutate: updateOrderConfirm, isPending: isUpdateOrderConfirmPending } =
-    useUpdateOrderConfirm();
+  const {
+    mutate: completeReturnRequest,
+    isPending: isCompleteReturnRequestPending,
+  } = useCompleteReturnRequest();
   // const {
   //   mutate: createMultipleExportLogs,
   //   isPending: isCreateExportLogsPending,
@@ -90,7 +99,7 @@ const OrderReturnRequestConfirm = () => {
     if (!id) return;
 
     // Check if all order items have warehouse selected
-    const orderItems = orderData?.data?.orderItems || [];
+    const orderItems = orderReturnRequestData?.data?.order?.orderItems || [];
     const hasAllWarehousesSelected = orderItems.every((item) =>
       exportItems.some((exportItem) => exportItem.skuId === item.skuId)
     );
@@ -100,21 +109,27 @@ const OrderReturnRequestConfirm = () => {
       return;
     }
 
-    updateOrderConfirm(
+    completeReturnRequest(
       {
         id: +id,
         skuWarehouseMapping: exportItems,
       },
       {
         onSuccess: () => {
-          showNotification('Xác nhận đơn hàng thành công', 'success');
-          navigate(ROUTES.ORDER);
+          showNotification(
+            'Xác nhận hoàn thành yêu cầu hoàn đơn thành công',
+            'success'
+          );
+          navigate(`${ROUTES.ORDER}/return-request`);
           queryClient.invalidateQueries({
             queryKey: [QueryKeys.Order],
           });
         },
         onError: () => {
-          showNotification('Có lỗi xảy ra khi xác nhận đơn hàng', 'error');
+          showNotification(
+            'Có lỗi xảy ra khi xác nhận hoàn thành yêu cầu hoàn đơn',
+            'error'
+          );
         },
       }
     );
@@ -228,13 +243,15 @@ const OrderReturnRequestConfirm = () => {
                 </Grid2>
                 <Grid2 size={{ xs: 12, md: 8 }}>
                   <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.fullName ?? 'Không có'}
+                    {orderReturnRequestData?.data?.order?.fullName ??
+                      'Không có'}
                   </Typography>
                   <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.phoneNumber ?? 'Không có'}
+                    {orderReturnRequestData?.data?.order?.phoneNumber ??
+                      'Không có'}
                   </Typography>
                   <Typography>
-                    {orderData?.data?.email ?? 'Không có'}
+                    {orderReturnRequestData?.data?.order?.email ?? 'Không có'}
                   </Typography>
                 </Grid2>
               </Grid2>
@@ -267,26 +284,28 @@ const OrderReturnRequestConfirm = () => {
                 </Grid2>
                 <Grid2 size={{ xs: 12, md: 8 }}>
                   <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.completedAt
-                      ? moment(orderData?.data?.completedAt).format(
-                          'DD/MM/YYYY'
-                        )
+                    {orderReturnRequestData?.data?.order?.completedAt
+                      ? moment(
+                          orderReturnRequestData?.data?.order?.completedAt
+                        ).format('DD/MM/YYYY')
                       : 'Không có'}
                   </Typography>
                   <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.shipment?.deliveryDate
-                      ? moment(orderData?.data?.shipment?.deliveryDate).format(
-                          'DD/MM/YYYY HH:mm'
-                        )
+                    {orderReturnRequestData?.data?.order?.shipment?.deliveryDate
+                      ? moment(
+                          orderReturnRequestData?.data?.order?.shipment
+                            ?.deliveryDate
+                        ).format('DD/MM/YYYY HH:mm')
                       : 'Không có'}
                   </Typography>
                   <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.shipment?.method == 1
+                    {orderReturnRequestData?.data?.order?.shipment?.method == 1
                       ? 'Giao hàng tận nơi'
                       : 'Nhận tại cửa hàng'}
                   </Typography>
                   <Typography>
-                    {orderData?.data?.shipment?.address ?? ''}
+                    {orderReturnRequestData?.data?.order?.shipment?.address ??
+                      ''}
                   </Typography>
                 </Grid2>
               </Grid2>
@@ -317,10 +336,14 @@ const OrderReturnRequestConfirm = () => {
                   },
                 }}>
                 <img
-                  src={orderData?.data?.paymentMethod?.image}
-                  alt={orderData?.data?.paymentMethod?.name}
+                  src={
+                    orderReturnRequestData?.data?.order?.paymentMethod?.image
+                  }
+                  alt={orderReturnRequestData?.data?.order?.paymentMethod?.name}
                 />
-                <Typography>{orderData?.data?.paymentMethod?.name}</Typography>
+                <Typography>
+                  {orderReturnRequestData?.data?.order?.paymentMethod?.name}
+                </Typography>
               </Box>
             </CardContent>
           </Card>
@@ -349,118 +372,109 @@ const OrderReturnRequestConfirm = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {orderData?.data?.orderItems.map((item, index) => (
-                      <TableRow key={item?.id}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>
-                          <Box
-                            sx={{
-                              height: 40,
-                              img: {
-                                width: 40,
-                                height: 40,
-                                mr: 1,
-                                objectFit: 'contain',
-                              },
-                            }}>
-                            <img src={item?.imageUrl} alt={item?.productName} />
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Typography
-                            sx={{
-                              // width: 80,
-                              fontSize: 14,
-                              fontWeight: 500,
-                              ...truncateTextByLine(1),
-                            }}>
-                            {item?.productName}
-                          </Typography>
-                          <Typography sx={{ fontSize: 13 }}>
-                            SL: {item?.quantity}
-                          </Typography>
-                          <Typography sx={{ fontSize: 13 }}>
-                            Giá: {formatPrice(item?.sellingPrice)}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          {' '}
-                          <FormControl size='small' sx={{ width: 170 }}>
-                            <Select
-                              displayEmpty
-                              value={
-                                exportItems.find(
-                                  (exportItem) =>
-                                    exportItem.skuId === item?.skuId
-                                )?.warehouseId ?? ''
-                              }
-                              onChange={(e) => {
-                                handleSelectWarehouse(
-                                  item?.skuId,
-                                  e as SelectChangeEvent<string>
-                                );
-                              }}
-                              size='small'
+                    {orderReturnRequestData?.data?.order?.orderItems.map(
+                      (item: IOrderItem, index: number) => (
+                        <TableRow key={item?.id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>
+                            <Box
                               sx={{
-                                minHeight: 40,
                                 height: 40,
-                                fontSize: 14,
-                                '& .MuiFilledInput-root': {
-                                  overflow: 'hidden',
-                                  borderRadius: 1,
-                                  backgroundColor: '#a77575 !important',
-                                  border: '1px solid',
-                                  borderColor: 'rgba(0,0,0,0.23)',
-                                  '&:hover': {
-                                    backgroundColor: 'transparent',
-                                  },
-                                  '&.Mui-focused': {
-                                    backgroundColor: 'transparent',
-                                    border: '2px solid',
-                                  },
+                                img: {
+                                  width: 40,
+                                  height: 40,
+                                  mr: 1,
+                                  objectFit: 'contain',
                                 },
                               }}>
-                              <MenuItem value='' disabled>
-                                Chọn kho
-                              </MenuItem>
-                              {warehouseData?.data?.map((warehouse) => {
-                                const stock = item?.sku?.stocks?.find(
-                                  (stock) => stock.warehouseId === warehouse?.id
-                                );
-                                const isStockInsufficient =
-                                  !stock || stock.quantity < item?.quantity;
-
-                                return (
-                                  <MenuItem
-                                    key={warehouse?.id}
-                                    value={warehouse?.id}
-                                    disabled={isStockInsufficient}>
-                                    <Box
-                                      sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        width: '100%',
-                                      }}>
-                                      <Typography sx={{ fontSize: 14 }}>
-                                        {warehouse?.name}
-                                      </Typography>
-                                      <Typography
+                              <img
+                                src={item?.imageUrl}
+                                alt={item?.productName}
+                              />
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Typography
+                              sx={{
+                                // width: 80,
+                                fontSize: 14,
+                                fontWeight: 500,
+                                ...truncateTextByLine(1),
+                              }}>
+                              {item?.productName}
+                            </Typography>
+                            <Typography sx={{ fontSize: 13 }}>
+                              SL: {item?.quantity}
+                            </Typography>
+                            <Typography sx={{ fontSize: 13 }}>
+                              Giá: {formatPrice(item?.sellingPrice)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            {' '}
+                            <FormControl size='small' sx={{ width: 170 }}>
+                              <Select
+                                displayEmpty
+                                value={
+                                  exportItems.find(
+                                    (exportItem) =>
+                                      exportItem.skuId === item?.skuId
+                                  )?.warehouseId ?? ''
+                                }
+                                onChange={(e) => {
+                                  handleSelectWarehouse(
+                                    item?.skuId,
+                                    e as SelectChangeEvent<string>
+                                  );
+                                }}
+                                size='small'
+                                sx={{
+                                  minHeight: 40,
+                                  height: 40,
+                                  fontSize: 14,
+                                  '& .MuiFilledInput-root': {
+                                    overflow: 'hidden',
+                                    borderRadius: 1,
+                                    backgroundColor: '#a77575 !important',
+                                    border: '1px solid',
+                                    borderColor: 'rgba(0,0,0,0.23)',
+                                    '&:hover': {
+                                      backgroundColor: 'transparent',
+                                    },
+                                    '&.Mui-focused': {
+                                      backgroundColor: 'transparent',
+                                      border: '2px solid',
+                                    },
+                                  },
+                                }}>
+                                <MenuItem value='' disabled>
+                                  Chọn kho
+                                </MenuItem>
+                                {warehouseData?.data?.map((warehouse) => {
+                                  return (
+                                    <MenuItem
+                                      key={warehouse?.id}
+                                      value={warehouse?.id}>
+                                      <Box
                                         sx={{
-                                          fontSize: 12,
-                                          color: 'text.secondary',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          width: '100%',
                                         }}>
-                                        SL: {stock?.quantity || 0}
-                                      </Typography>
-                                    </Box>
-                                  </MenuItem>
-                                );
-                              })}
-                            </Select>
-                          </FormControl>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                                        <Typography sx={{ fontSize: 14 }}>
+                                          {warehouse?.name}
+                                        </Typography>
+                                      </Box>
+                                    </MenuItem>
+                                  );
+                                })}
+                              </Select>
+                            </FormControl>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -489,7 +503,7 @@ const OrderReturnRequestConfirm = () => {
         </Box>
       </Grid2>
 
-      {isUpdateOrderConfirmPending && <SuspenseLoader />}
+      {isCompleteReturnRequestPending && <SuspenseLoader />}
     </>
   );
 };

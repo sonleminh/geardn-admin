@@ -37,3 +37,11 @@ export interface IUpdateOrderReturnRequestStatus{
   oldStatus: string;
   newStatus: string;
 }
+
+export interface ICompleteReturnRequest{
+  id: number;
+  skuWarehouseMapping: {
+      skuId: number;
+      warehouseId: number;
+  }[]
+}

@@ -4,7 +4,7 @@ import { Container } from '@mui/material';
 const InventoryLayout = () => {
   return (
     <>
-      <Container maxWidth='lg'>
+      <Container maxWidth='xl'>
         <Outlet />
       </Container>
     </>

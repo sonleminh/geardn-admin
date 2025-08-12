@@ -26,6 +26,7 @@ import {
   useGetProvinceList,
 } from '@/services/order';
 import DatePicker from 'react-datepicker';
+import { useGetWarehouseList } from '@/services/warehouse';
 
 interface FormValues {
   fullName: string;
@@ -80,6 +81,7 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
   const { data: districtData } = useGetDistrict(
     province?.data?.districts?.find?.((item) => item?.name === district)?.code
   );
+  const { data: warehouseData } = useGetWarehouseList();
   return (
     <>
       <RadioGroup
@@ -231,14 +233,9 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
             size='small'
             onChange={(e) => setShopAddress(e?.target?.value)}
             value={shopAddress}>
-            <MenuItem
-              value={'39/48 Cù Chính Lan, P.Hòa Khê, Q.Thanh Khê, TP.Đà Nẵng'}>
-              39/48 Cù Chính Lan, P.Hòa Khê, Q.Thanh Khê, TP.Đà Nẵng
-            </MenuItem>
-            <MenuItem
-              value={'02 Tô Hiến Thành, P.Phước Mỹ, Q.Sơn Trà, TP.Đà Nẵng'}>
-              02 Tô Hiến Thành, P.Phước Mỹ, Q.Sơn Trà, TP.Đà Nẵng
-            </MenuItem>
+            {warehouseData?.data?.map((item) => (
+              <MenuItem value={item?.address}>{item?.address}</MenuItem>
+            ))}
           </Select>
         </FormControl>
       )}
@@ -269,9 +266,10 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
           selected={formik?.values?.shipment?.deliveryDate}
           onChange={(e) => formik.setFieldValue('shipment.deliveryDate', e)}
           dateFormat='dd/MM/yyyy HH:mm'
-          // timeFormat='HH:mm'
           timeFormat='HH:mm'
           className='date-picker'
+          popperPlacement='bottom-start'
+          portalId='root'
         />
       </FormControl>
       <FormControl

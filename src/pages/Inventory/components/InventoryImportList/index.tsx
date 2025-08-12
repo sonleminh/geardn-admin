@@ -26,13 +26,11 @@ import {
 
 import { AddCircleOutlined } from '@mui/icons-material';
 import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 
 import { addDays } from 'date-fns';
 import moment from 'moment';
@@ -105,7 +103,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'STT',
     isFilter: false,
-    width: '7%',
+    width: '5%',
   },
   {
     id: 'warehouse',
@@ -119,7 +117,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Sản phẩm',
     isFilter: true,
-    width: '39%',
+    width: '35%',
   },
   {
     align: 'center',
@@ -127,21 +125,21 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Loại',
     isFilter: true,
-    width: '12%',
+    width: '10%',
   },
   {
     align: 'center',
     id: 'createdAt',
     disablePadding: false,
     label: 'Ngày nhập',
-    width: '12%',
+    width: '10%',
   },
   {
     align: 'center',
     id: 'note',
     disablePadding: false,
     label: 'Ghi chú',
-    width: '10%',
+    width: '20%',
   },
   {
     align: 'center',
@@ -763,18 +761,9 @@ const InventoryImportPage = () => {
                             <ButtonWithTooltip
                               color='primary'
                               variant='outlined'
-                              title='Chỉnh sửa'
+                              title='Xem chi tiết'
                               placement='left'>
-                              <EditOutlinedIcon />
-                            </ButtonWithTooltip>
-                          </Box>
-                          <Box>
-                            <ButtonWithTooltip
-                              color='error'
-                              variant='outlined'
-                              title='Xoá'
-                              placement='left'>
-                              <DeleteOutlineOutlinedIcon />
+                              <VisibilityOutlinedIcon />
                             </ButtonWithTooltip>
                           </Box>
                         </ActionButton>
