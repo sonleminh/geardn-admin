@@ -31,6 +31,7 @@ import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 
 import { addDays } from 'date-fns';
@@ -102,7 +103,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'STT',
     isFilter: false,
-    width: '4%',
+    width: '3%',
   },
   {
     align: 'center',
@@ -115,7 +116,7 @@ const headCells: readonly HeadCell[] = [
     id: 'info',
     disablePadding: false,
     label: 'Thông tin',
-    width: '14%',
+    width: '13%',
   },
   {
     align: 'center',
@@ -158,7 +159,7 @@ const headCells: readonly HeadCell[] = [
     id: 'action',
     disablePadding: false,
     label: 'Hành động',
-    width: '8%',
+    width: '10%',
   },
 ];
 
@@ -569,7 +570,8 @@ const OrderReturnRequestList = () => {
                         </TableCell>
 
                         <TableCell align='center'>
-                          {orderReturnRequest?.status === 'APPROVED' ? (
+                          {orderReturnRequest?.status === 'APPROVED' &&
+                          orderReturnRequest ? (
                             <Link
                               href={`${ROUTES.ORDER}/return-request/confirm/${orderReturnRequest?.id}`}
                               sx={{
@@ -587,17 +589,19 @@ const OrderReturnRequestList = () => {
                             <Tooltip title='Cập nhật trạng thái'>
                               <Button
                                 variant='outlined'
-                                // color={
-                                //   order?.status === 'PROCESSING'
-                                //     ? 'info'
-                                //     : order?.status === 'SHIPPED'
-                                //     ? 'success'
-                                //     : order?.status === 'DELIVERED'
-                                //     ? 'success'
-                                //     : order?.status === 'CANCELED'
-                                //     ? 'error'
-                                //     : 'error'
-                                // }
+                                color={
+                                  orderReturnRequest?.status === 'PENDING'
+                                    ? 'warning'
+                                    : orderReturnRequest?.status === 'APPROVED'
+                                    ? 'info'
+                                    : orderReturnRequest?.status === 'COMPLETED'
+                                    ? 'success'
+                                    : orderReturnRequest?.status === 'REJECTED'
+                                    ? 'error'
+                                    : orderReturnRequest?.status === 'CANCELED'
+                                    ? 'error'
+                                    : 'error'
+                                }
                                 onClick={(e) => {
                                   if (
                                     orderReturnRequest?.status !==
@@ -653,6 +657,20 @@ const OrderReturnRequestList = () => {
                                 </ButtonWithTooltip>
                               </Box>
                             )}
+                            <Box>
+                              <ButtonWithTooltip
+                                color='primary'
+                                variant='outlined'
+                                title='Chi tiết'
+                                placement='left'
+                                onClick={() =>
+                                  navigate(
+                                    `${ROUTES.ORDER}/return-request/${orderReturnRequest?.id}`
+                                  )
+                                }>
+                                <InfoOutlinedIcon />
+                              </ButtonWithTooltip>
+                            </Box>
                           </ActionButton>
                         </TableCell>
                       </TableRow>

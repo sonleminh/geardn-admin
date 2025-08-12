@@ -7,6 +7,8 @@ import OrderUpdateHistoryList from './components/OrderUpdateHistoryList';
 import OrderCancel from './components/OrderCancel';
 import OrderReturnRequestList from './components/OrderReturnRequestList';
 import OrderReturnRequestConfirm from './components/OrderReturnRequestConfirm';
+import OrderDetail from './components/OrderDetail';
+import OrderReturnRequestDetail from './components/OrderReturnRequestDetail';
 // import OrderLayout from './components/OrderLayout';
 // import OrderList from './components/OrderList';
 // import OrderCategoryList from './components/OrderCategoryList';
@@ -22,6 +24,11 @@ const Order = () => {
         {
           path: '',
           element: <OrderList />,
+          index: true,
+        },
+        {
+          path: '/:id',
+          element: <OrderDetail />,
           index: true,
         },
         {
@@ -47,6 +54,11 @@ const Order = () => {
         {
           path: '/return-request',
           element: <OrderReturnRequestList />,
+          index: true,
+        },
+        {
+          path: '/return-request/:id',
+          element: <OrderReturnRequestDetail />,
           index: true,
         },
         {

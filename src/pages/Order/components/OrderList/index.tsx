@@ -35,6 +35,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import moment from 'moment';
 import { DateRangePicker } from 'react-date-range';
@@ -573,6 +574,18 @@ const OrderList = () => {
                               </ButtonWithTooltip>
                             </Box>
                           )}
+                          <Box mb={1}>
+                            <ButtonWithTooltip
+                              color='primary'
+                              variant='outlined'
+                              title='Chi tiết'
+                              placement='left'
+                              onClick={() =>
+                                navigate(`${ROUTES.ORDER}/${order?.id}`)
+                              }>
+                              <InfoOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
                           <Box mb={1}>
                             <ButtonWithTooltip
                               color='primary'
