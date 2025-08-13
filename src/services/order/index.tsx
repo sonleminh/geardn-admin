@@ -1,7 +1,6 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import queryString from 'query-string';
-import { axiosInstance } from '../axiosInstance';
 import { QueryKeys } from '@/constants/query-key';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { axiosInstance } from '../axiosInstance';
 
 import {
   ICancelOrder,
@@ -12,12 +11,8 @@ import {
   IUpdateOrderConfirm,
   IUpdateOrderStatus,
 } from '@/interfaces/IOrder';
-import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
 import { IOrderUpdateHistoryLog } from '@/interfaces/IOrderUpdateHistoryLog';
-import {
-  IOrderReturnRequest,
-  IUpdateOrderReturnRequestStatus,
-} from '@/interfaces/IOrderReturnRequest';
+import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
 
 interface IGetOrderListQuery {
   page?: number;
@@ -28,16 +23,6 @@ interface IGetOrderListQuery {
   toDate?: string;
   search?: string;
 }
-
-interface IGetOrderReturnRequestListQuery {
-  page?: number;
-  limit?: number;
-  productIds?: string[];
-  fromDate?: string;
-  toDate?: string;
-  search?: string;
-}
-
 interface IGetOrderUpdateHistoryListQuery {
   page?: number;
   limit?: number;
@@ -110,31 +95,6 @@ export const useGetOrderList = (query: IGetOrderListQuery) => {
   });
 };
 
-const getOrderReturnRequestList = async (
-  query: IGetOrderReturnRequestListQuery
-) => {
-  const result = await axiosInstance.get(`${orderUrl}/return-requests`, {
-    params: {
-      page: query?.page ?? 0,
-      limit: query?.limit ?? 10,
-      productIds: query?.productIds?.join(','),
-      search: query?.search,
-    },
-  });
-  return result.data as TPaginatedResponse<IOrderReturnRequest>;
-};
-
-export const useGetOrderReturnRequestList = (
-  query: IGetOrderReturnRequestListQuery
-) => {
-  return useQuery({
-    queryKey: [QueryKeys.OrderReturnRequest, query],
-    queryFn: () => getOrderReturnRequestList(query),
-    refetchOnWindowFocus: false,
-    refetchInterval: false,
-  });
-};
-
 const getOrderById = async (id: string) => {
   const result = await axiosInstance.get(`${orderUrl}/admin/${id}`);
   return result.data as TBaseResponse<IOrder>;
@@ -197,23 +157,6 @@ const updateOrderStatus = async (payload: IUpdateOrderStatus) => {
 export const useUpdateOrderStatus = () => {
   return useMutation({
     mutationFn: updateOrderStatus,
-  });
-};
-
-const updateOrderReturnRequestStatus = async (
-  payload: IUpdateOrderReturnRequestStatus
-) => {
-  const { id, ...rest } = payload;
-  const result = await axiosInstance.patch(
-    `${orderUrl}/return-requests/${id}/status`,
-    rest
-  );
-  return result.data as IOrderReturnRequest;
-};
-
-export const useUpdateOrderReturnRequestStatus = () => {
-  return useMutation({
-    mutationFn: updateOrderReturnRequestStatus,
   });
 };
 

@@ -331,42 +331,17 @@ const InventoryList = () => {
       </Grid2>
       <Card>
         <CardHeader
-          action={
-            <Box
-              sx={{
-                button: {
-                  mx: 0.5,
-                },
-                svg: {
-                  fontSize: 24,
-                },
-              }}>
-              <ButtonWithTooltip
-                variant='outlined'
-                onClick={() => navigate(`${ROUTES.INVENTORY}/import`)}
-                title='Nhập hàng'
-                sx={{ textTransform: 'none' }}>
-                <LuPackagePlus />
-                <Typography sx={{ ml: 1 }}>Nhập hàng</Typography>
-              </ButtonWithTooltip>
-              <ButtonWithTooltip
-                variant='outlined'
-                onClick={() => navigate(`${ROUTES.INVENTORY}/export`)}
-                title='Xuất kho'
-                sx={{ textTransform: 'none' }}>
-                <LuPackageMinus />
-                <Typography sx={{ ml: 1 }}>Xuất kho</Typography>
-              </ButtonWithTooltip>
-              <ButtonWithTooltip
-                variant='outlined'
-                onClick={() => navigate(`${ROUTES.INVENTORY}/adjustment`)}
-                title='Điều chỉnh'
-                sx={{ textTransform: 'none' }}>
-                <TbHomeEdit />
-                <Typography sx={{ ml: 1 }}>Điều chỉnh</Typography>
-              </ButtonWithTooltip>
-            </Box>
-          }
+          // action={
+          //   <Box
+          //     sx={{
+          //       button: {
+          //         mx: 0.5,
+          //       },
+          //       svg: {
+          //         fontSize: 24,
+          //       },
+          //     }}></Box>
+          // }
           title={
             <Typography sx={{ mr: 2, fontSize: 20, fontWeight: 500 }}>
               Quản lý tồn kho

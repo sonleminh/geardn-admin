@@ -32,7 +32,6 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import SearchIcon from '@mui/icons-material/Search';
-import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
@@ -370,7 +369,7 @@ const OrderList = () => {
                       <TextField
                         fullWidth
                         size='small'
-                        placeholder='Tìm kiếm sản phẩm...'
+                        placeholder='Tìm kiếm đơn hàng...'
                         value={searchQuery}
                         onChange={handleSearchChange}
                         sx={{
@@ -595,20 +594,21 @@ const OrderList = () => {
                                 </ButtonWithTooltip>
                               </Box>
                             )}
-                          {order?.status !== 'CANCELED' && (
-                            <Box>
-                              <ButtonWithTooltip
-                                color='error'
-                                variant='outlined'
-                                title='Hủy đơn hàng'
-                                placement='left'
-                                onClick={() =>
-                                  openActionModal('cancel', order)
-                                }>
-                                <CancelOutlinedIcon />
-                              </ButtonWithTooltip>
-                            </Box>
-                          )}
+                          {order?.status !== 'CANCELED' &&
+                            order?.status !== 'DELIVERY_FAILED' && (
+                              <Box>
+                                <ButtonWithTooltip
+                                  color='error'
+                                  variant='outlined'
+                                  title='Hủy đơn hàng'
+                                  placement='left'
+                                  onClick={() =>
+                                    openActionModal('cancel', order)
+                                  }>
+                                  <CancelOutlinedIcon />
+                                </ButtonWithTooltip>
+                              </Box>
+                            )}
                         </ActionButton>
                       </TableCell>
                     </TableRow>

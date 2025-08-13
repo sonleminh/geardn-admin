@@ -44,10 +44,7 @@ import { useGetEnumByContext } from '@/services/enum';
 
 import { ROUTES } from '@/constants/route';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
-import {
-  useGetOrderReturnRequestList,
-  useUpdateOrderReturnRequestStatus,
-} from '@/services/order';
+
 import { OrderItem } from '../OrderList/components/OrderItem';
 import { formatPrice } from '@/utils/format-price';
 import ActionButton from '@/components/ActionButton';
@@ -56,6 +53,14 @@ import { IOrderReturnRequest } from '@/interfaces/IOrderReturnRequest';
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import StatusUpdatePopover from './components/StatusUpdatePopover';
 import { getAvailableStatuses } from './utils/orderStatusUtils';
+import {
+  useGetOrderReturnRequestList,
+  useUpdateOrderReturnRequestStatus,
+} from '@/services/order-return-request';
+import { useGetProductList } from '@/services/product';
+import TableFilter from '@/components/TableFilter';
+import { IProduct } from '@/interfaces/IProduct';
+import { IEnum } from '@/interfaces/IEnum';
 
 interface Data {
   stt: number;
@@ -78,13 +83,17 @@ interface HeadCell {
   width?: string;
 }
 interface ColumnFilters {
-  order: string[];
+  type: string[];
+  items: string[];
+  status: string[];
   date: { fromDate: string; toDate: string };
 }
 
 // Constants
 const INITIAL_COLUMN_FILTERS: ColumnFilters = {
-  order: [],
+  type: [],
+  items: [],
+  status: [],
   date: { fromDate: '', toDate: '' },
 };
 
@@ -110,6 +119,7 @@ const headCells: readonly HeadCell[] = [
     id: 'type',
     disablePadding: false,
     label: 'Loại',
+    isFilter: true,
     width: '10%',
   },
   {
@@ -138,6 +148,7 @@ const headCells: readonly HeadCell[] = [
     id: 'status',
     disablePadding: false,
     label: 'Trạng thái',
+    isFilter: true,
     width: '8%',
   },
   {
@@ -180,6 +191,7 @@ const useFilterState = () => {
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
     null
   );
+  const [activeFilterColumn, setActiveFilterColumn] = useState<string>('');
   const [columnFilters, setColumnFilters] = useState<ColumnFilters>(
     INITIAL_COLUMN_FILTERS
   );
@@ -188,8 +200,9 @@ const useFilterState = () => {
     useState<null | HTMLElement>(null);
 
   const handleFilterClick = useCallback(
-    (event: React.MouseEvent<HTMLElement>) => {
+    (event: React.MouseEvent<HTMLElement>, column: string) => {
       setFilterAnchorEl(event.currentTarget);
+      setActiveFilterColumn(column);
     },
     []
   );
@@ -197,6 +210,16 @@ const useFilterState = () => {
   const handleFilterClose = useCallback(() => {
     setFilterAnchorEl(null);
   }, []);
+
+  const handleColumnFilterChange = useCallback(
+    (column: string, value: string[]) => {
+      setColumnFilters((prev) => ({
+        ...prev,
+        [column]: value,
+      }));
+    },
+    []
+  );
 
   const handleDateRangeChange = useCallback((rangesByKey: RangeKeyDict) => {
     const selection = rangesByKey.selection;
@@ -256,11 +279,13 @@ const useFilterState = () => {
 
   return {
     filterAnchorEl,
+    activeFilterColumn,
     columnFilters,
     dateState,
     dateFilterAnchorEl,
     handleFilterClick,
     handleFilterClose,
+    handleColumnFilterChange,
     handleDateRangeChange,
     handleDateFilterClick,
     handleDateFilterClose,
@@ -305,6 +330,7 @@ const OrderReturnRequestList = () => {
 
   const {
     filterAnchorEl,
+    activeFilterColumn,
     columnFilters,
     dateState,
     dateFilterAnchorEl,
@@ -313,8 +339,11 @@ const OrderReturnRequestList = () => {
     handleDateRangeChange,
     handleDateFilterClick,
     handleDateFilterClose,
+    handleColumnFilterChange,
   } = useFilterState();
 
+  const { data: productsData } = useGetProductList();
+  const { data: orderReturnTypeEnumData } = useGetEnumByContext('return-type');
   const { data: orderReturnStatusEnumData } =
     useGetEnumByContext('return-status');
   const { data: orderReasonCodeEnumData } =
@@ -328,6 +357,9 @@ const OrderReturnRequestList = () => {
     refetch: refetchOrderReturnRequests,
     isLoading: isLoadingOrderReturnRequests,
   } = useGetOrderReturnRequestList({
+    types: columnFilters.type,
+    productIds: columnFilters.items,
+    statuses: columnFilters.status,
     fromDate: columnFilters.date.fromDate,
     toDate: columnFilters.date.toDate,
     search: searchQuery,
@@ -347,6 +379,17 @@ const OrderReturnRequestList = () => {
   useEffect(() => {
     refetchOrderReturnRequests();
   }, [columnFilters, refetchOrderReturnRequests]);
+
+  const typeMap = useMemo(
+    () =>
+      Object.fromEntries(
+        orderReturnTypeEnumData?.data?.map((item) => [
+          item.value,
+          item.label,
+        ]) ?? []
+      ),
+    [orderReturnTypeEnumData?.data]
+  );
 
   const statusMap = useMemo(
     () =>
@@ -370,12 +413,71 @@ const OrderReturnRequestList = () => {
     [orderReasonCodeEnumData?.data]
   );
 
-  // Mapping for order return request types to Vietnamese labels
-  const orderReturnTypeMap: Record<string, string> = {
-    CANCEL: 'Đơn hủy',
-    DELIVERY_FAIL: 'Giao thất bại',
-    RETURN: 'Đơn hoàn',
-  };
+  const renderFilterContent = useCallback(() => {
+    switch (activeFilterColumn) {
+      case 'type':
+        return (
+          <TableFilter
+            title='Lọc theo loại'
+            options={
+              orderReturnTypeEnumData?.data?.map((type: IEnum) => ({
+                id: type.value,
+                label: type.label,
+              })) ?? []
+            }
+            selectedValues={columnFilters.type}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('type', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
+      case 'items':
+        return (
+          <TableFilter
+            title='Lọc theo sản phẩm'
+            options={
+              productsData?.data?.map((product: IProduct) => ({
+                id: product.id,
+                label: product.name,
+              })) ?? []
+            }
+            selectedValues={columnFilters.items}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('items', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
+      case 'status':
+        return (
+          <TableFilter
+            title='Lọc theo trạng thái'
+            options={
+              orderReturnStatusEnumData?.data?.map((status: IEnum) => ({
+                id: status.value,
+                label: status.label,
+              })) ?? []
+            }
+            selectedValues={columnFilters.status}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('status', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
+
+      default:
+        return null;
+    }
+  }, [
+    activeFilterColumn,
+    productsData,
+    orderReasonCodeEnumData,
+    columnFilters,
+    handleColumnFilterChange,
+    handleFilterClose,
+  ]);
 
   return (
     <>
@@ -459,7 +561,7 @@ const OrderReturnRequestList = () => {
                       <TextField
                         fullWidth
                         size='small'
-                        placeholder='Tìm kiếm sản phẩm...'
+                        placeholder='Tìm kiếm yêu cầu hoàn hàng...'
                         value={searchQuery}
                         onChange={handleSearchChange}
                         sx={{
@@ -510,7 +612,7 @@ const OrderReturnRequestList = () => {
                           })()}
                           <IconButton
                             size='small'
-                            onClick={handleFilterClick}
+                            onClick={(e) => handleFilterClick(e, headCell.id)}
                             sx={{ ml: 1 }}>
                             <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
                           </IconButton>
@@ -531,9 +633,8 @@ const OrderReturnRequestList = () => {
                           {page * rowsPerPage + index + 1}
                         </TableCell>
                         <TableCell align='center'>
-                          {orderReturnTypeMap[
-                            orderReturnRequest?.type as string
-                          ] || orderReturnRequest?.type}
+                          {typeMap?.[orderReturnRequest?.type] ||
+                            'Không xác định'}
                         </TableCell>
                         <TableCell>
                           <Typography sx={{ fontSize: 14, fontWeight: 500 }}>
@@ -713,7 +814,7 @@ const OrderReturnRequestList = () => {
             vertical: 'top',
             horizontal: 'left',
           }}>
-          {/* {renderFilterContent()} */}
+          {renderFilterContent()}
         </Popover>
 
         <Popover

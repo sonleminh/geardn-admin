@@ -159,7 +159,6 @@ const OrderUpsert = () => {
 
   const handleSubmit = useCallback(
     (values: OrderFormValues) => {
-      console.log('values:', values);
       if (!user?.id) {
         return showNotification('Không tìm thấy tài khoản', 'error');
       }
@@ -221,7 +220,7 @@ const OrderUpsert = () => {
                 queryKey: [QueryKeys.Order],
               });
               showNotification('Cập nhật đơn hàng thành công', 'success');
-              // navigate(-1);
+              navigate(-1);
             },
             onError: handleError,
           }
@@ -232,7 +231,7 @@ const OrderUpsert = () => {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
             showNotification('Tạo đơn hàng thành công', 'success');
-            // navigate(-1);
+            navigate(-1);
           },
           onError: handleError,
         });
@@ -359,8 +358,8 @@ const OrderUpsert = () => {
         onClick: () => navigate(ROUTES.DASHBOARD),
       },
       {
-        label: 'Đơn hàng',
-        onClick: () => navigate(ROUTES.ORDER),
+        label: 'Danh sách đơn hàng',
+        onClick: () => navigate(ROUTES.ORDER_LIST),
       },
       {
         label: isEdit ? 'Chỉnh sửa đơn hàng' : 'Thêm đơn hàng mới',
@@ -504,7 +503,7 @@ const OrderUpsert = () => {
             width: '100%',
             mt: 2,
           }}>
-          <Button onClick={() => navigate(ROUTES.ORDER)} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate(ROUTES.ORDER_LIST)} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button

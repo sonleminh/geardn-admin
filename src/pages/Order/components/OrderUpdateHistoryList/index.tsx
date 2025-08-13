@@ -96,6 +96,7 @@ const headCells: readonly HeadCell[] = [
     width: '18%',
   },
   {
+    align: 'center',
     id: 'user',
     disablePadding: false,
     label: 'Người cập nhật',

@@ -1,29 +1,20 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
-import queryString from 'query-string';
-import { axiosInstance } from '../axiosInstance';
 import { QueryKeys } from '@/constants/query-key';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { axiosInstance } from '../axiosInstance';
 
-import {
-  ICancelOrder,
-  ICreateOrder,
-  IOrder,
-  IUpdateDeliveryFailed,
-  IUpdateOrder,
-  IUpdateOrderConfirm,
-  IUpdateOrderStatus,
-} from '@/interfaces/IOrder';
-import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
-import { IOrderUpdateHistoryLog } from '@/interfaces/IOrderUpdateHistoryLog';
 import {
   ICompleteReturnRequest,
   IOrderReturnRequest,
   IUpdateOrderReturnRequestStatus,
 } from '@/interfaces/IOrderReturnRequest';
+import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
 
 interface IGetOrderReturnRequestListQuery {
   page?: number;
   limit?: number;
+  types?: string[];
   productIds?: string[];
+  statuses?: string[];
   fromDate?: string;
   toDate?: string;
   search?: string;
@@ -38,7 +29,9 @@ const getOrderReturnRequestList = async (
     params: {
       page: query?.page ?? 0,
       limit: query?.limit ?? 10,
+      types: query?.types?.join(','),
       productIds: query?.productIds?.join(','),
+      statuses: query?.statuses?.join(','),
       search: query?.search,
     },
   });

@@ -150,7 +150,7 @@ const menuList = [
             label: 'Xuất kho',
           },
           {
-            to: ROUTES.INVENTORY_EXPORT,
+            to: ROUTES.INVENTORY_ADJUSTMENT,
             icon: (
               <Box
                 sx={{
@@ -279,6 +279,24 @@ const DashboardDrawer = ({
           bgcolor: '#000',
           color: '#fff',
           borderRight: '1px solid #434343',
+          // Custom scrollbar styles for minimalist design
+          '&::-webkit-scrollbar': {
+            width: '6px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'transparent',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'rgba(171, 62, 62, 0.2)',
+            borderRadius: '3px',
+            transition: 'background 0.2s ease',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: 'rgba(255, 255, 255, 0.3)',
+          },
+          // Firefox scrollbar styles
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgb(90, 90, 90) transparent',
         },
       }}
       variant='persistent'
@@ -328,7 +346,12 @@ const DashboardDrawer = ({
                     bgcolor: '#333',
                   },
                 }}>
-                <ListItemIcon sx={{ minWidth: 40, height: 24, color: '#fff' }}>
+                <ListItemIcon
+                  sx={{
+                    minWidth: { lg: 32, xl: 40 },
+                    height: 24,
+                    color: '#fff',
+                  }}>
                   <DashboardIcon />
                 </ListItemIcon>
                 <ListItemText primary={'Dashboard'} />
@@ -337,7 +360,7 @@ const DashboardDrawer = ({
           }
           sx={{
             '.MuiListItemIcon-root': {
-              minWidth: 40,
+              minWidth: { lg: 36, xl: 40 },
             },
           }}>
           {menuList?.map((item, index) => (
