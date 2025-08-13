@@ -653,7 +653,7 @@ const InventoryAdjustmentList = () => {
           color='inherit'
           onClick={() => navigate(ROUTES.INVENTORY)}
           sx={{ cursor: 'pointer' }}>
-          Kho hàng
+          Tồn kho
         </Link>
         <Typography color='text.primary'>Điều chỉnh kho</Typography>
       </Breadcrumbs>

@@ -22,7 +22,7 @@ const Order = () => {
       element: <OrderLayout />,
       children: [
         {
-          path: '',
+          path: '/list',
           element: <OrderList />,
           index: true,
         },
@@ -47,7 +47,7 @@ const Order = () => {
           index: true,
         },
         {
-          path: '/update-history',
+          path: '/status-history',
           element: <OrderUpdateHistoryList />,
           index: true,
         },

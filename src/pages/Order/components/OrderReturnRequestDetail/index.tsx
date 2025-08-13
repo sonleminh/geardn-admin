@@ -6,88 +6,67 @@ import {
   CardContent,
   CardHeader,
   Divider,
-  FormControl,
   Grid2,
   Link,
   Table,
-  TableRow,
-  TableCell,
-  TableHead,
-  Typography,
-  TableContainer,
   TableBody,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
 } from '@mui/material';
 
-import React, { useMemo, useState } from 'react';
 import { ROUTES } from '@/constants/route';
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import { useNavigate, useParams } from 'react-router-dom';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import {
-  useGetOrderById,
-  useUpdateOrder,
-  useUpdateOrderConfirm,
-  useUpdateOrderStatus,
-} from '@/services/order';
-import moment from 'moment';
+import { useGetEnumByContext } from '@/services/enum';
+import { useGetOrderReturnRequestById } from '@/services/order-return-request';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
-import { useGetWarehouseList } from '@/services/warehouse';
-import { useCreateMultipleExportLogs } from '@/services/inventory';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import { QueryKeys } from '@/constants/query-key';
-import { useQueryClient } from '@tanstack/react-query';
-import SuspenseLoader from '@/components/SuspenseLoader';
-import { useGetOrderReturnRequestById } from '@/services/order-return-request';
-
-interface IExportItem {
-  skuId: number;
-  warehouseId: number;
-}
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import moment from 'moment';
+import { useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const OrderReturnRequestDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
 
   const { data: orderReturnRequestData } = useGetOrderReturnRequestById(
     id as string
   );
-  const { data: warehouseData } = useGetWarehouseList();
-  //   const { mutate: updateOrderStatus, isPending: isUpdateOrderStatusPending } =
-  //     useUpdateOrderStatus();
+  const { data: orderReturnStatusEnumData } =
+    useGetEnumByContext('return-status');
+  const { data: orderReasonCodeEnumData } =
+    useGetEnumByContext('order-reason-code');
 
-  const { mutate: updateOrderConfirm, isPending: isUpdateOrderConfirmPending } =
-    useUpdateOrderConfirm();
-  // const {
-  //   mutate: createMultipleExportLogs,
-  //   isPending: isCreateExportLogsPending,
-  // } = useCreateMultipleExportLogs();
-
-  const [exportItems, setExportItems] = useState<IExportItem[]>([]);
-
-  const handleSelectWarehouse = (
-    skuId: number,
-    event: SelectChangeEvent<string>
-  ) => {
-    const value = event.target.value;
-
-    const isExist = exportItems.find((item) => item.skuId === skuId);
-
-    if (!isExist) {
-      setExportItems([...exportItems, { skuId, warehouseId: +value }]);
-    } else if (isExist) {
-      setExportItems(
-        exportItems.map((item) =>
-          item.skuId === skuId ? { ...item, warehouseId: +value } : item
-        )
-      );
-    }
+  const orderReturnTypeMap: Record<string, string> = {
+    CANCEL: 'Đơn hủy',
+    DELIVERY_FAIL: 'Giao thất bại',
+    RETURN: 'Đơn hoàn',
   };
+
+  const reasonMap = useMemo(
+    () =>
+      Object.fromEntries(
+        orderReasonCodeEnumData?.data?.map((item) => [
+          item.value,
+          item.label,
+        ]) ?? []
+      ),
+    [orderReasonCodeEnumData?.data]
+  );
+
+  const statusMap = useMemo(
+    () =>
+      Object.fromEntries(
+        orderReturnStatusEnumData?.data?.map((item) => [
+          item.value,
+          item.label,
+        ]) ?? []
+      ),
+    [orderReturnStatusEnumData?.data]
+  );
 
   const breadcrumbs = useMemo(
     () => [
@@ -149,28 +128,107 @@ const OrderReturnRequestDetail = () => {
             <Divider />
             <CardContent>
               <Grid2 container spacing={3}>
-                <Grid2 size={{ xs: 12, md: 4 }}>
-                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Tên khách hàng:
-                  </Typography>
-                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Số điện thoại:
-                  </Typography>
-                  <Typography sx={{ fontWeight: 500 }}>Email:</Typography>
+                <Grid2 size={{ xs: 12, md: 6 }}>
+                  <Grid2 container spacing={3}>
+                    <Grid2 size={{ xs: 12, md: 6 }}>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        Loại yêu cầu:
+                      </Typography>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        Lý do hoàn trả:
+                      </Typography>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        Ghi chú:
+                      </Typography>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        Trạng thái:
+                      </Typography>
+                    </Grid2>
+                    <Grid2 size={{ xs: 12, md: 6 }}>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        {orderReturnTypeMap[
+                          orderReturnRequestData?.data?.type as string
+                        ] || orderReturnRequestData?.data?.type}
+                      </Typography>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        {reasonMap?.[
+                          orderReturnRequestData?.data?.reasonCode as string
+                        ] || 'Không xác định'}
+                      </Typography>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        {orderReturnRequestData?.data?.reasonNote}
+                      </Typography>
+                      <Button
+                        variant='outlined'
+                        color={
+                          orderReturnRequestData?.data?.status === 'PENDING'
+                            ? 'warning'
+                            : orderReturnRequestData?.data?.status ===
+                              'APPROVED'
+                            ? 'info'
+                            : orderReturnRequestData?.data?.status ===
+                              'COMPLETED'
+                            ? 'success'
+                            : orderReturnRequestData?.data?.status ===
+                              'REJECTED'
+                            ? 'error'
+                            : orderReturnRequestData?.data?.status ===
+                              'CANCELED'
+                            ? 'error'
+                            : 'error'
+                        }
+                        sx={{
+                          width: 120,
+                          fontSize: 13,
+                          textTransform: 'none',
+                          cursor: 'pointer',
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                          },
+                          gap: 1,
+                        }}>
+                        {statusMap?.[
+                          orderReturnRequestData?.data?.status as string
+                        ] || 'Không xác định'}
+                      </Button>
+                    </Grid2>
+                  </Grid2>
                 </Grid2>
-                <Grid2 size={{ xs: 12, md: 8 }}>
-                  {/* <Typography sx={{ mb: 1 }}>
-                    {orderReturnRequestData?.data?.order?.customer?.fullName ??
-                      'Không có'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {orderReturnRequestData?.data?.order?.customer
-                      ?.phoneNumber ?? 'Không có'}
-                  </Typography>
-                  <Typography>
-                    {orderReturnRequestData?.data?.order?.customer?.email ??
-                      'Không có'}
-                  </Typography> */}
+                <Grid2 size={{ xs: 12, md: 6 }}>
+                  <Grid2 container spacing={3}>
+                    <Grid2 size={{ xs: 12, md: 6 }}>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        Người tạo:
+                      </Typography>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        Người duyệt:
+                      </Typography>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        Ngày tạo:
+                      </Typography>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        Ngày hoàn thành:
+                      </Typography>
+                    </Grid2>
+                    <Grid2 size={{ xs: 12, md: 6 }}>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        {orderReturnRequestData?.data?.createdBy?.name}
+                      </Typography>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        {orderReturnRequestData?.data?.approvedBy?.name}
+                      </Typography>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        {moment(orderReturnRequestData?.data?.createdAt).format(
+                          'DD/MM/YYYY HH:mm'
+                        )}
+                      </Typography>
+                      <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                        {moment(
+                          orderReturnRequestData?.data?.completedAt
+                        ).format('DD/MM/YYYY HH:mm')}
+                      </Typography>
+                    </Grid2>
+                  </Grid2>
                 </Grid2>
               </Grid2>
             </CardContent>
@@ -394,19 +452,13 @@ const OrderReturnRequestDetail = () => {
             width: '100%',
             mt: 2,
           }}>
-          <Button onClick={() => navigate(ROUTES.ORDER)} sx={{ mr: 2 }}>
-            Trở lại
-          </Button>
           <Button
-            variant='contained'
-            onClick={() => navigate(`${ROUTES.ORDER}/update/${id}`)}
-            sx={{ minWidth: 100 }}>
-            Chỉnh sửa
+            onClick={() => navigate(ROUTES.ORDER_RETURN_REQUEST)}
+            sx={{ mr: 2 }}>
+            Trở lại
           </Button>
         </Box>
       </Grid2>
-
-      {isUpdateOrderConfirmPending && <SuspenseLoader />}
     </>
   );
 };

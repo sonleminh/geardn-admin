@@ -1,6 +1,6 @@
 import { useRoutes } from 'react-router-dom';
 
-import InventoryPage from './components/InventoryPage';
+import InventoryList from './components/InventoryList';
 import InventoryLayout from './components/InventoryLayout';
 import InventoryByProduct from './components/InventoryByProduct';
 
@@ -19,8 +19,8 @@ const Inventory = () => {
       element: <InventoryLayout />,
       children: [
         {
-          path: '',
-          element: <InventoryPage />,
+          path: 'list',
+          element: <InventoryList />,
         },
         {
           path: ':id/stocks',

@@ -612,7 +612,7 @@ const InventoryImportPage = () => {
           color='inherit'
           onClick={() => navigate(ROUTES.INVENTORY)}
           sx={{ cursor: 'pointer' }}>
-          Kho hàng
+          Tồn kho
         </Link>
         <Typography color='text.primary'>Nhập hàng</Typography>
       </Breadcrumbs>

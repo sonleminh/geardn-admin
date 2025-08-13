@@ -8,12 +8,17 @@ import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
 import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined';
+import ManageHistoryOutlinedIcon from '@mui/icons-material/ManageHistoryOutlined';
+import UndoOutlinedIcon from '@mui/icons-material/UndoOutlined';
 import PaymentIcon from '@mui/icons-material/Payment';
 import StoreMallDirectoryOutlinedIcon from '@mui/icons-material/StoreMallDirectoryOutlined';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import StyleOutlinedIcon from '@mui/icons-material/StyleOutlined';
+
+import { LuPackageMinus, LuPackagePlus } from 'react-icons/lu';
 import { BiCategory } from 'react-icons/bi';
+import { TbHomeEdit } from 'react-icons/tb';
 import { FiPackage } from 'react-icons/fi';
 
 import { IconButton, Link, styled, useTheme } from '@mui/material';
@@ -80,26 +85,86 @@ const menuList = [
   },
   {
     item: (
-      <ListItem>
-        <ListItemButton component={NavLink} to={ROUTES.ORDER}>
-          <ListItemIcon>
-            <ShoppingBagOutlinedIcon />
-          </ListItemIcon>
-          <ListItemText primary={'Đơn hàng'} />
-        </ListItemButton>
-      </ListItem>
+      <MultipleListItem
+        mainIcon={<ShoppingBagOutlinedIcon />}
+        mainLabel='Quản lý đơn hàng'
+        active={location.pathname.includes('order')}
+        options={[
+          {
+            to: ROUTES.ORDER_LIST,
+            icon: <ShoppingBagOutlinedIcon />,
+            label: 'Đơn hàng',
+          },
+          {
+            to: ROUTES.ORDER_STATUS_HISTORY,
+            icon: <ManageHistoryOutlinedIcon />,
+            label: 'Lịch sử cập nhật',
+          },
+          {
+            to: ROUTES.ORDER_RETURN_REQUEST,
+            icon: <UndoOutlinedIcon />,
+            label: 'Hoàn trả đơn hàng',
+          },
+        ]}
+      />
     ),
   },
   {
     item: (
-      <ListItem>
-        <ListItemButton component={NavLink} to={ROUTES.INVENTORY}>
-          <ListItemIcon>
-            <Inventory2OutlinedIcon />
-          </ListItemIcon>
-          <ListItemText primary={'Tồn kho'} />
-        </ListItemButton>
-      </ListItem>
+      <MultipleListItem
+        mainIcon={<Inventory2OutlinedIcon />}
+        mainLabel='Quản lý tồn kho'
+        active={location.pathname.includes('inventory')}
+        options={[
+          {
+            to: ROUTES.INVENTORY_LIST,
+            icon: <Inventory2OutlinedIcon />,
+            label: 'Tồn kho',
+          },
+          {
+            to: ROUTES.INVENTORY_IMPORT,
+            icon: (
+              <Box
+                sx={{
+                  svg: {
+                    fontSize: 24,
+                  },
+                }}>
+                <LuPackagePlus />
+              </Box>
+            ),
+            label: 'Nhập kho',
+          },
+          {
+            to: ROUTES.INVENTORY_EXPORT,
+            icon: (
+              <Box
+                sx={{
+                  svg: {
+                    fontSize: 24,
+                  },
+                }}>
+                <LuPackageMinus />
+              </Box>
+            ),
+            label: 'Xuất kho',
+          },
+          {
+            to: ROUTES.INVENTORY_EXPORT,
+            icon: (
+              <Box
+                sx={{
+                  svg: {
+                    fontSize: 24,
+                  },
+                }}>
+                <TbHomeEdit />
+              </Box>
+            ),
+            label: 'Điều chỉnh',
+          },
+        ]}
+      />
     ),
   },
   {
@@ -263,13 +328,18 @@ const DashboardDrawer = ({
                     bgcolor: '#333',
                   },
                 }}>
-                <ListItemIcon sx={{ color: '#fff' }}>
+                <ListItemIcon sx={{ minWidth: 40, height: 24, color: '#fff' }}>
                   <DashboardIcon />
                 </ListItemIcon>
                 <ListItemText primary={'Dashboard'} />
               </ListItemButton>
             </ListItem>
-          }>
+          }
+          sx={{
+            '.MuiListItemIcon-root': {
+              minWidth: 40,
+            },
+          }}>
           {menuList?.map((item, index) => (
             <React.Fragment key={index}>{item.item}</React.Fragment>
           ))}

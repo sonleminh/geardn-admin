@@ -301,36 +301,6 @@ const OrderList = () => {
           action={
             <Box sx={{ display: 'flex', gap: 1 }}>
               <ButtonWithTooltip
-                variant='outlined'
-                title='Danh sách đơn hoàn'
-                onClick={() => navigate(`${ROUTES.ORDER}/return-request`)}
-                sx={{ textTransform: 'none' }}>
-                <Box
-                  sx={{
-                    height: 24,
-                    img: {
-                      width: 24,
-                      height: 24,
-                      mr: 1,
-                      objectFit: 'contain',
-                    },
-                  }}>
-                  <img
-                    src={
-                      'https://cdn-icons-png.flaticon.com/512/4989/4989753.png'
-                    }
-                    alt={''}
-                  />
-                </Box>
-              </ButtonWithTooltip>
-              <ButtonWithTooltip
-                variant='outlined'
-                onClick={() => navigate(`${ROUTES.ORDER}/update-history`)}
-                title='Lịch sử cập nhật'
-                sx={{ textTransform: 'none' }}>
-                <ManageHistoryIcon />
-              </ButtonWithTooltip>
-              <ButtonWithTooltip
                 variant='contained'
                 onClick={() => navigate(`${ROUTES.ORDER}/create`)}
                 title='Tạo đơn hàng'

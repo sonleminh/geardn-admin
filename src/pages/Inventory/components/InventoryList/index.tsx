@@ -242,7 +242,7 @@ const usePagination = () => {
   };
 };
 
-const InventoryPage = () => {
+const InventoryList = () => {
   const navigate = useNavigate();
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
@@ -479,4 +479,4 @@ const InventoryPage = () => {
   );
 };
 
-export default InventoryPage;
+export default InventoryList;
