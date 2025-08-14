@@ -8,6 +8,7 @@ import {
   Divider,
   Grid2,
   Link,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -18,10 +19,7 @@ import {
 } from '@mui/material';
 
 import { ROUTES } from '@/constants/route';
-import {
-  useGetAdjustmentLogById,
-  useGetImportLogById,
-} from '@/services/inventory';
+import { useGetAdjustmentLogById } from '@/services/inventory';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
@@ -35,7 +33,9 @@ const InventoryAdjustmentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: adjustmentLogData } = useGetAdjustmentLogById(id as string);
+  const { data: adjustmentLogData, isLoading } = useGetAdjustmentLogById(
+    id as string
+  );
   const { data: importTypeData } = useGetEnumByContext('import-type');
 
   const importTypeMap = useMemo(
@@ -63,6 +63,7 @@ const InventoryAdjustmentDetail = () => {
     ],
     [navigate]
   );
+
   return (
     <>
       <Box sx={{ mb: 3 }}>
@@ -125,39 +126,52 @@ const InventoryAdjustmentDetail = () => {
                   <Typography sx={{ mb: 1, fontWeight: 500 }}>
                     Ngày điều chỉnh:
                   </Typography>
-                  <Typography sx={{ fontWeight: 500 }}>Ngày tạo:</Typography>
                 </Grid2>
                 <Grid2 size={{ xs: 12, md: 8 }}>
-                  <Typography sx={{ mb: 1 }}>
-                    {adjustmentLogData?.data?.referenceCode ?? 'Không có'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {importTypeMap?.[adjustmentLogData?.data?.type as string] ||
-                      'Không xác định'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {adjustmentLogData?.data?.note ?? 'Không có'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {adjustmentLogData?.data?.warehouse?.name ?? 'Không có'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {adjustmentLogData?.data?.user?.name ?? 'Không có'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {adjustmentLogData?.data?.adjustmentDate
-                      ? moment(adjustmentLogData?.data?.adjustmentDate).format(
-                          'DD/MM/YYYY'
-                        )
-                      : 'Không có'}
-                  </Typography>
-                  <Typography>
-                    {adjustmentLogData?.data?.createdAt
-                      ? moment(adjustmentLogData?.data?.createdAt).format(
-                          'DD/MM/YYYY'
-                        )
-                      : 'Không có'}
-                  </Typography>
+                  {isLoading ? (
+                    <>
+                      <Skeleton width={180} height={24} sx={{ mb: 1 }} />
+                      <Skeleton width={180} height={24} sx={{ mb: 1 }} />
+                      <Skeleton width={180} height={24} sx={{ mb: 1 }} />
+                      <Skeleton width={180} height={24} sx={{ mb: 1 }} />
+                      <Skeleton width={180} height={24} sx={{ mb: 1 }} />
+                      <Skeleton width={180} height={24} />
+                    </>
+                  ) : (
+                    <>
+                      <Typography sx={{ mb: 1 }}>
+                        {adjustmentLogData?.data?.referenceCode ?? 'Không có'}
+                      </Typography>
+                      <Typography sx={{ mb: 1 }}>
+                        {importTypeMap?.[
+                          adjustmentLogData?.data?.type as string
+                        ] || 'Không xác định'}
+                      </Typography>
+                      <Typography sx={{ mb: 1 }}>
+                        {adjustmentLogData?.data?.note ?? 'Không có'}
+                      </Typography>
+                      <Typography sx={{ mb: 1 }}>
+                        {adjustmentLogData?.data?.warehouse?.name ?? 'Không có'}
+                      </Typography>
+                      <Typography sx={{ mb: 1 }}>
+                        {adjustmentLogData?.data?.user?.name ?? 'Không có'}
+                      </Typography>
+                      <Typography sx={{ mb: 1 }}>
+                        {adjustmentLogData?.data?.adjustmentDate
+                          ? moment(
+                              adjustmentLogData?.data?.adjustmentDate
+                            ).format('DD/MM/YYYY')
+                          : 'Không có'}
+                      </Typography>
+                      <Typography>
+                        {adjustmentLogData?.data?.createdAt
+                          ? moment(adjustmentLogData?.data?.createdAt).format(
+                              'DD/MM/YYYY'
+                            )
+                          : 'Không có'}
+                      </Typography>
+                    </>
+                  )}
                 </Grid2>
               </Grid2>
             </CardContent>
@@ -180,62 +194,103 @@ const InventoryAdjustmentDetail = () => {
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>STT</TableCell>
-                      <TableCell>Ảnh</TableCell>
-                      <TableCell>Sản phẩm</TableCell>
-                      <TableCell>SL cũ</TableCell>
-                      <TableCell>SL mới</TableCell>
-                      <TableCell>Giá</TableCell>
+                      <TableCell align='center'>STT</TableCell>
+                      <TableCell align='center'>Ảnh</TableCell>
+                      <TableCell align='center'>Sản phẩm</TableCell>
+                      <TableCell align='center'>SL cũ</TableCell>
+                      <TableCell align='center'>SL mới</TableCell>
+                      <TableCell align='center'>Giá</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {adjustmentLogData?.data?.items.map((item, index) => (
-                      <TableRow key={item?.id}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>
-                          <Box
-                            sx={{
-                              height: 40,
-                              img: {
-                                width: 40,
-                                height: 40,
-                                mr: 1,
-                                objectFit: 'contain',
-                              },
-                            }}>
-                            <img
-                              src={item?.sku?.imageUrl}
-                              alt={item?.sku?.product?.name}
-                            />
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Typography
-                            sx={{
-                              fontSize: 14,
-                              fontWeight: 500,
-                              ...truncateTextByLine(1),
-                            }}>
-                            {item?.sku?.product?.name}
-                          </Typography>
-                          {item?.sku?.productSkuAttributes?.length
-                            ? item?.sku?.productSkuAttributes?.map(
-                                (attr, index) => (
-                                  <Typography key={index} sx={{ fontSize: 13 }}>
-                                    {attr?.attributeValue?.attribute?.label}:{' '}
-                                    {attr?.attributeValue?.value}
-                                  </Typography>
-                                )
-                              )
-                            : null}
-                        </TableCell>
-                        <TableCell>{item?.quantity ?? 0}</TableCell>
-                        <TableCell>{item?.quantity ?? 0}</TableCell>
-                        <TableCell>
-                          {formatPrice(item?.unitCost ?? 0)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {isLoading
+                      ? Array.from(new Array(5)).map((_, index) => (
+                          <TableRow key={index}>
+                            <TableCell align='center'>
+                              <Skeleton width={30} height={24} />
+                            </TableCell>
+                            <TableCell align='center'>
+                              <Skeleton
+                                variant='rectangular'
+                                width={40}
+                                height={40}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 1,
+                                }}>
+                                <Skeleton width={50} height={20} />
+                                <Skeleton width={50} height={16} />
+                              </Box>
+                            </TableCell>
+                            <TableCell align='center'>
+                              <Skeleton width={50} height={24} />
+                            </TableCell>
+                            <TableCell align='center'>
+                              <Skeleton width={50} height={24} />
+                            </TableCell>
+                            <TableCell align='center'>
+                              <Skeleton width={50} height={24} />
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      : adjustmentLogData?.data?.items.map((item, index) => (
+                          <TableRow key={item?.id}>
+                            <TableCell align='center'>{index + 1}</TableCell>
+                            <TableCell align='center'>
+                              <Box
+                                sx={{
+                                  height: 40,
+                                  img: {
+                                    width: 40,
+                                    height: 40,
+                                    mr: 1,
+                                    objectFit: 'contain',
+                                  },
+                                }}>
+                                <img
+                                  src={item?.sku?.imageUrl}
+                                  alt={item?.sku?.product?.name}
+                                />
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Typography
+                                sx={{
+                                  fontSize: 14,
+                                  fontWeight: 500,
+                                  ...truncateTextByLine(1),
+                                }}>
+                                {item?.sku?.product?.name}
+                              </Typography>
+                              {item?.sku?.productSkuAttributes?.length
+                                ? item?.sku?.productSkuAttributes?.map(
+                                    (attr, index) => (
+                                      <Typography
+                                        key={index}
+                                        sx={{ fontSize: 13 }}>
+                                        {attr?.attributeValue?.attribute?.label}
+                                        : {attr?.attributeValue?.value}
+                                      </Typography>
+                                    )
+                                  )
+                                : null}
+                            </TableCell>
+                            <TableCell align='center'>
+                              {item?.quantityBefore ?? 0}
+                            </TableCell>
+                            <TableCell align='center'>
+                              {item?.quantityChange ?? 0}
+                            </TableCell>
+                            <TableCell align='center'>
+                              {formatPrice(item?.sku?.sellingPrice ?? 0)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -253,7 +308,7 @@ const InventoryAdjustmentDetail = () => {
             mt: 2,
           }}>
           <Button
-            onClick={() => navigate(ROUTES.INVENTORY_IMPORT)}
+            onClick={() => navigate(ROUTES.INVENTORY_ADJUSTMENT)}
             sx={{ mr: 2 }}>
             Trở lại
           </Button>

@@ -8,6 +8,7 @@ import {
   Divider,
   Grid2,
   Link,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -32,7 +33,7 @@ const InventoryImportDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: importLogData } = useGetImportLogById(id as string);
+  const { data: importLogData, isLoading } = useGetImportLogById(id as string);
   const { data: importTypeData } = useGetEnumByContext('import-type');
 
   const importTypeMap = useMemo(
@@ -125,36 +126,50 @@ const InventoryImportDetail = () => {
                   <Typography sx={{ fontWeight: 500 }}>Ngày tạo:</Typography>
                 </Grid2>
                 <Grid2 size={{ xs: 12, md: 8 }}>
-                  <Typography sx={{ mb: 1 }}>
-                    {importLogData?.data?.referenceCode ?? 'Không có'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {importTypeMap?.[importLogData?.data?.type as string] ||
-                      'Không xác định'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {importLogData?.data?.note ?? 'Không có'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {importLogData?.data?.warehouse?.name ?? 'Không có'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {importLogData?.data?.user?.name ?? 'Không có'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {importLogData?.data?.importDate
-                      ? moment(importLogData?.data?.importDate).format(
-                          'DD/MM/YYYY'
-                        )
-                      : 'Không có'}
-                  </Typography>
-                  <Typography>
-                    {importLogData?.data?.createdAt
-                      ? moment(importLogData?.data?.createdAt).format(
-                          'DD/MM/YYYY'
-                        )
-                      : 'Không có'}
-                  </Typography>
+                  {isLoading ? (
+                    <>
+                      <Skeleton width={180} height={24} sx={{ mb: 1 }} />
+                      <Skeleton width={180} height={24} sx={{ mb: 1 }} />
+                      <Skeleton width={180} height={24} sx={{ mb: 1 }} />
+                      <Skeleton width={180} height={24} sx={{ mb: 1 }} />
+                      <Skeleton width={180} height={24} sx={{ mb: 1 }} />
+                      <Skeleton width={180} height={24} sx={{ mb: 1 }} />
+                      <Skeleton width={180} height={24} />
+                    </>
+                  ) : (
+                    <>
+                      <Typography sx={{ mb: 1 }}>
+                        {importLogData?.data?.referenceCode ?? 'Không có'}
+                      </Typography>
+                      <Typography sx={{ mb: 1 }}>
+                        {importTypeMap?.[importLogData?.data?.type as string] ||
+                          'Không xác định'}
+                      </Typography>
+                      <Typography sx={{ mb: 1 }}>
+                        {importLogData?.data?.note ?? 'Không có'}
+                      </Typography>
+                      <Typography sx={{ mb: 1 }}>
+                        {importLogData?.data?.warehouse?.name ?? 'Không có'}
+                      </Typography>
+                      <Typography sx={{ mb: 1 }}>
+                        {importLogData?.data?.user?.name ?? 'Không có'}
+                      </Typography>
+                      <Typography sx={{ mb: 1 }}>
+                        {importLogData?.data?.importDate
+                          ? moment(importLogData?.data?.importDate).format(
+                              'DD/MM/YYYY'
+                            )
+                          : 'Không có'}
+                      </Typography>
+                      <Typography>
+                        {importLogData?.data?.createdAt
+                          ? moment(importLogData?.data?.createdAt).format(
+                              'DD/MM/YYYY'
+                            )
+                          : 'Không có'}
+                      </Typography>
+                    </>
+                  )}
                 </Grid2>
               </Grid2>
             </CardContent>
@@ -177,58 +192,96 @@ const InventoryImportDetail = () => {
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>STT</TableCell>
-                      <TableCell>Ảnh</TableCell>
-                      <TableCell>Sản phẩm</TableCell>
-                      <TableCell>SL</TableCell>
-                      <TableCell>Giá</TableCell>
+                      <TableCell align='center'>STT</TableCell>
+                      <TableCell align='center'>Ảnh</TableCell>
+                      <TableCell align='center'>Sản phẩm</TableCell>
+                      <TableCell align='center'>SL</TableCell>
+                      <TableCell align='center'>Giá</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {importLogData?.data?.items.map((item, index) => (
-                      <TableRow key={item?.id}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>
-                          <Box
-                            sx={{
-                              height: 40,
-                              img: {
-                                width: 40,
-                                height: 40,
-                                mr: 1,
-                                objectFit: 'contain',
-                              },
-                            }}>
-                            <img
-                              src={item?.sku?.imageUrl}
-                              alt={item?.sku?.product?.name}
-                            />
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Typography
-                            sx={{
-                              fontSize: 14,
-                              fontWeight: 500,
-                              ...truncateTextByLine(1),
-                            }}>
-                            {item?.sku?.product?.name}
-                          </Typography>
-                          {item?.sku?.productSkuAttributes?.length
-                            ? item?.sku?.productSkuAttributes?.map(
-                                (attr, index) => (
-                                  <Typography key={index} sx={{ fontSize: 13 }}>
-                                    {attr?.attributeValue?.attribute?.label}:{' '}
-                                    {attr?.attributeValue?.value}
-                                  </Typography>
-                                )
-                              )
-                            : null}
-                        </TableCell>
-                        <TableCell>{item?.quantity}</TableCell>
-                        <TableCell>{formatPrice(item?.unitCost)}</TableCell>
-                      </TableRow>
-                    ))}
+                    {isLoading
+                      ? Array.from(new Array(5)).map((_, index) => (
+                          <TableRow key={index}>
+                            <TableCell>
+                              <Skeleton width={30} height={24} />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton
+                                variant='rectangular'
+                                width={40}
+                                height={40}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 1,
+                                }}>
+                                <Skeleton width={150} height={20} />
+                                <Skeleton width={100} height={16} />
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton width={50} height={24} />
+                            </TableCell>
+                            <TableCell>
+                              <Skeleton width={80} height={24} />
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      : importLogData?.data?.items.map((item, index) => (
+                          <TableRow key={item?.id}>
+                            <TableCell align='center'>{index + 1}</TableCell>
+                            <TableCell align='center'>
+                              <Box
+                                sx={{
+                                  height: 40,
+                                  img: {
+                                    width: 40,
+                                    height: 40,
+                                    mr: 1,
+                                    objectFit: 'contain',
+                                  },
+                                }}>
+                                <img
+                                  src={item?.sku?.imageUrl}
+                                  alt={item?.sku?.product?.name}
+                                />
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Typography
+                                sx={{
+                                  fontSize: 14,
+                                  fontWeight: 500,
+                                  ...truncateTextByLine(1),
+                                }}>
+                                {item?.sku?.product?.name}
+                              </Typography>
+                              {item?.sku?.productSkuAttributes?.length
+                                ? item?.sku?.productSkuAttributes?.map(
+                                    (attr, index) => (
+                                      <Typography
+                                        key={index}
+                                        sx={{ fontSize: 13 }}>
+                                        {attr?.attributeValue?.attribute?.label}
+                                        : {attr?.attributeValue?.value}
+                                      </Typography>
+                                    )
+                                  )
+                                : null}
+                            </TableCell>
+                            <TableCell align='center'>
+                              {item?.quantity}
+                            </TableCell>
+                            <TableCell align='center'>
+                              {formatPrice(item?.unitCost)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -245,9 +298,7 @@ const InventoryImportDetail = () => {
             width: '100%',
             mt: 2,
           }}>
-          <Button
-            onClick={() => navigate(ROUTES.INVENTORY_IMPORT)}
-            sx={{ mr: 2 }}>
+          <Button onClick={() => navigate(ROUTES.INVENTORY_IMPORT)}>
             Trở lại
           </Button>
         </Box>

@@ -87,7 +87,6 @@ export interface IAdjustmentLogItem {
     skuId: number;
     quantityBefore: number;
     quantityChange: number;
-    unitCostBefore: number;
     sku: IProductSku;
 }
 
