@@ -4,13 +4,16 @@ import InventoryList from './components/InventoryList';
 import InventoryLayout from './components/InventoryLayout';
 import InventoryByProduct from './components/InventoryByProduct';
 
-import InventoryImportPage from './components/InventoryImportList';
-import InventoryExportList from './components/InventoryExportList';
-import InventoryAdjustmentPage from './components/InventoryAdjusmentList';
+import InventoryExportList from './components/InventoryExport';
+import InventoryAdjustment from './components/InventoryAdjustment';
 
-import CreateInventoryImportPage from './components/InventoryImportList/CreateInventoryImport';
-import CreateInventoryExportPage from './components/InventoryExportList/CreateInventoryExport';
-import CreateInventoryAdjustmentPage from './components/InventoryAdjusmentList/CreateInventoryAdjustment';
+import CreateInventoryImport from './components/InventoryImport/CreateInventoryImport';
+import CreateInventoryExport from './components/InventoryExport/CreateInventoryExport';
+import CreateInventoryAdjustment from './components/InventoryAdjustment/CreateInventoryAdjustment';
+import InventoryImportList from './components/InventoryImport';
+import InventoryImportDetail from './components/InventoryImport/InventoryImportDetail';
+import InventoryExportDetail from './components/InventoryExport/InventoryExportDetail';
+import InventoryAdjustmentDetail from './components/InventoryAdjustment/InventoryAdjustmentDetail';
 
 const Inventory = () => {
   const router = useRoutes([
@@ -29,27 +32,39 @@ const Inventory = () => {
         },
         {
           path: '/import',
-          element: <InventoryImportPage />,
+          element: <InventoryImportList />,
+        },
+        {
+          path: '/import/:id',
+          element: <InventoryImportDetail />,
         },
         {
           path: '/import/create',
-          element: <CreateInventoryImportPage />,
+          element: <CreateInventoryImport />,
         },
         {
           path: '/export',
           element: <InventoryExportList />,
         },
         {
+          path: '/export/:id',
+          element: <InventoryExportDetail />,
+        },
+        {
           path: '/export/create',
-          element: <CreateInventoryExportPage />,
+          element: <CreateInventoryExport />,
         },
         {
           path: '/adjustment',
-          element: <InventoryAdjustmentPage />,
+          element: <InventoryAdjustment />,
+        },
+        {
+          path: '/adjustment/:id',
+          element: <InventoryAdjustmentDetail />,
         },
         {
           path: '/adjustment/create',
-          element: <CreateInventoryAdjustmentPage />,
+          element: <CreateInventoryAdjustment />,
         },
       ],
     },

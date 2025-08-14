@@ -388,7 +388,7 @@ const OrderUpdateHistoryList = () => {
                       <TextField
                         fullWidth
                         size='small'
-                        placeholder='Tìm kiếm sản phẩm...'
+                        placeholder='Tìm kiếm đơn hàng...'
                         value={searchQuery}
                         onChange={handleSearchChange}
                         sx={{

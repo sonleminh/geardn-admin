@@ -9,7 +9,7 @@ import {
   ICreateAdjustmentLog,
   IAdjustmentLog,
 } from '@/interfaces/IInventorytLog';
-import { TPaginatedResponse } from '@/types/response.type';
+import { TBaseResponse, TPaginatedResponse } from '@/types/response.type';
 
 interface IGetLogListParams {
   warehouseIds?: string[];
@@ -63,6 +63,20 @@ export const useGetImportLogList = (params?: IGetLogListParams) => {
   });
 };
 
+const getImportLogById = async (id: string) => {
+  const result = await axiosInstance.get(`${importLogUrl}/${id}`);
+  return result.data as TBaseResponse<IImportLog>;
+};
+
+export const useGetImportLogById = (id: string) => {
+  return useQuery({
+    queryKey: [QueryKeys.ImportLog, id],
+    queryFn: () => getImportLogById(id),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+  });
+};
+
 //EXPORT LOG
 
 const createExportLog = async (payload: ICreateExportLog) => {
@@ -95,6 +109,20 @@ export const useGetExportLogList = (params?: IGetLogListParams) => {
   return useQuery({
     queryKey: [QueryKeys.ExportLog, params],
     queryFn: () => getExportLogList(params),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+  });
+};
+
+const getExportLogById = async (id: string) => {
+  const result = await axiosInstance.get(`${exportLogUrl}/${id}`);
+  return result.data as TBaseResponse<IExportLog>;
+};
+
+export const useGetExportLogById = (id: string) => {
+  return useQuery({
+    queryKey: [QueryKeys.ExportLog, id],
+    queryFn: () => getExportLogById(id),
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });
@@ -133,6 +161,20 @@ export const useGetAdjustmentLogList = (params?: IGetLogListParams) => {
   return useQuery({
     queryKey: [QueryKeys.AdjustmentLog, params],
     queryFn: () => getAdjustmentLogList(params),
+    refetchOnWindowFocus: false,
+    refetchInterval: false,
+  });
+};
+
+const getAdjustmentLogById = async (id: string) => {
+  const result = await axiosInstance.get(`${adjustmentLogUrl}/${id}`);
+  return result.data as TBaseResponse<IAdjustmentLog>;
+};
+
+export const useGetAdjustmentLogById = (id: string) => {
+  return useQuery({
+    queryKey: [QueryKeys.AdjustmentLog, id],
+    queryFn: () => getAdjustmentLogById(id),
     refetchOnWindowFocus: false,
     refetchInterval: false,
   });

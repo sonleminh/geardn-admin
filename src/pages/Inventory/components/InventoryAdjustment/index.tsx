@@ -1,4 +1,3 @@
-// React and React Router
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -42,15 +41,14 @@ import TableFilter from '@/components/TableFilter';
 import { TableSkeleton } from '@/components/TableSkeleton';
 
 import { useGetEnumByContext } from '@/services/enum';
-import { useGetImportLogList } from '@/services/inventory';
+import { useGetAdjustmentLogList } from '@/services/inventory';
 import { useGetProductList } from '@/services/product';
 import { useGetWarehouseList } from '@/services/warehouse';
 
 import { IEnum } from '@/interfaces/IEnum';
-import { IImportLogItem } from '@/interfaces/IInventorytLog';
+import { IAdjustmentLogItem } from '@/interfaces/IInventorytLog';
 
 import { truncateTextByLine } from '@/utils/css-helper.util';
-import { formatPrice } from '@/utils/format-price';
 
 import { ROUTES } from '@/constants/route';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
@@ -58,8 +56,9 @@ import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 interface Data {
   stt: number;
   warehouse: string;
-  items: IImportLogItem[];
+  items: IAdjustmentLogItem[];
   type: string;
+  reason: string;
   createdAt: Date;
   note: string;
   action: string;
@@ -77,6 +76,7 @@ interface ColumnFilters {
   warehouse: string[];
   items: string[];
   type: string[];
+  reason: string[];
   date: { fromDate: string; toDate: string };
 }
 
@@ -85,6 +85,7 @@ const INITIAL_COLUMN_FILTERS: ColumnFilters = {
   warehouse: [],
   items: [],
   type: [],
+  reason: [],
   date: { fromDate: '', toDate: '' },
 };
 
@@ -103,7 +104,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'STT',
     isFilter: false,
-    width: '5%',
+    width: '6%',
   },
   {
     id: 'warehouse',
@@ -117,7 +118,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Sản phẩm',
     isFilter: true,
-    width: '35%',
+    width: '30%',
   },
   {
     align: 'center',
@@ -129,9 +130,17 @@ const headCells: readonly HeadCell[] = [
   },
   {
     align: 'center',
+    id: 'reason',
+    disablePadding: false,
+    label: 'Lý do',
+    isFilter: true,
+    width: '14%',
+  },
+  {
+    align: 'center',
     id: 'createdAt',
     disablePadding: false,
-    label: 'Ngày nhập',
+    label: 'Ngày điều chỉnh',
     width: '10%',
   },
   {
@@ -139,7 +148,7 @@ const headCells: readonly HeadCell[] = [
     id: 'note',
     disablePadding: false,
     label: 'Ghi chú',
-    width: '20%',
+    width: '10%',
   },
   {
     align: 'center',
@@ -152,8 +161,9 @@ const headCells: readonly HeadCell[] = [
 
 const columns: TableColumn[] = [
   { width: '60px', align: 'center', type: 'text' },
-  { width: '100px', type: 'text' },
+  { width: '120px', type: 'text' },
   { width: '300px', type: 'complex' },
+  { width: '120px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
@@ -161,15 +171,15 @@ const columns: TableColumn[] = [
 ];
 
 // Components
-interface ImportLogItemProps {
-  item: IImportLogItem;
+interface AdjustmentLogItemProps {
+  item: IAdjustmentLogItem;
 }
 
-const ImportLogItem = ({ item }: ImportLogItemProps) => {
+const AdjustmentLogItem = ({ item }: AdjustmentLogItemProps) => {
   const productName = item?.sku?.product?.name;
   const imageUrl = item?.sku?.imageUrl ?? item?.sku?.product?.images?.[0];
-  const quantity = item?.quantity;
-  const unitCost = item?.unitCost;
+  const quantityBefore = item?.quantityBefore;
+  const quantityChange = item?.quantityChange;
   const attributes = item?.sku?.productSkuAttributes;
 
   return (
@@ -205,9 +215,9 @@ const ImportLogItem = ({ item }: ImportLogItemProps) => {
           {productName}
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography sx={{ fontSize: 13 }}>SL: {quantity}</Typography>
+          <Typography sx={{ fontSize: 13 }}>SL cũ: {quantityBefore}</Typography>
           <Typography sx={{ fontSize: 13 }}>
-            Giá nhập: {formatPrice(unitCost)}
+            SL mới: {quantityChange}
           </Typography>
         </Box>
       </Box>
@@ -478,7 +488,7 @@ const usePagination = () => {
 };
 
 // Main component
-const InventoryImportPage = () => {
+const InventoryAdjustmentList = () => {
   const navigate = useNavigate();
   const {
     filterAnchorEl,
@@ -499,33 +509,45 @@ const InventoryImportPage = () => {
 
   const { data: warehousesData } = useGetWarehouseList();
   const { data: productsData } = useGetProductList();
-  const { data: enumData } = useGetEnumByContext('import-type');
+  const { data: adjustmentTypeData } = useGetEnumByContext('adjustment-type');
+  const { data: adjustmentReasonData } =
+    useGetEnumByContext('adjustment-reason');
 
   const {
-    data: importLogsData,
-    refetch: refetchImportLogs,
-    isLoading: isLoadingImportLogs,
-  } = useGetImportLogList({
+    data: adjustmentLogsData,
+    refetch: adjustmentLogsRefetch,
+    isLoading: isLoadingAdjustmentLogs,
+  } = useGetAdjustmentLogList({
     warehouseIds: columnFilters.warehouse,
     productIds: columnFilters.items,
     types: columnFilters.type,
+    reasons: columnFilters.reason,
     fromDate: columnFilters.date.fromDate,
     toDate: columnFilters.date.toDate,
     page: page + 1,
     limit: rowsPerPage,
   });
 
-  const importTypeMap = useMemo(
+  const adjustmentTypeMap = useMemo(
     () =>
       Object.fromEntries(
-        enumData?.data?.map((item) => [item.value, item.label]) ?? []
+        adjustmentTypeData?.data?.map((item) => [item.value, item.label]) ?? []
       ),
-    [enumData?.data]
+    [adjustmentTypeData?.data]
+  );
+
+  const adjustmentReasonMap = useMemo(
+    () =>
+      Object.fromEntries(
+        adjustmentReasonData?.data?.map((item) => [item.value, item.label]) ??
+          []
+      ),
+    [adjustmentReasonData?.data]
   );
 
   useEffect(() => {
-    refetchImportLogs();
-  }, [columnFilters, refetchImportLogs]);
+    adjustmentLogsRefetch();
+  }, [columnFilters, adjustmentLogsRefetch]);
 
   const renderFilterContent = useCallback(() => {
     switch (activeFilterColumn) {
@@ -569,7 +591,7 @@ const InventoryImportPage = () => {
           <TableFilter
             title='Lọc theo loại nhập'
             options={
-              enumData?.data?.map((type: IEnum) => ({
+              adjustmentTypeData?.data?.map((type: IEnum) => ({
                 id: type.value,
                 label: type.label,
               })) ?? []
@@ -581,6 +603,23 @@ const InventoryImportPage = () => {
             onClose={handleFilterClose}
           />
         );
+      case 'reason':
+        return (
+          <TableFilter
+            title='Lọc theo lý do'
+            options={
+              adjustmentReasonData?.data?.map((reason: IEnum) => ({
+                id: reason.value,
+                label: reason.label,
+              })) ?? []
+            }
+            selectedValues={columnFilters.reason}
+            onFilterChange={(newValues) =>
+              handleColumnFilterChange('reason', newValues)
+            }
+            onClose={handleFilterClose}
+          />
+        );
       default:
         return null;
     }
@@ -588,7 +627,8 @@ const InventoryImportPage = () => {
     activeFilterColumn,
     warehousesData,
     productsData,
-    enumData,
+    adjustmentTypeData,
+    adjustmentReasonData?.data,
     columnFilters,
     handleColumnFilterChange,
     handleFilterClose,
@@ -607,27 +647,20 @@ const InventoryImportPage = () => {
           sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
           <HomeOutlinedIcon sx={{ fontSize: 24 }} />
         </Link>
-        <Link
-          underline='hover'
-          color='inherit'
-          onClick={() => navigate(ROUTES.INVENTORY)}
-          sx={{ cursor: 'pointer' }}>
-          Tồn kho
-        </Link>
-        <Typography color='text.primary'>Nhập hàng</Typography>
+        <Typography color='text.primary'>Điều chỉnh kho</Typography>
       </Breadcrumbs>
       <Card>
         <CardHeader
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Nhập hàng
+              Điều chỉnh kho
             </Typography>
           }
           action={
             <ButtonWithTooltip
               variant='contained'
-              onClick={() => navigate(`${ROUTES.INVENTORY}/import/create`)}
-              title='Nhập hàng'
+              onClick={() => navigate(`${ROUTES.INVENTORY}/adjustment/create`)}
+              title='Điều chỉnh kho'
               sx={{ textTransform: 'none' }}>
               <AddCircleOutlined />
             </ButtonWithTooltip>
@@ -650,7 +683,7 @@ const InventoryImportPage = () => {
                         columnFilters={columnFilters}
                         warehousesData={warehousesData || { data: [] }}
                         productsData={productsData || { data: [] }}
-                        enumData={enumData || { data: [] }}
+                        enumData={adjustmentTypeData || { data: [] }}
                         onFilterChange={handleColumnFilterChange}
                       />
                       <Box
@@ -727,42 +760,54 @@ const InventoryImportPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {isLoadingImportLogs ? (
+                {isLoadingAdjustmentLogs ? (
                   <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
-                ) : importLogsData?.data?.length ? (
-                  importLogsData?.data?.map((importLog, index) => (
-                    <TableRow key={importLog.id || index}>
+                ) : adjustmentLogsData?.data?.length ? (
+                  adjustmentLogsData?.data?.map((adjustmentLog, index) => (
+                    <TableRow key={adjustmentLog.id || index}>
                       <TableCell align='center'>
                         {page * rowsPerPage + index + 1}
                       </TableCell>
-                      <TableCell>{importLog?.warehouse?.name}</TableCell>
+                      <TableCell>{adjustmentLog?.warehouse?.name}</TableCell>
                       <TableCell>
                         <Box>
-                          {importLog?.items?.map((importLogItem) => (
-                            <ImportLogItem
-                              key={importLogItem?.sku?.id}
-                              item={importLogItem}
+                          {adjustmentLog?.items?.map((adjustmentLogItem) => (
+                            <AdjustmentLogItem
+                              key={adjustmentLogItem?.sku?.id}
+                              item={adjustmentLogItem}
                             />
                           ))}
                         </Box>
                       </TableCell>
                       <TableCell align='center'>
-                        {importTypeMap?.[importLog?.type] || 'Không xác định'}
+                        {adjustmentTypeMap?.[adjustmentLog?.type] ||
+                          'Không xác định'}
                       </TableCell>
                       <TableCell align='center'>
-                        {moment(importLog?.createdAt).format('DD/MM/YYYY')}
+                        {adjustmentReasonMap?.[adjustmentLog?.reason ?? ''] ||
+                          'Không xác định'}
                       </TableCell>
                       <TableCell align='center'>
-                        {importLog?.note?.length ? importLog?.note : 'Không có'}
+                        {moment(adjustmentLog?.createdAt).format('DD/MM/YYYY')}
+                      </TableCell>
+                      <TableCell align='center'>
+                        {adjustmentLog?.note?.length
+                          ? adjustmentLog?.note
+                          : 'Không có'}
                       </TableCell>
                       <TableCell align='center'>
                         <ActionButton>
-                          <Box mb={1}>
+                          <Box>
                             <ButtonWithTooltip
                               color='primary'
                               variant='outlined'
-                              title='Xem chi tiết'
-                              placement='left'>
+                              title='Chi tiết'
+                              placement='left'
+                              onClick={() =>
+                                navigate(
+                                  `${ROUTES.INVENTORY}/adjustment/${adjustmentLog?.id}`
+                                )
+                              }>
                               <VisibilityOutlinedIcon />
                             </ButtonWithTooltip>
                           </Box>
@@ -782,7 +827,7 @@ const InventoryImportPage = () => {
           </TableContainer>
           <TablePagination
             component='div'
-            count={importLogsData?.meta?.total || 0}
+            count={adjustmentLogsData?.meta?.total || 0}
             page={page}
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
@@ -841,4 +886,4 @@ const InventoryImportPage = () => {
   );
 };
 
-export default InventoryImportPage;
+export default InventoryAdjustmentList;

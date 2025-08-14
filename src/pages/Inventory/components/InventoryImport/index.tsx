@@ -2,7 +2,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Material-UI components
 import {
   Box,
   Breadcrumbs,
@@ -25,50 +24,41 @@ import {
   Typography,
 } from '@mui/material';
 
-// Material-UI icons
 import { AddCircleOutlined } from '@mui/icons-material';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 
-// Third-party libraries
 import { addDays } from 'date-fns';
 import moment from 'moment';
 import { DateRangePicker, RangeKeyDict } from 'react-date-range';
 
-// Local components
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import TableFilter from '@/components/TableFilter';
 import { TableSkeleton } from '@/components/TableSkeleton';
 
-// Local services
 import { useGetEnumByContext } from '@/services/enum';
-import { useGetExportLogList } from '@/services/inventory';
+import { useGetImportLogList } from '@/services/inventory';
 import { useGetProductList } from '@/services/product';
 import { useGetWarehouseList } from '@/services/warehouse';
 
-// Local interfaces
 import { IEnum } from '@/interfaces/IEnum';
-import { IExportLogItem } from '@/interfaces/IInventorytLog';
+import { IImportLogItem } from '@/interfaces/IInventorytLog';
 
-// Local utilities
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
 
-// Local constants
 import { ROUTES } from '@/constants/route';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 
 interface Data {
   stt: number;
   warehouse: string;
-  items: IExportLogItem[];
+  items: IImportLogItem[];
   type: string;
   createdAt: Date;
   note: string;
@@ -113,7 +103,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'STT',
     isFilter: false,
-    width: '7%',
+    width: '5%',
   },
   {
     id: 'warehouse',
@@ -127,7 +117,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Sản phẩm',
     isFilter: true,
-    width: '39%',
+    width: '35%',
   },
   {
     align: 'center',
@@ -135,21 +125,21 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Loại',
     isFilter: true,
-    width: '12%',
+    width: '10%',
   },
   {
     align: 'center',
     id: 'createdAt',
     disablePadding: false,
-    label: 'Ngày xuất',
-    width: '12%',
+    label: 'Ngày nhập',
+    width: '10%',
   },
   {
     align: 'center',
     id: 'note',
     disablePadding: false,
     label: 'Ghi chú',
-    width: '10%',
+    width: '20%',
   },
   {
     align: 'center',
@@ -171,11 +161,11 @@ const columns: TableColumn[] = [
 ];
 
 // Components
-interface ExportLogItemProps {
-  item: IExportLogItem;
+interface ImportLogItemProps {
+  item: IImportLogItem;
 }
 
-const ExportLogItem = ({ item }: ExportLogItemProps) => {
+const ImportLogItem = ({ item }: ImportLogItemProps) => {
   const productName = item?.sku?.product?.name;
   const imageUrl = item?.sku?.imageUrl ?? item?.sku?.product?.images?.[0];
   const quantity = item?.quantity;
@@ -488,7 +478,7 @@ const usePagination = () => {
 };
 
 // Main component
-const InventoryExportList = () => {
+const InventoryImportList = () => {
   const navigate = useNavigate();
   const {
     filterAnchorEl,
@@ -509,13 +499,13 @@ const InventoryExportList = () => {
 
   const { data: warehousesData } = useGetWarehouseList();
   const { data: productsData } = useGetProductList();
-  const { data: enumData } = useGetEnumByContext('export-type');
+  const { data: enumData } = useGetEnumByContext('import-type');
 
   const {
-    data: exportLogsData,
-    refetch: refetchExportLogs,
-    isLoading: isLoadingExportLogs,
-  } = useGetExportLogList({
+    data: importLogsData,
+    refetch: refetchImportLogs,
+    isLoading: isLoadingImportLogs,
+  } = useGetImportLogList({
     warehouseIds: columnFilters.warehouse,
     productIds: columnFilters.items,
     types: columnFilters.type,
@@ -534,8 +524,8 @@ const InventoryExportList = () => {
   );
 
   useEffect(() => {
-    refetchExportLogs();
-  }, [columnFilters, refetchExportLogs]);
+    refetchImportLogs();
+  }, [columnFilters, refetchImportLogs]);
 
   const renderFilterContent = useCallback(() => {
     switch (activeFilterColumn) {
@@ -617,27 +607,20 @@ const InventoryExportList = () => {
           sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
           <HomeOutlinedIcon sx={{ fontSize: 24 }} />
         </Link>
-        <Link
-          underline='hover'
-          color='inherit'
-          onClick={() => navigate(ROUTES.INVENTORY)}
-          sx={{ cursor: 'pointer' }}>
-          Tồn kho
-        </Link>
-        <Typography color='text.primary'>Xuất hàng</Typography>
+        <Typography color='text.primary'>Nhập hàng</Typography>
       </Breadcrumbs>
       <Card>
         <CardHeader
           title={
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-              Xuất hàng
+              Nhập hàng
             </Typography>
           }
           action={
             <ButtonWithTooltip
               variant='contained'
-              onClick={() => navigate(`${ROUTES.INVENTORY}/export/create`)}
-              title='Xuất hàng'
+              onClick={() => navigate(`${ROUTES.INVENTORY}/import/create`)}
+              title='Nhập hàng'
               sx={{ textTransform: 'none' }}>
               <AddCircleOutlined />
             </ButtonWithTooltip>
@@ -737,33 +720,33 @@ const InventoryExportList = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {isLoadingExportLogs ? (
+                {isLoadingImportLogs ? (
                   <TableSkeleton rowsPerPage={rowsPerPage} columns={columns} />
-                ) : exportLogsData?.data?.length ? (
-                  exportLogsData?.data?.map((exportLog, index) => (
-                    <TableRow key={exportLog.id || index}>
+                ) : importLogsData?.data?.length ? (
+                  importLogsData?.data?.map((importLog, index) => (
+                    <TableRow key={importLog.id || index}>
                       <TableCell align='center'>
                         {page * rowsPerPage + index + 1}
                       </TableCell>
-                      <TableCell>{exportLog?.warehouse?.name}</TableCell>
+                      <TableCell>{importLog?.warehouse?.name}</TableCell>
                       <TableCell>
                         <Box>
-                          {exportLog?.items?.map((exportLogItem) => (
-                            <ExportLogItem
-                              key={exportLogItem?.sku?.id}
-                              item={exportLogItem}
+                          {importLog?.items?.map((importLogItem) => (
+                            <ImportLogItem
+                              key={importLogItem?.sku?.id}
+                              item={importLogItem}
                             />
                           ))}
                         </Box>
                       </TableCell>
                       <TableCell align='center'>
-                        {importTypeMap?.[exportLog?.type] || 'Không xác định'}
+                        {importTypeMap?.[importLog?.type] || 'Không xác định'}
                       </TableCell>
                       <TableCell align='center'>
-                        {moment(exportLog?.createdAt).format('DD/MM/YYYY')}
+                        {moment(importLog?.createdAt).format('DD/MM/YYYY')}
                       </TableCell>
                       <TableCell align='center'>
-                        {exportLog?.note?.length ? exportLog?.note : 'Không có'}
+                        {importLog?.note?.length ? importLog?.note : 'Không có'}
                       </TableCell>
                       <TableCell align='center'>
                         <ActionButton>
@@ -771,18 +754,14 @@ const InventoryExportList = () => {
                             <ButtonWithTooltip
                               color='primary'
                               variant='outlined'
-                              title='Chỉnh sửa'
-                              placement='left'>
-                              <EditOutlinedIcon />
-                            </ButtonWithTooltip>
-                          </Box>
-                          <Box>
-                            <ButtonWithTooltip
-                              color='error'
-                              variant='outlined'
-                              title='Xoá'
-                              placement='left'>
-                              <DeleteOutlineOutlinedIcon />
+                              title='Xem chi tiết'
+                              placement='left'
+                              onClick={() =>
+                                navigate(
+                                  `${ROUTES.INVENTORY}/import/${importLog.id}`
+                                )
+                              }>
+                              <VisibilityOutlinedIcon />
                             </ButtonWithTooltip>
                           </Box>
                         </ActionButton>
@@ -801,7 +780,7 @@ const InventoryExportList = () => {
           </TableContainer>
           <TablePagination
             component='div'
-            count={exportLogsData?.meta?.total || 0}
+            count={importLogsData?.meta?.total || 0}
             page={page}
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
@@ -860,4 +839,4 @@ const InventoryExportList = () => {
   );
 };
 
-export default InventoryExportList;
+export default InventoryImportList;

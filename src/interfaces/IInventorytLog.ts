@@ -1,4 +1,6 @@
+import { IOrder } from "./IOrder";
 import { IProductSku } from "./IProductSku";
+import { IUser } from "./IUser";
 import { IWarehouse } from "./IWarehouse";
 
 export interface IImportLogItem {
@@ -14,13 +16,18 @@ export interface IImportLogItem {
 export interface IImportLog {
     id: number;
     warehouseId: number;
+    referenceCode: string;
     type: string;
+    orderId?: number;
     note?: string;
     createdBy: number;
     items: IImportLogItem[];
+    importDate: Date;
     createdAt: Date;
 
     warehouse: IWarehouse;
+    order: IOrder;
+    user: IUser;
 }
 
 
@@ -48,13 +55,17 @@ export interface IExportLogItem {
 export interface IExportLog {
     id: number;
     warehouseId: number;
+    referenceCode: string;
     type: string;
+    orderId?: number;
     note?: string;
     createdBy: number;
     items: IExportLogItem[];
+    exportDate: Date;
     createdAt: Date;
 
     warehouse: IWarehouse;
+    user: IUser;
 }
 
 
@@ -82,14 +93,18 @@ export interface IAdjustmentLogItem {
 
 export interface IAdjustmentLog {
     id: number;
+    referenceCode: string;
     warehouseId: number;
     type: string;
     reason: string;
     note?: string;
     createdBy: number;
+    adjustmentDate: Date;
+    createdAt: Date;
+
     warehouse: IWarehouse;
     items: IAdjustmentLogItem[];
-    createdAt: Date;
+    user: IUser;
 }
 
 

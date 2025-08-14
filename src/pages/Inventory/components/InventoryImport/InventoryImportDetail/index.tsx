@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 
 import { ROUTES } from '@/constants/route';
-import { useGetOrderById } from '@/services/order';
+import { useGetImportLogById } from '@/services/inventory';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
@@ -26,12 +26,22 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import moment from 'moment';
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useGetEnumByContext } from '@/services/enum';
 
-const OrderDetail = () => {
+const InventoryImportDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: orderData } = useGetOrderById(id as string);
+  const { data: importLogData } = useGetImportLogById(id as string);
+  const { data: importTypeData } = useGetEnumByContext('import-type');
+
+  const importTypeMap = useMemo(
+    () =>
+      Object.fromEntries(
+        importTypeData?.data?.map((item) => [item.value, item.label]) ?? []
+      ),
+    [importTypeData?.data]
+  );
 
   const breadcrumbs = useMemo(
     () => [
@@ -41,11 +51,11 @@ const OrderDetail = () => {
         onClick: () => navigate(ROUTES.DASHBOARD),
       },
       {
-        label: 'Đơn hàng',
-        onClick: () => navigate(ROUTES.ORDER),
+        label: 'Nhập hàng',
+        onClick: () => navigate(ROUTES.INVENTORY_IMPORT),
       },
       {
-        label: 'Chi tiết đơn hàng',
+        label: 'Chi tiết nhập hàng',
       },
     ],
     [navigate]
@@ -75,14 +85,14 @@ const OrderDetail = () => {
       </Box>
 
       <Typography sx={{ mb: 2, fontSize: 20, fontWeight: 600 }}>
-        Chi tiết đơn hàng:
+        Chi tiết nhập hàng:
       </Typography>
 
       <Grid2 container spacing={3}>
         <Grid2 size={{ xs: 12, md: 6 }}>
           <Card sx={{ mb: 3 }}>
             <CardHeader
-              title='Thông tin đơn hàng'
+              title='Thông tin nhập hàng'
               sx={{
                 span: {
                   fontSize: 18,
@@ -95,116 +105,65 @@ const OrderDetail = () => {
               <Grid2 container spacing={3}>
                 <Grid2 size={{ xs: 12, md: 4 }}>
                   <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Tên khách hàng:
+                    Mã code:
                   </Typography>
                   <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Số điện thoại:
+                    Loại nhập hàng:
                   </Typography>
-                  <Typography sx={{ fontWeight: 500 }}>Email:</Typography>
+                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                    Ghi chú:
+                  </Typography>
+                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                    Kho nhập:
+                  </Typography>
+                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                    Người tạo:
+                  </Typography>
+                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                    Ngày nhập:
+                  </Typography>
+                  <Typography sx={{ fontWeight: 500 }}>Ngày tạo:</Typography>
                 </Grid2>
                 <Grid2 size={{ xs: 12, md: 8 }}>
                   <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.fullName ?? 'Không có'}
+                    {importLogData?.data?.referenceCode ?? 'Không có'}
                   </Typography>
                   <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.phoneNumber ?? 'Không có'}
+                    {importTypeMap?.[importLogData?.data?.type as string] ||
+                      'Không xác định'}
                   </Typography>
-                  <Typography>
-                    {orderData?.data?.email ?? 'Không có'}
-                  </Typography>
-                </Grid2>
-              </Grid2>
-            </CardContent>
-          </Card>
-          <Card sx={{ mb: 3 }}>
-            <CardHeader
-              title='Thông tin vận chuyển'
-              sx={{
-                span: {
-                  fontSize: 18,
-                  fontWeight: 500,
-                },
-              }}
-            />
-            <Divider />
-            <CardContent>
-              <Grid2 container spacing={3}>
-                <Grid2 size={{ xs: 12, md: 4 }}>
-                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Ngày đặt hàng:
-                  </Typography>
-                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Thời gian giao hàng:
-                  </Typography>
-                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Vận chuyển:
-                  </Typography>
-                  <Typography sx={{ fontWeight: 500 }}>Địa chỉ:</Typography>
-                </Grid2>
-                <Grid2 size={{ xs: 12, md: 8 }}>
                   <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.completedAt
-                      ? moment(orderData?.data?.completedAt).format(
+                    {importLogData?.data?.note ?? 'Không có'}
+                  </Typography>
+                  <Typography sx={{ mb: 1 }}>
+                    {importLogData?.data?.warehouse?.name ?? 'Không có'}
+                  </Typography>
+                  <Typography sx={{ mb: 1 }}>
+                    {importLogData?.data?.user?.name ?? 'Không có'}
+                  </Typography>
+                  <Typography sx={{ mb: 1 }}>
+                    {importLogData?.data?.importDate
+                      ? moment(importLogData?.data?.importDate).format(
                           'DD/MM/YYYY'
                         )
                       : 'Không có'}
                   </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.shipment?.deliveryDate
-                      ? moment(orderData?.data?.shipment?.deliveryDate).format(
-                          'DD/MM/YYYY HH:mm'
+                  <Typography>
+                    {importLogData?.data?.createdAt
+                      ? moment(importLogData?.data?.createdAt).format(
+                          'DD/MM/YYYY'
                         )
                       : 'Không có'}
                   </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.shipment?.method == 1
-                      ? 'Giao hàng tận nơi'
-                      : 'Nhận tại cửa hàng'}
-                  </Typography>
-                  <Typography>
-                    {orderData?.data?.shipment?.address ?? ''}
-                  </Typography>
                 </Grid2>
               </Grid2>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader
-              title='Phương thức thanh toán'
-              sx={{
-                span: {
-                  fontSize: 18,
-                  fontWeight: 500,
-                },
-              }}
-            />
-            <Divider />
-            <CardContent>
-              <Box
-                display='flex'
-                alignItems='center'
-                sx={{
-                  height: 40,
-                  img: {
-                    width: 40,
-                    height: 40,
-                    mr: 2,
-                    objectFit: 'contain',
-                  },
-                }}>
-                <img
-                  src={orderData?.data?.paymentMethod?.image}
-                  alt={orderData?.data?.paymentMethod?.name}
-                />
-                <Typography>{orderData?.data?.paymentMethod?.name}</Typography>
-              </Box>
             </CardContent>
           </Card>
         </Grid2>
         <Grid2 size={{ xs: 12, md: 6 }}>
           <Card>
             <CardHeader
-              title='Chi tiết đơn hàng'
+              title='Chi tiết hàng nhập'
               sx={{
                 span: {
                   fontSize: 18,
@@ -226,7 +185,7 @@ const OrderDetail = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {orderData?.data?.orderItems.map((item, index) => (
+                    {importLogData?.data?.items.map((item, index) => (
                       <TableRow key={item?.id}>
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>
@@ -240,29 +199,34 @@ const OrderDetail = () => {
                                 objectFit: 'contain',
                               },
                             }}>
-                            <img src={item?.imageUrl} alt={item?.productName} />
+                            <img
+                              src={item?.sku?.imageUrl}
+                              alt={item?.sku?.product?.name}
+                            />
                           </Box>
                         </TableCell>
                         <TableCell>
                           <Typography
                             sx={{
-                              // width: 80,
                               fontSize: 14,
                               fontWeight: 500,
                               ...truncateTextByLine(1),
                             }}>
-                            {item?.productName}
+                            {item?.sku?.product?.name}
                           </Typography>
-                          {item?.skuAttributes?.length
-                            ? item?.skuAttributes?.map((attr, index) => (
-                                <Typography key={index} sx={{ fontSize: 13 }}>
-                                  {attr?.attribute}: {attr?.value}
-                                </Typography>
-                              ))
+                          {item?.sku?.productSkuAttributes?.length
+                            ? item?.sku?.productSkuAttributes?.map(
+                                (attr, index) => (
+                                  <Typography key={index} sx={{ fontSize: 13 }}>
+                                    {attr?.attributeValue?.attribute?.label}:{' '}
+                                    {attr?.attributeValue?.value}
+                                  </Typography>
+                                )
+                              )
                             : null}
                         </TableCell>
                         <TableCell>{item?.quantity}</TableCell>
-                        <TableCell>{formatPrice(item?.sellingPrice)}</TableCell>
+                        <TableCell>{formatPrice(item?.unitCost)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -281,14 +245,10 @@ const OrderDetail = () => {
             width: '100%',
             mt: 2,
           }}>
-          <Button onClick={() => navigate(ROUTES.ORDER)} sx={{ mr: 2 }}>
-            Trở lại
-          </Button>
           <Button
-            variant='contained'
-            onClick={() => navigate(`${ROUTES.ORDER}/update/${id}`)}
-            sx={{ minWidth: 100 }}>
-            Chỉnh sửa
+            onClick={() => navigate(ROUTES.INVENTORY_IMPORT)}
+            sx={{ mr: 2 }}>
+            Trở lại
           </Button>
         </Box>
       </Grid2>
@@ -296,4 +256,4 @@ const OrderDetail = () => {
   );
 };
 
-export default OrderDetail;
+export default InventoryImportDetail;

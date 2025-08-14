@@ -419,7 +419,9 @@ const InventoryList = () => {
                     </TableCell>
                     <TableCell width={'20%'} align='center'>
                       <IconButton
-                        onClick={() => navigate(`${item?.id}/stocks`)}>
+                        onClick={() =>
+                          navigate(`${ROUTES.INVENTORY}/${item?.id}/stocks`)
+                        }>
                         <VisibilityOutlinedIcon />
                       </IconButton>
                     </TableCell>
