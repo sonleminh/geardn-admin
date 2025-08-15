@@ -108,7 +108,7 @@ const OrderConfirm = () => {
       {
         onSuccess: () => {
           showNotification('Xác nhận đơn hàng thành công', 'success');
-          navigate(ROUTES.ORDER);
+          navigate(ROUTES.ORDER_LIST);
           queryClient.invalidateQueries({
             queryKey: [QueryKeys.Order],
           });
@@ -118,43 +118,6 @@ const OrderConfirm = () => {
         },
       }
     );
-
-    // Create multiple export logs
-    // createMultipleExportLogs(exportLogsByWarehouse, {
-    //   onSuccess: () => {
-    //     // Update order status after successful export
-    //     updateOrderConfirm(
-    //       {
-    //         id: +id,
-    //         orderItems: orderData?.data?.orderItems.map((item) => ({
-    //           skuId: item.skuId,
-    //           warehouseId: exportItems.find(
-    //             (exportItem) => exportItem.skuId === item.skuId
-    //           )?.warehouseId,
-    //         })),
-    //       },
-    //       {
-    //         onSuccess: () => {
-    //           queryClient.invalidateQueries({
-    //             queryKey: [QueryKeys.ExportLog],
-    //           });
-    //           queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
-    //           showNotification('Xác nhận đơn hàng thành công', 'success');
-    //           navigate(ROUTES.ORDER);
-    //         },
-    //         onError: () => {
-    //           showNotification(
-    //             'Có lỗi xảy ra khi cập nhật trạng thái đơn hàng',
-    //             'error'
-    //           );
-    //         },
-    //       }
-    //     );
-    //   },
-    //   onError: () => {
-    //     showNotification('Có lỗi xảy ra khi tạo xuất hàng', 'error');
-    //   },
-    // });
   };
 
   const breadcrumbs = useMemo(
@@ -166,7 +129,7 @@ const OrderConfirm = () => {
       },
       {
         label: 'Đơn hàng',
-        onClick: () => navigate(ROUTES.ORDER),
+        onClick: () => navigate(ROUTES.ORDER_LIST),
       },
       {
         label: 'Xác nhận đơn hàng',
@@ -477,7 +440,7 @@ const OrderConfirm = () => {
             width: '100%',
             mt: 2,
           }}>
-          <Button onClick={() => navigate(ROUTES.ORDER)} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate(ROUTES.ORDER_LIST)} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button

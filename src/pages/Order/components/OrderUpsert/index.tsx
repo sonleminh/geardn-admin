@@ -88,7 +88,6 @@ const useOrderForm = (orderData: { data: IOrder } | undefined) => {
         isOnlineOrder: false,
       },
       note: '',
-      confirmedAt: null,
       completedAt: null,
     },
     validateOnChange: false,

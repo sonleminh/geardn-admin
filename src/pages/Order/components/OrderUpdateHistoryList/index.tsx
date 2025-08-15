@@ -104,16 +104,16 @@ const headCells: readonly HeadCell[] = [
   },
   {
     align: 'center',
-    id: 'oldStatus',
+    id: 'newStatus',
     disablePadding: false,
-    label: 'Trạng thái mới',
+    label: 'Trạng thái cũ',
     width: '13%',
   },
   {
     align: 'center',
-    id: 'newStatus',
+    id: 'oldStatus',
     disablePadding: false,
-    label: 'Trạng thái cũ',
+    label: 'Trạng thái mới',
     width: '13%',
   },
   {
@@ -472,6 +472,32 @@ const OrderUpdateHistoryList = () => {
                           <Button
                             variant='outlined'
                             color={
+                              orderUpdateHistory?.oldStatus === 'PENDING'
+                                ? 'warning'
+                                : orderUpdateHistory?.oldStatus === 'PROCESSING'
+                                ? 'info'
+                                : orderUpdateHistory?.oldStatus === 'SHIPPED'
+                                ? 'success'
+                                : orderUpdateHistory?.oldStatus === 'DELIVERED'
+                                ? 'success'
+                                : orderUpdateHistory?.oldStatus === 'CANCELLED'
+                                ? 'error'
+                                : 'error'
+                            }
+                            sx={{
+                              width: '120px',
+                              fontSize: 13,
+                              textTransform: 'none',
+                              cursor: 'pointer',
+                            }}>
+                            {statusMap?.[orderUpdateHistory?.oldStatus] ||
+                              'Không xác định'}
+                          </Button>
+                        </TableCell>
+                        <TableCell align='center'>
+                          <Button
+                            variant='outlined'
+                            color={
                               orderUpdateHistory?.newStatus === 'PENDING'
                                 ? 'warning'
                                 : orderUpdateHistory?.newStatus === 'PROCESSING'
@@ -495,32 +521,6 @@ const OrderUpdateHistoryList = () => {
                               gap: 1,
                             }}>
                             {statusMap?.[orderUpdateHistory?.newStatus] ||
-                              'Không xác định'}
-                          </Button>
-                        </TableCell>
-                        <TableCell align='center'>
-                          <Button
-                            variant='outlined'
-                            color={
-                              orderUpdateHistory?.oldStatus === 'PENDING'
-                                ? 'warning'
-                                : orderUpdateHistory?.oldStatus === 'PROCESSING'
-                                ? 'info'
-                                : orderUpdateHistory?.oldStatus === 'SHIPPED'
-                                ? 'success'
-                                : orderUpdateHistory?.oldStatus === 'DELIVERED'
-                                ? 'success'
-                                : orderUpdateHistory?.oldStatus === 'CANCELLED'
-                                ? 'error'
-                                : 'error'
-                            }
-                            sx={{
-                              width: '120px',
-                              fontSize: 13,
-                              textTransform: 'none',
-                              cursor: 'pointer',
-                            }}>
-                            {statusMap?.[orderUpdateHistory?.oldStatus] ||
                               'Không xác định'}
                           </Button>
                         </TableCell>

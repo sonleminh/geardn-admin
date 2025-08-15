@@ -123,7 +123,7 @@ const InventoryAdjustmentDetail = () => {
                   <Typography sx={{ mb: 1, fontWeight: 500 }}>
                     Người tạo:
                   </Typography>
-                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                  <Typography sx={{ fontWeight: 500 }}>
                     Ngày điều chỉnh:
                   </Typography>
                 </Grid2>

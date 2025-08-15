@@ -368,7 +368,7 @@ const CreateInventoryAdjustmentPage = () => {
             }}
             fullWidth
             margin='dense'>
-            <Typography sx={{ mb: 1 }}>Thời gian nhập hàng:</Typography>
+            <Typography sx={{ mb: 1 }}>Thời gian điều chỉnh:</Typography>
             <DatePicker
               showTimeSelect
               showIcon

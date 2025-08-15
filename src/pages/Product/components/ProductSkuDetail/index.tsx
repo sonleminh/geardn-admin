@@ -98,22 +98,26 @@ const ProductSkuDetail = () => {
                   <Box sx={{ display: 'flex' }}>
                     <Typography mr={2}>Ảnh:</Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-                      <Box
-                        sx={{
-                          height: 80,
-                          img: {
-                            width: 80,
+                      {skuData?.data?.imageUrl ? (
+                        <Box
+                          sx={{
                             height: 80,
-                            mr: 1,
-                            objectFit: 'contain',
-                            border: '1px solid #ccc',
-                          },
-                        }}>
-                        <img
-                          src={skuData?.data?.imageUrl}
-                          alt={skuData?.data?.sku}
-                        />
-                      </Box>
+                            img: {
+                              width: 80,
+                              height: 80,
+                              mr: 1,
+                              objectFit: 'contain',
+                              border: '1px solid #ccc',
+                            },
+                          }}>
+                          <img
+                            src={skuData?.data?.imageUrl}
+                            alt={skuData?.data?.sku}
+                          />
+                        </Box>
+                      ) : (
+                        'Không có ảnh'
+                      )}
                     </Box>
                   </Box>
                 </FormControl>

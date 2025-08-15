@@ -50,12 +50,32 @@ import { ROUTES } from '@/constants/route';
 import { useGetCategoryList } from '@/services/category';
 import { useGetEnumByContext } from '@/services/enum';
 
+// Interface for form values
+interface FormValues {
+  name: string;
+  categoryId: string;
+  tags: ITagOptions[];
+  images: string[];
+  brand: string;
+  details: {
+    guarantee: string;
+    weight: string;
+    material: string;
+  };
+  description: string;
+  slug: string;
+  status: string;
+  isVisible: boolean;
+}
+
 const ProductUpsert = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showNotification } = useNotificationContext();
   const [tags, setTags] = useState<ITagOptions[]>([]);
+  const [initialValues, setInitialValues] = useState<FormValues | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const isEdit = !!id;
 
@@ -86,7 +106,7 @@ const ProductUpsert = () => {
       slug: '',
       status: '',
       isVisible: true,
-    },
+    } as FormValues,
     // validationSchema: isEdit ? updateSchema : createSchema,
     validateOnChange: false,
     onSubmit(values) {
@@ -123,32 +143,82 @@ const ProductUpsert = () => {
       }
     },
   });
+
+  // Function to check if form has changes
+  const checkFormChanges = () => {
+    if (!initialValues) return false;
+
+    const currentValues = {
+      ...formik.values,
+      tags: tags,
+    };
+
+    // Deep comparison of form values
+    const hasFormChanges =
+      JSON.stringify(currentValues) !== JSON.stringify(initialValues);
+    setHasChanges(hasFormChanges);
+  };
+
+  // Check for changes whenever form values or tags change
+  useEffect(() => {
+    checkFormChanges();
+  }, [formik.values, tags]);
+
   useEffect(() => {
     if (productData) {
-      formik.setFieldValue('name', productData?.data?.name);
-      formik.setFieldValue('categoryId', productData?.data?.categoryId);
-      formik.setFieldValue('tags', productData?.data?.tags);
-      formik.setFieldValue('images', productData?.data?.images);
-      formik.setFieldValue('brand', productData?.data?.brand);
-      formik.setFieldValue('description', productData?.data?.description);
-      formik.setFieldValue(
-        'details.guarantee',
-        productData?.data?.details?.guarantee
-      );
-      formik.setFieldValue(
-        'details.weight',
-        productData?.data?.details?.weight
-      );
-      formik.setFieldValue(
-        'details.material',
-        productData?.data?.details?.material
-      );
-      formik.setFieldValue('slug', productData?.data?.slug);
-      setTags(productData?.data?.tags);
-      formik.setFieldValue('status', productData?.data?.status);
-      formik.setFieldValue('isVisible', productData?.data?.isVisible);
+      const formValues: FormValues = {
+        name: productData?.data?.name || '',
+        categoryId: String(productData?.data?.categoryId || ''),
+        tags: productData?.data?.tags || [],
+        images: productData?.data?.images || [],
+        brand: productData?.data?.brand || '',
+        details: {
+          guarantee: String(productData?.data?.details?.guarantee || ''),
+          weight: productData?.data?.details?.weight || '',
+          material: productData?.data?.details?.material || '',
+        },
+        description: productData?.data?.description || '',
+        slug: productData?.data?.slug || '',
+        status: productData?.data?.status || '',
+        isVisible: productData?.data?.isVisible ?? true,
+      };
+
+      formik.setFieldValue('name', formValues.name);
+      formik.setFieldValue('categoryId', formValues.categoryId);
+      formik.setFieldValue('tags', formValues.tags);
+      formik.setFieldValue('images', formValues.images);
+      formik.setFieldValue('brand', formValues.brand);
+      formik.setFieldValue('description', formValues.description);
+      formik.setFieldValue('details.guarantee', formValues.details.guarantee);
+      formik.setFieldValue('details.weight', formValues.details.weight);
+      formik.setFieldValue('details.material', formValues.details.material);
+      formik.setFieldValue('slug', formValues.slug);
+      setTags(formValues.tags);
+      formik.setFieldValue('status', formValues.status);
+      formik.setFieldValue('isVisible', formValues.isVisible);
+
+      // Set initial values for change tracking
+      setInitialValues(formValues);
+    } else if (!isEdit && initData) {
+      // For new product, set initial values to current form values
+      const formValues: FormValues = {
+        ...formik.values,
+        tags: tags,
+      };
+      setInitialValues(formValues);
     }
   }, [productData, initData]);
+
+  // Set initial values for new products when component mounts
+  useEffect(() => {
+    if (!isEdit && !initialValues) {
+      const defaultValues: FormValues = {
+        ...formik.values,
+        tags: tags,
+      };
+      setInitialValues(defaultValues);
+    }
+  }, [isEdit, initialValues, formik.values, tags]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -329,7 +399,9 @@ const ProductUpsert = () => {
                 />
                 <FormHelperText>
                   <Box component={'span'} sx={helperTextStyle}>
-                    {formik.errors?.tags}
+                    {Array.isArray(formik.errors?.tags)
+                      ? formik.errors.tags.join(', ')
+                      : formik.errors?.tags}
                   </Box>
                 </FormHelperText>
               </FormControl>
@@ -447,6 +519,7 @@ const ProductUpsert = () => {
           <Button
             variant='contained'
             onClick={() => formik.handleSubmit()}
+            disabled={!hasChanges}
             sx={{ minWidth: 100 }}>
             Lưu
           </Button>
