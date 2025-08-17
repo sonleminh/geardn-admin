@@ -488,8 +488,6 @@ const OrderReturnRequestList = () => {
     handleFilterClose,
   ]);
 
-  console.log('selectedRequest', selectedRequest);
-
   return (
     <>
       <Breadcrumbs

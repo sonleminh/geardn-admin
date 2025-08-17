@@ -10,6 +10,8 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import {
   Box,
@@ -121,23 +123,22 @@ const OrderStats: React.FC = () => {
       {
         label: 'Đơn hoàn thành',
         value: (
-          <Typography sx={{ fontSize: 28, fontWeight: 500 }}>
+          <Typography sx={{ fontSize: 28, fontWeight: 500, color: '#588fe1' }}>
             {orderSummaryStats?.data.totals.delivered || 0}
           </Typography>
         ),
-        icon: <AttachMoneyIcon sx={{ color: '#fff' }} />,
-        iconBg: '#000',
+        icon: <CheckOutlinedIcon sx={{ color: '#fff' }} />,
+        iconBg: '#588fe1',
       },
       {
         label: 'Đơn huỷ',
         value: (
-          <Typography
-            sx={valueStyle(orderSummaryStats?.data?.growth?.delivered || 0)}>
-            {orderSummaryStats?.data?.growth?.delivered?.toFixed(2) || 0} %
+          <Typography sx={{ fontSize: 28, fontWeight: 500, color: '#d34141' }}>
+            {orderSummaryStats?.data?.totals?.canceled}
           </Typography>
         ),
-        icon: <TrendingUpIcon sx={{ color: '#fff' }} />,
-        iconBg: '#59b35c',
+        icon: <CancelOutlinedIcon sx={{ color: '#fff' }} />,
+        iconBg: '#d34141',
       },
     ],
     [orderSummaryStats]
@@ -274,8 +275,7 @@ const OrderStats: React.FC = () => {
           sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
           <HomeOutlinedIcon sx={{ fontSize: 24 }} />
         </Link>
-        <Typography color='text.primary'>Thống kê</Typography>
-        <Typography color='text.primary'>Đơn hàng</Typography>
+        <Typography color='text.primary'>Thống kê đơn hàng</Typography>
       </Breadcrumbs>
       <Card>
         <CardContent sx={{ p: 4 }}>
@@ -288,7 +288,7 @@ const OrderStats: React.FC = () => {
                 mb: 4,
               }}>
               <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
-                Đơn hàng
+                Thống kê đơn hàng
               </Typography>
               <Button
                 variant='outlined'
