@@ -119,7 +119,7 @@ const OrderStats: React.FC = () => {
         iconBg: '#59b35c',
       },
       {
-        label: 'Tổng lợi nhuận',
+        label: 'Đơn hoàn thành',
         value: (
           <Typography sx={{ fontSize: 28, fontWeight: 500 }}>
             {orderSummaryStats?.data.totals.delivered || 0}
@@ -129,7 +129,7 @@ const OrderStats: React.FC = () => {
         iconBg: '#000',
       },
       {
-        label: 'Tăng trưởng tháng',
+        label: 'Đơn huỷ',
         value: (
           <Typography
             sx={valueStyle(orderSummaryStats?.data?.growth?.delivered || 0)}>

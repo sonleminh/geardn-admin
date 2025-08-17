@@ -437,10 +437,7 @@ const OrderUpdateHistoryList = () => {
                             }
                             return null;
                           })()}
-                          <IconButton
-                            size='small'
-                            onClick={handleFilterClick}
-                            sx={{ ml: 1 }}>
+                          <IconButton size='small' onClick={handleFilterClick}>
                             <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
                           </IconButton>
                         </>

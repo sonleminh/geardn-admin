@@ -24,10 +24,16 @@ import {
   TextField,
   Tooltip,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 
 import DateRangeOutlinedIcon from '@mui/icons-material/DateRangeOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import RestoreOutlinedIcon from '@mui/icons-material/RestoreOutlined';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import DoneOutlinedIcon from '@mui/icons-material/DoneOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -61,6 +67,7 @@ import { useGetProductList } from '@/services/product';
 import TableFilter from '@/components/TableFilter';
 import { IProduct } from '@/interfaces/IProduct';
 import { IEnum } from '@/interfaces/IEnum';
+import useConfirmModal from '@/hooks/useModalConfirm';
 
 interface Data {
   stt: number;
@@ -134,7 +141,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Sản phẩm',
     isFilter: true,
-    width: '25%',
+    width: '23%',
   },
   {
     align: 'center',
@@ -149,14 +156,14 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Trạng thái',
     isFilter: true,
-    width: '8%',
+    width: '12%',
   },
   {
     align: 'center',
     id: 'reasonCode',
     disablePadding: false,
     label: 'Lý do',
-    width: '11%',
+    width: '10%',
   },
   {
     align: 'center',
@@ -170,7 +177,7 @@ const headCells: readonly HeadCell[] = [
     id: 'action',
     disablePadding: false,
     label: 'Hành động',
-    width: '10%',
+    width: '9%',
   },
 ];
 
@@ -320,6 +327,7 @@ const usePagination = () => {
 const OrderReturnRequestList = () => {
   const navigate = useNavigate();
   const { showNotification } = useNotificationContext();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusAnchorEl, setStatusAnchorEl] = useState<null | HTMLElement>(
     null
@@ -327,6 +335,7 @@ const OrderReturnRequestList = () => {
   const [selectedRequest, setSelectedRequest] =
     useState<IOrderReturnRequest | null>(null);
   const [newStatus, setNewStatus] = useState<string>('');
+  const [approvalModalOpen, setApprovalModalOpen] = useState(false);
 
   const {
     filterAnchorEl,
@@ -479,6 +488,8 @@ const OrderReturnRequestList = () => {
     handleFilterClose,
   ]);
 
+  console.log('selectedRequest', selectedRequest);
+
   return (
     <>
       <Breadcrumbs
@@ -612,8 +623,7 @@ const OrderReturnRequestList = () => {
                           })()}
                           <IconButton
                             size='small'
-                            onClick={(e) => handleFilterClick(e, headCell.id)}
-                            sx={{ ml: 1 }}>
+                            onClick={(e) => handleFilterClick(e, headCell.id)}>
                             <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
                           </IconButton>
                         </>
@@ -671,8 +681,22 @@ const OrderReturnRequestList = () => {
                         </TableCell>
 
                         <TableCell align='center'>
-                          {orderReturnRequest?.status === 'APPROVED' &&
+                          {orderReturnRequest?.status === 'AWAITING_APPROVAL' &&
                           orderReturnRequest ? (
+                            <Button
+                              variant='outlined'
+                              color='warning'
+                              onClick={() => {
+                                setSelectedRequest(orderReturnRequest);
+                                setApprovalModalOpen(true);
+                              }}
+                              sx={{
+                                textTransform: 'none',
+                              }}>
+                              Chờ duyệt
+                            </Button>
+                          ) : orderReturnRequest?.status === 'APPROVED' &&
+                            orderReturnRequest ? (
                             <Link
                               href={`${ROUTES.ORDER}/return-request/confirm/${orderReturnRequest?.id}`}
                               sx={{
@@ -686,49 +710,34 @@ const OrderReturnRequestList = () => {
                                 Đã duyệt
                               </Button>
                             </Link>
-                          ) : (
-                            <Tooltip title='Cập nhật trạng thái'>
-                              <Button
-                                variant='outlined'
-                                color={
-                                  orderReturnRequest?.status === 'PENDING'
-                                    ? 'warning'
-                                    : orderReturnRequest?.status === 'APPROVED'
-                                    ? 'info'
-                                    : orderReturnRequest?.status === 'COMPLETED'
-                                    ? 'success'
-                                    : orderReturnRequest?.status === 'REJECTED'
-                                    ? 'error'
-                                    : orderReturnRequest?.status === 'CANCELED'
-                                    ? 'error'
-                                    : 'error'
-                                }
-                                onClick={(e) => {
-                                  if (
-                                    orderReturnRequest?.status !==
-                                      'COMPLETED' &&
-                                    orderReturnRequest?.status !== 'CANCELED'
-                                  ) {
-                                    setStatusAnchorEl(e.currentTarget);
-                                    setSelectedRequest(orderReturnRequest);
-                                    setNewStatus(orderReturnRequest.status);
-                                  }
-                                }}
-                                sx={{
-                                  width: 120,
-                                  fontSize: 13,
-                                  textTransform: 'none',
-                                  cursor: 'pointer',
-                                  '&:hover': {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.02)',
-                                  },
-                                  gap: 1,
-                                }}>
-                                {statusMap?.[orderReturnRequest?.status] ||
-                                  'Không xác định'}
-                              </Button>
-                            </Tooltip>
-                          )}
+                          ) : orderReturnRequest?.status === 'REJECTED' &&
+                            orderReturnRequest ? (
+                            <Button
+                              variant='outlined'
+                              color='error'
+                              size='small'
+                              sx={{ width: '100%', textTransform: 'none' }}>
+                              Đã từ chối
+                            </Button>
+                          ) : orderReturnRequest?.status === 'COMPLETED' &&
+                            orderReturnRequest ? (
+                            <Button
+                              variant='outlined'
+                              color='success'
+                              size='small'
+                              sx={{ width: '100%', textTransform: 'none' }}>
+                              Hoàn thành
+                            </Button>
+                          ) : orderReturnRequest?.status === 'CANCELED' &&
+                            orderReturnRequest ? (
+                            <Button
+                              variant='outlined'
+                              color='error'
+                              size='small'
+                              sx={{ width: '100%', textTransform: 'none' }}>
+                              Đã hủy
+                            </Button>
+                          ) : null}
                         </TableCell>
 
                         <TableCell align='center'>
@@ -742,7 +751,7 @@ const OrderReturnRequestList = () => {
                         </TableCell>
                         <TableCell align='center'>
                           <ActionButton>
-                            {orderReturnRequest?.status === 'PENDING' && (
+                            {orderReturnRequest?.status === 'APPROVED' && (
                               <Box mb={1}>
                                 <ButtonWithTooltip
                                   color='primary'
@@ -755,6 +764,82 @@ const OrderReturnRequestList = () => {
                                     )
                                   }>
                                   <DoneOutlinedIcon />
+                                </ButtonWithTooltip>
+                              </Box>
+                            )}
+                            {orderReturnRequest?.status !== 'COMPLETED' &&
+                              orderReturnRequest?.status !== 'CANCELED' && (
+                                <Box mb={1}>
+                                  <ButtonWithTooltip
+                                    color='error'
+                                    variant='outlined'
+                                    title='Huỷ yêu cầu hoàn đơn hàng'
+                                    placement='left'
+                                    onClick={() =>
+                                      updateOrderReturnRequestStatus(
+                                        {
+                                          id: orderReturnRequest.id,
+                                          oldStatus: orderReturnRequest.status,
+                                          newStatus: 'CANCELED',
+                                        },
+                                        {
+                                          onSuccess: () => {
+                                            showNotification(
+                                              'Huỷ yêu cầu hoàn đơn hàng thành công',
+                                              'success'
+                                            );
+                                            setApprovalModalOpen(false);
+                                            setSelectedRequest(null);
+                                            refetchOrderReturnRequests();
+                                          },
+                                          onError: () => {
+                                            showNotification(
+                                              'Huỷ yêu cầu hoàn đơn hàng thất bại',
+                                              'error'
+                                            );
+                                          },
+                                        }
+                                      )
+                                    }>
+                                    <CancelOutlinedIcon />
+                                  </ButtonWithTooltip>
+                                </Box>
+                              )}
+                            {(orderReturnRequest?.status === 'CANCELED' ||
+                              orderReturnRequest?.status === 'REJECTED') && (
+                              <Box sx={{ mb: 1 }}>
+                                <ButtonWithTooltip
+                                  color='info'
+                                  variant='outlined'
+                                  title='Khôi phục trạng thái yêu cầu hoàn đơn hàng'
+                                  placement='left'
+                                  onClick={() =>
+                                    updateOrderReturnRequestStatus(
+                                      {
+                                        id: orderReturnRequest.id,
+                                        oldStatus: orderReturnRequest.status,
+                                        newStatus: 'AWAITING_APPROVAL',
+                                      },
+                                      {
+                                        onSuccess: () => {
+                                          showNotification(
+                                            'Khôi phục trạng thái yêu cầu thành công',
+                                            'success'
+                                          );
+                                          setApprovalModalOpen(false);
+                                          setSelectedRequest(null);
+                                          refetchOrderReturnRequests();
+                                        },
+                                        onError: () => {
+                                          showNotification(
+                                            'Khôi phục trạng thái yêu cầu thất bại',
+                                            'error'
+                                          );
+                                        },
+                                      }
+                                    )
+                                  }>
+                                  <RestoreOutlinedIcon />
                                 </ButtonWithTooltip>
                               </Box>
                             )}
@@ -887,6 +972,101 @@ const OrderReturnRequestList = () => {
             }
           }}
         />
+
+        {/* Approval Modal */}
+        <Dialog
+          open={approvalModalOpen}
+          onClose={() => setApprovalModalOpen(false)}
+          maxWidth='sm'
+          fullWidth>
+          <DialogTitle sx={{ p: '24px' }}>
+            <Typography variant='h6'>
+              Xác nhận duyệt yêu cầu trả hàng
+            </Typography>
+          </DialogTitle>
+          <DialogContent>
+            <Typography>
+              Bạn có chắc chắn muốn duyệt yêu cầu trả hàng này?
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: '0 24px 24px 24px' }}>
+            <Button
+              variant='contained'
+              color='error'
+              onClick={() => {
+                if (selectedRequest) {
+                  updateOrderReturnRequestStatus(
+                    {
+                      id: selectedRequest.id,
+                      oldStatus: selectedRequest.status,
+                      newStatus: 'REJECTED',
+                    },
+                    {
+                      onSuccess: () => {
+                        showNotification(
+                          'Từ chối yêu cầu trả hàng thành công',
+                          'success'
+                        );
+                        setApprovalModalOpen(false);
+                        setSelectedRequest(null);
+                        refetchOrderReturnRequests();
+                      },
+                      onError: () => {
+                        showNotification(
+                          'Từ chối yêu cầu trả hàng thất bại',
+                          'error'
+                        );
+                      },
+                    }
+                  );
+                }
+              }}
+              disabled={isUpdatingStatus}
+              sx={{
+                width: '100px',
+                textTransform: 'none',
+              }}>
+              Từ chối
+            </Button>
+            <Button
+              variant='contained'
+              onClick={() => {
+                if (selectedRequest) {
+                  updateOrderReturnRequestStatus(
+                    {
+                      id: selectedRequest.id,
+                      oldStatus: selectedRequest.status,
+                      newStatus: 'APPROVED',
+                    },
+                    {
+                      onSuccess: () => {
+                        showNotification(
+                          'Phê duyệt yêu cầu trả hàng thành công',
+                          'success'
+                        );
+                        setApprovalModalOpen(false);
+                        setSelectedRequest(null);
+                        refetchOrderReturnRequests();
+                      },
+                      onError: () => {
+                        showNotification(
+                          'Phê duyệt yêu cầu trả hàng thất bại',
+                          'error'
+                        );
+                      },
+                    }
+                  );
+                }
+              }}
+              disabled={isUpdatingStatus}
+              sx={{
+                width: '100px',
+                textTransform: 'none',
+              }}>
+              Phê duyệt
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Card>
     </>
   );

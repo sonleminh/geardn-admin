@@ -9,43 +9,36 @@ import {
   FormControl,
   Grid2,
   Link,
-  Table,
-  TableRow,
-  TableCell,
-  TableHead,
-  Typography,
-  TableContainer,
-  TableBody,
-  Select,
   MenuItem,
+  Select,
   SelectChangeEvent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
 } from '@mui/material';
 
-import React, { useMemo, useState } from 'react';
-import { ROUTES } from '@/constants/route';
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import { useNavigate, useParams } from 'react-router-dom';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import {
-  useGetOrderById,
-  useUpdateOrder,
-  useUpdateOrderConfirm,
-  useUpdateOrderStatus,
-} from '@/services/order';
-import moment from 'moment';
-import { truncateTextByLine } from '@/utils/css-helper.util';
-import { formatPrice } from '@/utils/format-price';
-import { useGetWarehouseList } from '@/services/warehouse';
-import { useCreateMultipleExportLogs } from '@/services/inventory';
-import { useNotificationContext } from '@/contexts/NotificationContext';
-import { QueryKeys } from '@/constants/query-key';
-import { useQueryClient } from '@tanstack/react-query';
 import SuspenseLoader from '@/components/SuspenseLoader';
+import { QueryKeys } from '@/constants/query-key';
+import { ROUTES } from '@/constants/route';
+import { useNotificationContext } from '@/contexts/NotificationContext';
+import { IOrderItem } from '@/interfaces/IOrder';
 import {
   useCompleteReturnRequest,
   useGetOrderReturnRequestById,
 } from '@/services/order-return-request';
-import { IOrderItem } from '@/interfaces/IOrder';
+import { useGetWarehouseList } from '@/services/warehouse';
+import { truncateTextByLine } from '@/utils/css-helper.util';
+import { formatPrice } from '@/utils/format-price';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import { useQueryClient } from '@tanstack/react-query';
+import moment from 'moment';
+import { useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 interface IExportItem {
   skuId: number;
@@ -62,17 +55,11 @@ const OrderReturnRequestConfirm = () => {
     id as string
   );
   const { data: warehouseData } = useGetWarehouseList();
-  //   const { mutate: updateOrderStatus, isPending: isUpdateOrderStatusPending } =
-  //     useUpdateOrderStatus();
 
   const {
     mutate: completeReturnRequest,
     isPending: isCompleteReturnRequestPending,
   } = useCompleteReturnRequest();
-  // const {
-  //   mutate: createMultipleExportLogs,
-  //   isPending: isCreateExportLogsPending,
-  // } = useCreateMultipleExportLogs();
 
   const [exportItems, setExportItems] = useState<IExportItem[]>([]);
 
@@ -120,9 +107,9 @@ const OrderReturnRequestConfirm = () => {
             'Xác nhận hoàn thành yêu cầu hoàn đơn thành công',
             'success'
           );
-          navigate(`${ROUTES.ORDER}/return-request`);
+          navigate(`${ROUTES.ORDER_RETURN_REQUEST}`);
           queryClient.invalidateQueries({
-            queryKey: [QueryKeys.Order],
+            queryKey: [QueryKeys.OrderReturnRequest],
           });
         },
         onError: () => {
@@ -133,43 +120,6 @@ const OrderReturnRequestConfirm = () => {
         },
       }
     );
-
-    // Create multiple export logs
-    // createMultipleExportLogs(exportLogsByWarehouse, {
-    //   onSuccess: () => {
-    //     // Update order status after successful export
-    //     updateOrderConfirm(
-    //       {
-    //         id: +id,
-    //         orderItems: orderData?.data?.orderItems.map((item) => ({
-    //           skuId: item.skuId,
-    //           warehouseId: exportItems.find(
-    //             (exportItem) => exportItem.skuId === item.skuId
-    //           )?.warehouseId,
-    //         })),
-    //       },
-    //       {
-    //         onSuccess: () => {
-    //           queryClient.invalidateQueries({
-    //             queryKey: [QueryKeys.ExportLog],
-    //           });
-    //           queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
-    //           showNotification('Xác nhận đơn hàng thành công', 'success');
-    //           navigate(ROUTES.ORDER);
-    //         },
-    //         onError: () => {
-    //           showNotification(
-    //             'Có lỗi xảy ra khi cập nhật trạng thái đơn hàng',
-    //             'error'
-    //           );
-    //         },
-    //       }
-    //     );
-    //   },
-    //   onError: () => {
-    //     showNotification('Có lỗi xảy ra khi tạo xuất hàng', 'error');
-    //   },
-    // });
   };
 
   const breadcrumbs = useMemo(
@@ -181,7 +131,7 @@ const OrderReturnRequestConfirm = () => {
       },
       {
         label: 'Yêu cầu hoàn đơn',
-        onClick: () => navigate(ROUTES.ORDER),
+        onClick: () => navigate(ROUTES.ORDER_RETURN_REQUEST),
       },
       {
         label: 'Xác nhận yêu cầu hoàn đơn',
@@ -491,7 +441,9 @@ const OrderReturnRequestConfirm = () => {
             width: '100%',
             mt: 2,
           }}>
-          <Button onClick={() => navigate(ROUTES.ORDER)} sx={{ mr: 2 }}>
+          <Button
+            onClick={() => navigate(ROUTES.ORDER_RETURN_REQUEST)}
+            sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button

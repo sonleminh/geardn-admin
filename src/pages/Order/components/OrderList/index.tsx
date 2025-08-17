@@ -420,8 +420,7 @@ const OrderList = () => {
                           })()}
                           <IconButton
                             size='small'
-                            onClick={(e) => handleFilterClick(e, headCell.id)}
-                            sx={{ ml: 1 }}>
+                            onClick={(e) => handleFilterClick(e, headCell.id)}>
                             <FilterAltOutlinedIcon sx={{ fontSize: 18 }} />
                           </IconButton>
                         </>
