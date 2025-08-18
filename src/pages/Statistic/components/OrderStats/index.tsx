@@ -12,7 +12,9 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
 import {
   Box,
   Breadcrumbs,
@@ -20,6 +22,7 @@ import {
   Card,
   CardContent,
   Link,
+  Skeleton,
   Typography,
 } from '@mui/material';
 
@@ -32,17 +35,26 @@ import {
 } from '@/services/statistic';
 import { formatPrice } from '@/utils/format-price';
 
+const cardTrend = {
+  display: 'flex',
+  alignItems: 'center',
+  fontSize: 14,
+  fontWeight: 500,
+};
 interface SummaryStatProps {
   label: string;
   value: React.ReactNode;
   icon: React.ReactNode;
   iconBg: string;
+  trend?: React.ReactNode;
+  extra?: React.ReactNode;
+  isLoading?: boolean;
 }
 
 const valueStyle = (value: number) => ({
-  fontSize: 28,
+  mr: 1,
   fontWeight: 500,
-  color: value < 0 ? 'red' : 'green',
+  color: value < 0 ? 'red' : value > 0 ? 'green' : '#828384',
 });
 
 const SummaryStat: React.FC<SummaryStatProps> = ({
@@ -50,6 +62,9 @@ const SummaryStat: React.FC<SummaryStatProps> = ({
   value,
   icon,
   iconBg,
+  trend,
+  extra,
+  isLoading = false,
 }) => {
   return (
     <Box
@@ -57,6 +72,7 @@ const SummaryStat: React.FC<SummaryStatProps> = ({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
+        p: '24px 24px 0 24px',
       }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Box
@@ -74,7 +90,34 @@ const SummaryStat: React.FC<SummaryStatProps> = ({
         </Box>
         <Typography sx={{ fontSize: 16, fontWeight: 500 }}>{label}</Typography>
       </Box>
-      {value}
+      <Typography sx={{ mb: 2 }}>{value}</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        {isLoading ? (
+          <>
+            <Skeleton
+              variant='text'
+              width={80}
+              height={20}
+              sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.3)',
+              }}
+            />
+            <Skeleton
+              variant='text'
+              width={80}
+              height={20}
+              sx={{
+                bgcolor: 'rgba(255, 255, 255, 0.3)',
+              }}
+            />
+          </>
+        ) : (
+          <>
+            {trend}
+            {extra}
+          </>
+        )}
+      </Box>
     </Box>
   );
 };
@@ -102,29 +145,61 @@ const OrderStats: React.FC = () => {
         label: 'Tổng đơn hàng',
         value: (
           <Typography sx={{ fontSize: 28, fontWeight: 500 }}>
-            {orderSummaryStats?.data.totals.delivered || 0}
+            {orderSummaryStats?.data.totals.delivered || 0} đơn
           </Typography>
         ),
         icon: <ShoppingBagOutlinedIcon sx={{ color: '#fff' }} />,
         iconBg: '#000',
-      },
-
-      {
-        label: 'Tăng trưởng tháng',
-        value: (
-          <Typography
-            sx={valueStyle(orderSummaryStats?.data?.growth?.delivered || 0)}>
-            {orderSummaryStats?.data?.growth?.delivered?.toFixed(2) || 0} %
+        trend: (
+          <Typography sx={cardTrend}>
+            {orderSummaryStats &&
+            orderSummaryStats?.data?.growth?.delivered > 0 ? (
+              <TrendingUpIcon sx={{ mr: 1, color: '#59b35c' }} />
+            ) : orderSummaryStats &&
+              orderSummaryStats?.data?.growth?.delivered < 0 ? (
+              <TrendingDownIcon sx={{ mr: 1, color: 'red' }} />
+            ) : (
+              <TrendingFlatIcon sx={{ mr: 1, color: '#828384' }} />
+            )}
+            <Typography
+              component='span'
+              sx={valueStyle(orderSummaryStats?.data?.growth?.delivered || 0)}>
+              {orderSummaryStats?.data.growth.delivered}%
+            </Typography>
           </Typography>
         ),
-        icon: <TrendingUpIcon sx={{ color: '#fff' }} />,
-        iconBg: '#59b35c',
+        extra: (
+          <Typography sx={cardTrend}>
+            <Typography
+              component='span'
+              sx={valueStyle(
+                orderSummaryStats?.data?.totals.deliveredThisMonthCount || 0
+              )}>
+              +{orderSummaryStats?.data.totals.deliveredThisMonthCount}
+            </Typography>
+            <Typography
+              component='span'
+              sx={{ fontWeight: 500, color: '#828384' }}>
+              tháng này
+            </Typography>
+          </Typography>
+        ),
       },
       {
         label: 'Đơn hoàn thành',
         value: (
+          <Typography sx={{ fontSize: 28, fontWeight: 500, color: '#59b35c' }}>
+            {orderSummaryStats?.data.totals.delivered || 0} đơn
+          </Typography>
+        ),
+        icon: <CheckOutlinedIcon sx={{ color: '#fff' }} />,
+        iconBg: '#59b35c',
+      },
+      {
+        label: 'Đơn đang xử lý',
+        value: (
           <Typography sx={{ fontSize: 28, fontWeight: 500, color: '#588fe1' }}>
-            {orderSummaryStats?.data.totals.delivered || 0}
+            {orderSummaryStats?.data.totals.pending || 0} đơn
           </Typography>
         ),
         icon: <CheckOutlinedIcon sx={{ color: '#fff' }} />,
@@ -134,11 +209,33 @@ const OrderStats: React.FC = () => {
         label: 'Đơn huỷ',
         value: (
           <Typography sx={{ fontSize: 28, fontWeight: 500, color: '#d34141' }}>
-            {orderSummaryStats?.data?.totals?.canceled}
+            {orderSummaryStats?.data?.totals?.canceled} đơn
           </Typography>
         ),
         icon: <CancelOutlinedIcon sx={{ color: '#fff' }} />,
         iconBg: '#d34141',
+        trend: (
+          <Typography sx={{ fontWeight: 500 }}>
+            Tỉ lệ hủy đơn:{' '}
+            {orderSummaryStats?.data?.rates?.cancellationRate.toFixed(2)}%
+          </Typography>
+        ),
+        extra: (
+          <Typography sx={cardTrend}>
+            <Typography
+              component='span'
+              sx={valueStyle(
+                orderSummaryStats?.data?.totals.canceledThisMonthCount || 0
+              )}>
+              +{orderSummaryStats?.data.totals.canceledThisMonthCount}
+            </Typography>
+            <Typography
+              component='span'
+              sx={{ fontWeight: 500, color: '#828384' }}>
+              tháng này
+            </Typography>
+          </Typography>
+        ),
       },
     ],
     [orderSummaryStats]
@@ -278,14 +375,14 @@ const OrderStats: React.FC = () => {
         <Typography color='text.primary'>Thống kê đơn hàng</Typography>
       </Breadcrumbs>
       <Card>
-        <CardContent sx={{ p: 4 }}>
+        <CardContent sx={{}}>
           <>
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                mb: 4,
+                mb: 2,
               }}>
               <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
                 Thống kê đơn hàng
@@ -324,7 +421,12 @@ const OrderStats: React.FC = () => {
               <Line data={chartData} options={chartOptions} />
             </Box>
           </>
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+          <Box
+            sx={{
+              // p: '20px 20px 12px 20px',
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}>
             {summaryStats.map((stat, idx) => (
               <Box
                 key={idx}
@@ -332,7 +434,8 @@ const OrderStats: React.FC = () => {
                   width: '25%',
                   borderLeft: idx !== 0 ? '1px solid #e0e0e0' : 'none',
                 }}>
-                <Box sx={{ pl: idx !== 0 ? 4 : 0 }}>
+                {/* <Box sx={{ pl: idx !== 0 ? 4 : 0 }}> */}
+                <Box sx={{ pl: 0 }}>
                   <SummaryStat {...stat} />
                 </Box>
               </Box>

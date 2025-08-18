@@ -7,6 +7,7 @@ import {
   CardContent,
   Container,
   Grid2,
+  Link,
   Skeleton,
   Typography,
 } from '@mui/material';
@@ -16,7 +17,11 @@ import { vi } from 'date-fns/locale';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
+import AttachMoneyOutlinedIcon from '@mui/icons-material/AttachMoneyOutlined';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import PendingOutlinedIcon from '@mui/icons-material/PendingOutlined';
@@ -30,6 +35,8 @@ import { formatPrice } from '@/utils/format-price';
 import RevevueProfitChart from './components/RevevueProfitChart';
 import TopCategoriesChart from './components/TopCategoriesChart';
 import DateRangeMenu from '@/components/DateRangeMenu';
+import { ROUTES } from '@/constants/route';
+import { Link as RouterLink } from 'react-router-dom';
 
 const cardIconBox = (bgcolor: string) => ({
   display: 'flex',
@@ -60,10 +67,17 @@ const cardTrend = {
   fontWeight: 500,
 };
 
+const valueStyle = (value: number) => ({
+  mr: 1,
+  fontWeight: 500,
+  color: value < 0 ? 'red' : value > 0 ? '#19e120' : '#828384',
+});
+
 interface SummaryCardProps {
   icon: React.ReactNode;
   title: string;
   subtitle?: string;
+  link?: string;
   value: React.ReactNode;
   trend?: React.ReactNode;
   extra?: React.ReactNode;
@@ -76,6 +90,7 @@ function SummaryCard({
   icon,
   title,
   subtitle,
+  link,
   value,
   trend,
   extra,
@@ -86,6 +101,7 @@ function SummaryCard({
   return (
     <Card
       sx={{
+        minHeight: 204,
         bgcolor,
         color: bgcolor === '#000' ? '#fff' : undefined,
         borderRadius: 4,
@@ -153,9 +169,25 @@ function SummaryCard({
               )}
             </Box>
           </Box>
-          <ChevronRightOutlinedIcon
-            sx={{ color: bgcolor === '#000' ? '#fff' : undefined }}
-          />
+          <Link
+            component={RouterLink}
+            to={link || ''}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: '8px 0 8px 8px',
+              '&:hover': {
+                textDecoration: 'none',
+                svg: {
+                  color: bgcolor === '#000' ? '#cccccc' : '#969696',
+                },
+              },
+            }}>
+            <ChevronRightOutlinedIcon
+              sx={{ color: bgcolor === '#000' ? '#fff' : undefined }}
+            />
+          </Link>
         </Box>
         {isLoading ? (
           <Skeleton
@@ -263,32 +295,101 @@ const Dashboard = () => {
       <Grid2 container spacing={3}>
         <Grid2 size={3}>
           <SummaryCard
-            icon={<ShoppingBagIcon sx={{ fontSize: { lg: 24, xl: 28 } }} />}
+            icon={
+              <AttachMoneyOutlinedIcon sx={{ fontSize: { lg: 24, xl: 28 } }} />
+            }
             title='Tổng doanh số'
-            subtitle={`${overviewStats?.data?.totalOrders} đơn hàng`}
-            value={formatPrice(overviewStats?.data?.totalRevenue || 0)}
+            link={ROUTES.STATISTIC_REVENUE_PROFIT}
+            value={formatPrice(overviewStats?.data?.total?.revenue || 0)}
             trend={
               <Typography sx={cardTrend}>
-                <TrendingUpIcon sx={{ mr: 1 }} />
-                <Typography component='span' sx={{ fontWeight: 500 }}>
-                  +19%
+                {overviewStats && overviewStats?.data?.growth?.revenue > 0 ? (
+                  <TrendingUpIcon sx={{ mr: 1, color: '#19e120' }} />
+                ) : overviewStats &&
+                  overviewStats?.data?.growth?.revenue < 0 ? (
+                  <TrendingDownIcon sx={{ mr: 1, color: 'red' }} />
+                ) : (
+                  <TrendingFlatIcon sx={{ mr: 1, color: '#828384' }} />
+                )}
+                <Typography
+                  component='span'
+                  sx={valueStyle(overviewStats?.data?.growth?.revenue || 0)}>
+                  {overviewStats?.data?.growth?.revenue?.toFixed(2)}%
                 </Typography>
               </Typography>
             }
             extra={
               <Typography sx={cardTrend}>
                 <Typography component='span' sx={{ mr: 1, fontWeight: 500 }}>
-                  +69
+                  {formatPrice(
+                    overviewStats?.data?.total?.totalCurrentMonthRevenue || 0
+                  )}
                 </Typography>
                 <Typography
                   component='span'
                   sx={{ fontWeight: 500, color: '#828384' }}>
-                  tuần này
+                  tháng này
                 </Typography>
               </Typography>
             }
             bgcolor='#000'
             iconBg='#58595a'
+            isLoading={isLoadingOverviewStats}
+          />
+        </Grid2>
+        <Grid2 size={3}>
+          <SummaryCard
+            icon={<ShoppingBagOutlinedIcon sx={{ fontSize: 28 }} />}
+            title='Tổng đơn hàng'
+            link={ROUTES.STATISTIC_ORDER}
+            value={
+              <Typography sx={{ fontSize: 24, fontWeight: 500 }}>
+                {overviewStats?.data?.total?.orders || 0} đơn
+              </Typography>
+            }
+            trend={
+              <Typography sx={cardTrend}>
+                {overviewStats && overviewStats?.data?.growth?.delivered > 0 ? (
+                  <TrendingUpIcon sx={{ mr: 1, color: '#59b35c' }} />
+                ) : overviewStats &&
+                  overviewStats?.data?.growth?.delivered < 0 ? (
+                  <TrendingDownIcon sx={{ mr: 1, color: 'red' }} />
+                ) : (
+                  <TrendingFlatIcon sx={{ mr: 1, color: '#828384' }} />
+                )}
+                <Typography
+                  component='span'
+                  sx={valueStyle(overviewStats?.data?.growth?.delivered || 0)}>
+                  {overviewStats?.data?.growth?.delivered?.toFixed(2)}%
+                </Typography>
+              </Typography>
+            }
+            extra={
+              <Typography sx={cardTrend}>
+                <Typography component='span' sx={{ mr: 1, fontWeight: 500 }}>
+                  {overviewStats?.data?.total?.deliveredThisMonthCount || 0}
+                </Typography>
+                <Typography
+                  component='span'
+                  sx={{ fontWeight: 500, color: '#828384' }}>
+                  tháng này
+                </Typography>
+              </Typography>
+            }
+            isLoading={isLoadingOverviewStats}
+          />
+        </Grid2>
+
+        <Grid2 size={3}>
+          <SummaryCard
+            icon={<PendingActionsIcon sx={{ fontSize: 28 }} />}
+            title='Đơn đang xử lý'
+            link={ROUTES.STATISTIC_ORDER}
+            value={
+              <Typography sx={{ fontSize: 24, fontWeight: 500 }}>
+                {overviewStats?.data?.total?.pendingOrders || 0} đơn
+              </Typography>
+            }
             isLoading={isLoadingOverviewStats}
           />
         </Grid2>
@@ -315,63 +416,6 @@ const Dashboard = () => {
                   component='span'
                   sx={{ fontWeight: 500, color: '#828384' }}>
                   tuần này
-                </Typography>
-              </Typography>
-            }
-            isLoading={isLoadingOverviewStats}
-          />
-        </Grid2>
-        <Grid2 size={3}>
-          <SummaryCard
-            icon={<PendingActionsIcon sx={{ fontSize: 28 }} />}
-            title='Đơn hàng đang xử lý'
-            value={overviewStats?.data?.pendingOrders}
-            trend={
-              <Typography sx={cardTrend}>
-                <TrendingUpIcon sx={{ mr: 1 }} />
-                <Typography component='span' sx={{ fontWeight: 500 }}>
-                  +19%
-                </Typography>
-              </Typography>
-            }
-            extra={
-              <Typography sx={cardTrend}>
-                <Typography component='span' sx={{ mr: 1, fontWeight: 500 }}>
-                  +69
-                </Typography>
-                <Typography
-                  component='span'
-                  sx={{ fontWeight: 500, color: '#828384' }}>
-                  tuần này
-                </Typography>
-              </Typography>
-            }
-            isLoading={isLoadingOverviewStats}
-          />
-        </Grid2>
-
-        <Grid2 size={3}>
-          <SummaryCard
-            icon={<PendingOutlinedIcon sx={{ fontSize: 28 }} />}
-            title='...'
-            value={0}
-            trend={
-              <Typography sx={cardTrend}>
-                <TrendingUpIcon sx={{ mr: 1 }} />
-                <Typography component='span' sx={{ fontWeight: 500 }}>
-                  ...
-                </Typography>
-              </Typography>
-            }
-            extra={
-              <Typography sx={cardTrend}>
-                <Typography component='span' sx={{ mr: 1, fontWeight: 500 }}>
-                  ...
-                </Typography>
-                <Typography
-                  component='span'
-                  sx={{ fontWeight: 500, color: '#828384' }}>
-                  ...
                 </Typography>
               </Typography>
             }

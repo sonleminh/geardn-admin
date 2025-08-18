@@ -12,10 +12,24 @@ import { QueryKeys } from '@/constants/query-key';
 const statisticUrl = '/statistics';
 
 interface IOverviewStats {
-  totalRevenue: number;
-  totalProfit: number;
-  totalOrders: number;
-  pendingOrders: number;
+  total: {
+    revenue: number;
+    profit: number;
+    totalCurrentMonthRevenue: number;
+    orders: number;
+    pendingOrders: number;
+    canceledOrders: number;
+    deliveredOrders: number;
+    // canceledThisMonthCount: orderSummary.totals.canceledThisMonthCount,
+    deliveredThisMonthCount: number;
+    // deliveredLastMonthCount: orderSummary.totals.deliveredLastMonthCount,
+    // cancellationRate: orderSummary.rates.cancellationRate,
+  };
+  growth: {
+    revenue: number;
+    profit: number;
+    delivered: number;
+  };
   bestSellingProduct: {
     productId: number;
     productName: string;

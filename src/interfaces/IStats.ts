@@ -41,6 +41,13 @@ export interface IOrderSummaryStats {
     delivered: number;
     pending: number;
     canceled: number;
+    canceledThisMonthCount: number;
+    deliveredThisMonthCount: number;
+    deliveredLastMonthCount: number;
+  };
+  rates: {
+    cancellationRate: number;
+    cancellationRateThisMonth: number;
   };
   growth: { delivered: number };
 }

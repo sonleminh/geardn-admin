@@ -42,7 +42,7 @@ const OrderDetail = () => {
       },
       {
         label: 'Đơn hàng',
-        onClick: () => navigate(ROUTES.ORDER),
+        onClick: () => navigate(ROUTES.ORDER_LIST),
       },
       {
         label: 'Chi tiết đơn hàng',
@@ -281,7 +281,7 @@ const OrderDetail = () => {
             width: '100%',
             mt: 2,
           }}>
-          <Button onClick={() => navigate(ROUTES.ORDER)} sx={{ mr: 2 }}>
+          <Button onClick={() => navigate(ROUTES.ORDER_LIST)} sx={{ mr: 2 }}>
             Trở lại
           </Button>
           <Button
