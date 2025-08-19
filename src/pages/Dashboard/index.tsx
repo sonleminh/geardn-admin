@@ -1,5 +1,19 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import DateRangeMenu from '@/components/DateRangeMenu';
+import { ROUTES } from '@/constants/route';
+import {
+  useGetOverviewStats,
+  useGetRevenueProfitStats,
+} from '@/services/statistic';
+import { formatPrice } from '@/utils/format-price';
+import AttachMoneyOutlinedIcon from '@mui/icons-material/AttachMoneyOutlined';
+import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
   Box,
   Button,
@@ -11,32 +25,16 @@ import {
   Skeleton,
   Typography,
 } from '@mui/material';
-import { RangeKeyDict } from 'react-date-range';
+import { useQueryClient } from '@tanstack/react-query';
 import { format, subDays } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
-import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
-import AttachMoneyOutlinedIcon from '@mui/icons-material/AttachMoneyOutlined';
-import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import PendingActionsIcon from '@mui/icons-material/PendingActions';
-import PendingOutlinedIcon from '@mui/icons-material/PendingOutlined';
+import { useState } from 'react';
+import { RangeKeyDict } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
-import {
-  useGetOverviewStats,
-  useGetRevenueProfitStats,
-} from '@/services/statistic';
-import { formatPrice } from '@/utils/format-price';
+import { Link as RouterLink } from 'react-router-dom';
 import RevevueProfitChart from './components/RevevueProfitChart';
 import TopCategoriesChart from './components/TopCategoriesChart';
-import DateRangeMenu from '@/components/DateRangeMenu';
-import { ROUTES } from '@/constants/route';
-import { Link as RouterLink } from 'react-router-dom';
 
 const cardIconBox = (bgcolor: string) => ({
   display: 'flex',
@@ -384,7 +382,7 @@ const Dashboard = () => {
           <SummaryCard
             icon={<PendingActionsIcon sx={{ fontSize: 28 }} />}
             title='Đơn đang xử lý'
-            link={ROUTES.STATISTIC_ORDER}
+            link={ROUTES.ORDER_LIST}
             value={
               <Typography sx={{ fontSize: 24, fontWeight: 500 }}>
                 {overviewStats?.data?.total?.pendingOrders || 0} đơn

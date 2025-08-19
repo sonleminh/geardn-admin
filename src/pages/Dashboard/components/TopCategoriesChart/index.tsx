@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 
 import { ArcElement, Chart as ChartJS, Legend, Title, Tooltip } from 'chart.js';
+import { formatPrice } from '@/utils/format-price';
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
@@ -57,7 +58,7 @@ function TopCategoriesChart({
             ) {
               const label = context.label || '';
               const value = context.parsed || 0;
-              return `${label}: ${value} đơn`;
+              return `${label}: ${formatPrice(value)}`;
             },
           },
         },

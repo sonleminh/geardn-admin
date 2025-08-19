@@ -278,7 +278,7 @@ const UserStats: React.FC = () => {
         <Typography color='text.primary'>Người dùng</Typography>
       </Breadcrumbs>
       <Card>
-        <CardContent sx={{ p: 4 }}>
+        <CardContent>
           <>
             <Box
               sx={{
@@ -332,7 +332,7 @@ const UserStats: React.FC = () => {
                   width: '25%',
                   borderLeft: idx !== 0 ? '1px solid #e0e0e0' : 'none',
                 }}>
-                <Box sx={{ pl: idx !== 0 ? 4 : 0 }}>
+                <Box sx={{ px: 3 }}>
                   <SummaryStat {...stat} />
                 </Box>
               </Box>

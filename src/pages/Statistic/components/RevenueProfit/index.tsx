@@ -313,7 +313,7 @@ const RevenueProfit: React.FC = () => {
         <Typography color='text.primary'>Doanh thu & Lợi nhuận</Typography>
       </Breadcrumbs>
       <Card>
-        <CardContent sx={{ p: 4 }}>
+        <CardContent>
           <>
             <Box
               sx={{
@@ -371,7 +371,7 @@ const RevenueProfit: React.FC = () => {
               <Line data={chartData} options={chartOptions} />
             </Box>
           </>
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             {summaryStats.map((stat, idx) => (
               <Box
                 key={idx}
@@ -379,7 +379,7 @@ const RevenueProfit: React.FC = () => {
                   width: '25%',
                   borderLeft: idx !== 0 ? '1px solid #e0e0e0' : 'none',
                 }}>
-                <Box sx={{ pl: idx !== 0 ? 4 : 0 }}>
+                <Box sx={{ px: 3 }}>
                   <SummaryStat {...stat} />
                 </Box>
               </Box>
