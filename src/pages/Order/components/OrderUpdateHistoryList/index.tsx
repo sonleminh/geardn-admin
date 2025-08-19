@@ -139,6 +139,7 @@ const columns: TableColumn[] = [
   { width: '120px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
   { width: '120px', align: 'center', type: 'text' },
+  { width: '100px', align: 'center', type: 'text' },
 ];
 
 // Custom hooks
@@ -319,13 +320,6 @@ const OrderUpdateHistoryList = () => {
           onClick={() => navigate(ROUTES.DASHBOARD)}
           sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
           <HomeOutlinedIcon sx={{ fontSize: 24 }} />
-        </Link>
-        <Link
-          underline='hover'
-          color='inherit'
-          onClick={() => navigate(ROUTES.ORDER)}
-          sx={{ cursor: 'pointer' }}>
-          Đơn hàng
         </Link>
         <Typography color='text.primary'>Lịch sử cập nhật</Typography>
       </Breadcrumbs>

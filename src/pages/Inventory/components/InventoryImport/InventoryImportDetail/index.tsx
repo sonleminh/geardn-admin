@@ -236,21 +236,25 @@ const InventoryImportDetail = () => {
                           <TableRow key={item?.id}>
                             <TableCell align='center'>{index + 1}</TableCell>
                             <TableCell align='center'>
-                              <Box
-                                sx={{
-                                  height: 40,
-                                  img: {
-                                    width: 40,
+                              {item?.sku?.imageUrl ? (
+                                <Box
+                                  sx={{
                                     height: 40,
-                                    mr: 1,
-                                    objectFit: 'contain',
-                                  },
-                                }}>
-                                <img
-                                  src={item?.sku?.imageUrl}
-                                  alt={item?.sku?.product?.name}
-                                />
-                              </Box>
+                                    img: {
+                                      width: 40,
+                                      height: 40,
+                                      mr: 1,
+                                      objectFit: 'contain',
+                                    },
+                                  }}>
+                                  <img
+                                    src={item?.sku?.imageUrl}
+                                    alt={item?.sku?.product?.name}
+                                  />
+                                </Box>
+                              ) : (
+                                <>Không có</>
+                              )}
                             </TableCell>
                             <TableCell>
                               <Typography
