@@ -1,20 +1,21 @@
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 
-import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
-import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
-import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
+import StoreMallDirectoryOutlinedIcon from '@mui/icons-material/StoreMallDirectoryOutlined';
 import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined';
 import ManageHistoryOutlinedIcon from '@mui/icons-material/ManageHistoryOutlined';
-import UndoOutlinedIcon from '@mui/icons-material/UndoOutlined';
-import PaymentIcon from '@mui/icons-material/Payment';
-import StoreMallDirectoryOutlinedIcon from '@mui/icons-material/StoreMallDirectoryOutlined';
+import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import StyleOutlinedIcon from '@mui/icons-material/StyleOutlined';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import UndoOutlinedIcon from '@mui/icons-material/UndoOutlined';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import PaymentIcon from '@mui/icons-material/Payment';
 
 import { LuPackageMinus, LuPackagePlus } from 'react-icons/lu';
 import { BiCategory } from 'react-icons/bi';
@@ -22,19 +23,18 @@ import { TbHomeEdit } from 'react-icons/tb';
 import { FiPackage } from 'react-icons/fi';
 
 import { IconButton, Link, styled, useTheme } from '@mui/material';
-import Box from '@mui/material/Box';
-import Divider from '@mui/material/Divider';
-import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import ListItem from '@mui/material/ListItem';
+import Divider from '@mui/material/Divider';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import Box from '@mui/material/Box';
 
-import LOGO from '@/assets/geardn-logo.png';
 import MultipleListItem from '@/components/MultipleListItem';
+import LOGO from '@/assets/geardn-logo.png';
 import { ROUTES } from '@/constants/route';
-import React from 'react';
 import { DrawerMenuWrapper } from '../styled';
 
 const menuList = [
@@ -60,11 +60,6 @@ const menuList = [
             icon: <AccountCircleOutlinedIcon />,
             label: 'Người dùng',
           },
-          // {
-          //   to: ROUTES.STATISTIC_STOCK,
-          //   icon: <Inventory2OutlinedIcon />,
-          //   label: 'Tồn kho',
-          // },
           {
             to: ROUTES.STATISTIC_PRODUCT,
             icon: (

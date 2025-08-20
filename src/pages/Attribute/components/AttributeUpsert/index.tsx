@@ -44,7 +44,7 @@ const AttributeUpsert = () => {
 
   const isEdit = !!id;
 
-  const { data: AttributeData } = useGetAttributeById(id as string);
+  const { data: attributeData } = useGetAttributeById(id as string);
 
   const { mutate: createAttributeMutate, isPending: isCreatePending } =
     useCreateAttribute();
@@ -89,11 +89,11 @@ const AttributeUpsert = () => {
   });
 
   useEffect(() => {
-    if (AttributeData) {
-      formik.setFieldValue('name', AttributeData?.data?.name);
-      formik.setFieldValue('label', AttributeData?.data?.label);
+    if (attributeData) {
+      formik.setFieldValue('name', attributeData?.data?.name);
+      formik.setFieldValue('label', attributeData?.data?.label);
     }
-  }, [AttributeData]);
+  }, [attributeData]);
 
   const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
