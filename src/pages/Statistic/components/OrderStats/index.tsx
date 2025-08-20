@@ -5,7 +5,6 @@ import { Line } from 'react-chartjs-2';
 import { RangeKeyDict } from 'react-date-range';
 import { useNavigate } from 'react-router-dom';
 
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
@@ -34,7 +33,6 @@ import {
   useGetOrderStats,
   useGetOrderSummaryStats,
 } from '@/services/statistic';
-import { formatPrice } from '@/utils/format-price';
 
 const cardTrend = {
   display: 'flex',

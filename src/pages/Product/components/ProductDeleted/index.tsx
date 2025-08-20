@@ -7,13 +7,10 @@ import {
   CardHeader,
   Chip,
   Divider,
-  FormControl,
   IconButton,
   InputAdornment,
   Link,
-  MenuItem,
   Popover,
-  Select,
   SelectChangeEvent,
   Table,
   TableBody,
@@ -26,21 +23,17 @@ import {
   Typography,
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
-import moment from 'moment';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import ActionButton from '@/components/ActionButton';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
-import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
-import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import ExcelUpload from '@/components/ExcelUpload';
-import TableFilter from '@/components/TableFilter';
 import SuspenseLoader from '@/components/SuspenseLoader';
+import TableFilter from '@/components/TableFilter';
 import { TableSkeleton } from '@/components/TableSkeleton';
-import { AddCircleOutlined } from '@mui/icons-material';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -48,12 +41,8 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import SearchIcon from '@mui/icons-material/Search';
-import CircleIcon from '@mui/icons-material/Circle';
 import RestoreIcon from '@mui/icons-material/Restore';
-import AutoDeleteOutlinedIcon from '@mui/icons-material/AutoDeleteOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined';
+import SearchIcon from '@mui/icons-material/Search';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
@@ -61,18 +50,18 @@ import useConfirmModal from '@/hooks/useModalConfirm';
 import { ICategory } from '@/interfaces/ICategory';
 import { ColumnAlign, TableColumn } from '@/interfaces/ITableColumn';
 
+import { QueryKeys } from '@/constants/query-key';
 import { ROUTES } from '@/constants/route';
+import { IEnum } from '@/interfaces/IEnum';
 import { useGetCategoryList } from '@/services/category';
+import { useGetEnumByContext } from '@/services/enum';
 import {
   useDeleteProduct,
   useDeleteProductPermanent,
   useGetProductList,
   useRestoreProduct,
 } from '@/services/product';
-import { QueryKeys } from '@/constants/query-key';
-import { useGetEnumByContext } from '@/services/enum';
 import { truncateTextByLine } from '@/utils/css-helper.util';
-import { IEnum } from '@/interfaces/IEnum';
 
 interface Data {
   stt: number;
@@ -219,7 +208,7 @@ const usePagination = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const handleChangePage = useCallback((event: unknown, newPage: number) => {
+  const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
   }, []);
 
@@ -425,10 +414,6 @@ export default function ProductDeleted() {
     productStatusEnumData?.data,
     columnFilters.status,
   ]);
-
-  const handleProductFilterIsDeletedChange = (event: SelectChangeEvent) => {
-    setProductFilterIsDeleted(event.target.value);
-  };
 
   const statusMap = useMemo(
     () =>

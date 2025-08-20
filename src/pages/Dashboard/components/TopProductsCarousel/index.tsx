@@ -4,9 +4,6 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import { Box, Typography } from '@mui/material';
 
 import { ArcElement, Chart as ChartJS, Legend, Title, Tooltip } from 'chart.js';
-// import ProductCard from '@/components/ProductCard'; // Uncomment and adjust path as needed
-
-// Temporary placeholder for ProductCard to avoid linter error. Replace with actual import.
 
 import 'swiper/css';
 import 'swiper/css/navigation';

@@ -2,21 +2,21 @@
 import { useEffect, useState } from 'react';
 
 // UI Libraries
+import Input from '@/components/Input';
+import LoadingSelect from '@/components/LoadingSelect';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {
   Box,
   Button,
   Card,
   CardContent,
   CardHeader,
-  CircularProgress,
   Divider,
   FormControl,
   Grid2,
   InputLabel,
-  MenuItem,
   Paper,
-  Select,
-  SelectChangeEvent,
   SxProps,
   Table,
   TableBody,
@@ -27,24 +27,17 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import Input from '@/components/Input';
-import LoadingSelect from '@/components/LoadingSelect';
 
 import { useNotificationContext } from '@/contexts/NotificationContext';
 
-import { ICategory } from '@/interfaces/ICategory';
-import { IModel } from '@/interfaces/IModel';
 import { ICreateOrderItem, IOrder, IOrderItem } from '@/interfaces/IOrder';
 
 import { useGetProductByCateId, useGetProductById } from '@/services/product';
 
-import { formatPrice } from '@/utils/format-price';
-import { useGetCategoryList } from '@/services/category';
 import { IProductSku } from '@/interfaces/IProductSku';
+import { useGetCategoryList } from '@/services/category';
 import { truncateTextByLine } from '@/utils/css-helper.util';
+import { formatPrice } from '@/utils/format-price';
 
 interface ProductSelectorProps {
   orderData?: IOrder;

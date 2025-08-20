@@ -74,12 +74,9 @@ import { TbTruckOff } from 'react-icons/tb';
 
 const OrderList = () => {
   const navigate = useNavigate();
-  const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [updateStatusNote, setUpdateStatusNote] = useState('');
-  const [orderReasonCode, setOrderReasonCode] = useState('');
-  const [cancelReason, setCancelReason] = useState('');
 
   const {
     filterAnchorEl,
@@ -150,9 +147,8 @@ const OrderList = () => {
 
   const { mutate: updateOrderStatus, isPending: isUpdatingStatus } =
     useUpdateOrderStatus();
-  const { mutate: cancelOrder, isPending: isCancelingOrder } = useCancelOrder();
-  const { mutate: updateDeliveryFailed, isPending: isUpdatingDeliveryFailed } =
-    useUpdateDeliveryFailed();
+  const { mutate: cancelOrder } = useCancelOrder();
+  const { mutate: updateDeliveryFailed } = useUpdateDeliveryFailed();
 
   useEffect(() => {
     refetchOrders();
@@ -744,7 +740,6 @@ const OrderList = () => {
           loading={actionLoading}
           confirmText={actionType === 'cancel' ? 'Hủy' : 'Xác nhận'}
         />
-        {confirmModal()}
       </Card>
     </>
   );

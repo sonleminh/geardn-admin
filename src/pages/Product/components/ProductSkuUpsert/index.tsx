@@ -32,7 +32,6 @@ import {
 import { ROUTES } from '@/constants/route';
 import { QueryKeys } from '@/constants/query-key';
 import { useNotificationContext } from '@/contexts/NotificationContext';
-import { IAttributeValue } from '@/interfaces/IAttributeValue';
 import { useGetAttributeList } from '@/services/attribute';
 import {
   useGetAttributeValueList,
@@ -79,9 +78,6 @@ const ProductSkuUpsert = () => {
 
   const [attributeId, setAttributeId] = useState<string>('');
   const [attributeValueId, setAttributeValueId] = useState<string>('');
-  const [attributeValue, setAttributeValue] = useState<IAttributeValue | null>(
-    null
-  );
   const [attributeList, setAttributeList] = useState<
     { attributeId: string; attributeValueId: string }[]
   >([]);
@@ -175,12 +171,6 @@ const ProductSkuUpsert = () => {
 
   const handleAttributeValueValueChange = (e: SelectChangeEvent<string>) => {
     setAttributeValueId(e?.target?.value);
-    const selectedAttributeValue = attributeValuesData?.data?.find(
-      (attr) => attr.id === +e?.target?.value
-    );
-    if (selectedAttributeValue) {
-      setAttributeValue(selectedAttributeValue);
-    }
   };
 
   const handleUploadResult = (result: string) => {

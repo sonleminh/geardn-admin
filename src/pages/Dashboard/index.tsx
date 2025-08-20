@@ -1,19 +1,23 @@
-import DateRangeMenu from '@/components/DateRangeMenu';
-import { ROUTES } from '@/constants/route';
-import {
-  useGetOverviewStats,
-  useGetRevenueProfitStats,
-} from '@/services/statistic';
-import { formatPrice } from '@/utils/format-price';
-import AttachMoneyOutlinedIcon from '@mui/icons-material/AttachMoneyOutlined';
-import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import PendingActionsIcon from '@mui/icons-material/PendingActions';
-import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import React, {
+  FC,
+  lazy,
+  memo,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+
+import { format, subDays } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import { RangeKeyDict } from 'react-date-range';
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
+
+import { useQueryClient } from '@tanstack/react-query';
+
 import {
   Box,
   Button,
@@ -25,16 +29,30 @@ import {
   Skeleton,
   Typography,
 } from '@mui/material';
-import { useQueryClient } from '@tanstack/react-query';
-import { format, subDays } from 'date-fns';
-import { vi } from 'date-fns/locale';
-import { useState } from 'react';
-import { RangeKeyDict } from 'react-date-range';
-import 'react-date-range/dist/styles.css';
-import 'react-date-range/dist/theme/default.css';
-import { Link as RouterLink } from 'react-router-dom';
-import RevevueProfitChart from './components/RevevueProfitChart';
-import TopCategoriesChart from './components/TopCategoriesChart';
+import AttachMoneyOutlinedIcon from '@mui/icons-material/AttachMoneyOutlined';
+import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import TrendingFlatIcon from '@mui/icons-material/TrendingFlat';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+
+import { ROUTES } from '@/constants/route';
+import { formatPrice } from '@/utils/format-price';
+import {
+  useGetOverviewStats,
+  useGetRevenueProfitStats,
+} from '@/services/statistic';
+import DateRangeMenu from '@/components/DateRangeMenu';
+
+const RevevueProfitChart = lazy(
+  () => import('./components/RevevueProfitChart')
+);
+const TopCategoriesChart = lazy(
+  () => import('./components/TopCategoriesChart')
+);
 
 const cardIconBox = (bgcolor: string) => ({
   display: 'flex',
@@ -65,8 +83,14 @@ const cardTrend = {
   fontWeight: 500,
 };
 
+const trendingIcon = {
+  mr: { lg: 0.5, xl: 1 },
+  fontSize: { lg: 20, xl: 24 },
+};
+
 const valueStyle = (value: number) => ({
   mr: 1,
+  fontSize: { lg: 14, xl: 16 },
   fontWeight: 500,
   color: value < 0 ? 'red' : value > 0 ? '#19e120' : '#828384',
 });
@@ -84,7 +108,7 @@ interface SummaryCardProps {
   isLoading?: boolean;
 }
 
-function SummaryCard({
+const SummaryCard: FC<SummaryCardProps> = memo(function SummaryCard({
   icon,
   title,
   subtitle,
@@ -95,22 +119,22 @@ function SummaryCard({
   bgcolor = '#fff',
   iconBg = '#ebebeb',
   isLoading = false,
-}: SummaryCardProps) {
+}) {
   return (
     <Card
       sx={{
-        minHeight: 204,
+        height: { lg: 180, xl: 204 },
         bgcolor,
         color: bgcolor === '#000' ? '#fff' : undefined,
         borderRadius: 4,
       }}>
-      <CardContent sx={{ p: { lg: 3, xl: 4 } }}>
+      <CardContent sx={{ p: { lg: 2.5, xl: 4 } }}>
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            mb: 3,
+            mb: { lg: 2.5, xl: 3 },
           }}>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Box sx={cardIconBox(iconBg)}>
@@ -233,9 +257,9 @@ function SummaryCard({
       </CardContent>
     </Card>
   );
-}
+});
 
-const Dashboard = () => {
+const Dashboard: FC = () => {
   const queryClient = useQueryClient();
   const [dateRange, setDateRange] = useState([
     {
@@ -244,26 +268,36 @@ const Dashboard = () => {
       key: 'selection',
     },
   ]);
+
   const { data: revenueProfitStats } = useGetRevenueProfitStats({
     fromDate: dateRange[0].startDate,
     toDate: dateRange[0].endDate,
   });
   const { data: overviewStats, isLoading: isLoadingOverviewStats } =
     useGetOverviewStats();
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-  queryClient.invalidateQueries({ queryKey: ['Product'] });
 
-  const handleClick = (event: React.MouseEvent<HTMLElement>) =>
-    setAnchorEl(event.currentTarget);
-  const handleClose = () => setAnchorEl(null);
-  const handleDateSelect = (daysAgo: number) => {
-    const endDate = new Date();
-    const startDate = subDays(new Date(), daysAgo);
-    setDateRange([{ startDate, endDate, key: 'selection' }]);
-    handleClose();
-  };
-  const handleDateRangeChange = (rangesByKey: RangeKeyDict) => {
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ['Product'] });
+  }, [queryClient]);
+
+  const handleClick = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget),
+    []
+  );
+  const handleClose = useCallback(() => setAnchorEl(null), []);
+  const handleDateSelect = useCallback(
+    (daysAgo: number) => {
+      const endDate = new Date();
+      const startDate = subDays(new Date(), daysAgo);
+      setDateRange([{ startDate, endDate, key: 'selection' }]);
+      handleClose();
+    },
+    [handleClose]
+  );
+  const handleDateRangeChange = useCallback((rangesByKey: RangeKeyDict) => {
     const selection = rangesByKey.selection;
     if (selection.startDate && selection.endDate) {
       setDateRange([
@@ -274,8 +308,9 @@ const Dashboard = () => {
         },
       ]);
     }
-  };
-  const getDateDisplayText = () => {
+  }, []);
+
+  const dateDisplayText = useMemo(() => {
     const { startDate, endDate } = dateRange[0];
     if (!startDate || !endDate) return 'Chọn ngày';
     if (startDate.getTime() === endDate.getTime()) {
@@ -286,11 +321,15 @@ const Dashboard = () => {
       'dd/MM/yyyy',
       { locale: vi }
     )}`;
-  };
+  }, [dateRange]);
+
+  const overview = overviewStats?.data;
+  const revenueProfitSeries =
+    revenueProfitStats?.data?.revenueProfitStatsData || [];
 
   return (
     <Container maxWidth='xl'>
-      <Grid2 container spacing={3}>
+      <Grid2 container spacing={{ lg: 2, xl: 3 }}>
         <Grid2 size={3}>
           <SummaryCard
             icon={
@@ -298,34 +337,57 @@ const Dashboard = () => {
             }
             title='Tổng doanh số'
             link={ROUTES.STATISTIC_REVENUE_PROFIT}
-            value={formatPrice(overviewStats?.data?.total?.revenue || 0)}
+            value={formatPrice(overview?.total?.revenue || 0)}
             trend={
               <Typography sx={cardTrend}>
-                {overviewStats && overviewStats?.data?.growth?.revenue > 0 ? (
-                  <TrendingUpIcon sx={{ mr: 1, color: '#19e120' }} />
-                ) : overviewStats &&
-                  overviewStats?.data?.growth?.revenue < 0 ? (
-                  <TrendingDownIcon sx={{ mr: 1, color: 'red' }} />
+                {overview && overview?.growth?.revenue > 0 ? (
+                  <TrendingUpIcon
+                    sx={{
+                      ...trendingIcon,
+                      color: '#19e120',
+                    }}
+                  />
+                ) : overview && overview?.growth?.revenue < 0 ? (
+                  <TrendingDownIcon
+                    sx={{
+                      ...trendingIcon,
+                      color: 'red',
+                    }}
+                  />
                 ) : (
-                  <TrendingFlatIcon sx={{ mr: 1, color: '#828384' }} />
+                  <TrendingFlatIcon
+                    sx={{
+                      ...trendingIcon,
+                      color: '#828384',
+                    }}
+                  />
                 )}
                 <Typography
                   component='span'
-                  sx={valueStyle(overviewStats?.data?.growth?.revenue || 0)}>
-                  {overviewStats?.data?.growth?.revenue?.toFixed(2)}%
+                  sx={valueStyle(overview?.growth?.revenue || 0)}>
+                  {overview?.growth?.revenue?.toFixed(2)}%
                 </Typography>
               </Typography>
             }
             extra={
               <Typography sx={cardTrend}>
-                <Typography component='span' sx={{ mr: 1, fontWeight: 500 }}>
-                  {formatPrice(
-                    overviewStats?.data?.total?.totalCurrentMonthRevenue || 0
-                  )}
+                <Typography
+                  component='span'
+                  sx={{
+                    mr: { lg: 0.5, xl: 1 },
+                    fontWeight: 500,
+                    whiteSpace: 'nowrap',
+                  }}>
+                  {/* {formatPrice(overview?.total?.totalCurrentMonthRevenue || 0)} */}
+                  99.999.000 d
                 </Typography>
                 <Typography
                   component='span'
-                  sx={{ fontWeight: 500, color: '#828384' }}>
+                  sx={{
+                    fontWeight: 500,
+                    color: '#828384',
+                    whiteSpace: 'nowrap',
+                  }}>
                   tháng này
                 </Typography>
               </Typography>
@@ -335,37 +397,43 @@ const Dashboard = () => {
             isLoading={isLoadingOverviewStats}
           />
         </Grid2>
+
         <Grid2 size={3}>
           <SummaryCard
             icon={<ShoppingBagOutlinedIcon sx={{ fontSize: 28 }} />}
             title='Tổng đơn hàng'
             link={ROUTES.STATISTIC_ORDER}
             value={
-              <Typography sx={{ fontSize: 24, fontWeight: 500 }}>
-                {overviewStats?.data?.total?.orders || 0} đơn
+              <Typography
+                sx={{ fontSize: { lg: 22, xl: 24 }, fontWeight: 500 }}>
+                {overview?.total?.orders || 0} đơn
               </Typography>
             }
             trend={
               <Typography sx={cardTrend}>
-                {overviewStats && overviewStats?.data?.growth?.delivered > 0 ? (
-                  <TrendingUpIcon sx={{ mr: 1, color: '#59b35c' }} />
-                ) : overviewStats &&
-                  overviewStats?.data?.growth?.delivered < 0 ? (
-                  <TrendingDownIcon sx={{ mr: 1, color: 'red' }} />
+                {overview && overview?.growth?.delivered > 0 ? (
+                  <TrendingUpIcon sx={{ ...trendingIcon, color: '#59b35c' }} />
+                ) : overview && overview?.growth?.delivered < 0 ? (
+                  <TrendingDownIcon sx={{ ...trendingIcon, color: 'red' }} />
                 ) : (
-                  <TrendingFlatIcon sx={{ mr: 1, color: '#828384' }} />
+                  <TrendingFlatIcon
+                    sx={{
+                      ...trendingIcon,
+                      color: '#828384',
+                    }}
+                  />
                 )}
                 <Typography
                   component='span'
-                  sx={valueStyle(overviewStats?.data?.growth?.delivered || 0)}>
-                  {overviewStats?.data?.growth?.delivered?.toFixed(2)}%
+                  sx={valueStyle(overview?.growth?.delivered || 0)}>
+                  {overview?.growth?.delivered?.toFixed(2)}%
                 </Typography>
               </Typography>
             }
             extra={
               <Typography sx={cardTrend}>
                 <Typography component='span' sx={{ mr: 1, fontWeight: 500 }}>
-                  {overviewStats?.data?.total?.deliveredThisMonthCount || 0}
+                  {overview?.total?.deliveredThisMonthCount || 0}
                 </Typography>
                 <Typography
                   component='span'
@@ -385,12 +453,13 @@ const Dashboard = () => {
             link={ROUTES.ORDER_LIST}
             value={
               <Typography sx={{ fontSize: 24, fontWeight: 500 }}>
-                {overviewStats?.data?.total?.pendingOrders || 0} đơn
+                {overview?.total?.pendingOrders || 0} đơn
               </Typography>
             }
             isLoading={isLoadingOverviewStats}
           />
         </Grid2>
+
         <Grid2 size={3}>
           <SummaryCard
             icon={<VisibilityIcon sx={{ fontSize: 24 }} />}
@@ -399,9 +468,20 @@ const Dashboard = () => {
             value='696'
             trend={
               <Typography sx={cardTrend}>
-                <TrendingUpIcon sx={{ mr: 1 }} />
+                {overview && overview?.growth?.delivered > 0 ? (
+                  <TrendingUpIcon sx={{ ...trendingIcon, color: '#59b35c' }} />
+                ) : overview && overview?.growth?.delivered < 0 ? (
+                  <TrendingDownIcon sx={{ ...trendingIcon, color: 'red' }} />
+                ) : (
+                  <TrendingFlatIcon
+                    sx={{
+                      ...trendingIcon,
+                      color: '#828384',
+                    }}
+                  />
+                )}
                 <Typography component='span' sx={{ fontWeight: 500 }}>
-                  +19%
+                  +..%
                 </Typography>
               </Typography>
             }
@@ -420,6 +500,7 @@ const Dashboard = () => {
             isLoading={isLoadingOverviewStats}
           />
         </Grid2>
+
         <Grid2 size={9}>
           <Card>
             <CardContent>
@@ -437,9 +518,10 @@ const Dashboard = () => {
                   onClick={handleClick}
                   endIcon={<KeyboardArrowDownIcon />}
                   sx={{ minWidth: 150 }}>
-                  {getDateDisplayText()}
+                  {dateDisplayText}
                 </Button>
               </Box>
+
               <DateRangeMenu
                 anchorEl={anchorEl}
                 open={open}
@@ -448,11 +530,13 @@ const Dashboard = () => {
                 dateRange={dateRange}
                 onRangeChange={handleDateRangeChange}
               />
-              <RevevueProfitChart
-                revenueProfitStats={
-                  revenueProfitStats?.data?.revenueProfitStatsData || []
-                }
-              />
+
+              <Suspense
+                fallback={
+                  <Skeleton variant='rectangular' width='100%' height={320} />
+                }>
+                <RevevueProfitChart revenueProfitStats={revenueProfitSeries} />
+              </Suspense>
             </CardContent>
           </Card>
         </Grid2>
@@ -463,19 +547,25 @@ const Dashboard = () => {
               <Typography sx={{ mb: 4, fontSize: 20, fontWeight: 500 }}>
                 Top danh mục
               </Typography>
-              <TopCategoriesChart
-                topCategories={overviewStats?.data?.bestSellingCategory || []}
-                isLoading={isLoadingOverviewStats}
-              />
+              <Suspense
+                fallback={
+                  <Skeleton variant='rectangular' width='100%' height={240} />
+                }>
+                <TopCategoriesChart
+                  topCategories={overview?.bestSellingCategory || []}
+                  isLoading={isLoadingOverviewStats}
+                />
+              </Suspense>
             </CardContent>
           </Card>
         </Grid2>
+
         {/* 
         <Grid2 size={12}>
           <Card>
             <CardContent>
               <TopProductsCarousel
-                products={overviewStats?.data?.bestSellingProduct || []}
+                products={overview?.bestSellingProduct || []}
                 isLoading={isLoadingOverviewStats}
               />
             </CardContent>

@@ -93,7 +93,7 @@ axiosInstance.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then(async (token) => {
+          .then(async (_) => {
             // Retry the original request with the new token
             const response = await axiosInstance.get("/admin/auth/whoami");
             if (response?.data?.data) {

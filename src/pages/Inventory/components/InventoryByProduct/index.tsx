@@ -2,7 +2,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { ROUTES } from '@/constants/route';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import PriceChangeOutlinedIcon from '@mui/icons-material/PriceChangeOutlined';

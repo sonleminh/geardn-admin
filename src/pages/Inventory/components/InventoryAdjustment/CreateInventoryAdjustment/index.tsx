@@ -1,15 +1,10 @@
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
-import { ChangeEvent, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
-import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
-import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
-import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import {
   Autocomplete,
   Box,
@@ -41,6 +36,12 @@ import {
   Theme,
   Typography,
 } from '@mui/material';
+import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
@@ -52,13 +53,14 @@ import { useNotificationContext } from '@/contexts/NotificationContext';
 import { IProductSku } from '@/interfaces/IProductSku';
 
 import { useGetEnumByContext } from '@/services/enum';
+import { useCreateAdjustmentLog } from '@/services/inventory';
 import { useGetProductList } from '@/services/product';
 import { useGetSkusByProductId } from '@/services/sku';
 import { useGetWarehouseList } from '@/services/warehouse';
 
-import { useCreateAdjustmentLog } from '@/services/inventory';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
+
 import DatePicker from 'react-datepicker';
 
 interface IAdjustmentItem {
@@ -136,116 +138,142 @@ const CreateInventoryAdjustmentPage = () => {
     },
   });
 
+  const selectedWarehouseId = useMemo(
+    () =>
+      formik?.values?.warehouseId ? +formik.values.warehouseId : undefined,
+    [formik?.values?.warehouseId]
+  );
+
+  const productsOptions = useMemo(
+    () => productsData?.data ?? [],
+    [productsData]
+  );
+  const skusOptions = useMemo(() => skusData?.data ?? [], [skusData]);
+
+  const selectedSku = useMemo(
+    () => skusOptions.find((s) => s?.id === +skuId),
+    [skusOptions, skuId]
+  );
+
   useEffect(() => {
-    if (skuId) {
-      setQuantityBefore(
-        skusData?.data
-          ?.find((sku) => sku?.id === +skuId)
-          ?.stocks?.find(
-            (stock) => stock?.warehouseId === +formik?.values?.warehouseId
-          )
-          ?.quantity?.toString() ?? ''
-      );
+    if (!skuId || !selectedWarehouseId) {
+      setQuantityBefore('');
+      return;
     }
-  }, [skusData?.data, formik?.values?.warehouseId, skuId]);
+    const stock = selectedSku?.stocks?.find(
+      (stock) => stock?.warehouseId === selectedWarehouseId
+    );
+    setQuantityBefore(stock?.quantity?.toString() ?? '');
+  }, [skuId, selectedWarehouseId, selectedSku]);
 
-  const handleChangeValue = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    formik.setFieldValue(name, value);
-  };
+  const handleChangeValue = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      formik.setFieldValue(name, value);
+    },
+    [formik]
+  );
 
-  const handleSelectChange = (event: SelectChangeEvent<string>) => {
-    const { name, value } = event.target;
-    formik.setFieldValue(name, value);
-  };
+  const handleSelectChange = useCallback(
+    (event: SelectChangeEvent<string>) => {
+      const { name, value } = event.target;
+      formik.setFieldValue(name, value);
+    },
+    [formik]
+  );
 
-  const handleSkuSelect = (event: SelectChangeEvent<string>) => {
+  const handleSkuSelect = useCallback((event: SelectChangeEvent<string>) => {
     setSkuId(event.target.value);
-  };
+  }, []);
 
-  const handleSaveItem = () => {
+  const handleSaveItem = useCallback(() => {
     const isAlreadySelected = adjustmentItems.some((item) => {
       return item?.sku?.id === +skuId;
     });
     if (isAlreadySelected && !isEditItem) {
-      return showNotification('Sku đã tồn tại', 'error');
+      showNotification('Sku đã tồn tại', 'error');
+      return;
     }
 
-    const sku = skusData?.data?.find((sku) => sku?.id === +skuId);
+    const sku = skusOptions.find((s) => s?.id === +skuId);
 
     if (editItemIndex !== null && sku && skuId) {
-      const updatedAdjustmentItems = adjustmentItems;
+      const stock = sku?.stocks?.find(
+        (stock) => stock?.warehouseId === selectedWarehouseId
+      );
+      const updatedAdjustmentItems = [...adjustmentItems];
       updatedAdjustmentItems[editItemIndex] = {
-        sku: sku,
-        unitCostBefore:
-          sku?.stocks
-            ?.find(
-              (stock) => stock?.warehouseId === +formik?.values?.warehouseId
-            )
-            ?.unitCost?.toString() ?? '',
-        quantityBefore:
-          sku?.stocks
-            ?.find(
-              (stock) => stock?.warehouseId === +formik?.values?.warehouseId
-            )
-            ?.quantity?.toString() ?? '',
+        sku,
+        unitCostBefore: stock?.unitCost?.toString() ?? '',
+        quantityBefore: stock?.quantity?.toString() ?? '',
         quantityChange: quantityChange,
       };
       setAdjustmentItems(updatedAdjustmentItems);
       setProductId(undefined);
       setSkuId('');
       setQuantityChange('');
-    } else {
-      if (sku && skuId && quantityChange) {
-        setAdjustmentItems((prev) => [
-          ...prev,
-          {
-            sku: sku,
-            quantityBefore:
-              sku?.stocks
-                ?.find(
-                  (stock) => stock?.warehouseId === +formik?.values?.warehouseId
-                )
-                ?.quantity?.toString() ?? '',
-            quantityChange: quantityChange,
-            unitCostBefore:
-              sku?.stocks
-                ?.find(
-                  (stock) => stock?.warehouseId === +formik?.values?.warehouseId
-                )
-                ?.unitCost?.toString() ?? '',
-          },
-        ]);
-      }
-      setProductId(undefined);
-      setSkuId('');
-      setQuantityChange('');
-    }
-  };
-
-  const handleEditImportItem = (item: IAdjustmentItem, index: number) => {
-    setIsEditItem(true);
-    setProductId(item?.sku?.product?.id);
-    setSkuId(item?.sku?.id?.toString() ?? '');
-    setQuantityChange(item?.quantityBefore.toString() ?? '');
-    setEditItemIndex(index);
-  };
-
-  const handleDeleteImportItem = (itemIndex: number) => {
-    const updAttributeList = adjustmentItems?.filter(
-      (_, index) => index !== itemIndex
-    );
-    if (updAttributeList?.length === 0) {
       setIsEditItem(false);
+      setEditItemIndex(null);
+      return;
     }
-    setAdjustmentItems(updAttributeList);
-  };
 
-  const handleDeleteCurrentItem = () => {
+    if (sku && skuId && quantityChange) {
+      const stock = sku?.stocks?.find(
+        (stock) => stock?.warehouseId === selectedWarehouseId
+      );
+      setAdjustmentItems((prev) => [
+        ...prev,
+        {
+          sku,
+          quantityBefore: stock?.quantity?.toString() ?? '',
+          quantityChange,
+          unitCostBefore: stock?.unitCost?.toString() ?? '',
+        },
+      ]);
+    }
     setProductId(undefined);
     setSkuId('');
     setQuantityChange('');
-  };
+  }, [
+    adjustmentItems,
+    editItemIndex,
+    isEditItem,
+    quantityChange,
+    selectedWarehouseId,
+    showNotification,
+    skuId,
+    skusOptions,
+  ]);
+
+  const handleEditImportItem = useCallback(
+    (item: IAdjustmentItem, index: number) => {
+      setIsEditItem(true);
+      setProductId(item?.sku?.product?.id);
+      setSkuId(item?.sku?.id?.toString() ?? '');
+      setQuantityChange(item?.quantityBefore.toString() ?? '');
+      setEditItemIndex(index);
+    },
+    []
+  );
+
+  const handleDeleteAdjustmentItem = useCallback((itemIndex: number) => {
+    setAdjustmentItems((prev) => {
+      const upd = prev.filter((_, index) => index !== itemIndex);
+      if (upd.length === 0) {
+        setIsEditItem(false);
+        setEditItemIndex(null);
+      }
+      return upd;
+    });
+  }, []);
+
+  const handleDeleteCurrentItem = useCallback(() => {
+    setProductId(undefined);
+    setSkuId('');
+    setQuantityChange('');
+    setIsEditItem(false);
+    setEditItemIndex(null);
+  }, []);
 
   return (
     <>
@@ -296,7 +324,7 @@ const CreateInventoryAdjustmentPage = () => {
               onChange={handleSelectChange}
               value={formik?.values?.warehouseId ?? ''}>
               {warehousesData?.data?.map((item) => (
-                <MenuItem key={item?.name} value={item?.id}>
+                <MenuItem key={item?.id} value={item?.id}>
                   {item?.name}
                 </MenuItem>
               ))}
@@ -389,13 +417,13 @@ const CreateInventoryAdjustmentPage = () => {
                     <FormControl variant='filled' fullWidth>
                       <Autocomplete
                         disablePortal
-                        options={productsData?.data ?? []}
+                        options={productsOptions}
                         renderInput={(params) => (
                           <TextField {...params} label='Sản phẩm' />
                         )}
                         onChange={(e, value) => setProductId(value?.id)}
                         value={
-                          productsData?.data.find(
+                          productsOptions.find(
                             (item) => item.id === productId
                           ) ?? null
                         }
@@ -426,7 +454,7 @@ const CreateInventoryAdjustmentPage = () => {
                         onChange={handleSkuSelect}
                         value={skuId ?? ''}
                         disabled={!productId || !skusData}>
-                        {skusData?.data?.map((item) => (
+                        {skusOptions?.map((item) => (
                           <MenuItem key={item?.id} value={item?.id}>
                             <Typography
                               sx={{
@@ -440,10 +468,8 @@ const CreateInventoryAdjustmentPage = () => {
                                 {item?.productSkuAttributes?.length
                                   ? item?.productSkuAttributes
                                       ?.map(
-                                        (item) =>
-                                          `${item?.attributeValue?.attribute?.label}:
-                                  ${item?.attributeValue?.value}
-                                `
+                                        (it) =>
+                                          `${it?.attributeValue?.attribute?.label}: ${it?.attributeValue?.value}`
                                       )
                                       .join('- ')
                                   : ''}
@@ -592,7 +618,7 @@ const CreateInventoryAdjustmentPage = () => {
                                     ...truncateTextByLine(1),
                                   }}>
                                   {item?.sku?.productSkuAttributes
-                                    ?.map((item) => item?.attributeValue?.value)
+                                    ?.map((it) => it?.attributeValue?.value)
                                     .join(' - ')}
                                 </Typography>
                               </Box>
@@ -623,7 +649,9 @@ const CreateInventoryAdjustmentPage = () => {
                               <Button
                                 sx={{ minWidth: 20, width: 20, height: 30 }}
                                 variant='outlined'
-                                onClick={() => handleDeleteImportItem(index)}>
+                                onClick={() =>
+                                  handleDeleteAdjustmentItem(index)
+                                }>
                                 <DeleteOutlineOutlinedIcon
                                   sx={{ fontSize: 14 }}
                                 />

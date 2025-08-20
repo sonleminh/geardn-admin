@@ -28,7 +28,6 @@ import {
   useGetOrderStats,
   useGetOrderSummaryStats,
 } from '@/services/statistic';
-import { formatPrice } from '@/utils/format-price';
 
 interface SummaryStatProps {
   label: string;

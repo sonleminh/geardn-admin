@@ -1,7 +1,7 @@
-import { Box, CircularProgress } from '@mui/material';
-import Skeleton from '@mui/material/Skeleton';
 import { useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
+import { Box, CircularProgress } from '@mui/material';
+import Skeleton from '@mui/material/Skeleton';
 
 import { ArcElement, Chart as ChartJS, Legend, Title, Tooltip } from 'chart.js';
 import { formatPrice } from '@/utils/format-price';

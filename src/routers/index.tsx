@@ -21,7 +21,6 @@ import Payment from '@/pages/Payment';
 import Product from '@/pages/Product';
 import Order from '@/pages/Order';
 import Statistic from '@/pages/Statistic';
-import RevenueProfit from '@/pages/Statistic/components/RevenueProfit';
 
 const Loader =
   <P extends object>(Component: React.ComponentType<P>): React.FC<P> =>
