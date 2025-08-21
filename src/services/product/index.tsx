@@ -3,7 +3,7 @@ import { AxiosError } from 'axios';
 import { axiosInstance } from '../axiosInstance';
 import { QueryKeys } from '@/constants/query-key';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import {
   ICreateProduct,
   IProduct,
@@ -224,7 +224,7 @@ const uploadImage = async (
 };
 
 export const useUploadImage = () => {
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
   return useMutation({
     mutationFn: ({
       files,
@@ -234,10 +234,7 @@ export const useUploadImage = () => {
       onProgress: (progress: number) => void;
     }) => uploadImage(files, onProgress),
     onError(error: AxiosError<ErrorResponse>) {
-      showNotification(
-        error?.response?.data?.message || 'Upload failed',
-        'error'
-      );
+      showAlert(error?.response?.data?.message || 'Upload failed', 'error');
     },
   });
 };

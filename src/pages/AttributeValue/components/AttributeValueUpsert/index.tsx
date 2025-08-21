@@ -30,7 +30,7 @@ import { QueryKeys } from '@/constants/query-key';
 import SuspenseLoader from '@/components/SuspenseLoader';
 import Input from '@/components/Input';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 
 import { createSchema, updateSchema } from '../utils/schema/attributeSchema';
 
@@ -49,7 +49,7 @@ const AttributeValueUpsert = () => {
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const { data: attributeValuesData } = useGetAttributeValueById(numericId);
   const { data: attributesData } = useGetAttributeList();
@@ -74,7 +74,7 @@ const AttributeValueUpsert = () => {
               queryClient.invalidateQueries({
                 queryKey: [QueryKeys.AttributeValue],
               });
-              showNotification('Cập nhật phân loại thành công', 'success');
+              showAlert('Cập nhật phân loại thành công', 'success');
               navigate(ROUTES.ATTRIBUTE_VALUE);
             },
           }
@@ -87,7 +87,7 @@ const AttributeValueUpsert = () => {
               queryClient.invalidateQueries({
                 queryKey: [QueryKeys.AttributeValue],
               });
-              showNotification('Tạo phân loại thành công', 'success');
+              showAlert('Tạo phân loại thành công', 'success');
               navigate(ROUTES.ATTRIBUTE_VALUE);
             },
           }

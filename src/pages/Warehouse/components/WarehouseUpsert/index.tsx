@@ -8,7 +8,7 @@ import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 
@@ -38,7 +38,7 @@ const WarehouseUpsert = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const isEdit = !!id;
 
@@ -66,7 +66,7 @@ const WarehouseUpsert = () => {
               queryClient.invalidateQueries({
                 queryKey: [QueryKeys.Warehouse],
               });
-              showNotification('Cập nhật kho hàng thành công', 'success');
+              showAlert('Cập nhật kho hàng thành công', 'success');
               navigate(ROUTES.WAREHOUSE);
             },
           }
@@ -75,7 +75,7 @@ const WarehouseUpsert = () => {
         createWarehouseMutate(values, {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Warehouse] });
-            showNotification('Tạo kho hàng thành công', 'success');
+            showAlert('Tạo kho hàng thành công', 'success');
             navigate(ROUTES.WAREHOUSE);
           },
         });

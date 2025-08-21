@@ -28,7 +28,7 @@ import {
 import useConfirmModal from '@/hooks/useModalConfirm';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import moment from 'moment';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import ActionButton from '@/components/ActionButton';
 import { useDeletePayment, useGetPaymentList } from '@/services/payment';
@@ -46,18 +46,18 @@ const PaymentList = () => {
 
   const { data } = useGetPaymentList();
 
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { mutate: deletePaymentMutate } = useDeletePayment();
 
   const handleDeletePayment = (id: number) => {
-    showNotification('Ok', 'error');
+    showAlert('Ok', 'error');
     deletePaymentMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Payment] });
-        showNotification('Xóa hình thức thanh toán thành công', 'success');
+        showAlert('Xóa hình thức thanh toán thành công', 'success');
       },
     });
   };

@@ -59,7 +59,7 @@ import {
   useUpdateOrderStatus,
 } from '@/services/order';
 import { IOrder } from '@/interfaces/IOrder';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import { IProduct } from '@/interfaces/IProduct';
 import { OrderItem } from './components/OrderItem';
 import { FilterChips } from './components/FilterChips';
@@ -135,7 +135,7 @@ const OrderList = () => {
     [orderStatusEnumData?.data]
   );
 
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   // State for status update popover
   const [statusAnchorEl, setStatusAnchorEl] = useState<null | HTMLElement>(
@@ -181,7 +181,7 @@ const OrderList = () => {
         },
         {
           onSuccess: () => {
-            showNotification('Đã hủy đơn hàng thành công', 'success');
+            showAlert('Đã hủy đơn hàng thành công', 'success');
             setActionModalOpen(false);
             setActionOrder(null);
             setActionType(null);
@@ -189,7 +189,7 @@ const OrderList = () => {
             refetchOrders();
           },
           onError: () => {
-            showNotification('Hủy đơn hàng thất bại', 'error');
+            showAlert('Hủy đơn hàng thất bại', 'error');
             setActionLoading(false);
           },
         }
@@ -205,7 +205,7 @@ const OrderList = () => {
         },
         {
           onSuccess: () => {
-            showNotification('Đã xác nhận giao thất bại', 'success');
+            showAlert('Đã xác nhận giao thất bại', 'success');
             setActionModalOpen(false);
             setActionOrder(null);
             setActionType(null);
@@ -213,7 +213,7 @@ const OrderList = () => {
             refetchOrders();
           },
           onError: () => {
-            showNotification('Xác nhận giao thất bại thất bại', 'error');
+            showAlert('Xác nhận giao thất bại thất bại', 'error');
             setActionLoading(false);
           },
         }
@@ -705,17 +705,14 @@ const OrderList = () => {
                 },
                 {
                   onSuccess: () => {
-                    showNotification(
-                      'Cập nhật trạng thái thành công',
-                      'success'
-                    );
+                    showAlert('Cập nhật trạng thái thành công', 'success');
                     setStatusAnchorEl(null);
                     setSelectedOrder(null);
                     setNewStatus('');
                     refetchOrders();
                   },
                   onError: () => {
-                    showNotification('Cập nhật trạng thái thất bại', 'error');
+                    showAlert('Cập nhật trạng thái thất bại', 'error');
                   },
                 }
               );

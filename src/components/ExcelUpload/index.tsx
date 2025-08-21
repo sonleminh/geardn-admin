@@ -5,7 +5,7 @@ import useConfirmModal from '@/hooks/useModalConfirm';
 import { useUploadProductsFile } from '@/services/product';
 import { QueryKeys } from '@/constants/query-key';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import axios, { AxiosError } from 'axios';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import SuspenseLoader from '../SuspenseLoader';
@@ -14,7 +14,7 @@ const ExcelUpload = () => {
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { mutate: uploadProductsFile, isPending: isCreatePending } =
@@ -33,15 +33,15 @@ const ExcelUpload = () => {
       uploadProductsFile(file, {
         onSuccess() {
           queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-          showNotification('Thêm danh sách sản phẩm thành công', 'success');
+          showAlert('Thêm danh sách sản phẩm thành công', 'success');
           setFile(null);
         },
 
         onError: (err: Error | AxiosError) => {
           if (axios.isAxiosError(err)) {
-            showNotification(err.response?.data?.message, 'error');
+            showAlert(err.response?.data?.message, 'error');
           } else {
-            showNotification(err.message, 'error');
+            showAlert(err.message, 'error');
           }
         },
       });

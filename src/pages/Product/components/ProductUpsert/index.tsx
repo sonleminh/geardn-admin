@@ -7,7 +7,7 @@ import MultipleFileUpload from '@/components/MultipleImageUpload';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import { IProductPayload, ITagOptions } from '@/interfaces/IProduct';
 import {
   useCreateProduct,
@@ -72,7 +72,7 @@ const ProductUpsert = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
   const [tags, setTags] = useState<ITagOptions[]>([]);
   const [initialValues, setInitialValues] = useState<FormValues | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
@@ -127,7 +127,7 @@ const ProductUpsert = () => {
           {
             onSuccess() {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-              showNotification('Cập nhật sản phẩm thành công', 'success');
+              showAlert('Cập nhật sản phẩm thành công', 'success');
               navigate('/product');
             },
           }
@@ -136,7 +136,7 @@ const ProductUpsert = () => {
         createProductMutate(payload, {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-            showNotification('Tạo sản phẩm thành công', 'success');
+            showAlert('Tạo sản phẩm thành công', 'success');
             navigate('/product');
           },
         });

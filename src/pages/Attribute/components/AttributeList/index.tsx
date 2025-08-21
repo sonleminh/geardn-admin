@@ -26,7 +26,7 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import RestoreIcon from '@mui/icons-material/Restore';
 import CircleIcon from '@mui/icons-material/Circle';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 
 import { QueryKeys } from '@/constants/query-key';
 
@@ -131,7 +131,7 @@ const RowActions: FC<RowActionsProps> = memo(
 const AttributeList: FC = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { data, isLoading } = useGetAttributeList();
@@ -151,11 +151,11 @@ const AttributeList: FC = () => {
       deleteAttributeMutate(id, {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: [QueryKeys.Attribute] });
-          showNotification('Xóa thuộc tính thành công', 'success');
+          showAlert('Xóa thuộc tính thành công', 'success');
         },
       });
     },
-    [deleteAttributeMutate, queryClient, showNotification]
+    [deleteAttributeMutate, queryClient, showAlert]
   );
 
   const handleRestore = useCallback(
@@ -163,11 +163,11 @@ const AttributeList: FC = () => {
       restoreAttributeMutate(id, {
         onSuccess() {
           queryClient.invalidateQueries({ queryKey: [QueryKeys.Attribute] });
-          showNotification('Khôi phục thuộc tính thành công', 'success');
+          showAlert('Khôi phục thuộc tính thành công', 'success');
         },
       });
     },
-    [restoreAttributeMutate, queryClient, showNotification]
+    [restoreAttributeMutate, queryClient, showAlert]
   );
 
   const handleDeletePermanent = useCallback(
@@ -175,11 +175,11 @@ const AttributeList: FC = () => {
       deleteAttributePermanentMutate(id, {
         onSuccess() {
           queryClient.invalidateQueries({ queryKey: [QueryKeys.Attribute] });
-          showNotification('Xoá vĩnh viễn thuộc tính thành công', 'success');
+          showAlert('Xoá vĩnh viễn thuộc tính thành công', 'success');
         },
       });
     },
-    [deleteAttributePermanentMutate, queryClient, showNotification]
+    [deleteAttributePermanentMutate, queryClient, showAlert]
   );
 
   const handleEdit = useCallback(

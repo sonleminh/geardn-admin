@@ -47,7 +47,7 @@ import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import { ROUTES } from '@/constants/route';
 import { IProductSku } from '@/interfaces/IProductSku';
 
@@ -75,7 +75,7 @@ const schema = Yup.object().shape({
 const CreateInventoryImportPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const [productId, setProductId] = useState<number>();
   const [skuId, setSkuId] = useState<string>('');
@@ -122,7 +122,7 @@ const CreateInventoryImportPage = () => {
       createImportLogMutate(payload, {
         onSuccess() {
           queryClient.invalidateQueries({ queryKey: [QueryKeys.ImportLog] });
-          showNotification('Tạo nhập hàng thành công', 'success');
+          showAlert('Tạo nhập hàng thành công', 'success');
           navigate(`${ROUTES.INVENTORY}/import`);
         },
       });
@@ -161,7 +161,7 @@ const CreateInventoryImportPage = () => {
       return item?.sku?.id === +skuId;
     });
     if (isAlreadySelected && !isEditItem) {
-      return showNotification('Sku đã tồn tại', 'error');
+      return showAlert('Sku đã tồn tại', 'error');
     }
 
     const sku = skusData?.data?.find((sku) => sku?.id === +skuId);

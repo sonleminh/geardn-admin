@@ -31,7 +31,7 @@ import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { QueryKeys } from '@/constants/query-key';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 
 import {
   useCreatePayment,
@@ -45,7 +45,7 @@ const PaymentUpsert = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const isEdit = !!id;
 
@@ -72,7 +72,7 @@ const PaymentUpsert = () => {
           {
             onSuccess() {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Payment] });
-              showNotification('Cập nhật danh mục thành công', 'success');
+              showAlert('Cập nhật danh mục thành công', 'success');
               navigate('/payment');
             },
           }
@@ -81,7 +81,7 @@ const PaymentUpsert = () => {
         createPaymentMutate(values, {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Payment] });
-            showNotification('Tạo hình thức thanh toán thành công', 'success');
+            showAlert('Tạo hình thức thanh toán thành công', 'success');
             navigate('/payment');
           },
         });

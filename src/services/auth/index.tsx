@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { AxiosError } from 'axios';
@@ -24,18 +24,18 @@ const loginApi = async (payload: ILoginPayload) => {
 export const useLoginMutate = () => {
   const navigate = useNavigate();
   const auth = useAuthContext();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   return useMutation({
     mutationKey: ['user'],
     mutationFn: loginApi,
     onSuccess: (data) => {
       auth?.login(data?.data);
-      showNotification('Đăng nhập thành công', 'success');
+      showAlert('Đăng nhập thành công', 'success');
       navigate('/dashboard');
     },
     onError(error: AxiosError<ErrorResponse>) {
-      showNotification(error?.response?.data?.message, 'error');
+      showAlert(error?.response?.data?.message, 'error');
     },
   });
 };
@@ -48,14 +48,14 @@ const logoutApi = async () => {
 export const useLogoutMutate = () => {
   const navigate = useNavigate();
   const auth = useAuthContext();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   return useMutation({
     mutationKey: ['user'],
     mutationFn: logoutApi,
     onSuccess: () => {
       auth?.logout();
-      showNotification('Đăng xuất thành công', 'success');
+      showAlert('Đăng xuất thành công', 'success');
       navigate(ROUTES.LOGIN);
     },
   });

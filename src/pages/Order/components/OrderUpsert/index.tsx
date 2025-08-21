@@ -19,7 +19,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useAuthContext } from '@/contexts/AuthContext';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 
 import {
   useCreateOrder,
@@ -141,7 +141,7 @@ const OrderUpsert = () => {
   const { user } = useAuthContext();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
 
@@ -158,14 +158,11 @@ const OrderUpsert = () => {
   const handleSubmit = useCallback(
     (values: OrderFormValues) => {
       if (!user?.id) {
-        return showNotification('Không tìm thấy tài khoản', 'error');
+        return showAlert('Không tìm thấy tài khoản', 'error');
       }
 
       if (!orderItems?.length) {
-        return showNotification(
-          'Không có sản phẩm nào để tạo đơn hàng',
-          'error'
-        );
+        return showAlert('Không có sản phẩm nào để tạo đơn hàng', 'error');
       }
 
       const { city, district, ward, detailAddress, shopAddress } = address;
@@ -173,7 +170,7 @@ const OrderUpsert = () => {
         (values.shipment.method === 1 && !ward && !detailAddress) ||
         (values.shipment.method === 2 && !shopAddress)
       ) {
-        return showNotification('Vui lòng chọn địa chỉ nhận hàng', 'error');
+        return showAlert('Vui lòng chọn địa chỉ nhận hàng', 'error');
       }
 
       // Process form values - trim whitespace and convert empty strings to null for API
@@ -217,7 +214,7 @@ const OrderUpsert = () => {
               queryClient.invalidateQueries({
                 queryKey: [QueryKeys.Order],
               });
-              showNotification('Cập nhật đơn hàng thành công', 'success');
+              showAlert('Cập nhật đơn hàng thành công', 'success');
               navigate(-1);
             },
             onError: handleError,
@@ -228,7 +225,7 @@ const OrderUpsert = () => {
         createOrderMutate(payload as ICreateOrder, {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });
-            showNotification('Tạo đơn hàng thành công', 'success');
+            showAlert('Tạo đơn hàng thành công', 'success');
             navigate(-1);
           },
           onError: handleError,
@@ -244,7 +241,7 @@ const OrderUpsert = () => {
       createOrderMutate,
       updateOrderMutate,
       queryClient,
-      showNotification,
+      showAlert,
       navigate,
     ]
   );
@@ -252,12 +249,12 @@ const OrderUpsert = () => {
   const handleError = useCallback(
     (err: Error | AxiosError) => {
       if (axios.isAxiosError(err)) {
-        showNotification(err.response?.data?.message, 'error');
+        showAlert(err.response?.data?.message, 'error');
       } else {
-        showNotification(err.message, 'error');
+        showAlert(err.message, 'error');
       }
     },
-    [showNotification]
+    [showAlert]
   );
 
   const handleChange = useCallback(

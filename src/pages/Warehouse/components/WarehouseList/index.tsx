@@ -33,7 +33,7 @@ import ActionButton from '@/components/ActionButton';
 import { TableSkeleton } from '@/components/TableSkeleton';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 
 import useConfirmModal from '@/hooks/useModalConfirm';
 
@@ -60,7 +60,7 @@ const columns: TableColumn[] = [
 const WarehouseList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { data, isLoading } = useGetWarehouseList();
@@ -78,7 +78,7 @@ const WarehouseList = () => {
     deleteWarehouseMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Warehouse] });
-        showNotification('Xóa kho hàng thành công', 'success');
+        showAlert('Xóa kho hàng thành công', 'success');
       },
     });
   };
@@ -87,7 +87,7 @@ const WarehouseList = () => {
     restoreWarehouseMutate(id, {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Warehouse] });
-        showNotification('Khôi phục kho hàng thành công', 'success');
+        showAlert('Khôi phục kho hàng thành công', 'success');
       },
     });
   };
@@ -96,7 +96,7 @@ const WarehouseList = () => {
     deleteWarehousePermanentMutate(id, {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Warehouse] });
-        showNotification('Xoá vĩnh viễn kho hàng thành công', 'success');
+        showAlert('Xoá vĩnh viễn kho hàng thành công', 'success');
       },
     });
   };

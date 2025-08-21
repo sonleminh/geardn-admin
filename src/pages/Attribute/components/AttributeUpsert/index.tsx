@@ -26,7 +26,7 @@ import { ROUTES } from '@/constants/route';
 import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 
 import {
   useCreateAttribute,
@@ -40,7 +40,7 @@ const AttributeUpsert = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const isEdit = !!id;
 
@@ -66,10 +66,7 @@ const AttributeUpsert = () => {
               queryClient.invalidateQueries({
                 queryKey: [QueryKeys.Attribute],
               });
-              showNotification(
-                'Cập nhật loại thuộc tính thành công',
-                'success'
-              );
+              showAlert('Cập nhật loại thuộc tính thành công', 'success');
               navigate(ROUTES.ATTRIBUTE);
             },
           }
@@ -80,7 +77,7 @@ const AttributeUpsert = () => {
             queryClient.invalidateQueries({
               queryKey: [QueryKeys.Attribute],
             });
-            showNotification('Tạo loại thuộc tính thành công', 'success');
+            showAlert('Tạo loại thuộc tính thành công', 'success');
             navigate(ROUTES.ATTRIBUTE);
           },
         });

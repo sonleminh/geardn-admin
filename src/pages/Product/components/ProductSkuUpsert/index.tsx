@@ -31,7 +31,7 @@ import {
 
 import { ROUTES } from '@/constants/route';
 import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import { useGetAttributeList } from '@/services/attribute';
 import {
   useGetAttributeValueList,
@@ -72,7 +72,7 @@ const ProductSkuUpsert = () => {
     skuId: string;
   }>();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
   const [isEditAttribute, setIsEditAttribute] = useState<boolean>(false);
   const [editAttIndex, setEditAttIndex] = useState<number | null>(null);
 
@@ -123,7 +123,7 @@ const ProductSkuUpsert = () => {
         throw new Error('skuId is missing');
       }
       if (attributeId || attributeValueId) {
-        return showNotification('Chưa lưu phân loại hàng', 'error');
+        return showAlert('Chưa lưu phân loại hàng', 'error');
       }
       const payload = {
         ...values,
@@ -140,11 +140,11 @@ const ProductSkuUpsert = () => {
           {
             onSuccess() {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
-              showNotification('Cập nhật sản phẩm thành công', 'success');
+              showAlert('Cập nhật sản phẩm thành công', 'success');
               navigate(-1);
             },
             onError() {
-              showNotification('Đã có lỗi xảy ra', 'error');
+              showAlert('Đã có lỗi xảy ra', 'error');
             },
           }
         );
@@ -152,7 +152,7 @@ const ProductSkuUpsert = () => {
         createSkuMutate(payload, {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
-            showNotification('Tạo sản phẩm thành công', 'success');
+            showAlert('Tạo sản phẩm thành công', 'success');
             navigate(-1);
           },
         });
@@ -197,7 +197,7 @@ const ProductSkuUpsert = () => {
     });
 
     if (isAlreadySelected && !isEditAttribute) {
-      return showNotification('Bạn đã chọn loại thuộc tính này!', 'error');
+      return showAlert('Bạn đã chọn loại thuộc tính này!', 'error');
     }
 
     if (editAttIndex !== null && attributeValueId) {

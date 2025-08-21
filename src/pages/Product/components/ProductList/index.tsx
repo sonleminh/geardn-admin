@@ -45,7 +45,7 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import SearchIcon from '@mui/icons-material/Search';
 import { FiPackage } from 'react-icons/fi';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
 
 import { ICategory } from '@/interfaces/ICategory';
@@ -318,7 +318,7 @@ export default function ProductList() {
   const navigate = useNavigate();
   const { confirmModal, showConfirmModal } = useConfirmModal();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [updateIsVisibleId, setUpdateIsVisibleId] = useState<number | null>(
@@ -362,7 +362,7 @@ export default function ProductList() {
     deleteProductMutate(id, {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-        showNotification('Xóa sản phẩm thành công', 'success');
+        showAlert('Xóa sản phẩm thành công', 'success');
       },
     });
   };
@@ -374,13 +374,10 @@ export default function ProductList() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-          showNotification(
-            'Cập nhật trạng thái hiển thị thành công',
-            'success'
-          );
+          showAlert('Cập nhật trạng thái hiển thị thành công', 'success');
         },
         onError: () => {
-          showNotification('Cập nhật trạng thái hiển thị thất bại', 'error');
+          showAlert('Cập nhật trạng thái hiển thị thất bại', 'error');
         },
       }
     );

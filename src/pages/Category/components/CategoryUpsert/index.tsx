@@ -5,7 +5,7 @@ import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 
@@ -38,7 +38,7 @@ const CategoryUpsert = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const isEdit = !!id;
 
@@ -64,7 +64,7 @@ const CategoryUpsert = () => {
           {
             onSuccess() {
               queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
-              showNotification('Cập nhật danh mục thành công', 'success');
+              showAlert('Cập nhật danh mục thành công', 'success');
               navigate('/category');
             },
           }
@@ -73,7 +73,7 @@ const CategoryUpsert = () => {
         createCategoryMutate(values, {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
-            showNotification('Tạo danh mục thành công', 'success');
+            showAlert('Tạo danh mục thành công', 'success');
             navigate('/category');
           },
         });

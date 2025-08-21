@@ -55,28 +55,27 @@ const DashboardAppBar = ({
   const logoutMutation = useLogoutMutate();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [anchorElNotification, setAnchorElNotification] =
-    React.useState<null | HTMLElement>(null);
+  const [anchorElAlert, setAnchorElAlert] = React.useState<null | HTMLElement>(
+    null
+  );
 
   const openMenu = Boolean(anchorEl);
-  const openMenuNotification = Boolean(anchorElNotification);
+  const openMenuAlert = Boolean(anchorElAlert);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClickNotification = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    setAnchorElNotification(event.currentTarget);
+  const handleClickAlert = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorElAlert(event.currentTarget);
   };
 
   const handleClose = () => {
     setAnchorEl(null);
   };
 
-  const handleCloseNotification = () => {
-    setAnchorElNotification(null);
+  const handleCloseAlert = () => {
+    setAnchorElAlert(null);
   };
 
   const handleLogout = () => {
@@ -104,14 +103,14 @@ const DashboardAppBar = ({
           <MenuIcon />
         </IconButton>
         <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
-          <IconButton onClick={handleClickNotification}>
+          <IconButton onClick={handleClickAlert}>
             <NotificationsNoneOutlinedIcon sx={{ color: '#fff' }} />
           </IconButton>
           <Menu
             id='basic-menu'
-            anchorEl={anchorElNotification}
-            open={openMenuNotification}
-            onClose={handleCloseNotification}
+            anchorEl={anchorElAlert}
+            open={openMenuAlert}
+            onClose={handleCloseAlert}
             MenuListProps={{
               'aria-labelledby': 'basic-button',
             }}

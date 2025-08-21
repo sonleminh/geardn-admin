@@ -3,13 +3,13 @@ import { useAuthContext } from '../contexts/AuthContext';
 import { useRefreshToken, useWhoAmI } from '../services/auth';
 import { useEffect } from 'react';
 import LoadingBackdrop from '../components/LoadingBackdrop';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import Cookies from 'js-cookie';
 
 const PrivateRoute = () => {
   const navigate = useNavigate();
   const auth = useAuthContext();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const { data, refetch: whoAmIRefetch, isFetching, isError } = useWhoAmI();
   const { data: refreshToken, refetch } = useRefreshToken();
@@ -27,7 +27,7 @@ const PrivateRoute = () => {
           navigate('/login');
         }
       } else {
-        showNotification('Vui lòng đăng nhập!', 'info');
+        showAlert('Vui lòng đăng nhập!', 'info');
         navigate('/login');
       }
     }

@@ -24,7 +24,7 @@ import {
 import SuspenseLoader from '@/components/SuspenseLoader';
 import { QueryKeys } from '@/constants/query-key';
 import { ROUTES } from '@/constants/route';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import { useGetOrderById, useUpdateOrderConfirm } from '@/services/order';
 import { useGetWarehouseList } from '@/services/warehouse';
 import { truncateTextByLine } from '@/utils/css-helper.util';
@@ -45,7 +45,7 @@ const OrderConfirm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const { data: orderData } = useGetOrderById(id as string);
   const { data: warehouseData } = useGetWarehouseList();
@@ -90,7 +90,7 @@ const OrderConfirm = () => {
     );
 
     if (!hasAllWarehousesSelected) {
-      showNotification('Vui lòng chọn kho cho tất cả sản phẩm', 'error');
+      showAlert('Vui lòng chọn kho cho tất cả sản phẩm', 'error');
       return;
     }
 
@@ -101,14 +101,14 @@ const OrderConfirm = () => {
       },
       {
         onSuccess: () => {
-          showNotification('Xác nhận đơn hàng thành công', 'success');
+          showAlert('Xác nhận đơn hàng thành công', 'success');
           navigate(ROUTES.ORDER_LIST);
           queryClient.invalidateQueries({
             queryKey: [QueryKeys.Order],
           });
         },
         onError: () => {
-          showNotification('Có lỗi xảy ra khi xác nhận đơn hàng', 'error');
+          showAlert('Có lỗi xảy ra khi xác nhận đơn hàng', 'error');
         },
       }
     );

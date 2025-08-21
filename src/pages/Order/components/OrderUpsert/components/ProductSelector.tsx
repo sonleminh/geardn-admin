@@ -28,7 +28,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 
 import { ICreateOrderItem, IOrder, IOrderItem } from '@/interfaces/IOrder';
 
@@ -52,7 +52,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
   setOrderItems,
   isEdit,
 }) => {
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const [categoryId, setCategoryId] = useState<string>('');
   const [productId, setProductId] = useState<string>('');
@@ -134,7 +134,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
       !isOrderItemEdit &&
       orderItems?.find((item) => item?.skuId === +selectedSkuId)
     ) {
-      return showNotification('Sản phẩm đã có trong danh sách!', 'error');
+      return showAlert('Sản phẩm đã có trong danh sách!', 'error');
     }
     // if (
     //   matchedModel &&
@@ -146,7 +146,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
     //       ? matchedModel?.stock + orderData?.items?.[itemIndex ?? 0]?.quantity
     //       : matchedModel?.stock)
     // ) {
-    //   return showNotification('Số lượng vượt quá hàng trong kho!!', 'error');
+    //   return showAlert('Số lượng vượt quá hàng trong kho!!', 'error');
     // }
 
     const newItem = {

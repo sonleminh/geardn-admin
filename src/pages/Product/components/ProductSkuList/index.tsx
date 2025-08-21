@@ -29,7 +29,7 @@ import {
 import { QueryKeys } from '@/constants/query-key';
 import { ROUTES } from '@/constants/route';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 
 import useConfirmModal from '@/hooks/useModalConfirm';
 
@@ -49,7 +49,7 @@ const ProductSkuList = () => {
 
   const { data: productData } = useGetProductById(id ? +id : 0);
   const { data: skusData } = useGetSkusByProductId(id ? +id : 0);
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
@@ -59,7 +59,7 @@ const ProductSkuList = () => {
     deteleteSkuMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
-        showNotification('Xóa mã hàng thành công', 'success');
+        showAlert('Xóa mã hàng thành công', 'success');
       },
     });
   };

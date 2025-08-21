@@ -55,7 +55,7 @@ import { formatPrice } from '@/utils/format-price';
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import { IOrderReturnRequest } from '@/interfaces/IOrderReturnRequest';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import StatusUpdatePopover from './components/StatusUpdatePopover';
 import { getAvailableStatuses } from './utils/orderStatusUtils';
 import {
@@ -324,7 +324,7 @@ const usePagination = () => {
 // Main component
 const OrderReturnRequestList = () => {
   const navigate = useNavigate();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusAnchorEl, setStatusAnchorEl] = useState<null | HTMLElement>(
@@ -769,7 +769,7 @@ const OrderReturnRequestList = () => {
                                         },
                                         {
                                           onSuccess: () => {
-                                            showNotification(
+                                            showAlert(
                                               'Huỷ yêu cầu hoàn đơn hàng thành công',
                                               'success'
                                             );
@@ -778,7 +778,7 @@ const OrderReturnRequestList = () => {
                                             refetchOrderReturnRequests();
                                           },
                                           onError: () => {
-                                            showNotification(
+                                            showAlert(
                                               'Huỷ yêu cầu hoàn đơn hàng thất bại',
                                               'error'
                                             );
@@ -807,7 +807,7 @@ const OrderReturnRequestList = () => {
                                       },
                                       {
                                         onSuccess: () => {
-                                          showNotification(
+                                          showAlert(
                                             'Khôi phục trạng thái yêu cầu thành công',
                                             'success'
                                           );
@@ -816,7 +816,7 @@ const OrderReturnRequestList = () => {
                                           refetchOrderReturnRequests();
                                         },
                                         onError: () => {
-                                          showNotification(
+                                          showAlert(
                                             'Khôi phục trạng thái yêu cầu thất bại',
                                             'error'
                                           );
@@ -940,17 +940,14 @@ const OrderReturnRequestList = () => {
                 },
                 {
                   onSuccess: () => {
-                    showNotification(
-                      'Cập nhật trạng thái thành công',
-                      'success'
-                    );
+                    showAlert('Cập nhật trạng thái thành công', 'success');
                     setStatusAnchorEl(null);
                     setSelectedRequest(null);
                     setNewStatus('');
                     refetchOrderReturnRequests();
                   },
                   onError: () => {
-                    showNotification('Cập nhật trạng thái thất bại', 'error');
+                    showAlert('Cập nhật trạng thái thất bại', 'error');
                   },
                 }
               );
@@ -988,7 +985,7 @@ const OrderReturnRequestList = () => {
                     },
                     {
                       onSuccess: () => {
-                        showNotification(
+                        showAlert(
                           'Từ chối yêu cầu trả hàng thành công',
                           'success'
                         );
@@ -997,10 +994,7 @@ const OrderReturnRequestList = () => {
                         refetchOrderReturnRequests();
                       },
                       onError: () => {
-                        showNotification(
-                          'Từ chối yêu cầu trả hàng thất bại',
-                          'error'
-                        );
+                        showAlert('Từ chối yêu cầu trả hàng thất bại', 'error');
                       },
                     }
                   );
@@ -1025,7 +1019,7 @@ const OrderReturnRequestList = () => {
                     },
                     {
                       onSuccess: () => {
-                        showNotification(
+                        showAlert(
                           'Phê duyệt yêu cầu trả hàng thành công',
                           'success'
                         );
@@ -1034,7 +1028,7 @@ const OrderReturnRequestList = () => {
                         refetchOrderReturnRequests();
                       },
                       onError: () => {
-                        showNotification(
+                        showAlert(
                           'Phê duyệt yêu cầu trả hàng thất bại',
                           'error'
                         );

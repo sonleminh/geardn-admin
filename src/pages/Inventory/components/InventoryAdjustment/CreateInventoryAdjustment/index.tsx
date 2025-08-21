@@ -48,7 +48,7 @@ import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { QueryKeys } from '@/constants/query-key';
 import { ROUTES } from '@/constants/route';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 
 import { IProductSku } from '@/interfaces/IProductSku';
 
@@ -80,7 +80,7 @@ const schema = Yup.object().shape({
 const CreateInventoryAdjustmentPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const [productId, setProductId] = useState<number>();
   const [skuId, setSkuId] = useState<string>('');
@@ -131,7 +131,7 @@ const CreateInventoryAdjustmentPage = () => {
           queryClient.invalidateQueries({
             queryKey: [QueryKeys.AdjustmentLog],
           });
-          showNotification('Tạo điều chỉnh thành công', 'success');
+          showAlert('Tạo điều chỉnh thành công', 'success');
           navigate(`${ROUTES.INVENTORY}/adjustment`);
         },
       });
@@ -191,7 +191,7 @@ const CreateInventoryAdjustmentPage = () => {
       return item?.sku?.id === +skuId;
     });
     if (isAlreadySelected && !isEditItem) {
-      showNotification('Sku đã tồn tại', 'error');
+      showAlert('Sku đã tồn tại', 'error');
       return;
     }
 
@@ -240,7 +240,7 @@ const CreateInventoryAdjustmentPage = () => {
     isEditItem,
     quantityChange,
     selectedWarehouseId,
-    showNotification,
+    showAlert,
     skuId,
     skusOptions,
   ]);

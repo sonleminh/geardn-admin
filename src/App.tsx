@@ -2,7 +2,7 @@ import { useRoutes } from 'react-router-dom';
 import routes from './routers';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { AuthContextProvider } from './contexts/AuthContext';
-import { NotificationContextProvider } from './contexts/NotificationContext';
+import { AlertContextProvider } from './contexts/AlertContext';
 import { theme } from './themes/theme';
 
 import 'react-date-range/dist/styles.css'; // main style file
@@ -14,10 +14,10 @@ function App() {
   return (
     <ThemeProvider theme={theme()}>
       <AuthContextProvider>
-        <NotificationContextProvider>
+        <AlertContextProvider>
           <CssBaseline />
           {content}
-        </NotificationContextProvider>
+        </AlertContextProvider>
       </AuthContextProvider>
     </ThemeProvider>
   );

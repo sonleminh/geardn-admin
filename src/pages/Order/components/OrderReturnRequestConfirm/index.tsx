@@ -24,7 +24,7 @@ import {
 import SuspenseLoader from '@/components/SuspenseLoader';
 import { QueryKeys } from '@/constants/query-key';
 import { ROUTES } from '@/constants/route';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import { IOrderItem } from '@/interfaces/IOrder';
 import {
   useCompleteReturnRequest,
@@ -49,7 +49,7 @@ const OrderReturnRequestConfirm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const { data: orderReturnRequestData } = useGetOrderReturnRequestById(
     id as string
@@ -92,7 +92,7 @@ const OrderReturnRequestConfirm = () => {
     );
 
     if (!hasAllWarehousesSelected) {
-      showNotification('Vui lòng chọn kho cho tất cả sản phẩm', 'error');
+      showAlert('Vui lòng chọn kho cho tất cả sản phẩm', 'error');
       return;
     }
 
@@ -103,7 +103,7 @@ const OrderReturnRequestConfirm = () => {
       },
       {
         onSuccess: () => {
-          showNotification(
+          showAlert(
             'Xác nhận hoàn thành yêu cầu hoàn đơn thành công',
             'success'
           );
@@ -113,7 +113,7 @@ const OrderReturnRequestConfirm = () => {
           });
         },
         onError: () => {
-          showNotification(
+          showAlert(
             'Có lỗi xảy ra khi xác nhận hoàn thành yêu cầu hoàn đơn',
             'error'
           );

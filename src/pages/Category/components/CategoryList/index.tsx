@@ -26,7 +26,7 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import RestoreIcon from '@mui/icons-material/Restore';
 import CircleIcon from '@mui/icons-material/Circle';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 
 import { QueryKeys } from '@/constants/query-key';
 
@@ -62,7 +62,7 @@ const columns: TableColumn[] = [
 const CategoryList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { data, isLoading } = useGetCategoryList();
@@ -80,7 +80,7 @@ const CategoryList = () => {
     deleteCategoryMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
-        showNotification('Xóa danh mục thành công', 'success');
+        showAlert('Xóa danh mục thành công', 'success');
       },
     });
   };
@@ -89,7 +89,7 @@ const CategoryList = () => {
     restoreCategoryMutate(id, {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
-        showNotification('Khôi phục sản phẩm thành công', 'success');
+        showAlert('Khôi phục sản phẩm thành công', 'success');
       },
     });
   };
@@ -98,7 +98,7 @@ const CategoryList = () => {
     deleteCategoryPermanentMutate(id, {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Category] });
-        showNotification('Xoá vĩnh viễn sản phẩm thành công', 'success');
+        showAlert('Xoá vĩnh viễn sản phẩm thành công', 'success');
       },
     });
   };

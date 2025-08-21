@@ -43,7 +43,7 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import RestoreIcon from '@mui/icons-material/Restore';
 import SearchIcon from '@mui/icons-material/Search';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
 
 import { ICategory } from '@/interfaces/ICategory';
@@ -299,7 +299,7 @@ export default function ProductDeleted() {
   const navigate = useNavigate();
   const { confirmModal, showConfirmModal } = useConfirmModal();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -342,7 +342,7 @@ export default function ProductDeleted() {
     deleteProductMutate(id, {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-        showNotification('Xóa sản phẩm thành công', 'success');
+        showAlert('Xóa sản phẩm thành công', 'success');
       },
     });
   };
@@ -351,7 +351,7 @@ export default function ProductDeleted() {
     restoreProductMutate(id, {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-        showNotification('Khôi phục sản phẩm thành công', 'success');
+        showAlert('Khôi phục sản phẩm thành công', 'success');
       },
     });
   };
@@ -360,7 +360,7 @@ export default function ProductDeleted() {
     deleteProductPermanentMutate(id, {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
-        showNotification('Xoá vĩnh viễn sản phẩm thành công', 'success');
+        showAlert('Xoá vĩnh viễn sản phẩm thành công', 'success');
       },
     });
   };

@@ -26,7 +26,7 @@ import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import RestoreIcon from '@mui/icons-material/Restore';
 import CircleIcon from '@mui/icons-material/Circle';
 
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 
 import { QueryKeys } from '@/constants/query-key';
 
@@ -62,7 +62,7 @@ const columns: TableColumn[] = [
 const AttributeValueList = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { data, isLoading } = useGetAttributeValueList();
@@ -80,7 +80,7 @@ const AttributeValueList = () => {
     deleteAttributeValueMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.AttributeValue] });
-        showNotification('Xóa giá trị thuộc tính thành công', 'success');
+        showAlert('Xóa giá trị thuộc tính thành công', 'success');
       },
     });
   };
@@ -89,7 +89,7 @@ const AttributeValueList = () => {
     restoreAttributeValueMutate(id, {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.AttributeValue] });
-        showNotification('Khôi phục giá trị thuộc tính thành công', 'success');
+        showAlert('Khôi phục giá trị thuộc tính thành công', 'success');
       },
     });
   };
@@ -98,10 +98,7 @@ const AttributeValueList = () => {
     deleteAttributeValuePermanentMutate(id, {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.AttributeValue] });
-        showNotification(
-          'Xoá vĩnh viễn giá trị thuộc tính thành công',
-          'success'
-        );
+        showAlert('Xoá vĩnh viễn giá trị thuộc tính thành công', 'success');
       },
     });
   };

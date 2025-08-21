@@ -5,7 +5,7 @@ import Input from '@/components/Input';
 import SuspenseLoader from '@/components/SuspenseLoader';
 
 import { QueryKeys } from '@/constants/query-key';
-import { useNotificationContext } from '@/contexts/NotificationContext';
+import { useAlertContext } from '@/contexts/AlertContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -71,7 +71,7 @@ const schema = Yup.object().shape({
 const CreateInventoryExportPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { showNotification } = useNotificationContext();
+  const { showAlert } = useAlertContext();
 
   const [productId, setProductId] = useState<number>();
   const [skuId, setSkuId] = useState<string>('');
@@ -112,7 +112,7 @@ const CreateInventoryExportPage = () => {
       createExportLogMutate(payload, {
         onSuccess() {
           queryClient.invalidateQueries({ queryKey: [QueryKeys.ExportLog] });
-          showNotification('Tạo xuất hàng thành công', 'success');
+          showAlert('Tạo xuất hàng thành công', 'success');
           navigate(`${ROUTES.INVENTORY}/export`);
         },
       });
@@ -135,14 +135,14 @@ const CreateInventoryExportPage = () => {
 
   const handleSaveItem = () => {
     if (!formik?.values?.warehouseId) {
-      return showNotification('Vui lòng chọn kho hàng', 'error');
+      return showAlert('Vui lòng chọn kho hàng', 'error');
     }
 
     const isAlreadySelected = exportItems.some((item) => {
       return item?.sku?.id === +skuId;
     });
     if (isAlreadySelected && !isEditItem) {
-      return showNotification('Sku đã tồn tại', 'error');
+      return showAlert('Sku đã tồn tại', 'error');
     }
 
     const sku = skusData?.data?.find((sku) => sku?.id === +skuId);
