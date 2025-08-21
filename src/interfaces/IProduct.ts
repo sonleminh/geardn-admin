@@ -1,6 +1,4 @@
-import { IModel } from "./IModel";
 import { IProductSku } from "./IProductSku";
-import { IVariant } from "./IVariant";
 
 export interface ICategory {
     id: number;

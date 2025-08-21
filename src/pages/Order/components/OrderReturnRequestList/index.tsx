@@ -22,7 +22,6 @@ import {
   TablePagination,
   TableRow,
   TextField,
-  Tooltip,
   Typography,
   Dialog,
   DialogTitle,
@@ -67,7 +66,6 @@ import { useGetProductList } from '@/services/product';
 import TableFilter from '@/components/TableFilter';
 import { IProduct } from '@/interfaces/IProduct';
 import { IEnum } from '@/interfaces/IEnum';
-import useConfirmModal from '@/hooks/useModalConfirm';
 
 interface Data {
   stt: number;
@@ -303,7 +301,7 @@ const usePagination = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const handleChangePage = useCallback((event: unknown, newPage: number) => {
+  const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
   }, []);
 
@@ -398,17 +396,6 @@ const OrderReturnRequestList = () => {
         ]) ?? []
       ),
     [orderReturnTypeEnumData?.data]
-  );
-
-  const statusMap = useMemo(
-    () =>
-      Object.fromEntries(
-        orderReturnStatusEnumData?.data?.map((item) => [
-          item.value,
-          item.label,
-        ]) ?? []
-      ),
-    [orderReturnStatusEnumData?.data]
   );
 
   const reasonMap = useMemo(

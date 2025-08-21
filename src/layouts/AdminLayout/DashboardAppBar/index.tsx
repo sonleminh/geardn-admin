@@ -2,10 +2,18 @@ import * as React from 'react';
 
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import { Button, IconButton, Menu, MenuItem, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  Typography,
+} from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { styled } from '@mui/material/styles';
 import Toolbar from '@mui/material/Toolbar';
+import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useLogoutMutate } from '@/services/auth';
@@ -47,15 +55,28 @@ const DashboardAppBar = ({
   const logoutMutation = useLogoutMutate();
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorElNotification, setAnchorElNotification] =
+    React.useState<null | HTMLElement>(null);
 
   const openMenu = Boolean(anchorEl);
+  const openMenuNotification = Boolean(anchorElNotification);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
+  const handleClickNotification = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    setAnchorElNotification(event.currentTarget);
+  };
+
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleCloseNotification = () => {
+    setAnchorElNotification(null);
   };
 
   const handleLogout = () => {
@@ -82,26 +103,39 @@ const DashboardAppBar = ({
           ]}>
           <MenuIcon />
         </IconButton>
-        <Button
-          endIcon={<AccountCircleOutlinedIcon sx={{ color: '#fff' }} />}
-          sx={{ position: 'absolute', right: 0, mr: 4 }}
-          onClick={handleClick}>
-          <Typography sx={{ fontWeight: 500, textTransform: 'none' }}>
-            {user?.name}
-          </Typography>
-        </Button>
-        <Menu
-          id='basic-menu'
-          anchorEl={anchorEl}
-          open={openMenu}
-          onClose={handleClose}
-          MenuListProps={{
-            'aria-labelledby': 'basic-button',
-          }}
-          disableScrollLock={true}>
-          <MenuItem>{user?.name}</MenuItem>
-          <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
-        </Menu>
+        <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
+          <IconButton onClick={handleClickNotification}>
+            <NotificationsNoneOutlinedIcon sx={{ color: '#fff' }} />
+          </IconButton>
+          <Menu
+            id='basic-menu'
+            anchorEl={anchorElNotification}
+            open={openMenuNotification}
+            onClose={handleCloseNotification}
+            MenuListProps={{
+              'aria-labelledby': 'basic-button',
+            }}
+            disableScrollLock={true}>
+            <MenuItem>Thông báo 1</MenuItem>
+            <MenuItem>Thông báo 2</MenuItem>
+            <MenuItem>Thông báo 3</MenuItem>
+          </Menu>
+          <IconButton onClick={handleClick}>
+            <AccountCircleOutlinedIcon sx={{ color: '#fff' }} />
+          </IconButton>
+          <Menu
+            id='basic-menu'
+            anchorEl={anchorEl}
+            open={openMenu}
+            onClose={handleClose}
+            MenuListProps={{
+              'aria-labelledby': 'basic-button',
+            }}
+            disableScrollLock={true}>
+            <MenuItem>{user?.name}c</MenuItem>
+            <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
+          </Menu>
+        </Box>
       </Toolbar>
     </AppBarStyled>
   );

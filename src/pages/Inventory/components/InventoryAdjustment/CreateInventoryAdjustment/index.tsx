@@ -421,7 +421,7 @@ const CreateInventoryAdjustmentPage = () => {
                         renderInput={(params) => (
                           <TextField {...params} label='Sản phẩm' />
                         )}
-                        onChange={(e, value) => setProductId(value?.id)}
+                        onChange={(_, value) => setProductId(value?.id)}
                         value={
                           productsOptions.find(
                             (item) => item.id === productId

@@ -1,7 +1,7 @@
 import { Box, styled } from "@mui/material";
 
 export const DrawerMenuWrapper = styled(Box)(
-    ({ theme }) => `
+    () => `
     .MuiList-root > {
         .MuiListItem-root {
             padding: 0;

@@ -11,7 +11,6 @@ import {
   InputAdornment,
   Link,
   Popover,
-  SelectChangeEvent,
   Table,
   TableBody,
   TableCell,

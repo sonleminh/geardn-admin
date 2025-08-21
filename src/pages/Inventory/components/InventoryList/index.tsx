@@ -30,14 +30,9 @@ import {
   Typography,
 } from '@mui/material';
 import { FiPackage } from 'react-icons/fi';
-import { LuPackageMinus, LuPackagePlus, LuPackageX } from 'react-icons/lu';
-import { TbHomeEdit } from 'react-icons/tb';
+import { LuPackageX } from 'react-icons/lu';
 
 import { ROUTES } from '@/constants/route';
-
-import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-
-import useConfirmModal from '@/hooks/useModalConfirm';
 
 import { useGetStocks } from '@/services/stock';
 
@@ -222,7 +217,7 @@ const usePagination = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const handleChangePage = useCallback((event: unknown, newPage: number) => {
+  const handleChangePage = useCallback((_: unknown, newPage: number) => {
     setPage(newPage);
   }, []);
 
@@ -244,7 +239,6 @@ const usePagination = () => {
 
 const InventoryList = () => {
   const navigate = useNavigate();
-  const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { page, rowsPerPage, handleChangePage, handleChangeRowsPerPage } =
     usePagination();
@@ -451,7 +445,6 @@ const InventoryList = () => {
           }
         />
       </Card>
-      {confirmModal()}
     </>
   );
 };

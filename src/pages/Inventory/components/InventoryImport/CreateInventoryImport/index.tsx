@@ -370,7 +370,7 @@ const CreateInventoryImportPage = () => {
                         renderInput={(params) => (
                           <TextField {...params} label='Sản phẩm' />
                         )}
-                        onChange={(e, value) => setProductId(value?.id)}
+                        onChange={(_, value) => setProductId(value?.id)}
                         value={
                           productsData?.data.find(
                             (item) => item.id === productId

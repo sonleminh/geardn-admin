@@ -1,9 +1,6 @@
-import { Box, Button, Link, Typography } from '@mui/material';
-import React from 'react';
-import StarRateIcon from '@mui/icons-material/StarRate';
-import { IProduct } from '@/interfaces/IProduct';
-import { formatPrice } from '@/utils/format-price';
 import { truncateTextByLine } from '@/utils/css-helper.util';
+import { formatPrice } from '@/utils/format-price';
+import { Box, Typography } from '@mui/material';
 
 const ProductCard = ({
   data,

@@ -1,5 +1,4 @@
 import { FormikProps } from 'formik';
-import { Moment } from 'moment';
 
 import {
   FormControl,
@@ -41,7 +40,6 @@ interface FormValues {
     isOnlineOrder: boolean;
   };
   note: string;
-  confirmedAt: Date | null;
   completedAt: Date | null;
 }
 

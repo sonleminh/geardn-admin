@@ -7,7 +7,6 @@ import {
   Typography,
 } from '@mui/material';
 import { ReactNode } from 'react';
-import { truncateTextByLine } from '@/utils/css-helper.util';
 
 interface LoadingSelectProps extends Omit<SelectProps, 'children'> {
   loading?: boolean;
