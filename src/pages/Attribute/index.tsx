@@ -3,6 +3,7 @@ import { useRoutes } from 'react-router-dom';
 import AttributeLayout from './components/AttributeLayout';
 import AttributeUpsert from './components/AttributeUpsert';
 import AttributeList from './components/AttributeList';
+import Notification from './components/Notification';
 
 const Attribute = () => {
   const router = useRoutes([
@@ -22,6 +23,10 @@ const Attribute = () => {
         {
           path: '/create',
           element: <AttributeUpsert />,
+        },
+        {
+          path: '/notification',
+          element: <Notification />,
         },
       ],
     },

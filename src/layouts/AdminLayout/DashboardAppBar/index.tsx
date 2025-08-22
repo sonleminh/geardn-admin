@@ -3,8 +3,8 @@ import * as React from 'react';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import {
+  Badge,
   Box,
-  Button,
   IconButton,
   Menu,
   MenuItem,
@@ -17,6 +17,7 @@ import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNone
 
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useLogoutMutate } from '@/services/auth';
+import { useNotifyStore } from '@/contexts/NotificationContext';
 
 interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -53,29 +54,33 @@ const DashboardAppBar = ({
 }) => {
   const { user } = useAuthContext();
   const logoutMutation = useLogoutMutate();
+  const items = useNotifyStore((s) => s.items);
+  const unread = useNotifyStore((s) => s.unread);
+  console.log('items:', items);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [anchorElAlert, setAnchorElAlert] = React.useState<null | HTMLElement>(
-    null
-  );
+  const [anchorElNotification, setAnchorElNotification] =
+    React.useState<null | HTMLElement>(null);
 
   const openMenu = Boolean(anchorEl);
-  const openMenuAlert = Boolean(anchorElAlert);
+  const openMenuNotification = Boolean(anchorElNotification);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClickAlert = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorElAlert(event.currentTarget);
+  const handleClickNotification = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    setAnchorElNotification(event.currentTarget);
   };
 
   const handleClose = () => {
     setAnchorEl(null);
   };
 
-  const handleCloseAlert = () => {
-    setAnchorElAlert(null);
+  const handleCloseNotification = () => {
+    setAnchorElNotification(null);
   };
 
   const handleLogout = () => {
@@ -103,14 +108,41 @@ const DashboardAppBar = ({
           <MenuIcon />
         </IconButton>
         <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
-          <IconButton onClick={handleClickAlert}>
-            <NotificationsNoneOutlinedIcon sx={{ color: '#fff' }} />
-          </IconButton>
+          {/* <IconButton onClick={handleClickNotification}>
+              <NotificationsNoneOutlinedIcon sx={{ color: '#fff' }} />
+              <Badge badgeContent={4} color='error' />
+            </IconButton> */}
+          <Badge
+            badgeContent={
+              <Typography sx={{ color: '#fff', fontSize: 12 }}>
+                {unread}
+              </Typography>
+            }
+            color='primary'
+            sx={{
+              mr: 2,
+              '& .MuiBadge-badge': {
+                top: 4,
+                right: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: 20,
+                height: 20,
+                backgroundColor: 'red',
+                // border: '2px solid #000',
+                // borderRadius: '50%',
+              },
+            }}>
+            <NotificationsNoneOutlinedIcon
+              sx={{ color: '#fff', fontSize: 24 }}
+            />
+          </Badge>
           <Menu
             id='basic-menu'
-            anchorEl={anchorElAlert}
-            open={openMenuAlert}
-            onClose={handleCloseAlert}
+            anchorEl={anchorElNotification}
+            open={openMenuNotification}
+            onClose={handleCloseNotification}
             MenuListProps={{
               'aria-labelledby': 'basic-button',
             }}
@@ -120,7 +152,7 @@ const DashboardAppBar = ({
             <MenuItem>Thông báo 3</MenuItem>
           </Menu>
           <IconButton onClick={handleClick}>
-            <AccountCircleOutlinedIcon sx={{ color: '#fff' }} />
+            <AccountCircleOutlinedIcon sx={{ color: '#fff', fontSize: 28 }} />
           </IconButton>
           <Menu
             id='basic-menu'
