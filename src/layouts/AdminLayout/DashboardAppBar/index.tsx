@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useEffect } from 'react';
 
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
@@ -9,15 +10,29 @@ import {
   Menu,
   MenuItem,
   Typography,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+  Button,
+  CircularProgress,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { styled } from '@mui/material/styles';
 import Toolbar from '@mui/material/Toolbar';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
 
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useLogoutMutate } from '@/services/auth';
 import { useNotifyStore } from '@/contexts/NotificationContext';
+import {
+  useGetNotificationList,
+  useGetUnreadCount,
+  useMarkNotificationRead,
+  useMarkAllNotificationsRead,
+} from '@/services/notification';
 
 interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -54,9 +69,18 @@ const DashboardAppBar = ({
 }) => {
   const { user } = useAuthContext();
   const logoutMutation = useLogoutMutate();
-  const items = useNotifyStore((s) => s.items);
-  const unread = useNotifyStore((s) => s.unread);
-  console.log('items:', items);
+
+  // Zustand store
+  const { items, addMany, markRead, markAllRead } = useNotifyStore();
+
+  // API hooks
+  const { data: notifications, isLoading } = useGetNotificationList();
+  const { data: unreadCountData } = useGetUnreadCount();
+  const markReadMutation = useMarkNotificationRead();
+  const markAllReadMutation = useMarkAllNotificationsRead();
+
+  // Get unread count from API instead of Zustand store
+  const unreadCount = unreadCountData?.data?.count || 0;
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [anchorElNotification, setAnchorElNotification] =
@@ -64,6 +88,13 @@ const DashboardAppBar = ({
 
   const openMenu = Boolean(anchorEl);
   const openMenuNotification = Boolean(anchorElNotification);
+
+  // Sync API data with Zustand store (for notification list display)
+  useEffect(() => {
+    if (notifications) {
+      addMany(notifications?.data?.items || []);
+    }
+  }, [notifications, addMany]);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -87,6 +118,16 @@ const DashboardAppBar = ({
     logoutMutation.mutate();
   };
 
+  const handleMarkRead = (id: string) => {
+    markRead(id); // Update local state immediately
+    markReadMutation.mutate(id); // Sync with API
+  };
+
+  const handleMarkAllRead = () => {
+    markAllRead(); // Update local state immediately
+    markAllReadMutation.mutate(); // Sync with API
+  };
+
   return (
     <AppBarStyled position='fixed' open={open}>
       <Toolbar
@@ -108,49 +149,145 @@ const DashboardAppBar = ({
           <MenuIcon />
         </IconButton>
         <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
-          {/* <IconButton onClick={handleClickNotification}>
-              <NotificationsNoneOutlinedIcon sx={{ color: '#fff' }} />
-              <Badge badgeContent={4} color='error' />
-            </IconButton> */}
           <Badge
             badgeContent={
-              <Typography sx={{ color: '#fff', fontSize: 12 }}>
-                {unread}
+              <Typography sx={{ color: '#fff', fontSize: 13 }}>
+                {unreadCount}
               </Typography>
             }
             color='primary'
+            onClick={handleClickNotification}
+            invisible={unreadCount === 0}
             sx={{
               mr: 2,
               '& .MuiBadge-badge': {
                 top: 4,
-                right: 0,
+                right: 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minWidth: 20,
-                height: 20,
+                minWidth: 19,
+                height: 19,
                 backgroundColor: 'red',
-                // border: '2px solid #000',
-                // borderRadius: '50%',
+                cursor: 'pointer',
               },
             }}>
             <NotificationsNoneOutlinedIcon
-              sx={{ color: '#fff', fontSize: 24 }}
+              sx={{ color: '#fff', fontSize: 28, cursor: 'pointer' }}
             />
           </Badge>
+
           <Menu
-            id='basic-menu'
+            id='notification-menu'
             anchorEl={anchorElNotification}
             open={openMenuNotification}
             onClose={handleCloseNotification}
             MenuListProps={{
-              'aria-labelledby': 'basic-button',
+              'aria-labelledby': 'notification-button',
             }}
-            disableScrollLock={true}>
-            <MenuItem>Thông báo 1</MenuItem>
-            <MenuItem>Thông báo 2</MenuItem>
-            <MenuItem>Thông báo 3</MenuItem>
+            disableScrollLock={true}
+            PaperProps={{
+              sx: { width: 400, maxHeight: 500 },
+            }}>
+            <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}>
+                <Typography variant='h6'>Thông báo</Typography>
+                {unreadCount > 0 && (
+                  <Button
+                    size='small'
+                    onClick={handleMarkAllRead}
+                    disabled={markAllReadMutation.isPending}>
+                    {markAllReadMutation.isPending ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      'Đánh dấu đã đọc'
+                    )}
+                  </Button>
+                )}
+              </Box>
+            </Box>
+
+            {isLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                <CircularProgress />
+              </Box>
+            ) : items.length === 0 ? (
+              <MenuItem disabled>
+                <Typography color='text.secondary'>
+                  Không có thông báo
+                </Typography>
+              </MenuItem>
+            ) : (
+              items.map((notification) => (
+                <MenuItem
+                  key={notification.id}
+                  onClick={() => handleMarkRead(notification.id)}
+                  sx={{
+                    display: 'block',
+                    py: 1.5,
+                    px: 2,
+                    borderBottom: 1,
+                    borderColor: 'divider',
+                    backgroundColor: notification.read
+                      ? 'transparent'
+                      : 'action.hover',
+                    '&:hover': {
+                      backgroundColor: 'action.selected',
+                    },
+                  }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                    <ListItemIcon sx={{ minWidth: 32, mt: 0.5 }}>
+                      {notification.read ? (
+                        <CheckCircleOutlineIcon
+                          color='action'
+                          fontSize='small'
+                        />
+                      ) : (
+                        <Box
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            bgcolor: 'primary.main',
+                          }}
+                        />
+                      )}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            fontWeight: notification.read ? 400 : 600,
+                            color: notification.read
+                              ? 'text.secondary'
+                              : 'text.primary',
+                          }}>
+                          {notification.title}
+                        </Typography>
+                      }
+                      secondary={
+                        <Typography variant='caption' color='text.secondary'>
+                          {format(
+                            new Date(notification.createdAt),
+                            'dd/MM/yyyy HH:mm',
+                            { locale: vi }
+                          )}
+                        </Typography>
+                      }
+                    />
+                  </Box>
+                </MenuItem>
+              ))
+            )}
           </Menu>
+
           <IconButton onClick={handleClick}>
             <AccountCircleOutlinedIcon sx={{ color: '#fff', fontSize: 28 }} />
           </IconButton>
@@ -163,7 +300,7 @@ const DashboardAppBar = ({
               'aria-labelledby': 'basic-button',
             }}
             disableScrollLock={true}>
-            <MenuItem>{user?.name}c</MenuItem>
+            <MenuItem>{user?.name}</MenuItem>
             <MenuItem onClick={handleLogout}>Đăng xuất</MenuItem>
           </Menu>
         </Box>

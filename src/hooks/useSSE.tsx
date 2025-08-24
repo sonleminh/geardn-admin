@@ -20,6 +20,8 @@ export function useAdminSSE(url = 'http://localhost:8080/api/realtime/stream') {
     const onAny = (e: MessageEvent) => {
       try {
         const n = JSON.parse(e.data) as Notification;
+        console.log('[SSE] raw:', e.data);
+        console.log('[SSE] parsed:', n);
         add(n);
       } catch {}
     };

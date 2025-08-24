@@ -8,6 +8,7 @@ export const QueryKeys = {
     ImportLog: 'IMPORT_LOG',
     Inventory: 'INVENTORY',
     Model: 'MODEL',
+    Notification: 'NOTIFICATION',
     Order: 'ORDER',
     OrderReturnRequest: 'ORDER_RETURN_REQUEST',
     Payment: 'PAYMENT',
