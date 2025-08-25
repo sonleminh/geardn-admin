@@ -9,6 +9,7 @@ const notificationUrl = '/admin/notifications';
 interface IGetNotificationListResponse {
   items: Notification[];
   nextCursor: string;
+  cutoff: Date;
 }
 
 export const useGetNotificationList = () => {
@@ -45,8 +46,10 @@ export const useMarkNotificationRead = () => {
 
 export const useMarkAllNotificationsRead = () => {
   return useMutation({
-    mutationFn: async () => {
-      const response = await axiosInstance.patch(`${notificationUrl}/read-all`);
+    mutationFn: async (cutoff: Date) => {
+      const response = await axiosInstance.patch(`${notificationUrl}/mark-all-read`, {
+        before: cutoff,
+      });
       return response.data;
     },
   });

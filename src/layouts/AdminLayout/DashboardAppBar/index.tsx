@@ -11,28 +11,25 @@ import {
   MenuItem,
   Typography,
   ListItemText,
-  ListItemIcon,
-  Divider,
-  Button,
   CircularProgress,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { styled } from '@mui/material/styles';
 import Toolbar from '@mui/material/Toolbar';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+// import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useLogoutMutate } from '@/services/auth';
-import { useNotifyStore } from '@/contexts/NotificationContext';
+// import { useNotifyStore } from '@/contexts/NotificationContext';
 import {
   useGetNotificationList,
   useGetUnreadCount,
-  useMarkNotificationRead,
   useMarkAllNotificationsRead,
 } from '@/services/notification';
+import { useNotifyStore } from '@/contexts/NotificationContext';
 
 interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -75,9 +72,11 @@ const DashboardAppBar = ({
 
   // API hooks
   const { data: notifications, isLoading } = useGetNotificationList();
-  const { data: unreadCountData } = useGetUnreadCount();
-  const markReadMutation = useMarkNotificationRead();
-  const markAllReadMutation = useMarkAllNotificationsRead();
+  const { data: unreadCountData, refetch: refetchUnreadCount } =
+    useGetUnreadCount();
+  const { mutate: markAllReadMutate } = useMarkAllNotificationsRead();
+  // const markReadMutation = useMarkNotificationRead();
+  // const markAllReadMutation = useMarkAllNotificationsRead();
 
   // Get unread count from API instead of Zustand store
   const unreadCount = unreadCountData?.data?.count || 0;
@@ -104,6 +103,13 @@ const DashboardAppBar = ({
     event: React.MouseEvent<HTMLButtonElement>
   ) => {
     setAnchorElNotification(event.currentTarget);
+    if (notifications?.data?.cutoff) {
+      markAllReadMutate(notifications?.data?.cutoff, {
+        onSuccess: () => {
+          refetchUnreadCount();
+        },
+      });
+    }
   };
 
   const handleClose = () => {
@@ -118,15 +124,15 @@ const DashboardAppBar = ({
     logoutMutation.mutate();
   };
 
-  const handleMarkRead = (id: string) => {
-    markRead(id); // Update local state immediately
-    markReadMutation.mutate(id); // Sync with API
-  };
+  // const handleMarkRead = (id: string) => {
+  //   markRead(id); // Update local state immediately
+  //   markReadMutation.mutate(id); // Sync with API
+  // };
 
-  const handleMarkAllRead = () => {
-    markAllRead(); // Update local state immediately
-    markAllReadMutation.mutate(); // Sync with API
-  };
+  // const handleMarkAllRead = () => {
+  //   markAllRead(); // Update local state immediately
+  //   markAllReadMutation.mutate(); // Sync with API
+  // };
 
   return (
     <AppBarStyled position='fixed' open={open}>
@@ -197,7 +203,7 @@ const DashboardAppBar = ({
                   alignItems: 'center',
                 }}>
                 <Typography variant='h6'>Thông báo</Typography>
-                {unreadCount > 0 && (
+                {/* {unreadCount > 0 && (
                   <Button
                     size='small'
                     onClick={handleMarkAllRead}
@@ -208,7 +214,7 @@ const DashboardAppBar = ({
                       'Đánh dấu đã đọc'
                     )}
                   </Button>
-                )}
+                )} */}
               </Box>
             </Box>
 
@@ -216,49 +222,25 @@ const DashboardAppBar = ({
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
                 <CircularProgress />
               </Box>
-            ) : items.length === 0 ? (
+            ) : items?.length === 0 ? (
               <MenuItem disabled>
                 <Typography color='text.secondary'>
                   Không có thông báo
                 </Typography>
               </MenuItem>
             ) : (
-              items.map((notification) => (
+              items?.map((notification) => (
                 <MenuItem
-                  key={notification.id}
-                  onClick={() => handleMarkRead(notification.id)}
+                  key={notification?.id}
                   sx={{
                     display: 'block',
                     py: 1.5,
                     px: 2,
                     borderBottom: 1,
                     borderColor: 'divider',
-                    backgroundColor: notification.read
-                      ? 'transparent'
-                      : 'action.hover',
-                    '&:hover': {
-                      backgroundColor: 'action.selected',
-                    },
                   }}>
                   <Box
                     sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                    <ListItemIcon sx={{ minWidth: 32, mt: 0.5 }}>
-                      {notification.read ? (
-                        <CheckCircleOutlineIcon
-                          color='action'
-                          fontSize='small'
-                        />
-                      ) : (
-                        <Box
-                          sx={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            bgcolor: 'primary.main',
-                          }}
-                        />
-                      )}
-                    </ListItemIcon>
                     <ListItemText
                       primary={
                         <Typography
