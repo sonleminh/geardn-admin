@@ -28,7 +28,7 @@ export const useGetUnreadCount = () => {
     queryKey: [QueryKeys.Notification, 'unread-count'],
     queryFn: async () => {
       const response = await axiosInstance.get(`${notificationUrl}/unread-count`);
-      return response.data as TBaseResponse<{ count: number }>;
+      return response.data as TBaseResponse<{ count: number, lastReadNotificationsAt: Date | null }>;
     },
     // Refresh every 30 seconds for real-time updates
     refetchInterval: 30000,

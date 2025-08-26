@@ -17,7 +17,12 @@ const PrivateRoute = () => {
   useEffect(() => {
     if (!isFetching) {
       if (data && !isError) {
-        auth?.login(data?.data);
+        auth?.login({
+          id: data?.data?.id,
+          email: data?.data?.email,
+          name: data?.data?.name,
+          lastReadNotificationsAt: auth?.user?.lastReadNotificationsAt ?? null,
+        });
       } else if (isError) {
         refetch();
         if (refreshToken?.accessToken) {

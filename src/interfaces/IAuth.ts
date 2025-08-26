@@ -8,6 +8,7 @@ export interface ILoginResponse {
     id: number;
     email: string;
     name: string;
+    lastReadNotificationsAt: Date;
   },
   success: boolean;
   message: string;

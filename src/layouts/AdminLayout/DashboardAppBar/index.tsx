@@ -68,7 +68,22 @@ const DashboardAppBar = ({
   const logoutMutation = useLogoutMutate();
 
   // Zustand store
-  const { items, addMany, markRead, markAllRead } = useNotifyStore();
+  const {
+    items,
+    addMany,
+    setCounters,
+    badgeBase,
+    badgeDelta,
+    lastReadAt,
+    resetDelta,
+    optimisticMarkAllRead,
+  } = useNotifyStore();
+
+  console.log('items', items);
+  // console.log('user', user);
+  console.log('badgeBase', badgeBase);
+  console.log('badgeDelta', badgeDelta);
+  console.log('badgeDelta', badgeDelta);
 
   // API hooks
   const { data: notifications, isLoading } = useGetNotificationList();
@@ -90,26 +105,44 @@ const DashboardAppBar = ({
 
   // Sync API data with Zustand store (for notification list display)
   useEffect(() => {
-    if (notifications) {
-      addMany(notifications?.data?.items || []);
+    if (notifications?.data?.items) {
+      addMany(notifications?.data?.items);
     }
-  }, [notifications, addMany]);
+  }, [notifications?.data?.items, addMany]);
+
+  useEffect(() => {
+    const unread = unreadCountData?.data?.count ?? 0;
+    const lastReadAt = unreadCountData?.data?.lastReadNotificationsAt ?? null;
+    setCounters({ unread, lastReadAt });
+  }, [unreadCountData, setCounters]);
+
+  const totalBadge = badgeBase + badgeDelta;
+  console.log('totalBadge', totalBadge);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClickNotification = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    setAnchorElNotification(event.currentTarget);
-    if (notifications?.data?.cutoff) {
-      markAllReadMutate(notifications?.data?.cutoff, {
-        onSuccess: () => {
-          refetchUnreadCount();
-        },
-      });
-    }
+  const handleClickNotification = (e) => {
+    setAnchorElNotification(e.currentTarget);
+    const before = notifications?.data?.cutoff; // hoặc lastItemCreatedAt
+    if (!before) return;
+
+    // backup để rollback khi lỗi
+    const backup = { unread: badgeBase, lastReadAt };
+
+    // optimistic ngay: badge = 0 tức thời
+    optimisticMarkAllRead(before);
+
+    markAllReadMutate(before, {
+      onSuccess: async () => {
+        await refetchUnreadCount(); // hoà giải: setCounters sẽ chạy lại ở useEffect
+      },
+      onError: () => {
+        // khôi phục nếu BE fail
+        setCounters(backup);
+      },
+    });
   };
 
   const handleClose = () => {
@@ -158,12 +191,12 @@ const DashboardAppBar = ({
           <Badge
             badgeContent={
               <Typography sx={{ color: '#fff', fontSize: 13 }}>
-                {unreadCount}
+                {totalBadge}
               </Typography>
             }
             color='primary'
             onClick={handleClickNotification}
-            invisible={unreadCount === 0}
+            invisible={totalBadge === 0}
             sx={{
               mr: 2,
               '& .MuiBadge-badge': {
