@@ -12,15 +12,13 @@ interface IGetNotificationListResponse {
   cutoff: Date;
 }
 
-export const useGetNotificationList = () => {
-  return useQuery({
-    queryKey: [QueryKeys.Notification],
-    queryFn: async () => {
-      const response = await axiosInstance.get(notificationUrl);
-      return response.data as TBaseResponse<IGetNotificationListResponse>;
+export const useOpenNotifications = () =>
+  useMutation({
+    mutationFn: async (payload: { limit?: number; cursor?: number }) => {
+      const { data } = await axiosInstance.post('/notifications/open', payload);
+      return data.data as { items: Notification[]; nextCursor: number | null; unread: number; lastReadAt: string };
     },
   });
-};
 
 // Add this new hook for unread count
 export const useGetUnreadCount = () => {

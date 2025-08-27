@@ -28,6 +28,7 @@ import {
   useGetNotificationList,
   useGetUnreadCount,
   useMarkAllNotificationsRead,
+  useOpenNotifications,
 } from '@/services/notification';
 import { useNotifyStore } from '@/contexts/NotificationContext';
 
@@ -68,28 +69,14 @@ const DashboardAppBar = ({
   const logoutMutation = useLogoutMutate();
 
   // Zustand store
-  const {
-    items,
-    addMany,
-    setCounters,
-    badgeBase,
-    badgeDelta,
-    lastReadAt,
-    resetDelta,
-    optimisticMarkAllRead,
-  } = useNotifyStore();
+  const { items, badge, addMany, setSnapshot } = useNotifyStore();
 
   console.log('items', items);
-  // console.log('user', user);
-  console.log('badgeBase', badgeBase);
-  console.log('badgeDelta', badgeDelta);
-  console.log('badgeDelta', badgeDelta);
 
   // API hooks
-  const { data: notifications, isLoading } = useGetNotificationList();
+  const { mutate: openNotifications, isPending } = useOpenNotifications();
   const { data: unreadCountData, refetch: refetchUnreadCount } =
     useGetUnreadCount();
-  const { mutate: markAllReadMutate } = useMarkAllNotificationsRead();
   // const markReadMutation = useMarkNotificationRead();
   // const markAllReadMutation = useMarkAllNotificationsRead();
 
@@ -103,46 +90,56 @@ const DashboardAppBar = ({
   const openMenu = Boolean(anchorEl);
   const openMenuNotification = Boolean(anchorElNotification);
 
+  const pendingBeforeRef = React.useRef<Date | null>(null);
+
   // Sync API data with Zustand store (for notification list display)
-  useEffect(() => {
-    if (notifications?.data?.items) {
-      addMany(notifications?.data?.items);
-    }
-  }, [notifications?.data?.items, addMany]);
+  // useEffect(() => {
+  //   if (notifications?.data?.items) {
+  //     addMany(notifications?.data?.items);
+  //   }
+  // }, [notifications?.data?.items, addMany]);
 
-  useEffect(() => {
-    const unread = unreadCountData?.data?.count ?? 0;
-    const lastReadAt = unreadCountData?.data?.lastReadNotificationsAt ?? null;
-    setCounters({ unread, lastReadAt });
-  }, [unreadCountData, setCounters]);
+  // useEffect(() => {
+  //   const unread = unreadCountData?.data?.count ?? 0;
+  //   const lastReadAtStr =
+  //     unreadCountData?.data?.lastReadNotificationsAt ?? null;
+  //   const serverLastReadAt = lastReadAtStr ? new Date(lastReadAtStr) : null;
 
-  const totalBadge = badgeBase + badgeDelta;
-  console.log('totalBadge', totalBadge);
+  //   const lock = pendingBeforeRef.current;
+
+  //   // Nếu đang reconcile và snapshot này cũ hơn mốc before => bỏ qua
+  //   if (
+  //     lock &&
+  //     (!serverLastReadAt || serverLastReadAt.getTime() < lock.getTime())
+  //   ) {
+  //     return;
+  //   }
+
+  //   // Chấp nhận snapshot (và reset badgeDelta=0 trong store)
+  //   setCounters({ unread, lastReadAt: serverLastReadAt });
+  // }, [unreadCountData, setCounters]);
+  // const totalBadge = badgeBase + badgeDelta;
+  // console.log('totalBadge', totalBadge);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClickNotification = (e) => {
+  const handleClickNotification = async (e) => {
     setAnchorElNotification(e.currentTarget);
-    const before = notifications?.data?.cutoff; // hoặc lastItemCreatedAt
-    if (!before) return;
 
-    // backup để rollback khi lỗi
-    const backup = { unread: badgeBase, lastReadAt };
-
-    // optimistic ngay: badge = 0 tức thời
-    optimisticMarkAllRead(before);
-
-    markAllReadMutate(before, {
-      onSuccess: async () => {
-        await refetchUnreadCount(); // hoà giải: setCounters sẽ chạy lại ở useEffect
-      },
-      onError: () => {
-        // khôi phục nếu BE fail
-        setCounters(backup);
-      },
-    });
+    openNotifications(
+      { limit: 20 },
+      {
+        onSuccess: (res) => {
+          setSnapshot({
+            items: res.items,
+            unread: res.unread, // badge = server
+            lastReadAt: res.lastReadAt ? new Date(res.lastReadAt) : null,
+          });
+        },
+      }
+    );
   };
 
   const handleClose = () => {
@@ -191,12 +188,12 @@ const DashboardAppBar = ({
           <Badge
             badgeContent={
               <Typography sx={{ color: '#fff', fontSize: 13 }}>
-                {totalBadge}
+                {badge}
               </Typography>
             }
             color='primary'
             onClick={handleClickNotification}
-            invisible={totalBadge === 0}
+            invisible={badge === 0}
             sx={{
               mr: 2,
               '& .MuiBadge-badge': {
@@ -251,7 +248,7 @@ const DashboardAppBar = ({
               </Box>
             </Box>
 
-            {isLoading ? (
+            {isPending ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
                 <CircularProgress />
               </Box>
