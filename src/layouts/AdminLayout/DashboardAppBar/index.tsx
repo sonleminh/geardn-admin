@@ -26,9 +26,8 @@ import { useLogoutMutate } from '@/services/auth';
 // import { useNotifyStore } from '@/contexts/NotificationContext';
 import {
   useGetNotificationList,
-  useGetUnreadCount,
-  useMarkAllNotificationsRead,
-  useOpenNotifications,
+  useGetStats,
+  useMarkNotificationSeen,
 } from '@/services/notification';
 import { useNotifyStore } from '@/contexts/NotificationContext';
 
@@ -69,25 +68,24 @@ const DashboardAppBar = ({
   const logoutMutation = useLogoutMutate();
 
   // Zustand store
-  const { items, badge, addMany, setSnapshot } = useNotifyStore();
+  const { items, badge, isOpen, setOpen, resetBadge } = useNotifyStore();
 
   console.log('items', items);
 
   // API hooks
-  const { mutate: openNotifications, isPending } = useOpenNotifications();
-  const { data: unreadCountData, refetch: refetchUnreadCount } =
-    useGetUnreadCount();
-  // const markReadMutation = useMarkNotificationRead();
-  // const markAllReadMutation = useMarkAllNotificationsRead();
+  const { data: unreadCountData, refetch: refetchUnreadCount } = useGetStats(); // const markReadMutation = useMarkNotificationRead();
+  const { mutate: markNotificationSeen } = useMarkNotificationSeen();
 
   // Get unread count from API instead of Zustand store
   const unreadCount = unreadCountData?.data?.count || 0;
 
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [userAnchorEl, setUserAnchorEl] = React.useState<null | HTMLElement>(
+    null
+  );
   const [anchorElNotification, setAnchorElNotification] =
     React.useState<null | HTMLElement>(null);
 
-  const openMenu = Boolean(anchorEl);
+  const openMenu = Boolean(userAnchorEl);
   const openMenuNotification = Boolean(anchorElNotification);
 
   const pendingBeforeRef = React.useRef<Date | null>(null);
@@ -121,29 +119,19 @@ const DashboardAppBar = ({
   // const totalBadge = badgeBase + badgeDelta;
   // console.log('totalBadge', totalBadge);
 
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
+  const handleUserClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setUserAnchorEl(event.currentTarget);
+    setOpen(true);
   };
 
   const handleClickNotification = async (e) => {
     setAnchorElNotification(e.currentTarget);
-
-    openNotifications(
-      { limit: 20 },
-      {
-        onSuccess: (res) => {
-          setSnapshot({
-            items: res.items,
-            unread: res.unread, // badge = server
-            lastReadAt: res.lastReadAt ? new Date(res.lastReadAt) : null,
-          });
-        },
-      }
-    );
+    markNotificationSeen();
+    resetBadge();
   };
 
   const handleClose = () => {
-    setAnchorEl(null);
+    setUserAnchorEl(null);
   };
 
   const handleCloseNotification = () => {
@@ -151,6 +139,7 @@ const DashboardAppBar = ({
   };
 
   const handleLogout = () => {
+    setIsUserMenuOpen(false);
     logoutMutation.mutate();
   };
 
@@ -193,7 +182,7 @@ const DashboardAppBar = ({
             }
             color='primary'
             onClick={handleClickNotification}
-            invisible={badge === 0}
+            invisible={isOpen || badge === 0}
             sx={{
               mr: 2,
               '& .MuiBadge-badge': {
@@ -247,12 +236,7 @@ const DashboardAppBar = ({
                 )} */}
               </Box>
             </Box>
-
-            {isPending ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-                <CircularProgress />
-              </Box>
-            ) : items?.length === 0 ? (
+            {items?.length === 0 ? (
               <MenuItem disabled>
                 <Typography color='text.secondary'>
                   Không có thông báo
@@ -276,18 +260,18 @@ const DashboardAppBar = ({
                         <Typography
                           variant='body2'
                           sx={{
-                            fontWeight: notification.read ? 400 : 600,
-                            color: notification.read
+                            fontWeight: notification?.read ? 400 : 600,
+                            color: notification?.read
                               ? 'text.secondary'
                               : 'text.primary',
                           }}>
-                          {notification.title}
+                          {notification?.title}
                         </Typography>
                       }
                       secondary={
                         <Typography variant='caption' color='text.secondary'>
                           {format(
-                            new Date(notification.createdAt),
+                            new Date(notification?.createdAt),
                             'dd/MM/yyyy HH:mm',
                             { locale: vi }
                           )}
@@ -300,12 +284,12 @@ const DashboardAppBar = ({
             )}
           </Menu>
 
-          <IconButton onClick={handleClick}>
+          <IconButton onClick={handleUserClick}>
             <AccountCircleOutlinedIcon sx={{ color: '#fff', fontSize: 28 }} />
           </IconButton>
           <Menu
             id='basic-menu'
-            anchorEl={anchorEl}
+            anchorEl={userAnchorEl}
             open={openMenu}
             onClose={handleClose}
             MenuListProps={{

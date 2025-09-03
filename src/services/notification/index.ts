@@ -21,22 +21,22 @@ export const useOpenNotifications = () =>
   });
 
 // Add this new hook for unread count
-export const useGetUnreadCount = () => {
+export const useGetStats = () => {
   return useQuery({
-    queryKey: [QueryKeys.Notification, 'unread-count'],
+    queryKey: [QueryKeys.Notification, 'stats'],
     queryFn: async () => {
-      const response = await axiosInstance.get(`${notificationUrl}/unread-count`);
-      return response.data as TBaseResponse<{ count: number, lastReadNotificationsAt: Date | null }>;
+      const response = await axiosInstance.get(`${notificationUrl}/stats`);
+      return response.data as TBaseResponse<{ count: number, unreadCount: Date | null }>;
     },
     // Refresh every 30 seconds for real-time updates
     refetchInterval: 30000,
   });
 };
 
-export const useMarkNotificationRead = () => {
+export const useMarkNotificationSeen = () => {
   return useMutation({
-    mutationFn: async (id: string) => {
-      const response = await axiosInstance.patch(`${notificationUrl}/${id}/read`);
+    mutationFn: async () => {
+      const response = await axiosInstance.patch(`${notificationUrl}/seen`);
       return response.data;
     },
   });
