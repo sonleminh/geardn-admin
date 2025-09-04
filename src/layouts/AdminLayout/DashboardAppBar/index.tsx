@@ -17,7 +17,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { styled } from '@mui/material/styles';
 import Toolbar from '@mui/material/Toolbar';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
-// import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import CircleIcon from '@mui/icons-material/Circle';
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
@@ -25,11 +26,12 @@ import { useAuthContext } from '@/contexts/AuthContext';
 import { useLogoutMutate } from '@/services/auth';
 // import { useNotifyStore } from '@/contexts/NotificationContext';
 import {
-  useGetNotificationList,
+  useGetNotifications,
   useGetStats,
   useMarkNotificationSeen,
 } from '@/services/notification';
 import { useNotifyStore } from '@/contexts/NotificationContext';
+import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 
 interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -68,12 +70,15 @@ const DashboardAppBar = ({
   const logoutMutation = useLogoutMutate();
 
   // Zustand store
-  const { items, badge, isOpen, setOpen, resetBadge } = useNotifyStore();
+  const { items, badge, isOpen, addMany, setOpen, resetBadge } =
+    useNotifyStore();
 
   console.log('items', items);
 
   // API hooks
-  const { data: unreadCountData, refetch: refetchUnreadCount } = useGetStats(); // const markReadMutation = useMarkNotificationRead();
+  const { data: notificationListData } = useGetNotifications();
+  console.log('notificationListData', notificationListData);
+  const { data: unreadCountData } = useGetStats(); // const markReadMutation = useMarkNotificationRead();
   const { mutate: markNotificationSeen } = useMarkNotificationSeen();
 
   // Get unread count from API instead of Zustand store
@@ -88,14 +93,12 @@ const DashboardAppBar = ({
   const openMenu = Boolean(userAnchorEl);
   const openMenuNotification = Boolean(anchorElNotification);
 
-  const pendingBeforeRef = React.useRef<Date | null>(null);
-
   // Sync API data with Zustand store (for notification list display)
-  // useEffect(() => {
-  //   if (notifications?.data?.items) {
-  //     addMany(notifications?.data?.items);
-  //   }
-  // }, [notifications?.data?.items, addMany]);
+  useEffect(() => {
+    if (notificationListData?.data?.items) {
+      addMany(notificationListData?.data?.items);
+    }
+  }, [notificationListData?.data?.items, addMany]);
 
   // useEffect(() => {
   //   const unread = unreadCountData?.data?.count ?? 0;
@@ -139,7 +142,7 @@ const DashboardAppBar = ({
   };
 
   const handleLogout = () => {
-    setIsUserMenuOpen(false);
+    setUserAnchorEl(null);
     logoutMutation.mutate();
   };
 
@@ -222,6 +225,9 @@ const DashboardAppBar = ({
                   alignItems: 'center',
                 }}>
                 <Typography variant='h6'>Thông báo</Typography>
+                <Typography sx={{ fontSize: 13, color: '#4066cc' }}>
+                  Đánh dấu tất cả là đã đọc
+                </Typography>
                 {/* {unreadCount > 0 && (
                   <Button
                     size='small'
@@ -253,8 +259,7 @@ const DashboardAppBar = ({
                     borderBottom: 1,
                     borderColor: 'divider',
                   }}>
-                  <Box
-                    sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <ListItemText
                       primary={
                         <Typography
@@ -278,6 +283,34 @@ const DashboardAppBar = ({
                         </Typography>
                       }
                     />
+                    <ButtonWithTooltip
+                      title='Đánh dấu đã đọc'
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minWidth: 24,
+                        width: 24,
+                        height: 24,
+                        p: 0.5,
+                        // backgroundColor: '#ccc',
+                        borderRadius: '50%',
+                        // ':hover': {
+                        //   backgroundColor: '#ccc',
+                        // },
+                        '.icon-outline': { display: 'none' },
+                        ':hover .icon-filled': { display: 'none' },
+                        ':hover .icon-outline': { display: 'inline-flex' },
+                      }}>
+                      <CircleIcon
+                        className='icon-filled'
+                        sx={{ color: '#0064d1', fontSize: 12 }}
+                      />
+                      <RadioButtonUncheckedIcon
+                        className='icon-outline'
+                        sx={{ color: '#0064d1', fontSize: 12 }}
+                      />
+                    </ButtonWithTooltip>
                   </Box>
                 </MenuItem>
               ))

@@ -9,8 +9,10 @@ type State = {
 
   setOpen: (v: boolean) => void;
   add: (n: Notification) => void;
+  addMany: (n: Notification[]) => void;
   markReadLocal: (ids: string[]) => void;
   reset: () => void;
+  resetBadge: () => void;
 };
 
 export const useNotifyStore = create<State>((set, get) => ({
@@ -26,6 +28,14 @@ export const useNotifyStore = create<State>((set, get) => ({
       // tăng badge chỉ khi popup ĐÓNG
       const inc = s.isOpen ? 0 : 1;
       return { items: [n, ...s.items].slice(0, 200), badge: s.badge + inc };
+    }),
+  addMany: (n) =>
+    set((s) => {
+      const existingIds = new Set(s.items.map((item) => item.id));
+      const newItems = n.filter(
+        (notification) => !existingIds.has(notification.id)
+      );
+      return { items: [...newItems, ...s.items].slice(0, 200) };
     }),
   markReadLocal: (ids) =>
     set((s) => ({
