@@ -4,5 +4,5 @@ export type Notification = {
     title: string;
     data?: any;
     createdAt: string;
-    read?: boolean;
+    isRead?: boolean;
   };

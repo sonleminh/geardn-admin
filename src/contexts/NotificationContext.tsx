@@ -11,6 +11,7 @@ type State = {
   add: (n: Notification) => void;
   addMany: (n: Notification[]) => void;
   markReadLocal: (ids: string[]) => void;
+  markAllReadLocal: () => void;
   reset: () => void;
   resetBadge: () => void;
 };
@@ -42,6 +43,10 @@ export const useNotifyStore = create<State>((set, get) => ({
       items: s.items.map((i) =>
         ids.includes(i.id) ? { ...i, isRead: true } : i
       ),
+    })),
+  markAllReadLocal: () =>
+    set((s) => ({
+      items: s.items.map((i) => ({ ...i, isRead: true })),
     })),
   reset: () => set({ items: [], badge: 0 }),
   resetBadge: () => set({ badge: 0 }),
