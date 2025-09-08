@@ -45,10 +45,11 @@ const Notification = () => {
   const markAllAsReadMutation = useMarkAllRead();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
     useNotiInfinite();
-  //   const notiItems = data ? data?.pages?.flatMap((p) => p.items) : [];
+  const notiItems = data ? data?.pages?.flatMap((p) => p.data?.items) : [];
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const sentinelRef = React.useRef<HTMLDivElement>(null);
+  const observerRef = React.useRef<IntersectionObserver | null>(null);
 
   const [anchorElNotification, setAnchorElNotification] =
     React.useState<null | HTMLElement>(null);
@@ -61,6 +62,55 @@ const Notification = () => {
       addMany(notificationListData?.data?.items);
     }
   }, [notificationListData?.data?.items, addMany]);
+
+  // IntersectionObserver to trigger fetchNextPage when sentinel enters view
+  React.useEffect(() => {
+    if (!openMenuNotification) return;
+
+    let locked = false;
+    let cancelled = false;
+
+    const setup = () => {
+      if (cancelled) return;
+      const root = containerRef.current;
+      const sentinel = sentinelRef.current;
+      if (!root || !sentinel) {
+        requestAnimationFrame(setup);
+        return;
+      }
+
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) return;
+          if (!hasNextPage || isFetchingNextPage || locked) return;
+
+          const rootEl = root as HTMLElement;
+          const nearBottom =
+            rootEl.scrollTop + rootEl.clientHeight >= rootEl.scrollHeight - 100;
+          if (!nearBottom) return;
+
+          locked = true;
+          fetchNextPage().finally(() => {
+            locked = false;
+          });
+        },
+        { root, rootMargin: '0px 0px', threshold: 0 }
+      );
+
+      observerRef.current = io;
+      io.observe(sentinel);
+    };
+
+    setup();
+
+    return () => {
+      cancelled = true;
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
+    };
+  }, [openMenuNotification, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   //   if (status === 'pending') return <div className='p-3'>Đang tải…</div>;
   //   if (status === 'error') return <div className='p-3'>Lỗi tải dữ liệu</div>;
@@ -131,14 +181,15 @@ const Notification = () => {
         id='notification-menu'
         anchorEl={anchorElNotification}
         open={openMenuNotification}
+        keepMounted
         MenuListProps={{
           'aria-labelledby': 'notification-button',
         }}
         disableScrollLock={true}
-        ref={containerRef}
         onClose={handleCloseNotification}
         PaperProps={{
-          sx: { width: 400, maxHeight: 400 },
+          ref: containerRef,
+          sx: { width: 400, maxHeight: 300, overflowY: 'auto' },
         }}>
         <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
           <Box
@@ -164,12 +215,12 @@ const Notification = () => {
             </Button>
           </Box>
         </Box>
-        {items?.length === 0 ? (
+        {notiItems?.length === 0 ? (
           <MenuItem disabled>
             <Typography color='text.secondary'>Không có thông báo</Typography>
           </MenuItem>
         ) : (
-          items?.map((notification) => (
+          notiItems?.map((notification) => (
             <MenuItem
               key={notification?.id}
               sx={{
@@ -246,12 +297,12 @@ const Notification = () => {
         <Box
           ref={sentinelRef}
           sx={{
-            h: 10,
+            height: 40,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          {/* {isFetchingNextPage ? 'Đang tải thêm…' : hasNextPage ? '' : 'Hết'} */}
+          {isFetchingNextPage ? 'Đang tải thêm…' : hasNextPage ? '' : 'Hết'}
         </Box>
 
         {/* Fallback nút bấm */}

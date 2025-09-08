@@ -68,26 +68,23 @@ export const useMarkAllRead = () => {
   });
 };
 
-async function fetchNotis(cursor?: Cursor): Promise<Page> {
-  const u = new URL('/api/notifications', window.location.origin);
-  u.searchParams.set('limit', '20');
-  if (cursor?.cursorId && cursor?.cursorCreatedAt) {
-    u.searchParams.set('cursorId', cursor.cursorId);
-    u.searchParams.set('cursorCreatedAt', cursor.cursorCreatedAt);
-  }
-  const res = await fetch(u.toString(), { credentials: 'include' });
-  if (!res.ok) throw new Error('Failed');
-  return res.json();
+async function getNotifications(cursor?: Cursor) {
+  const res = await axiosInstance.get(`${notificationUrl}`, { withCredentials: true, params: {
+    cursorId: cursor?.cursorId,
+    cursorCreatedAt: cursor?.cursorCreatedAt,
+    limit: 5,
+  } });
+  return res.data as TBaseResponse<Page>;
 }
 
 export function useNotiInfinite() {
   return useInfiniteQuery({
     queryKey: [QueryKeys.Notification, 'infinite'],
     initialPageParam: {} as Cursor, 
-    queryFn: ({ pageParam }) => fetchNotis(pageParam),
+    queryFn: ({ pageParam }) => getNotifications(pageParam),
     getNextPageParam: (last): Cursor | undefined =>
-      last.nextCursorId && last.nextCursorCreatedAt
-        ? { cursorId: last.nextCursorId, cursorCreatedAt: last.nextCursorCreatedAt }
+      last?.data?.nextCursorId && last?.data?.nextCursorCreatedAt
+        ? { cursorId: last.data.nextCursorId, cursorCreatedAt: last.data.nextCursorCreatedAt }
         : undefined,
     refetchOnWindowFocus: false,
   });
