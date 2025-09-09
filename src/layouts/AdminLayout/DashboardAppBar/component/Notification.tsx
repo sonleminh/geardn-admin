@@ -26,9 +26,93 @@ import {
   useNotiInfinite,
 } from '@/services/notification';
 
-const Notification = () => {
+type Noti = {
+  id: string;
+  title: string;
+  createdAt: string;
+  isRead?: boolean;
+};
+
+type NotificationItemProps = {
+  notification: Noti;
+  onMarkRead: (id: string) => void;
+};
+
+const NotificationItem: React.FC<NotificationItemProps> = React.memo(
+  ({ notification, onMarkRead }) => {
+    return (
+      <MenuItem
+        key={notification?.id}
+        sx={{
+          display: 'block',
+          py: 1.5,
+          px: 2,
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <ListItemText
+            primary={
+              <Typography
+                variant='body2'
+                sx={{
+                  fontWeight: notification?.isRead ? 400 : 600,
+                  color: notification?.isRead
+                    ? 'text.secondary'
+                    : 'text.primary',
+                }}>
+                {notification?.title}
+              </Typography>
+            }
+            secondary={
+              <Typography variant='caption' color='text.secondary'>
+                {format(new Date(notification?.createdAt), 'dd/MM/yyyy HH:mm', {
+                  locale: vi,
+                })}
+              </Typography>
+            }
+          />
+          {notification?.isRead ? (
+            <RadioButtonUncheckedIcon
+              className='icon-outline'
+              sx={{ color: '#0064d1', fontSize: 12 }}
+            />
+          ) : (
+            <ButtonWithTooltip
+              title='Đánh dấu đã đọc'
+              onClick={() => onMarkRead(notification?.id)}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: 12,
+                width: 12,
+                height: 12,
+                p: 0.5,
+                borderRadius: '50%',
+                '.icon-outline': { display: 'none' },
+                ':hover .icon-filled': { display: 'none' },
+                ':hover .icon-outline': { display: 'inline-flex' },
+              }}>
+              <CircleIcon
+                className='icon-filled'
+                sx={{ color: '#0064d1', fontSize: 12 }}
+              />
+              <RadioButtonUncheckedIcon
+                className='icon-outline'
+                sx={{ color: '#0064d1', fontSize: 12 }}
+              />
+            </ButtonWithTooltip>
+          )}
+        </Box>
+      </MenuItem>
+    );
+  }
+);
+NotificationItem.displayName = 'NotificationItem';
+
+const Notification: React.FC = () => {
   const {
-    items,
     badge,
     isOpen,
     addMany,
@@ -45,7 +129,10 @@ const Notification = () => {
   const markAllAsReadMutation = useMarkAllRead();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
     useNotiInfinite();
-  const notiItems = data ? data?.pages?.flatMap((p) => p.data?.items) : [];
+  const notiItems = React.useMemo<Noti[]>(
+    () => (data ? data.pages?.flatMap((p) => p.data?.items || []) ?? [] : []),
+    [data]
+  );
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const sentinelRef = React.useRef<HTMLDivElement>(null);
@@ -74,6 +161,13 @@ const Notification = () => {
       if (cancelled) return;
       const root = containerRef.current;
       const sentinel = sentinelRef.current;
+      console.log('root, sentinel:', root, sentinel);
+      console.log(
+        'rootEl:',
+        root?.scrollTop,
+        root?.clientHeight,
+        root?.scrollHeight
+      );
       if (!root || !sentinel) {
         requestAnimationFrame(setup);
         return;
@@ -85,6 +179,12 @@ const Notification = () => {
           if (!hasNextPage || isFetchingNextPage || locked) return;
 
           const rootEl = root as HTMLElement;
+          console.log(
+            'first:',
+            rootEl.scrollTop,
+            rootEl.clientHeight,
+            rootEl.scrollHeight
+          );
           const nearBottom =
             rootEl.scrollTop + rootEl.clientHeight >= rootEl.scrollHeight - 100;
           if (!nearBottom) return;
@@ -115,40 +215,44 @@ const Notification = () => {
   //   if (status === 'pending') return <div className='p-3'>Đang tải…</div>;
   //   if (status === 'error') return <div className='p-3'>Lỗi tải dữ liệu</div>;
 
-  const handleOpenNotification = async (
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    setAnchorElNotification(e.currentTarget);
-    markNotificationSeenMutation.mutate();
-    resetBadge();
-    setOpen(true);
-  };
+  const handleOpenNotification = React.useCallback(
+    async (e: React.MouseEvent<HTMLButtonElement>) => {
+      setAnchorElNotification(e.currentTarget);
+      markNotificationSeenMutation.mutate();
+      resetBadge();
+      setOpen(true);
+    },
+    [markNotificationSeenMutation, resetBadge, setOpen]
+  );
 
-  const handleMarkRead = (id: string) => {
-    // Update local state immediately for better UX
-    markReadLocal([id]);
+  const handleMarkRead = React.useCallback(
+    (id: string) => {
+      // Update local state immediately for better UX
+      markReadLocal([id]);
 
-    // Call API to sync with server
-    markNotificationsReadMutation.mutate([id], {
-      onSuccess: () => {
-        console.log('Notification marked as read successfully');
-      },
-      onError: (error: Error) => {
-        console.error('Failed to mark notification as read:', error);
-        // Optionally revert local state on error
-      },
-    });
-  };
+      // Call API to sync with server
+      markNotificationsReadMutation.mutate([id], {
+        onSuccess: () => {
+          console.log('Notification marked as read successfully');
+        },
+        onError: (error: Error) => {
+          console.error('Failed to mark notification as read:', error);
+          // Optionally revert local state on error
+        },
+      });
+    },
+    [markReadLocal, markNotificationsReadMutation]
+  );
 
-  const handleMarkReadAll = () => {
+  const handleMarkReadAll = React.useCallback(() => {
     markAllAsReadMutation.mutate();
     markAllReadLocal();
     refetchStats();
-  };
+  }, [markAllAsReadMutation, markAllReadLocal, refetchStats]);
 
-  const handleCloseNotification = () => {
+  const handleCloseNotification = React.useCallback(() => {
     setAnchorElNotification(null);
-  };
+  }, []);
 
   return (
     <>
@@ -215,85 +319,29 @@ const Notification = () => {
             </Button>
           </Box>
         </Box>
-        {notiItems?.length === 0 ? (
+        {status === 'pending' && (
+          <MenuItem disabled>
+            <Typography color='text.secondary'>Đang tải…</Typography>
+          </MenuItem>
+        )}
+        {status === 'error' && (
+          <MenuItem disabled>
+            <Typography color='error'>Lỗi tải dữ liệu</Typography>
+          </MenuItem>
+        )}
+        {status === 'success' && notiItems?.length === 0 && (
           <MenuItem disabled>
             <Typography color='text.secondary'>Không có thông báo</Typography>
           </MenuItem>
-        ) : (
-          notiItems?.map((notification) => (
-            <MenuItem
-              key={notification?.id}
-              sx={{
-                display: 'block',
-                py: 1.5,
-                px: 2,
-                borderBottom: 1,
-                borderColor: 'divider',
-              }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ListItemText
-                  primary={
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: notification?.isRead ? 400 : 600,
-                        color: notification?.isRead
-                          ? 'text.secondary'
-                          : 'text.primary',
-                      }}>
-                      {notification?.title}
-                    </Typography>
-                  }
-                  secondary={
-                    <Typography variant='caption' color='text.secondary'>
-                      {format(
-                        new Date(notification?.createdAt),
-                        'dd/MM/yyyy HH:mm',
-                        { locale: vi }
-                      )}
-                    </Typography>
-                  }
-                />
-                {notification?.isRead ? (
-                  <RadioButtonUncheckedIcon
-                    className='icon-outline'
-                    sx={{ color: '#0064d1', fontSize: 12 }}
-                  />
-                ) : (
-                  <ButtonWithTooltip
-                    title='Đánh dấu đã đọc'
-                    onClick={() => handleMarkRead(notification?.id)}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minWidth: 12,
-                      width: 12,
-                      height: 12,
-                      p: 0.5,
-                      // backgroundColor: '#ccc',
-                      borderRadius: '50%',
-                      // ':hover': {
-                      //   backgroundColor: '#ccc',
-                      // },
-                      '.icon-outline': { display: 'none' },
-                      ':hover .icon-filled': { display: 'none' },
-                      ':hover .icon-outline': { display: 'inline-flex' },
-                    }}>
-                    <CircleIcon
-                      className='icon-filled'
-                      sx={{ color: '#0064d1', fontSize: 12 }}
-                    />
-                    <RadioButtonUncheckedIcon
-                      className='icon-outline'
-                      sx={{ color: '#0064d1', fontSize: 12 }}
-                    />
-                  </ButtonWithTooltip>
-                )}
-              </Box>
-            </MenuItem>
-          ))
         )}
+        {status === 'success' &&
+          notiItems?.map((notification) => (
+            <NotificationItem
+              key={notification.id}
+              notification={notification}
+              onMarkRead={handleMarkRead}
+            />
+          ))}
         <Box
           ref={sentinelRef}
           sx={{
