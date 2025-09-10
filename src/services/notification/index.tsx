@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  useInfiniteQuery,
+} from '@tanstack/react-query';
 import { axiosInstance } from '../axiosInstance';
 import { Notification } from '@/types/type.notification';
 import { QueryKeys } from '@/constants/query-key';
@@ -14,13 +19,16 @@ interface IGetNotificationListResponse {
 
 type Cursor = { cursorId?: string; cursorCreatedAt?: string };
 type Noti = { id: string; title: string; createdAt: string; isRead: boolean };
-type Page = { items: Noti[]; nextCursorId: string | null; nextCursorCreatedAt: string | null };
-
+type Page = {
+  items: Noti[];
+  nextCursorId: string | null;
+  nextCursorCreatedAt: string | null;
+};
 
 export const useGetNotifications = () =>
   useQuery({
-      queryKey: [QueryKeys.Notification],
-      queryFn: async () => {
+    queryKey: [QueryKeys.Notification],
+    queryFn: async () => {
       const response = await axiosInstance.get(`${notificationUrl}`);
       return response.data as TBaseResponse<IGetNotificationListResponse>;
     },
@@ -32,7 +40,10 @@ export const useGetStats = () => {
     queryKey: [QueryKeys.Notification, 'stats'],
     queryFn: async () => {
       const response = await axiosInstance.get(`${notificationUrl}/stats`);
-      return response.data as TBaseResponse<{ unseenCount: number, unreadCount: number }>;
+      return response.data as TBaseResponse<{
+        unseenCount: number;
+        unreadCount: number;
+      }>;
     },
     // Refresh every 30 seconds for real-time updates
     refetchInterval: 30000,
@@ -47,15 +58,28 @@ export const useMarkNotificationSeen = () => {
       return response.data;
     },
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: [QueryKeys.Notification, 'stats'] });
-      const prevStats = queryClient.getQueryData<any>([QueryKeys.Notification, 'stats']);
-      queryClient.setQueryData([QueryKeys.Notification, 'stats'], (old: any) => {
-        return { ...old, data: { ...old.data, unseenCount: 0 } };
+      await queryClient.cancelQueries({
+        queryKey: [QueryKeys.Notification, 'stats'],
       });
+      const prevStats = queryClient.getQueryData<any>([
+        QueryKeys.Notification,
+        'stats',
+      ]);
+      queryClient.setQueryData(
+        [QueryKeys.Notification, 'stats'],
+        (old: any) => {
+          return { ...old, data: { ...old.data, unseenCount: 0 } };
+        }
+      );
       return { prevStats };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [QueryKeys.Notification, 'stats'] });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.Notification, 'stats'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.Notification, 'infinite'],
+      });
     },
   });
 };
@@ -95,31 +119,65 @@ export const useMarkNotificationsRead = () => {
 };
 
 export const useMarkAllRead = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
       const response = await axiosInstance.post(`${notificationUrl}/read-all`);
       return response.data;
     },
+    onMutate: async () => {
+      await queryClient.cancelQueries({
+        queryKey: [QueryKeys.Notification, 'infinite'],
+      });
+      const prevStats = queryClient.getQueryData<any>([
+        QueryKeys.Notification,
+        'infinite',
+      ]);
+      queryClient.setQueryData(
+        [QueryKeys.Notification, 'infinite'],
+        (old: any) => {
+          return old?.pages?.map((p: any) => {
+            return {
+              ...p,
+              data: {
+                ...p.data,
+                items: p.data.items.map((it: Noti) => ({
+                  ...it,
+                  isRead: true,
+                })),
+              },
+            };
+          });
+        }
+      );
+      return { prevStats };
+    },
   });
 };
 
 async function getNotifications(cursor?: Cursor) {
-  const res = await axiosInstance.get(`${notificationUrl}`, { withCredentials: true, params: {
-    cursorId: cursor?.cursorId,
-    cursorCreatedAt: cursor?.cursorCreatedAt,
-    limit: 5,
-  } });
+  const res = await axiosInstance.get(`${notificationUrl}`, {
+    withCredentials: true,
+    params: {
+      cursorId: cursor?.cursorId,
+      cursorCreatedAt: cursor?.cursorCreatedAt,
+      limit: 5,
+    },
+  });
   return res.data as TBaseResponse<Page>;
 }
 
 export function useNotiInfinite() {
   return useInfiniteQuery({
     queryKey: [QueryKeys.Notification, 'infinite'],
-    initialPageParam: {} as Cursor, 
+    initialPageParam: {} as Cursor,
     queryFn: ({ pageParam }) => getNotifications(pageParam),
     getNextPageParam: (last): Cursor | undefined =>
       last?.data?.nextCursorId && last?.data?.nextCursorCreatedAt
-        ? { cursorId: last.data.nextCursorId, cursorCreatedAt: last.data.nextCursorCreatedAt }
+        ? {
+            cursorId: last.data.nextCursorId,
+            cursorCreatedAt: last.data.nextCursorCreatedAt,
+          }
         : undefined,
     refetchOnWindowFocus: false,
   });

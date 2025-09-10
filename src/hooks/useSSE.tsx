@@ -20,8 +20,8 @@ export function useAdminSSE(url = 'http://localhost:8080/api/realtime/stream') {
       try {
         const msg = JSON.parse(e.data);
         console.log('msg:', msg);
-        const n: Notification = msg?.data ?? msg; // chuẩn hoá
-        if (!n?.attributeId) return;
+        const n: Notification = msg; // chuẩn hoá
+        if (!n?.data) return;
 
         // 1) Prepend vào page đầu nếu chưa tồn tại
         qc.setQueryData(listKey, (old: any) => {
@@ -44,14 +44,20 @@ export function useAdminSSE(url = 'http://localhost:8080/api/realtime/stream') {
             },
           };
 
+          console.log('nextFirst:', nextFirst);
+
           return { ...old, pages: [nextFirst, ...old.pages.slice(1)] };
         });
 
         // 2) Cập nhật badge trong cache stats
         qc.setQueryData(statsKey, (old: any) => {
+          console.log('oldStats:', old?.data);
+          console.log('isOpen:', isOpen);
+
           if (!old?.data) return old;
           const unread = (old.data.unreadCount ?? 0) + 1; // noti mới = chưa đọc
           const unseen = (old.data.unseenCount ?? 0) + (isOpen ? 0 : 1); // panel mở thì không tăng unseen
+          console.log('unread - unseen:', unread, unseen);
           return {
             ...old,
             data: { ...old.data, unreadCount: unread, unseenCount: unseen },

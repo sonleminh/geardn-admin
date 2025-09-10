@@ -116,15 +116,7 @@ const NotificationItem: React.FC<NotificationItemProps> = React.memo(
 NotificationItem.displayName = 'NotificationItem';
 
 const Notification: React.FC = () => {
-  const {
-    badge,
-    isOpen,
-    addMany,
-    setOpen,
-    resetBadge,
-    markReadLocal,
-    markAllReadLocal,
-  } = useNotifyStore();
+  const { isOpen, setOpen, markAllReadLocal } = useNotifyStore();
 
   const { data: statsData, refetch: refetchStats } = useGetStats();
   const markNotificationSeenMutation = useMarkNotificationSeen();
@@ -139,7 +131,7 @@ const Notification: React.FC = () => {
 
   const queryClient = useQueryClient();
   const listKey = ['NOTIFICATION', 'infinite'];
-  const statsKey = ['notifications', 'stats'];
+  const statsKey = ['NOTIFICATION', 'stats'];
 
   const containerRef = React.useRef<HTMLDivElement>(null);
   const sentinelRef = React.useRef<HTMLDivElement>(null);
@@ -152,7 +144,6 @@ const Notification: React.FC = () => {
   const qc = useQueryClient();
   // console.log(queryClient.getQueryData<any>(listKey));
 
-  // IntersectionObserver to trigger fetchNextPage when sentinel enters view
   React.useEffect(() => {
     if (!openMenuNotification) return;
 
@@ -223,6 +214,7 @@ const Notification: React.FC = () => {
 
   const handleCloseNotification = React.useCallback(() => {
     setAnchorElNotification(null);
+    setOpen(false);
   }, []);
 
   return (
@@ -231,7 +223,8 @@ const Notification: React.FC = () => {
         onClick={() =>
           console.log(
             'qc:',
-            queryClient.getQueryData<any>(listKey)?.pages[0]?.data?.items
+            queryClient.getQueryData<any>(listKey)?.pages[0]?.data?.items,
+            queryClient.getQueryData<any>(statsKey)?.data
           )
         }
         sx={{
@@ -277,10 +270,10 @@ const Notification: React.FC = () => {
         disableScrollLock={true}
         onClose={handleCloseNotification}
         PaperProps={{
-          ref: containerRef,
+          // ref: containerRef,
           sx: {
             width: 400,
-            maxHeight: 300,
+            // maxHeight: 320,
             borderRadius: 2,
             overflow: 'hidden',
             '& .MuiList-root': {
@@ -328,6 +321,7 @@ const Notification: React.FC = () => {
           </Box>
         </Box>
         <Box
+          ref={containerRef}
           sx={{
             maxHeight: 280,
             overflowY: 'auto',
@@ -363,7 +357,7 @@ const Notification: React.FC = () => {
           {status === 'success' &&
             notiItems?.map((notification) => (
               <NotificationItem
-                key={notification.id}
+                key={notification?.id}
                 notification={notification}
                 onMarkRead={handleMarkRead}
               />
@@ -371,6 +365,7 @@ const Notification: React.FC = () => {
           <Box
             ref={sentinelRef}
             sx={{
+              width: '100%',
               height: 28,
               display: 'flex',
               alignItems: 'center',
