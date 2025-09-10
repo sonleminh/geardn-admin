@@ -32,7 +32,7 @@ export const useGetStats = () => {
     queryKey: [QueryKeys.Notification, 'stats'],
     queryFn: async () => {
       const response = await axiosInstance.get(`${notificationUrl}/stats`);
-      return response.data as TBaseResponse<{ count: number, unreadCount: number }>;
+      return response.data as TBaseResponse<{ unseenCount: number, unreadCount: number }>;
     },
     // Refresh every 30 seconds for real-time updates
     refetchInterval: 30000,
@@ -40,21 +40,56 @@ export const useGetStats = () => {
 };
 
 export const useMarkNotificationSeen = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async () => {
       const response = await axiosInstance.patch(`${notificationUrl}/seen`);
       return response.data;
     },
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: [QueryKeys.Notification, 'stats'] });
+      const prevStats = queryClient.getQueryData<any>([QueryKeys.Notification, 'stats']);
+      queryClient.setQueryData([QueryKeys.Notification, 'stats'], (old: any) => {
+        return { ...old, data: { ...old.data, unseenCount: 0 } };
+      });
+      return { prevStats };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QueryKeys.Notification, 'stats'] });
+    },
   });
 };
 
 export const useMarkNotificationsRead = () => {
+  const queryClient = useQueryClient();
+  const listKey = [QueryKeys.Notification, 'infinite'];
+
   return useMutation({
     mutationFn: async (ids: string[]) => {
       const response = await axiosInstance.post(`${notificationUrl}/read`, {
         ids: ids,
       });
       return response.data;
+    },
+    onMutate: async (ids: string[]) => {
+      await queryClient.cancelQueries({ queryKey: listKey });
+      const prevList = queryClient.getQueryData<any>(listKey);
+
+      queryClient.setQueryData(listKey, (old: any) => {
+        if (!old) return old;
+        const pages = old.pages.map((p: any) => {
+          const items = p.data.items.map((it: Noti) => {
+            if (ids.includes(it.id) && !it.isRead) {
+              return { ...it, isRead: true };
+            }
+            return it;
+          });
+          return { ...p, data: { ...p.data, items } };
+        });
+
+        return { ...old, pages };
+      });
+      return { prevList };
     },
   });
 };

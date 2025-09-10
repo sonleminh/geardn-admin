@@ -25,6 +25,7 @@ import {
   useMarkNotificationsRead,
   useNotiInfinite,
 } from '@/services/notification';
+import { useQueryClient } from '@tanstack/react-query';
 
 type Noti = {
   id: string;
@@ -49,6 +50,9 @@ const NotificationItem: React.FC<NotificationItemProps> = React.memo(
           px: 2,
           borderBottom: 1,
           borderColor: 'divider',
+          '&:last-child': {
+            borderBottom: 'none',
+          },
         }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <ListItemText
@@ -122,7 +126,6 @@ const Notification: React.FC = () => {
     markAllReadLocal,
   } = useNotifyStore();
 
-  const { data: notificationListData } = useGetNotifications();
   const { data: statsData, refetch: refetchStats } = useGetStats();
   const markNotificationSeenMutation = useMarkNotificationSeen();
   const markNotificationsReadMutation = useMarkNotificationsRead();
@@ -134,6 +137,10 @@ const Notification: React.FC = () => {
     [data]
   );
 
+  const queryClient = useQueryClient();
+  const listKey = ['NOTIFICATION', 'infinite'];
+  const statsKey = ['notifications', 'stats'];
+
   const containerRef = React.useRef<HTMLDivElement>(null);
   const sentinelRef = React.useRef<HTMLDivElement>(null);
   const observerRef = React.useRef<IntersectionObserver | null>(null);
@@ -142,13 +149,8 @@ const Notification: React.FC = () => {
     React.useState<null | HTMLElement>(null);
 
   const openMenuNotification = Boolean(anchorElNotification);
-
-  // Sync API data with Zustand store (for notification list display)
-  React.useEffect(() => {
-    if (notificationListData?.data?.items) {
-      addMany(notificationListData?.data?.items);
-    }
-  }, [notificationListData?.data?.items, addMany]);
+  const qc = useQueryClient();
+  // console.log(queryClient.getQueryData<any>(listKey));
 
   // IntersectionObserver to trigger fetchNextPage when sentinel enters view
   React.useEffect(() => {
@@ -161,13 +163,6 @@ const Notification: React.FC = () => {
       if (cancelled) return;
       const root = containerRef.current;
       const sentinel = sentinelRef.current;
-      console.log('root, sentinel:', root, sentinel);
-      console.log(
-        'rootEl:',
-        root?.scrollTop,
-        root?.clientHeight,
-        root?.scrollHeight
-      );
       if (!root || !sentinel) {
         requestAnimationFrame(setup);
         return;
@@ -177,17 +172,6 @@ const Notification: React.FC = () => {
         ([entry]) => {
           if (!entry.isIntersecting) return;
           if (!hasNextPage || isFetchingNextPage || locked) return;
-
-          const rootEl = root as HTMLElement;
-          console.log(
-            'first:',
-            rootEl.scrollTop,
-            rootEl.clientHeight,
-            rootEl.scrollHeight
-          );
-          const nearBottom =
-            rootEl.scrollTop + rootEl.clientHeight >= rootEl.scrollHeight - 100;
-          if (!nearBottom) return;
 
           locked = true;
           fetchNextPage().finally(() => {
@@ -218,30 +202,17 @@ const Notification: React.FC = () => {
   const handleOpenNotification = React.useCallback(
     async (e: React.MouseEvent<HTMLButtonElement>) => {
       setAnchorElNotification(e.currentTarget);
-      markNotificationSeenMutation.mutate();
-      resetBadge();
       setOpen(true);
+      markNotificationSeenMutation.mutate();
     },
-    [markNotificationSeenMutation, resetBadge, setOpen]
+    [markNotificationSeenMutation, setOpen]
   );
 
   const handleMarkRead = React.useCallback(
     (id: string) => {
-      // Update local state immediately for better UX
-      markReadLocal([id]);
-
-      // Call API to sync with server
-      markNotificationsReadMutation.mutate([id], {
-        onSuccess: () => {
-          console.log('Notification marked as read successfully');
-        },
-        onError: (error: Error) => {
-          console.error('Failed to mark notification as read:', error);
-          // Optionally revert local state on error
-        },
-      });
+      markNotificationsReadMutation.mutate([id]);
     },
-    [markReadLocal, markNotificationsReadMutation]
+    [markNotificationsReadMutation]
   );
 
   const handleMarkReadAll = React.useCallback(() => {
@@ -256,13 +227,27 @@ const Notification: React.FC = () => {
 
   return (
     <>
+      <Button
+        onClick={() =>
+          console.log(
+            'qc:',
+            queryClient.getQueryData<any>(listKey)?.pages[0]?.data?.items
+          )
+        }
+        sx={{
+          color: 'white',
+        }}>
+        Invalidate
+      </Button>
       <Badge
         badgeContent={
-          <Typography sx={{ color: '#fff', fontSize: 13 }}>{badge}</Typography>
+          <Typography sx={{ color: '#fff', fontSize: 13 }}>
+            {statsData?.data?.unseenCount ?? 0}
+          </Typography>
         }
         color='primary'
         onClick={handleOpenNotification}
-        invisible={isOpen || badge === 0}
+        invisible={isOpen || statsData?.data?.unseenCount === 0}
         sx={{
           mr: 2,
           '& .MuiBadge-badge': {
@@ -293,16 +278,39 @@ const Notification: React.FC = () => {
         onClose={handleCloseNotification}
         PaperProps={{
           ref: containerRef,
-          sx: { width: 400, maxHeight: 300, overflowY: 'auto' },
+          sx: {
+            width: 400,
+            maxHeight: 300,
+            borderRadius: 2,
+            overflow: 'hidden',
+            '& .MuiList-root': {
+              p: 0,
+              borderRadius: 2,
+              overflow: 'hidden',
+            },
+            '& .MuiMenu-list': {
+              p: 0,
+              borderRadius: 2,
+              overflow: 'hidden',
+            },
+          },
+        }}
+        sx={{
+          'MuiList-root': {
+            p: 0,
+          },
         }}>
-        <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
+        <Box sx={{ p: '8px 12px', borderBottom: 1, borderColor: 'divider' }}>
           <Box
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
+              p: 0,
             }}>
-            <Typography variant='h6'>Thông báo</Typography>
+            <Typography sx={{ fontSize: 16, fontWeight: 600 }}>
+              Thông báo
+            </Typography>
             <Button
               onClick={handleMarkReadAll}
               disabled={statsData?.data?.unreadCount === 0}
@@ -319,38 +327,59 @@ const Notification: React.FC = () => {
             </Button>
           </Box>
         </Box>
-        {status === 'pending' && (
-          <MenuItem disabled>
-            <Typography color='text.secondary'>Đang tải…</Typography>
-          </MenuItem>
-        )}
-        {status === 'error' && (
-          <MenuItem disabled>
-            <Typography color='error'>Lỗi tải dữ liệu</Typography>
-          </MenuItem>
-        )}
-        {status === 'success' && notiItems?.length === 0 && (
-          <MenuItem disabled>
-            <Typography color='text.secondary'>Không có thông báo</Typography>
-          </MenuItem>
-        )}
-        {status === 'success' &&
-          notiItems?.map((notification) => (
-            <NotificationItem
-              key={notification.id}
-              notification={notification}
-              onMarkRead={handleMarkRead}
-            />
-          ))}
         <Box
-          ref={sentinelRef}
           sx={{
-            height: 40,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            maxHeight: 280,
+            overflowY: 'auto',
+            '&::-webkit-scrollbar': {
+              width: '6px',
+            },
+            '&::-webkit-scrollbar-track': {
+              background: 'transparent',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: '#ccc',
+              borderRadius: '3px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              background: '#999',
+            },
           }}>
-          {isFetchingNextPage ? 'Đang tải thêm…' : hasNextPage ? '' : 'Hết'}
+          {status === 'pending' && (
+            <MenuItem disabled>
+              <Typography color='text.secondary'>Đang tải…</Typography>
+            </MenuItem>
+          )}
+          {status === 'error' && (
+            <MenuItem disabled>
+              <Typography color='error'>Lỗi tải dữ liệu</Typography>
+            </MenuItem>
+          )}
+          {status === 'success' && notiItems?.length === 0 && (
+            <MenuItem disabled>
+              <Typography color='text.secondary'>Không có thông báo</Typography>
+            </MenuItem>
+          )}
+          {status === 'success' &&
+            notiItems?.map((notification) => (
+              <NotificationItem
+                key={notification.id}
+                notification={notification}
+                onMarkRead={handleMarkRead}
+              />
+            ))}
+          <Box
+            ref={sentinelRef}
+            sx={{
+              height: 28,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Typography variant='caption' color='text.secondary'>
+              {isFetchingNextPage ? 'Đang tải thêm…' : hasNextPage ? '' : 'Hết'}
+            </Typography>
+          </Box>
         </Box>
 
         {/* Fallback nút bấm */}
