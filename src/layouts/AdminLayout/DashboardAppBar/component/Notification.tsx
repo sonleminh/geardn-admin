@@ -18,14 +18,12 @@ import { vi } from 'date-fns/locale';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
 import { useNotifyStore } from '@/contexts/NotificationContext';
 import {
-  useGetNotifications,
   useGetStats,
   useMarkAllRead,
   useMarkNotificationSeen,
   useMarkNotificationsRead,
   useNotiInfinite,
 } from '@/services/notification';
-import { useQueryClient } from '@tanstack/react-query';
 
 type Noti = {
   id: string;
@@ -116,9 +114,9 @@ const NotificationItem: React.FC<NotificationItemProps> = React.memo(
 NotificationItem.displayName = 'NotificationItem';
 
 const Notification: React.FC = () => {
-  const { isOpen, setOpen, markAllReadLocal } = useNotifyStore();
+  const { isOpen, setOpen } = useNotifyStore();
 
-  const { data: statsData, refetch: refetchStats } = useGetStats();
+  const { data: statsData, isFetching: isFetchingStats } = useGetStats();
   const markNotificationSeenMutation = useMarkNotificationSeen();
   const markNotificationsReadMutation = useMarkNotificationsRead();
   const markAllAsReadMutation = useMarkAllRead();
@@ -129,10 +127,6 @@ const Notification: React.FC = () => {
     [data]
   );
 
-  const queryClient = useQueryClient();
-  const listKey = ['NOTIFICATION', 'infinite'];
-  const statsKey = ['NOTIFICATION', 'stats'];
-
   const containerRef = React.useRef<HTMLDivElement>(null);
   const sentinelRef = React.useRef<HTMLDivElement>(null);
   const observerRef = React.useRef<IntersectionObserver | null>(null);
@@ -141,7 +135,6 @@ const Notification: React.FC = () => {
     React.useState<null | HTMLElement>(null);
 
   const openMenuNotification = Boolean(anchorElNotification);
-  const qc = useQueryClient();
   // console.log(queryClient.getQueryData<any>(listKey));
 
   React.useEffect(() => {
@@ -187,6 +180,10 @@ const Notification: React.FC = () => {
     };
   }, [openMenuNotification, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  React.useEffect(() => {
+    console.log('statsData', statsData?.data);
+  }, [statsData?.data]);
+
   //   if (status === 'pending') return <div className='p-3'>Đang tải…</div>;
   //   if (status === 'error') return <div className='p-3'>Lỗi tải dữ liệu</div>;
 
@@ -208,30 +205,15 @@ const Notification: React.FC = () => {
 
   const handleMarkReadAll = React.useCallback(() => {
     markAllAsReadMutation.mutate();
-    markAllReadLocal();
-    refetchStats();
-  }, [markAllAsReadMutation, markAllReadLocal, refetchStats]);
+  }, [markAllAsReadMutation]);
 
   const handleCloseNotification = React.useCallback(() => {
     setAnchorElNotification(null);
     setOpen(false);
-  }, []);
+  }, [setOpen]);
 
   return (
     <>
-      <Button
-        onClick={() =>
-          console.log(
-            'qc:',
-            queryClient.getQueryData<any>(listKey)?.pages[0]?.data?.items,
-            queryClient.getQueryData<any>(statsKey)?.data
-          )
-        }
-        sx={{
-          color: 'white',
-        }}>
-        Invalidate
-      </Button>
       <Badge
         badgeContent={
           <Typography sx={{ color: '#fff', fontSize: 13 }}>
@@ -246,7 +228,7 @@ const Notification: React.FC = () => {
           '& .MuiBadge-badge': {
             top: 4,
             right: 1,
-            display: 'flex',
+            display: isFetchingStats ? 'none' : 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             minWidth: 19,

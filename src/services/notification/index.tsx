@@ -17,6 +17,19 @@ interface IGetNotificationListResponse {
   nextCursorCreatedAt: Date;
 }
 
+interface IInfiniteQueryData {
+  pages: Array<{
+    data: IGetNotificationListResponse;
+  }>;
+}
+
+interface IStatsData {
+  data: {
+    unseenCount: number;
+    unreadCount: number;
+  };
+}
+
 type Cursor = { cursorId?: string; cursorCreatedAt?: string };
 type Noti = { id: string; title: string; createdAt: string; isRead: boolean };
 type Page = {
@@ -61,13 +74,14 @@ export const useMarkNotificationSeen = () => {
       await queryClient.cancelQueries({
         queryKey: [QueryKeys.Notification, 'stats'],
       });
-      const prevStats = queryClient.getQueryData<any>([
+      const prevStats = queryClient.getQueryData<IStatsData>([
         QueryKeys.Notification,
         'stats',
       ]);
       queryClient.setQueryData(
         [QueryKeys.Notification, 'stats'],
-        (old: any) => {
+        (old: IStatsData | undefined) => {
+          if (!old?.data) return old;
           return { ...old, data: { ...old.data, unseenCount: 0 } };
         }
       );
@@ -87,7 +101,6 @@ export const useMarkNotificationSeen = () => {
 export const useMarkNotificationsRead = () => {
   const queryClient = useQueryClient();
   const listKey = [QueryKeys.Notification, 'infinite'];
-
   return useMutation({
     mutationFn: async (ids: string[]) => {
       const response = await axiosInstance.post(`${notificationUrl}/read`, {
@@ -97,12 +110,12 @@ export const useMarkNotificationsRead = () => {
     },
     onMutate: async (ids: string[]) => {
       await queryClient.cancelQueries({ queryKey: listKey });
-      const prevList = queryClient.getQueryData<any>(listKey);
+      const prevList = queryClient.getQueryData<IInfiniteQueryData>(listKey);
 
-      queryClient.setQueryData(listKey, (old: any) => {
-        if (!old) return old;
-        const pages = old.pages.map((p: any) => {
-          const items = p.data.items.map((it: Noti) => {
+      queryClient.setQueryData(listKey, (old: IInfiniteQueryData | undefined) => {
+        if (!old?.pages) return old;
+        const pages = old.pages.map((p) => {
+          const items = p.data.items.map((it: Notification) => {
             if (ids.includes(it.id) && !it.isRead) {
               return { ...it, isRead: true };
             }
@@ -126,31 +139,77 @@ export const useMarkAllRead = () => {
       return response.data;
     },
     onMutate: async () => {
+      // Cancel any outgoing refetches
       await queryClient.cancelQueries({
         queryKey: [QueryKeys.Notification, 'infinite'],
       });
-      const prevStats = queryClient.getQueryData<any>([
+      await queryClient.cancelQueries({
+        queryKey: [QueryKeys.Notification, 'stats'],
+      });
+
+      const prevInfiniteData = queryClient.getQueryData<IInfiniteQueryData>([
         QueryKeys.Notification,
         'infinite',
       ]);
+      const prevStatsData = queryClient.getQueryData<IStatsData>([
+        QueryKeys.Notification,
+        'stats',
+      ]);
+
       queryClient.setQueryData(
         [QueryKeys.Notification, 'infinite'],
-        (old: any) => {
-          return old?.pages?.map((p: any) => {
+        (old: IInfiniteQueryData | undefined) => {
+          if (!old?.pages) return old;
+          const pages = old.pages.map((p) => {
             return {
               ...p,
               data: {
                 ...p.data,
-                items: p.data.items.map((it: Noti) => ({
+                items: p.data.items.map((it: Notification) => ({
                   ...it,
                   isRead: true,
                 })),
               },
             };
           });
+          return { ...old, pages };
         }
       );
-      return { prevStats };
+
+      queryClient.setQueryData(
+        [QueryKeys.Notification, 'stats'],
+        (old: IStatsData | undefined) => {
+          if (!old?.data) return old;
+          return {
+            ...old,
+            data: { ...old.data, unreadCount: 0 },
+          };
+        }
+      );
+
+      return { prevInfiniteData, prevStatsData };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.prevInfiniteData) {
+        queryClient.setQueryData(
+          [QueryKeys.Notification, 'infinite'],
+          context.prevInfiniteData
+        );
+      }
+      if (context?.prevStatsData) {
+        queryClient.setQueryData(
+          [QueryKeys.Notification, 'stats'],
+          context.prevStatsData
+        );
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.Notification, 'infinite'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [QueryKeys.Notification, 'stats'],
+      });
     },
   });
 };

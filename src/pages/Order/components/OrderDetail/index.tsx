@@ -204,7 +204,7 @@ const OrderDetail = () => {
         <Grid2 size={{ xs: 12, md: 6 }}>
           <Card>
             <CardHeader
-              title='Chi tiết đơn hàng'
+              title='Danh sách sản phẩm'
               sx={{
                 span: {
                   fontSize: 18,
@@ -213,7 +213,7 @@ const OrderDetail = () => {
               }}
             />
             <Divider />
-            <CardContent>
+            <CardContent sx={{ minHeight: '400px' }}>
               <TableContainer>
                 <Table>
                   <TableHead>
