@@ -50,7 +50,6 @@ import { ROUTES } from '@/constants/route';
 import { useGetCategoryList } from '@/services/category';
 import { useGetEnumByContext } from '@/services/enum';
 
-// Interface for form values
 interface FormValues {
   name: string;
   categoryId: string;

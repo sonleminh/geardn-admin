@@ -24,24 +24,25 @@ import {
   useMarkNotificationsRead,
   useNotiInfinite,
 } from '@/services/notification';
-
-type Noti = {
-  id: string;
-  title: string;
-  createdAt: string;
-  isRead?: boolean;
-};
+import { Notification } from '@/types/type.notification';
+import { useNotificationNavigate } from '@/utils/getNotificationHref';
 
 type NotificationItemProps = {
-  notification: Noti;
+  notification: Notification;
+  onNavigate: (n: Notification) => void;
   onMarkRead: (id: string) => void;
+  handleCloseNotification: () => void;
 };
 
 const NotificationItem: React.FC<NotificationItemProps> = React.memo(
-  ({ notification, onMarkRead }) => {
+  ({ notification, onNavigate, onMarkRead, handleCloseNotification }) => {
     return (
       <MenuItem
         key={notification?.id}
+        onClick={() => {
+          onNavigate(notification);
+          handleCloseNotification();
+        }}
         sx={{
           display: 'block',
           py: 1.5,
@@ -82,7 +83,10 @@ const NotificationItem: React.FC<NotificationItemProps> = React.memo(
           ) : (
             <ButtonWithTooltip
               title='Đánh dấu đã đọc'
-              onClick={() => onMarkRead(notification?.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMarkRead(notification?.id);
+              }}
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -113,7 +117,7 @@ const NotificationItem: React.FC<NotificationItemProps> = React.memo(
 );
 NotificationItem.displayName = 'NotificationItem';
 
-const Notification: React.FC = () => {
+const NotificationMenu: React.FC = () => {
   const { isOpen, setOpen } = useNotifyStore();
 
   const { data: statsData, isFetching: isFetchingStats } = useGetStats();
@@ -122,7 +126,7 @@ const Notification: React.FC = () => {
   const markAllAsReadMutation = useMarkAllRead();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
     useNotiInfinite();
-  const notiItems = React.useMemo<Noti[]>(
+  const notiItems = React.useMemo<Notification[]>(
     () => (data ? data.pages?.flatMap((p) => p.data?.items || []) ?? [] : []),
     [data]
   );
@@ -135,7 +139,6 @@ const Notification: React.FC = () => {
     React.useState<null | HTMLElement>(null);
 
   const openMenuNotification = Boolean(anchorElNotification);
-  // console.log(queryClient.getQueryData<any>(listKey));
 
   React.useEffect(() => {
     if (!openMenuNotification) return;
@@ -180,13 +183,6 @@ const Notification: React.FC = () => {
     };
   }, [openMenuNotification, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  React.useEffect(() => {
-    console.log('statsData', statsData?.data);
-  }, [statsData?.data]);
-
-  //   if (status === 'pending') return <div className='p-3'>Đang tải…</div>;
-  //   if (status === 'error') return <div className='p-3'>Lỗi tải dữ liệu</div>;
-
   const handleOpenNotification = React.useCallback(
     async (e: React.MouseEvent<HTMLButtonElement>) => {
       setAnchorElNotification(e.currentTarget);
@@ -211,6 +207,8 @@ const Notification: React.FC = () => {
     setAnchorElNotification(null);
     setOpen(false);
   }, [setOpen]);
+
+  const onNavigate = useNotificationNavigate();
 
   return (
     <>
@@ -252,10 +250,8 @@ const Notification: React.FC = () => {
         disableScrollLock={true}
         onClose={handleCloseNotification}
         PaperProps={{
-          // ref: containerRef,
           sx: {
             width: 400,
-            // maxHeight: 320,
             borderRadius: 2,
             overflow: 'hidden',
             '& .MuiList-root': {
@@ -337,11 +333,14 @@ const Notification: React.FC = () => {
             </MenuItem>
           )}
           {status === 'success' &&
+            openMenuNotification &&
             notiItems?.map((notification) => (
               <NotificationItem
                 key={notification?.id}
                 notification={notification}
+                onNavigate={onNavigate}
                 onMarkRead={handleMarkRead}
+                handleCloseNotification={handleCloseNotification}
               />
             ))}
           <Box
@@ -372,4 +371,4 @@ const Notification: React.FC = () => {
   );
 };
 
-export default Notification;
+export default NotificationMenu;

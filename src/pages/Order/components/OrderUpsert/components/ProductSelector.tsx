@@ -1,7 +1,5 @@
-// React and State Management
 import { useEffect, useState } from 'react';
 
-// UI Libraries
 import Input from '@/components/Input';
 import LoadingSelect from '@/components/LoadingSelect';
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
@@ -80,55 +78,6 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
     }
   }, [selectedSkuId, productData, productsByCategoryData, productId]);
 
-  //   useEffect(() => {
-  //     if (
-  //       (isOrderItemEdit && product && modelIdEdit) ||
-  //       (isOrderItemEdit && product)
-  //     ) {
-  //       setSelectedModel(
-  //         product?.data?.models?.find((item) => item._id === modelIdEdit)?.extinfo
-  //           .tier_index ?? []
-  //       );
-  //       setCategoryId(product?.data?.category?._id);
-  //     }
-  //   }, [isOrderItemEdit, product, modelIdEdit]);
-
-  //   const handleVariantChange = (event: SelectChangeEvent, vIndex: number) => {
-  //     const selectedOptionIndex = product?.tier_variations[
-  //       vIndex
-  //     ]?.options.indexOf(event.target.value);
-  //     const updatedSelectedModel = [...selectedModel];
-  //     updatedSelectedModel[vIndex] = selectedOptionIndex;
-  //     setSelectedModel(updatedSelectedModel);
-  //     setSelectedImage('');
-  //     setQuantity('');
-  //   };
-
-  //   const getFilteredOptions = (vIndex: number) => {
-  //     // If no previous option selected, show all options
-  //     if (vIndex === 0) {
-  //       return (
-  //         product?.tier_variations[vIndex].options.filter((_, optionIndex) =>
-  //           product.models.some(
-  //             (model) => model?.extinfo?.tier_index?.[0] === optionIndex
-  //           )
-  //         ) ?? []
-  //       );
-  //     }
-
-  //     // Filter options based on previous selections
-  //     return (
-  //       product?.tier_variations[vIndex]?.options.filter((_, optionIndex) =>
-  //         product.models.some(
-  //           (model) =>
-  //             model?.extinfo?.tier_index?.[vIndex - 1] ===
-  //               selectedModel?.[vIndex - 1] &&
-  //             model?.extinfo?.tier_index?.[vIndex] === optionIndex
-  //         )
-  //       ) ?? []
-  //     );
-  //   };
-
   const hanldeUpsertOrderItem = () => {
     if (
       !isOrderItemEdit &&
@@ -136,18 +85,6 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
     ) {
       return showAlert('Sản phẩm đã có trong danh sách!', 'error');
     }
-    // if (
-    //   matchedModel &&
-    //   +quantity >
-    //     (orderData &&
-    //     isOrderItemEdit &&
-    //     itemIndex &&
-    //     itemIndex < orderData?.items?.length
-    //       ? matchedModel?.stock + orderData?.items?.[itemIndex ?? 0]?.quantity
-    //       : matchedModel?.stock)
-    // ) {
-    //   return showAlert('Số lượng vượt quá hàng trong kho!!', 'error');
-    // }
 
     const newItem = {
       productId: +productId,

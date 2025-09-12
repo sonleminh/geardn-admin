@@ -31,9 +31,8 @@ interface IStatsData {
 }
 
 type Cursor = { cursorId?: string; cursorCreatedAt?: string };
-type Noti = { id: string; title: string; createdAt: string; isRead: boolean };
 type Page = {
-  items: Noti[];
+  items: Notification[];
   nextCursorId: string | null;
   nextCursorCreatedAt: string | null;
 };

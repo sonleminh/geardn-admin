@@ -8,7 +8,6 @@ import { TableRow } from '@mui/material';
 
 import { TableColumn } from '@/interfaces/ITableColumn';
 
-// src/components/TableSkeleton/index.tsx
 interface TableSkeletonProps {
   rowsPerPage: number;
   columns: TableColumn[];

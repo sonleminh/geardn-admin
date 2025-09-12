@@ -1,16 +1,15 @@
-import { useEffect, useRef } from 'react';
+import { QueryKeys } from '@/constants/query-key';
+import { Notification } from '@/types/type.notification';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { useNotifyStore } from '../contexts/NotificationContext';
 import { getSSE } from '../lib/sse';
-import { Notification } from '@/types/type.notification';
-import axios from 'axios';
-import { useQueryClient } from '@tanstack/react-query';
-import { QueryKeys } from '@/constants/query-key';
 
 export function useAdminSSE(url = 'http://localhost:8080/api/realtime/stream') {
   const qc = useQueryClient();
   const isOpen = useNotifyStore((s) => s.isOpen);
 
-  const listKey = [QueryKeys.Notification, 'infinite']; // phải khớp với useNotiInfinite
+  const listKey = [QueryKeys.Notification, 'infinite'];
   const statsKey = [QueryKeys.Notification, 'stats'];
 
   useEffect(() => {
@@ -19,13 +18,10 @@ export function useAdminSSE(url = 'http://localhost:8080/api/realtime/stream') {
     es.onmessage = (e) => {
       try {
         const msg = JSON.parse(e.data);
-        console.log('msg:', msg);
-        const n: Notification = msg; // chuẩn hoá
+        const n: Notification = msg;
         if (!n?.data) return;
 
-        // 1) Prepend vào page đầu nếu chưa tồn tại
         qc.setQueryData(listKey, (old: any) => {
-          console.log('old:', old);
           if (!old?.pages?.length) return old;
 
           const exists = old.pages.some((p: any) =>
@@ -44,20 +40,13 @@ export function useAdminSSE(url = 'http://localhost:8080/api/realtime/stream') {
             },
           };
 
-          console.log('nextFirst:', nextFirst);
-
           return { ...old, pages: [nextFirst, ...old.pages.slice(1)] };
         });
 
-        // 2) Cập nhật badge trong cache stats
         qc.setQueryData(statsKey, (old: any) => {
-          console.log('oldStats:', old?.data);
-          console.log('isOpen:', isOpen);
-
           if (!old?.data) return old;
-          const unread = (old.data.unreadCount ?? 0) + 1; // noti mới = chưa đọc
-          const unseen = (old.data.unseenCount ?? 0) + (isOpen ? 0 : 1); // panel mở thì không tăng unseen
-          console.log('unread - unseen:', unread, unseen);
+          const unread = (old.data.unreadCount ?? 0) + 1;
+          const unseen = (old.data.unseenCount ?? 0) + (isOpen ? 0 : 1);
           return {
             ...old,
             data: { ...old.data, unreadCount: unread, unseenCount: unseen },

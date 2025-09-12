@@ -1,4 +1,3 @@
-// React and React Router
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -94,7 +93,6 @@ interface ColumnFilters {
   date: { fromDate: string; toDate: string };
 }
 
-// Constants
 const INITIAL_COLUMN_FILTERS: ColumnFilters = {
   type: [],
   items: [],
@@ -191,7 +189,6 @@ const columns: TableColumn[] = [
   { width: '100px', align: 'center', type: 'text' },
 ];
 
-// Custom hooks
 const useFilterState = () => {
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
     null
@@ -321,7 +318,6 @@ const usePagination = () => {
   };
 };
 
-// Main component
 const OrderReturnRequestList = () => {
   const navigate = useNavigate();
   const { showAlert } = useAlertContext();

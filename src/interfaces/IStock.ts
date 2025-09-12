@@ -25,11 +25,3 @@ export interface IStockItem {
     totalStock: number;
     skus: IStockProductSkuItem[];
 }
-
-// interface IProductSkuWithStock extends IProductSku {
-//     stocks: IStock[];
-// }
-
-// export interface IProductWithStock extends IProduct {
-// skus: IProductSkuWithStock[];
-// }

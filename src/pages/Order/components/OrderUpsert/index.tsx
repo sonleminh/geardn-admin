@@ -221,7 +221,6 @@ const OrderUpsert = () => {
           }
         );
       } else {
-        console.log('payload:', payload);
         createOrderMutate(payload as ICreateOrder, {
           onSuccess() {
             queryClient.invalidateQueries({ queryKey: [QueryKeys.Order] });

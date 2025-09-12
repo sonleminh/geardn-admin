@@ -66,7 +66,6 @@ interface ColumnFilters {
   date: { fromDate: string; toDate: string };
 }
 
-// Constants
 const INITIAL_COLUMN_FILTERS: ColumnFilters = {
   order: [],
   date: { fromDate: '', toDate: '' },
@@ -142,7 +141,6 @@ const columns: TableColumn[] = [
   { width: '100px', align: 'center', type: 'text' },
 ];
 
-// Custom hooks
 const useFilterState = () => {
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
     null
@@ -258,7 +256,6 @@ const usePagination = () => {
   };
 };
 
-// Main component
 const OrderUpdateHistoryList = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');

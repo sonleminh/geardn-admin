@@ -31,10 +31,6 @@ const Product = () => {
           path: '/:id',
           element: <ProductDetail />,
         },
-        // {
-        //   path: '/:slug',
-        //   element: <ProductSku />,
-        // },
         {
           path: '/:id/sku',
           element: <ProductSkuList />,

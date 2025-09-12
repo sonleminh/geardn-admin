@@ -49,15 +49,9 @@ const OrderConfirm = () => {
 
   const { data: orderData } = useGetOrderById(id as string);
   const { data: warehouseData } = useGetWarehouseList();
-  //   const { mutate: updateOrderStatus, isPending: isUpdateOrderStatusPending } =
-  //     useUpdateOrderStatus();
 
   const { mutate: updateOrderConfirm, isPending: isUpdateOrderConfirmPending } =
     useUpdateOrderConfirm();
-  // const {
-  //   mutate: createMultipleExportLogs,
-  //   isPending: isCreateExportLogsPending,
-  // } = useCreateMultipleExportLogs();
 
   const [exportItems, setExportItems] = useState<IExportItem[]>([]);
 
@@ -83,7 +77,6 @@ const OrderConfirm = () => {
   const handleSubmit = () => {
     if (!id) return;
 
-    // Check if all order items have warehouse selected
     const orderItems = orderData?.data?.orderItems || [];
     const hasAllWarehousesSelected = orderItems.every((item) =>
       exportItems.some((exportItem) => exportItem.skuId === item.skuId)
@@ -326,7 +319,6 @@ const OrderConfirm = () => {
                         <TableCell>
                           <Typography
                             sx={{
-                              // width: 80,
                               fontSize: 14,
                               fontWeight: 500,
                               ...truncateTextByLine(1),

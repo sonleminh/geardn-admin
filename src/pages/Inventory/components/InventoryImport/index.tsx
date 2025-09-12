@@ -1,4 +1,3 @@
-// React and React Router
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -80,7 +79,6 @@ interface ColumnFilters {
   date: { fromDate: string; toDate: string };
 }
 
-// Constants
 const INITIAL_COLUMN_FILTERS: ColumnFilters = {
   warehouse: [],
   items: [],
@@ -160,7 +158,6 @@ const columns: TableColumn[] = [
   { width: '120px', align: 'center', type: 'action' },
 ];
 
-// Components
 interface ImportLogItemProps {
   item: IImportLogItem;
 }
@@ -343,7 +340,6 @@ const FilterChips = ({
   );
 };
 
-// Custom hooks
 const useFilterState = () => {
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
     null
@@ -477,7 +473,6 @@ const usePagination = () => {
   };
 };
 
-// Main component
 const InventoryImportList = () => {
   const navigate = useNavigate();
   const {

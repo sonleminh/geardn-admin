@@ -137,7 +137,6 @@ const CustomerForm: React.FC<CustomerInfoFormProps> = ({
             selected={formik?.values?.completedAt}
             onChange={(e) => formik.setFieldValue('completedAt', e)}
             dateFormat='dd/MM/yyyy HH:mm'
-            // timeFormat='HH:mm'
             timeFormat='HH:mm'
             className='date-picker'
           />

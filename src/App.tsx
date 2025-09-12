@@ -6,8 +6,8 @@ import { AlertContextProvider } from './contexts/AlertContext';
 import { theme } from './themes/theme';
 import { useAdminSSE } from './hooks/useSSE';
 
-import 'react-date-range/dist/styles.css'; // main style file
-import 'react-date-range/dist/theme/default.css'; // theme css file
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
 
 function App() {
   const content = useRoutes(routes);

@@ -325,17 +325,6 @@ const InventoryList = () => {
       </Grid2>
       <Card>
         <CardHeader
-          // action={
-          //   <Box
-          //     sx={{
-          //       button: {
-          //         mx: 0.5,
-          //       },
-          //       svg: {
-          //         fontSize: 24,
-          //       },
-          //     }}></Box>
-          // }
           title={
             <Typography sx={{ mr: 2, fontSize: 20, fontWeight: 500 }}>
               Quản lý tồn kho

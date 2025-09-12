@@ -9,7 +9,7 @@ import Toolbar from '@mui/material/Toolbar';
 
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useLogoutMutate } from '@/services/auth';
-import Notification from './component/Notification';
+import NotificationMenu from './component/NotificationMenu';
 
 interface AppBarProps extends MuiAppBarProps {
   open?: boolean;
@@ -87,7 +87,7 @@ const DashboardAppBar = ({
           <MenuIcon />
         </IconButton>
         <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
-          <Notification />
+          <NotificationMenu />
           <IconButton onClick={handleUserClick}>
             <AccountCircleOutlinedIcon sx={{ color: '#fff', fontSize: 28 }} />
           </IconButton>

@@ -20,10 +20,7 @@ interface IOverviewStats {
     pendingOrders: number;
     canceledOrders: number;
     deliveredOrders: number;
-    // canceledThisMonthCount: orderSummary.totals.canceledThisMonthCount,
     deliveredThisMonthCount: number;
-    // deliveredLastMonthCount: orderSummary.totals.deliveredLastMonthCount,
-    // cancellationRate: orderSummary.rates.cancellationRate,
   };
   growth: {
     revenue: number;

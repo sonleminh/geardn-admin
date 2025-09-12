@@ -8,11 +8,6 @@ import OrderReturnRequestList from './components/OrderReturnRequestList';
 import OrderReturnRequestConfirm from './components/OrderReturnRequestConfirm';
 import OrderDetail from './components/OrderDetail';
 import OrderReturnRequestDetail from './components/OrderReturnRequestDetail';
-// import OrderLayout from './components/OrderLayout';
-// import OrderList from './components/OrderList';
-// import OrderCategoryList from './components/OrderCategoryList';
-// import OrderModelUpsert from './components/OrderModelUpsert';
-// import OrderModelList from './components/OrderModelList';
 
 const Order = () => {
   const router = useRoutes([

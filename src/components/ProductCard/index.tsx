@@ -33,7 +33,6 @@ const ProductCard = ({
           sx={{
             img: {
               width: '100%',
-              // height: 100,
               mr: 1,
               objectFit: 'contain',
               transition: 'all 0.5s ease',

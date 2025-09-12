@@ -92,7 +92,6 @@ interface ColumnFilters {
   status: string[];
 }
 
-// Constants
 const INITIAL_COLUMN_FILTERS: ColumnFilters = {
   category: [],
   status: [],
@@ -179,7 +178,6 @@ const columns: TableColumn[] = [
   { width: '100px', align: 'center', type: 'action' },
 ];
 
-// Custom hooks
 const useFilterState = () => {
   const [filterAnchorEl, setFilterAnchorEl] = useState<null | HTMLElement>(
     null
@@ -246,7 +244,6 @@ const usePagination = () => {
   };
 };
 
-// Components
 interface FilterChipsProps {
   columnFilters: ColumnFilters;
   categoriesData: {

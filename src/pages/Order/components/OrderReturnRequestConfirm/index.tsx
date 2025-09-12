@@ -346,7 +346,6 @@ const OrderReturnRequestConfirm = () => {
                           <TableCell>
                             <Typography
                               sx={{
-                                // width: 80,
                                 fontSize: 14,
                                 fontWeight: 500,
                                 ...truncateTextByLine(1),

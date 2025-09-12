@@ -249,7 +249,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
   ...theme.mixins.toolbar,
   justifyContent: 'flex-end',
 }));
@@ -274,7 +273,6 @@ const DashboardDrawer = ({
           bgcolor: '#000',
           color: '#fff',
           borderRight: '1px solid #434343',
-          // Custom scrollbar styles for minimalist design
           '&::-webkit-scrollbar': {
             width: '6px',
           },
@@ -289,7 +287,6 @@ const DashboardDrawer = ({
           '&::-webkit-scrollbar-thumb:hover': {
             background: 'rgba(255, 255, 255, 0.3)',
           },
-          // Firefox scrollbar styles
           scrollbarWidth: 'thin',
           scrollbarColor: 'rgb(90, 90, 90) transparent',
         },

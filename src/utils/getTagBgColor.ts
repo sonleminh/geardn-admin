@@ -5,10 +5,10 @@ export const getBgColor = (value: string) => {
       case 'BEST_SELLER':
         return '#C11A1A';
       case 'NEW_ARRIVAL':
-        return '#007bff'; // Customize as needed
+        return '#007bff';
       case 'SECONDHAND':
-        return '#ff9800'; // Customize as needed
+        return '#ff9800'; 
       default:
-        return '#ccc'; // Default color
+        return '#ccc';
     }
   };
