@@ -12,6 +12,7 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -47,8 +48,11 @@ const OrderConfirm = () => {
   const queryClient = useQueryClient();
   const { showAlert } = useAlertContext();
 
-  const { data: orderData } = useGetOrderById(id as string);
-  const { data: warehouseData } = useGetWarehouseList();
+  const { data: orderData, isLoading: isLoadingOrder } = useGetOrderById(
+    id as string
+  );
+  const { data: warehouseData, isLoading: isLoadingWarehouse } =
+    useGetWarehouseList();
 
   const { mutate: updateOrderConfirm, isPending: isUpdateOrderConfirmPending } =
     useUpdateOrderConfirm();
@@ -166,28 +170,49 @@ const OrderConfirm = () => {
             />
             <Divider />
             <CardContent>
-              <Grid2 container spacing={3}>
-                <Grid2 size={{ xs: 12, md: 4 }}>
-                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Tên khách hàng:
-                  </Typography>
-                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Số điện thoại:
-                  </Typography>
-                  <Typography sx={{ fontWeight: 500 }}>Email:</Typography>
+              {isLoadingOrder ? (
+                <Grid2 container spacing={3}>
+                  <Grid2 size={{ xs: 12, md: 4 }}>
+                    <Box
+                      sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Skeleton variant='text' width={120} height={20} />
+                      <Skeleton variant='text' width={120} height={20} />
+                      <Skeleton variant='text' width={80} height={20} />
+                    </Box>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 8 }}>
+                    <Box
+                      sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Skeleton variant='text' width={180} height={20} />
+                      <Skeleton variant='text' width={150} height={20} />
+                      <Skeleton variant='text' width={200} height={20} />
+                    </Box>
+                  </Grid2>
                 </Grid2>
-                <Grid2 size={{ xs: 12, md: 8 }}>
-                  <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.fullName ?? 'Không có'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.phoneNumber ?? 'Không có'}
-                  </Typography>
-                  <Typography>
-                    {orderData?.data?.email ?? 'Không có'}
-                  </Typography>
+              ) : (
+                <Grid2 container spacing={3}>
+                  <Grid2 size={{ xs: 12, md: 4 }}>
+                    <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                      Tên khách hàng:
+                    </Typography>
+                    <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                      Số điện thoại:
+                    </Typography>
+                    <Typography sx={{ fontWeight: 500 }}>Email:</Typography>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 8 }}>
+                    <Typography sx={{ mb: 1 }}>
+                      {orderData?.data?.fullName ?? 'Không có'}
+                    </Typography>
+                    <Typography sx={{ mb: 1 }}>
+                      {orderData?.data?.phoneNumber ?? 'Không có'}
+                    </Typography>
+                    <Typography>
+                      {orderData?.data?.email ?? 'Không có'}
+                    </Typography>
+                  </Grid2>
                 </Grid2>
-              </Grid2>
+              )}
             </CardContent>
           </Card>
           <Card sx={{ mb: 3 }}>
@@ -202,44 +227,67 @@ const OrderConfirm = () => {
             />
             <Divider />
             <CardContent>
-              <Grid2 container spacing={3}>
-                <Grid2 size={{ xs: 12, md: 4 }}>
-                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Ngày đặt hàng:
-                  </Typography>
-                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Thời gian giao hàng:
-                  </Typography>
-                  <Typography sx={{ mb: 1, fontWeight: 500 }}>
-                    Vận chuyển:
-                  </Typography>
-                  <Typography sx={{ fontWeight: 500 }}>Địa chỉ:</Typography>
+              {isLoadingOrder ? (
+                <Grid2 container spacing={3}>
+                  <Grid2 size={{ xs: 12, md: 4 }}>
+                    <Box
+                      sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Skeleton variant='text' width={120} height={20} />
+                      <Skeleton variant='text' width={140} height={20} />
+                      <Skeleton variant='text' width={100} height={20} />
+                      <Skeleton variant='text' width={80} height={20} />
+                    </Box>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 8 }}>
+                    <Box
+                      sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <Skeleton variant='text' width={100} height={20} />
+                      <Skeleton variant='text' width={150} height={20} />
+                      <Skeleton variant='text' width={160} height={20} />
+                      <Skeleton variant='text' width={250} height={20} />
+                    </Box>
+                  </Grid2>
                 </Grid2>
-                <Grid2 size={{ xs: 12, md: 8 }}>
-                  <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.completedAt
-                      ? moment(orderData?.data?.completedAt).format(
-                          'DD/MM/YYYY'
-                        )
-                      : 'Không có'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.shipment?.deliveryDate
-                      ? moment(orderData?.data?.shipment?.deliveryDate).format(
-                          'DD/MM/YYYY HH:mm'
-                        )
-                      : 'Không có'}
-                  </Typography>
-                  <Typography sx={{ mb: 1 }}>
-                    {orderData?.data?.shipment?.method == 1
-                      ? 'Giao hàng tận nơi'
-                      : 'Nhận tại cửa hàng'}
-                  </Typography>
-                  <Typography>
-                    {orderData?.data?.shipment?.address ?? ''}
-                  </Typography>
+              ) : (
+                <Grid2 container spacing={3}>
+                  <Grid2 size={{ xs: 12, md: 4 }}>
+                    <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                      Ngày đặt hàng:
+                    </Typography>
+                    <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                      Thời gian giao hàng:
+                    </Typography>
+                    <Typography sx={{ mb: 1, fontWeight: 500 }}>
+                      Vận chuyển:
+                    </Typography>
+                    <Typography sx={{ fontWeight: 500 }}>Địa chỉ:</Typography>
+                  </Grid2>
+                  <Grid2 size={{ xs: 12, md: 8 }}>
+                    <Typography sx={{ mb: 1 }}>
+                      {orderData?.data?.completedAt
+                        ? moment(orderData?.data?.completedAt).format(
+                            'DD/MM/YYYY'
+                          )
+                        : 'Không có'}
+                    </Typography>
+                    <Typography sx={{ mb: 1 }}>
+                      {orderData?.data?.shipment?.deliveryDate
+                        ? moment(
+                            orderData?.data?.shipment?.deliveryDate
+                          ).format('DD/MM/YYYY HH:mm')
+                        : 'Không có'}
+                    </Typography>
+                    <Typography sx={{ mb: 1 }}>
+                      {orderData?.data?.shipment?.method == 1
+                        ? 'Giao hàng tận nơi'
+                        : 'Nhận tại cửa hàng'}
+                    </Typography>
+                    <Typography>
+                      {orderData?.data?.shipment?.address ?? ''}
+                    </Typography>
+                  </Grid2>
                 </Grid2>
-              </Grid2>
+              )}
             </CardContent>
           </Card>
           <Card>
@@ -254,24 +302,38 @@ const OrderConfirm = () => {
             />
             <Divider />
             <CardContent>
-              <Box
-                display='flex'
-                alignItems='center'
-                sx={{
-                  height: 40,
-                  img: {
-                    width: 40,
+              {isLoadingOrder ? (
+                <Box display='flex' alignItems='center' sx={{ height: 40 }}>
+                  <Skeleton
+                    variant='rectangular'
+                    width={40}
+                    height={40}
+                    sx={{ mr: 2 }}
+                  />
+                  <Skeleton variant='text' width={120} height={20} />
+                </Box>
+              ) : (
+                <Box
+                  display='flex'
+                  alignItems='center'
+                  sx={{
                     height: 40,
-                    mr: 2,
-                    objectFit: 'contain',
-                  },
-                }}>
-                <img
-                  src={orderData?.data?.paymentMethod?.image}
-                  alt={orderData?.data?.paymentMethod?.name}
-                />
-                <Typography>{orderData?.data?.paymentMethod?.name}</Typography>
-              </Box>
+                    img: {
+                      width: 40,
+                      height: 40,
+                      mr: 2,
+                      objectFit: 'contain',
+                    },
+                  }}>
+                  <img
+                    src={orderData?.data?.paymentMethod?.image}
+                    alt={orderData?.data?.paymentMethod?.name}
+                  />
+                  <Typography>
+                    {orderData?.data?.paymentMethod?.name}
+                  </Typography>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid2>
@@ -288,131 +350,201 @@ const OrderConfirm = () => {
             />
             <Divider />
             <CardContent>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>STT</TableCell>
-                      <TableCell>Ảnh</TableCell>
-                      <TableCell>Sản phẩm</TableCell>
-                      <TableCell>Kho</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {orderData?.data?.orderItems.map((item, index) => (
-                      <TableRow key={item?.id}>
-                        <TableCell>{index + 1}</TableCell>
+              {isLoadingOrder || isLoadingWarehouse ? (
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
                         <TableCell>
-                          <Box
-                            sx={{
-                              height: 40,
-                              img: {
-                                width: 40,
-                                height: 40,
-                                mr: 1,
-                                objectFit: 'contain',
-                              },
-                            }}>
-                            <img src={item?.imageUrl} alt={item?.productName} />
-                          </Box>
+                          <Skeleton variant='text' width={30} height={20} />
                         </TableCell>
                         <TableCell>
-                          <Typography
-                            sx={{
-                              fontSize: 14,
-                              fontWeight: 500,
-                              ...truncateTextByLine(1),
-                            }}>
-                            {item?.productName}
-                          </Typography>
-                          <Typography sx={{ fontSize: 13 }}>
-                            SL: {item?.quantity}
-                          </Typography>
-                          <Typography sx={{ fontSize: 13 }}>
-                            Giá: {formatPrice(item?.sellingPrice)}
-                          </Typography>
+                          <Skeleton variant='text' width={40} height={20} />
                         </TableCell>
                         <TableCell>
-                          {' '}
-                          <FormControl size='small' sx={{ width: 170 }}>
-                            <Select
-                              displayEmpty
-                              value={
-                                exportItems.find(
-                                  (exportItem) =>
-                                    exportItem.skuId === item?.skuId
-                                )?.warehouseId ?? ''
-                              }
-                              onChange={(e) => {
-                                handleSelectWarehouse(
-                                  item?.skuId,
-                                  e as SelectChangeEvent<string>
-                                );
-                              }}
-                              size='small'
-                              sx={{
-                                minHeight: 40,
-                                height: 40,
-                                fontSize: 14,
-                                '& .MuiFilledInput-root': {
-                                  overflow: 'hidden',
-                                  borderRadius: 1,
-                                  backgroundColor: '#a77575 !important',
-                                  border: '1px solid',
-                                  borderColor: 'rgba(0,0,0,0.23)',
-                                  '&:hover': {
-                                    backgroundColor: 'transparent',
-                                  },
-                                  '&.Mui-focused': {
-                                    backgroundColor: 'transparent',
-                                    border: '2px solid',
-                                  },
-                                },
-                              }}>
-                              <MenuItem value='' disabled>
-                                Chọn kho
-                              </MenuItem>
-                              {warehouseData?.data?.map((warehouse) => {
-                                const stock = item?.sku?.stocks?.find(
-                                  (stock) => stock.warehouseId === warehouse?.id
-                                );
-                                const isStockInsufficient =
-                                  !stock || stock.quantity < item?.quantity;
-
-                                return (
-                                  <MenuItem
-                                    key={warehouse?.id}
-                                    value={warehouse?.id}
-                                    disabled={isStockInsufficient}>
-                                    <Box
-                                      sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        width: '100%',
-                                      }}>
-                                      <Typography sx={{ fontSize: 14 }}>
-                                        {warehouse?.name}
-                                      </Typography>
-                                      <Typography
-                                        sx={{
-                                          fontSize: 12,
-                                          color: 'text.secondary',
-                                        }}>
-                                        SL: {stock?.quantity || 0}
-                                      </Typography>
-                                    </Box>
-                                  </MenuItem>
-                                );
-                              })}
-                            </Select>
-                          </FormControl>
+                          <Skeleton variant='text' width={80} height={20} />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton variant='text' width={40} height={20} />
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                      {Array.from(new Array(3)).map((_, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <Skeleton variant='text' width={20} height={20} />
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton
+                              variant='rectangular'
+                              width={40}
+                              height={40}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 0.5,
+                              }}>
+                              <Skeleton
+                                variant='text'
+                                width={120}
+                                height={20}
+                              />
+                              <Skeleton variant='text' width={80} height={16} />
+                              <Skeleton
+                                variant='text'
+                                width={100}
+                                height={16}
+                              />
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Skeleton
+                              variant='rectangular'
+                              width={170}
+                              height={40}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>STT</TableCell>
+                        <TableCell>Ảnh</TableCell>
+                        <TableCell>Sản phẩm</TableCell>
+                        <TableCell>Kho</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {orderData?.data?.orderItems.map((item, index) => (
+                        <TableRow key={item?.id}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>
+                            <Box
+                              sx={{
+                                height: 40,
+                                img: {
+                                  width: 40,
+                                  height: 40,
+                                  mr: 1,
+                                  objectFit: 'contain',
+                                },
+                              }}>
+                              <img
+                                src={item?.imageUrl}
+                                alt={item?.productName}
+                              />
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Typography
+                              sx={{
+                                fontSize: 14,
+                                fontWeight: 500,
+                                ...truncateTextByLine(1),
+                              }}>
+                              {item?.productName}
+                            </Typography>
+                            <Typography sx={{ fontSize: 13 }}>
+                              SL: {item?.quantity}
+                            </Typography>
+                            <Typography sx={{ fontSize: 13 }}>
+                              Giá: {formatPrice(item?.sellingPrice)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            {' '}
+                            <FormControl size='small' sx={{ width: 170 }}>
+                              <Select
+                                displayEmpty
+                                value={
+                                  exportItems.find(
+                                    (exportItem) =>
+                                      exportItem.skuId === item?.skuId
+                                  )?.warehouseId ?? ''
+                                }
+                                onChange={(e) => {
+                                  handleSelectWarehouse(
+                                    item?.skuId,
+                                    e as SelectChangeEvent<string>
+                                  );
+                                }}
+                                size='small'
+                                sx={{
+                                  minHeight: 40,
+                                  height: 40,
+                                  fontSize: 14,
+                                  '& .MuiFilledInput-root': {
+                                    overflow: 'hidden',
+                                    borderRadius: 1,
+                                    backgroundColor: '#a77575 !important',
+                                    border: '1px solid',
+                                    borderColor: 'rgba(0,0,0,0.23)',
+                                    '&:hover': {
+                                      backgroundColor: 'transparent',
+                                    },
+                                    '&.Mui-focused': {
+                                      backgroundColor: 'transparent',
+                                      border: '2px solid',
+                                    },
+                                  },
+                                }}>
+                                <MenuItem value='' disabled>
+                                  Chọn kho
+                                </MenuItem>
+                                {warehouseData?.data?.map((warehouse) => {
+                                  const stock = item?.sku?.stocks?.find(
+                                    (stock) =>
+                                      stock.warehouseId === warehouse?.id
+                                  );
+                                  const isStockInsufficient =
+                                    !stock || stock.quantity < item?.quantity;
+
+                                  return (
+                                    <MenuItem
+                                      key={warehouse?.id}
+                                      value={warehouse?.id}
+                                      disabled={isStockInsufficient}>
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          width: '100%',
+                                        }}>
+                                        <Typography sx={{ fontSize: 14 }}>
+                                          {warehouse?.name}
+                                        </Typography>
+                                        <Typography
+                                          sx={{
+                                            fontSize: 12,
+                                            color: 'text.secondary',
+                                          }}>
+                                          SL: {stock?.quantity || 0}
+                                        </Typography>
+                                      </Box>
+                                    </MenuItem>
+                                  );
+                                })}
+                              </Select>
+                            </FormControl>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
             </CardContent>
           </Card>
         </Grid2>
@@ -425,16 +557,26 @@ const OrderConfirm = () => {
             justifyContent: 'flex-end',
             width: '100%',
             mt: 2,
+            gap: 2,
           }}>
-          <Button onClick={() => navigate(ROUTES.ORDER_LIST)} sx={{ mr: 2 }}>
-            Trở lại
-          </Button>
-          <Button
-            variant='contained'
-            onClick={() => handleSubmit()}
-            sx={{ minWidth: 100 }}>
-            Xác nhận
-          </Button>
+          {isLoadingOrder || isLoadingWarehouse ? (
+            <>
+              <Skeleton variant='rectangular' width={80} height={36} />
+              <Skeleton variant='rectangular' width={100} height={36} />
+            </>
+          ) : (
+            <>
+              <Button onClick={() => navigate(ROUTES.ORDER_LIST)}>
+                Trở lại
+              </Button>
+              <Button
+                variant='contained'
+                onClick={() => handleSubmit()}
+                sx={{ minWidth: 100 }}>
+                Xác nhận
+              </Button>
+            </>
+          )}
         </Box>
       </Grid2>
 

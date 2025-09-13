@@ -7,7 +7,7 @@ const routeMap: Partial<Record<ResourceType, (n: Notification) => string>> = {
     ORDER: (n) =>
       `/order/${ n.resourceId ?? '' }`.replace(/\/$/, ''),
     RETURN_REQUEST: (n) =>
-      `/return-request/${ n.resourceId ?? '' }`.replace(/\/$/, ''),
+      `/order/return-request/${ n.resourceId ?? '' }`.replace(/\/$/, ''),
   };
   
 function getNotificationHref(n: Notification): string {

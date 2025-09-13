@@ -487,7 +487,7 @@ const OrderReturnRequestList = () => {
         <Link
           underline='hover'
           color='inherit'
-          onClick={() => navigate(ROUTES.ORDER)}
+          onClick={() => navigate(ROUTES.ORDER_LIST)}
           sx={{ cursor: 'pointer' }}>
           Đơn hàng
         </Link>
