@@ -9,12 +9,6 @@ import {
 } from '@/interfaces/IProductSku';
 import { TBaseResponse } from '@/types/response.type';
 
-type TSkusRes = {
-  status: number;
-  message: string;
-  data: IProductSku[];
-};
-
 const productSkuUrl = '/product-skus';
 
 const createSku = async (payload: ICreateProductSku) => {
@@ -43,18 +37,28 @@ export const useGetSkuById = (id: number | undefined) => {
   });
 };
 
-const getSkusByProductId = async (id: number | undefined) => {
-  const result = await axiosInstance.get(`products/${id}/skus`);
-  return result.data as TSkusRes;
+const getSkusByProductId = async (payload: {
+  id: number | undefined;
+  state: 'ACTIVE' | 'DELETED' | 'ALL';
+}) => {
+  const result = await axiosInstance.get(`products/${payload.id}/skus`, {
+    params: {
+      isDeleted: payload.state,
+    },
+  });
+  return result.data as TBaseResponse<IProductSku[]>;
 };
 
-export const useGetSkusByProductId = (id: number | undefined) => {
+export const useGetSkusByProductId = (payload: {
+  id: number | undefined;
+  state: 'ACTIVE' | 'DELETED' | 'ALL';
+}) => {
   return useQuery({
-    queryKey: [QueryKeys.Sku, id],
-    queryFn: () => getSkusByProductId(id),
+    queryKey: [QueryKeys.Sku, payload.id],
+    queryFn: () => getSkusByProductId(payload),
     refetchOnWindowFocus: false,
     refetchInterval: false,
-    enabled: !!id,
+    enabled: !!payload.id,
   });
 };
 
@@ -93,5 +97,27 @@ const deleteSku = async (id: number) => {
 export const useDeleteSku = () => {
   return useMutation({
     mutationFn: deleteSku,
+  });
+};
+
+const restoreSku = async (id: number) => {
+  const result = await axiosInstance.patch(`${productSkuUrl}/${id}/restore`);
+  return result.data;
+};
+
+export const useRestoreSku = () => {
+  return useMutation({
+    mutationFn: restoreSku,
+  });
+};
+
+const deleteSkuPermanent = async (id: number) => {
+  const result = await axiosInstance.delete(`${productSkuUrl}/${id}/permanent`);
+  return result.data;
+};
+
+export const useDeleteSkuPermanent = () => {
+  return useMutation({
+    mutationFn: deleteSkuPermanent,
   });
 };

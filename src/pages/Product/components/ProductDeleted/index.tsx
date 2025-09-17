@@ -23,7 +23,7 @@ import {
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
@@ -597,7 +597,8 @@ export default function ProductDeleted() {
                       </TableCell>
                       <TableCell>
                         <Link
-                          href={`${ROUTES.PRODUCT}/${product.id}/sku`}
+                          component={RouterLink}
+                          to={`${ROUTES.PRODUCT}/${product.id}/sku`}
                           sx={{
                             py: 0.5,
                             bgcolor: '#ececec',
@@ -612,7 +613,7 @@ export default function ProductDeleted() {
                               bgcolor: '#e3e3e3',
                             },
                           }}>
-                          {product.skus.length} biến thể
+                          {product?.skus?.length} biến thể
                         </Link>
                       </TableCell>
                       <TableCell align='center'>
@@ -622,7 +623,7 @@ export default function ProductDeleted() {
                             color: '#000',
                             ...truncateTextByLine(2),
                           }}>
-                          {product.category?.name}
+                          {product?.category?.name}
                         </Typography>
                       </TableCell>
 

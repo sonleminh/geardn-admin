@@ -98,7 +98,7 @@ const useConfirmModal = () => {
             {modalProps?.showBtnCancel && (
               <Button
                 variant='outlined'
-                sx={{ mr: 2, textTransform: 'none' }}
+                sx={{ mr: 2, width: 100, textTransform: 'none' }}
                 onClick={() => modalProps?.onCancel?.()}>
                 {modalProps?.cancelText}
               </Button>
@@ -108,7 +108,7 @@ const useConfirmModal = () => {
                 variant='contained'
                 color={modalProps?.btnOkColor}
                 onClick={() => modalProps?.onOk?.()}
-                sx={{ textTransform: 'none' }}>
+                sx={{ width: 100, textTransform: 'none' }}>
                 {modalProps?.okText}
               </Button>
             )}

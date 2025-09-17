@@ -7,25 +7,13 @@ import {
   ICreateWarehouse,
   IUpdateWarehousePayload,
 } from '@/interfaces/IWarehouse';
-
-type TWarehousesRes = {
-  success: boolean;
-  message: string;
-  data: IWarehouse[];
-  total: number;
-};
-
-type TWarehouseById = {
-  status: number;
-  message: string;
-  data: IWarehouse;
-};
+import { TBaseResponse } from '@/types/response.type';
 
 const warehouseUrl = '/warehouses';
 
 const getWarehouseList = async () => {
   const result = await axiosInstance.get(`${warehouseUrl}`);
-  return result.data as TWarehousesRes;
+  return result.data as TBaseResponse<IWarehouse[]>;
 };
 
 export const useGetWarehouseList = () => {
@@ -39,7 +27,7 @@ export const useGetWarehouseList = () => {
 
 const getWarehouseById = async (id: number | undefined) => {
   const result = await axiosInstance.get(`${warehouseUrl}/${id}`);
-  return result.data as TWarehouseById;
+  return result.data as TBaseResponse<IWarehouse>;
 };
 
 export const useGetWarehouseById = (id: number | undefined) => {

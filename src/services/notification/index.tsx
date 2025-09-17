@@ -111,20 +111,25 @@ export const useMarkNotificationsRead = () => {
       await queryClient.cancelQueries({ queryKey: listKey });
       const prevList = queryClient.getQueryData<IInfiniteQueryData>(listKey);
 
-      queryClient.setQueryData(listKey, (old: IInfiniteQueryData | undefined) => {
-        if (!old?.pages) return old;
-        const pages = old.pages.map((p) => {
-          const items = p.data.items.map((it: Notification) => {
-            if (ids.includes(it.id) && !it.isRead) {
-              return { ...it, isRead: true };
-            }
-            return it;
+      queryClient.setQueryData(
+        listKey,
+        (old: IInfiniteQueryData | undefined) => {
+          console.log('old', old);
+          if (!old?.pages) return old;
+          const pages = old.pages.map((p) => {
+            const items = p.data.items.map((it: Notification) => {
+              if (ids.includes(it.id) && !it.isRead) {
+                return { ...it, isRead: true };
+              }
+              return it;
+            });
+            return { ...p, data: { ...p.data, items } };
           });
-          return { ...p, data: { ...p.data, items } };
-        });
 
-        return { ...old, pages };
-      });
+          return { ...old, pages };
+        }
+      );
+      console.log('prevList', prevList?.pages[0].data.items[0].isRead);
       return { prevList };
     },
   });

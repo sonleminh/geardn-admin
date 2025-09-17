@@ -9,6 +9,9 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import CircleIcon from '@mui/icons-material/Circle';
+import RestoreIcon from '@mui/icons-material/Restore';
+import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined';
 
 import {
   Box,
@@ -34,26 +37,69 @@ import { useAlertContext } from '@/contexts/AlertContext';
 import useConfirmModal from '@/hooks/useModalConfirm';
 
 import { useGetProductById } from '@/services/product';
-import { useDeleteSku, useGetSkusByProductId } from '@/services/sku';
+import {
+  useDeleteSku,
+  useDeleteSkuPermanent,
+  useGetSkusByProductId,
+  useRestoreSku,
+} from '@/services/sku';
 
 import { truncateTextByLine } from '@/utils/css-helper.util';
 
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
+import { FC, memo } from 'react';
+
+const StatusDot: FC<{ isDeleted?: boolean }> = memo(({ isDeleted }) => (
+  <Typography sx={{ fontSize: 14 }}>
+    <CircleIcon
+      sx={{ mr: 0.5, color: isDeleted ? '#ff0000' : '#00a35c', fontSize: 12 }}
+    />
+  </Typography>
+));
 
 const ProductSkuList = () => {
   const { id } = useParams();
-  // const numericId = slug ? Number(id) : undefined;
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { showAlert } = useAlertContext();
+  const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { data: productData } = useGetProductById(id ? +id : 0);
   const { data: skusData } = useGetSkusByProductId(id ? +id : 0);
-  const { showAlert } = useAlertContext();
-
-  const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { mutate: deteleteSkuMutate } = useDeleteSku();
+  const { mutate: deleteSkuMutate, isPending: isDeleting } = useDeleteSku();
+  const { mutate: restoreSkuMutate, isPending: isRestoring } = useRestoreSku();
+  const { mutate: deleteSkuPermanentMutate, isPending: isDeletingPermanent } =
+    useDeleteSkuPermanent();
+
+  const handleDelete = (id: number) => {
+    deleteSkuMutate(id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
+        showAlert('Xóa mã hàng thành công', 'success');
+      },
+    });
+  };
+
+  const handleRestore = (id: number) => {
+    restoreSkuMutate(id, {
+      onSuccess() {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
+        showAlert('Khôi phục mã hàng thành công', 'success');
+      },
+    });
+  };
+
+  const handleDeletePermanent = (id: number) => {
+    deleteSkuPermanentMutate(id, {
+      onSuccess() {
+        queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
+        showAlert('Xoá vĩnh viễn mã hàng thành công', 'success');
+      },
+    });
+  };
 
   const handleDeleteSku = (id: number) => {
     deteleteSkuMutate(id, {
@@ -112,6 +158,7 @@ const ProductSkuList = () => {
                 <TableCell>Tên</TableCell>
                 <TableCell align='center'>Ảnh</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
+                <TableCell align='center'>Đã xóa</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
@@ -148,6 +195,9 @@ const ProductSkuList = () => {
                       {moment(item?.createdAt).format('DD/MM/YYYY')}
                     </TableCell>
                     <TableCell align='center'>
+                      <StatusDot isDeleted={item?.isDeleted} />
+                    </TableCell>
+                    <TableCell align='center'>
                       <ActionButton>
                         <Box mb={1}>
                           <ButtonWithTooltip
@@ -171,24 +221,62 @@ const ProductSkuList = () => {
                             <EditOutlinedIcon />
                           </ButtonWithTooltip>
                         </Box>
-                        <Box>
-                          <ButtonWithTooltip
-                            color='error'
-                            onClick={() => {
-                              showConfirmModal({
-                                title: 'Bạn có muốn xóa mã hàng này không?',
-                                cancelText: 'Hủy',
-                                onOk: () => handleDeleteSku(item?.id),
-                                okText: 'Xóa',
-                                btnOkColor: 'error',
-                              });
-                            }}
-                            variant='outlined'
-                            title='Xoá'
-                            placement='left'>
-                            <DeleteOutlineOutlinedIcon />
-                          </ButtonWithTooltip>
-                        </Box>
+                        {!item?.isDeleted && (
+                          <Box mb={1}>
+                            <ButtonWithTooltip
+                              color='error'
+                              variant='outlined'
+                              title='Xoá'
+                              placement='left'
+                              onClick={() =>
+                                showConfirmModal({
+                                  title: 'Xoá mã hàng',
+                                  content:
+                                    'Bạn có chắc chắn muốn xoá mã hàng này?',
+                                  onOk: () => handleDelete(item?.id),
+                                })
+                              }>
+                              <DeleteOutlineOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
+                        )}
+                        {item?.isDeleted && (
+                          <Box mb={item?.isDeleted ? 1 : 0}>
+                            <ButtonWithTooltip
+                              variant='outlined'
+                              title='Khôi phục'
+                              placement='left'
+                              onClick={() =>
+                                showConfirmModal({
+                                  title: 'Khôi phục mã hàng',
+                                  content:
+                                    'Bạn có chắc chắn muốn khôi phục mã hàng này?',
+                                  onOk: () => handleRestore(item?.id),
+                                })
+                              }>
+                              <RestoreIcon />
+                            </ButtonWithTooltip>
+                          </Box>
+                        )}
+                        {item?.isDeleted && (
+                          <Box>
+                            <ButtonWithTooltip
+                              color='error'
+                              variant='outlined'
+                              title='Xoá vĩnh viễn'
+                              placement='left'
+                              onClick={() =>
+                                showConfirmModal({
+                                  title: 'Xoá vĩnh viễn mã hàng',
+                                  content:
+                                    'Bạn có chắc chắn muốn xoá vĩnh viễn mã hàng này?',
+                                  onOk: () => handleDeletePermanent(item?.id),
+                                })
+                              }>
+                              <DeleteForeverOutlinedIcon />
+                            </ButtonWithTooltip>
+                          </Box>
+                        )}
                       </ActionButton>
                     </TableCell>
                   </TableRow>

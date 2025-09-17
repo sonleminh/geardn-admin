@@ -24,7 +24,7 @@ import {
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
@@ -610,7 +610,8 @@ export default function ProductList() {
                       </TableCell>
                       <TableCell>
                         <Link
-                          href={`${ROUTES.PRODUCT}/${product.id}/sku`}
+                          component={RouterLink}
+                          to={`${ROUTES.PRODUCT}/${product.id}/sku`}
                           sx={{
                             py: 0.5,
                             bgcolor: '#f8f8f8',

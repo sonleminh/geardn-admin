@@ -12,6 +12,7 @@ export interface IProductSku {
     stocks: IStock[]
     product: IProduct;
     createdAt: Date;
+    isDeleted: boolean;
 }
 
 export interface ICreateProductSku extends Record<string, unknown>  {

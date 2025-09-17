@@ -92,7 +92,10 @@ const CreateInventoryImportPage = () => {
   const { data: enumData } = useGetEnumByContext('import-type');
 
   const { data: productsData } = useGetProductList();
-  const { data: skusData } = useGetSkusByProductId(productId);
+  const { data: skusData } = useGetSkusByProductId({
+    id: productId,
+    state: 'ACTIVE',
+  });
 
   const { mutate: createImportLogMutate, isPending: isCreatePending } =
     useCreateImportLog();

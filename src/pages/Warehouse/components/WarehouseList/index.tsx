@@ -74,7 +74,7 @@ const WarehouseList = () => {
     isPending: isDeletingPermanent,
   } = useDeleteWarehousePermanent();
 
-  const handleDeleteWarehouse = (id: number) => {
+  const handleDelete = (id: number) => {
     deleteWarehouseMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Warehouse] });
@@ -216,7 +216,7 @@ const WarehouseList = () => {
                                     title: 'Xoá kho hàng',
                                     content:
                                       'Bạn có chắc chắn muốn xoá kho hàng này?',
-                                    onOk: () => handleDeleteWarehouse(item?.id),
+                                    onOk: () => handleDelete(item?.id),
                                   })
                                 }>
                                 <DeleteOutlineOutlinedIcon />
