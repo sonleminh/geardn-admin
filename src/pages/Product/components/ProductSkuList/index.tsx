@@ -1,3 +1,4 @@
+import { FC, memo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import moment from 'moment';
 import { AxiosError } from 'axios';
@@ -34,6 +35,8 @@ import {
 import { QueryKeys } from '@/constants/query-key';
 import { ROUTES } from '@/constants/route';
 
+import { TableColumn } from '@/interfaces/ITableColumn';
+
 import { useAlertContext } from '@/contexts/AlertContext';
 
 import useConfirmModal from '@/hooks/useModalConfirm';
@@ -47,10 +50,22 @@ import {
 } from '@/services/sku';
 
 import { truncateTextByLine } from '@/utils/css-helper.util';
+import { formatPrice } from '@/utils/format-price';
 
 import ActionButton from '@/components/ActionButton';
 import ButtonWithTooltip from '@/components/ButtonWithTooltip';
-import { FC, memo } from 'react';
+import { TableSkeleton } from '@/components/TableSkeleton';
+
+const columns: TableColumn[] = [
+  { width: '50px', align: 'center' },
+  { width: '100px', align: 'center' },
+  { width: '50px', align: 'center' },
+  { width: '150px', align: 'center' },
+  { width: '100px', align: 'center' },
+  { width: '100px', align: 'center' },
+  { width: '100px', align: 'center' },
+  { width: '100px', align: 'center' },
+];
 
 const StatusDot: FC<{ isDeleted?: boolean }> = memo(({ isDeleted }) => (
   <Typography sx={{ fontSize: 14 }}>
@@ -68,7 +83,7 @@ const ProductSkuList = () => {
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { data: productData } = useGetProductById(id ? +id : 0);
-  const { data: skusData } = useGetSkusByProductId({
+  const { data: skusData, isLoading: isLoadingSkus } = useGetSkusByProductId({
     id: id ? +id : 0,
     state: 'all',
   });
@@ -163,19 +178,23 @@ const ProductSkuList = () => {
                 <TableCell align='center'>STT</TableCell>
                 <TableCell>Tên</TableCell>
                 <TableCell align='center'>Ảnh</TableCell>
+                <TableCell align='center'>Phân loại</TableCell>
+                <TableCell align='center'>Giá bán</TableCell>
                 <TableCell align='center'>Ngày tạo</TableCell>
                 <TableCell align='center'>Đã xóa</TableCell>
                 <TableCell align='center'>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {skusData?.data &&
-              Array.isArray(skusData.data) &&
-              skusData.data.length > 0 ? (
+              {isLoadingSkus ? (
+                <TableSkeleton rowsPerPage={5} columns={columns} />
+              ) : skusData?.data &&
+                Array.isArray(skusData.data) &&
+                skusData.data.length > 0 ? (
                 skusData.data.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell align='center'>{index + 1}</TableCell>
-                    <TableCell sx={{ width: '30%' }}>
+                    <TableCell sx={{}}>
                       <Typography sx={{ ...truncateTextByLine(2) }}>
                         {item?.sku}
                       </Typography>
@@ -196,6 +215,25 @@ const ProductSkuList = () => {
                       ) : (
                         'Không có'
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                        {item?.productSkuAttributes?.length
+                          ? item?.productSkuAttributes?.map(
+                              (item, prdSkuAttrIndex) => (
+                                <Typography
+                                  key={prdSkuAttrIndex}
+                                  sx={{ fontSize: 14 }}>
+                                  {item?.attributeValue?.attribute?.label}:{' '}
+                                  {item?.attributeValue?.value}
+                                </Typography>
+                              )
+                            )
+                          : 'Không có'}
+                      </Box>
+                    </TableCell>
+                    <TableCell align='center'>
+                      {formatPrice(item?.sellingPrice)}
                     </TableCell>
                     <TableCell align='center'>
                       {moment(item?.createdAt).format('DD/MM/YYYY')}

@@ -62,6 +62,7 @@ import {
 } from '@/services/product';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { AxiosError } from 'axios';
+import { ErrorResponse } from '@/interfaces/IError';
 
 interface Data {
   stt: number;
