@@ -22,12 +22,6 @@ interface IGetProductListQuery {
   isDeleted?: string;
 }
 
-interface IProductQueryData {
-  pages: Array<{
-    data: TPaginatedResponse<IProduct>;
-  }>;
-}
-
 const productUrl = '/products';
 
 const createProduct = async (payload: ICreateProduct) => {

@@ -36,6 +36,7 @@ import { TableSkeleton } from '@/components/TableSkeleton';
 import { TableColumn } from '@/interfaces/ITableColumn';
 import { truncateTextByLine } from '@/utils/css-helper.util';
 import { formatPrice } from '@/utils/format-price';
+import { IProductSku } from '@/interfaces/IProductSku';
 
 const columns: TableColumn[] = [
   { align: 'center' },
@@ -59,6 +60,10 @@ const InventoryByProduct = () => {
     useGetStockByProduct(numericId);
 
   const isLoading = isLoadingWarehouses || isLoadingStock || !numericId;
+
+  function getStockByWarehouse(sku: IProductSku, warehouseId: number) {
+    return sku?.stocks?.find((stock) => stock?.warehouseId === warehouseId);
+  }
 
   return (
     <>
@@ -124,7 +129,7 @@ const InventoryByProduct = () => {
                   <TableSkeleton rowsPerPage={2} columns={columns} />
                 ) : stockData?.data?.skus?.length ? (
                   stockData?.data?.skus?.map((item, index) => (
-                    <TableRow key={index}>
+                    <TableRow key={item?.id || index}>
                       <TableCell align='center'>{index + 1}</TableCell>
                       <TableCell>
                         <Box
@@ -145,62 +150,75 @@ const InventoryByProduct = () => {
                       <TableCell>
                         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                           {item?.productSkuAttributes?.length
-                            ? item?.productSkuAttributes?.map((item) => (
-                                <Typography sx={{ fontSize: 14 }}>
-                                  {item?.attributeValue?.attribute?.label}:{' '}
-                                  {item?.attributeValue?.value}
-                                </Typography>
-                              ))
+                            ? item?.productSkuAttributes?.map(
+                                (item, prdSkuAttrIndex) => (
+                                  <Typography
+                                    key={prdSkuAttrIndex}
+                                    sx={{ fontSize: 14 }}>
+                                    {item?.attributeValue?.attribute?.label}:{' '}
+                                    {item?.attributeValue?.value}
+                                  </Typography>
+                                )
+                              )
                             : 'Không có'}
                         </Box>
                       </TableCell>
                       <TableCell>
-                        {warehousesData?.data?.map((warehouse, index) => (
-                          <Box
-                            key={warehouse?.id}
-                            sx={{
-                              display: 'flex',
-                              border: '1px solid #e0e0e0',
-                              borderRadius: 1,
-                              px: 2,
-                              py: 1,
-                              mb:
-                                index === warehousesData?.data?.length - 1
-                                  ? 0
-                                  : 2,
-                            }}>
-                            <Typography sx={{ width: 150, mr: 8 }}>
-                              {warehouse?.name}:
-                            </Typography>
-                            <Typography
+                        {warehousesData?.data?.map(
+                          (warehouse, warehouseIndex) => (
+                            <Box
+                              key={warehouse?.id || warehouseIndex}
                               sx={{
                                 display: 'flex',
-                                alignItems: 'center',
-                                width: 150,
-                                fontSize: 14,
+                                border: '1px solid #e0e0e0',
+                                borderRadius: 1,
+                                px: 2,
+                                py: 1,
+                                mb:
+                                  warehouseIndex ===
+                                  warehousesData?.data?.length - 1
+                                    ? 0
+                                    : 2,
                               }}>
-                              <BsBoxes />
-                              <Typography component='span' sx={{ ml: 1 }}>
-                                Số lượng:
+                              <Typography sx={{ width: 150, mr: 8 }}>
+                                {warehouse?.name}:
                               </Typography>
-                              <Typography component='span' sx={{ ml: 1 }}>
-                                {item?.stocks?.[index]?.quantity ?? 0}
+                              <Typography
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  width: 150,
+                                  fontSize: 14,
+                                }}>
+                                <BsBoxes />
+                                <Typography component='span' sx={{ ml: 1 }}>
+                                  Số lượng:
+                                </Typography>
+                                <Typography component='span' sx={{ ml: 1 }}>
+                                  {
+                                    getStockByWarehouse(item, warehouse?.id)
+                                      ?.quantity
+                                  }
+                                </Typography>
                               </Typography>
-                            </Typography>
-                            <Typography
-                              sx={{ display: 'flex', alignItems: 'center' }}>
-                              <PriceChangeOutlinedIcon sx={{ fontSize: 20 }} />
-                              <Typography component='span' sx={{ ml: 1 }}>
-                                Giá vốn:
+                              <Typography
+                                sx={{ display: 'flex', alignItems: 'center' }}>
+                                <PriceChangeOutlinedIcon
+                                  sx={{ fontSize: 20 }}
+                                />
+                                <Typography component='span' sx={{ ml: 1 }}>
+                                  Giá vốn:
+                                </Typography>
+                                <Typography component='span' sx={{ ml: 1 }}>
+                                  {formatPrice(
+                                    getStockByWarehouse(item, warehouse?.id)
+                                      ?.unitCost ?? 0
+                                  )}
+                                </Typography>
                               </Typography>
-                              <Typography component='span' sx={{ ml: 1 }}>
-                                {formatPrice(
-                                  item?.stocks?.[index]?.unitCost ?? 0
-                                )}
-                              </Typography>
-                            </Typography>
-                          </Box>
-                        ))}
+                            </Box>
+                          )
+                        )}
                       </TableCell>
 
                       <TableCell align='center'>

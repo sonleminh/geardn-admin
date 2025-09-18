@@ -39,11 +39,11 @@ export const useGetSkuById = (id: number | undefined) => {
 
 const getSkusByProductId = async (payload: {
   id: number | undefined;
-  state: 'ACTIVE' | 'DELETED' | 'ALL';
+  state?: 'active' | 'deleted' | 'all';
 }) => {
   const result = await axiosInstance.get(`products/${payload.id}/skus`, {
     params: {
-      isDeleted: payload.state,
+      state: payload.state,
     },
   });
   return result.data as TBaseResponse<IProductSku[]>;
@@ -51,7 +51,7 @@ const getSkusByProductId = async (payload: {
 
 export const useGetSkusByProductId = (payload: {
   id: number | undefined;
-  state: 'ACTIVE' | 'DELETED' | 'ALL';
+  state?: 'active' | 'deleted' | 'all';
 }) => {
   return useQuery({
     queryKey: [QueryKeys.Sku, payload.id],

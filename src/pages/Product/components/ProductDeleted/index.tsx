@@ -61,6 +61,7 @@ import {
   useRestoreProduct,
 } from '@/services/product';
 import { truncateTextByLine } from '@/utils/css-helper.util';
+import { AxiosError } from 'axios';
 
 interface Data {
   stt: number;
@@ -341,6 +342,10 @@ export default function ProductDeleted() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
         showAlert('Xóa sản phẩm thành công', 'success');
       },
+      onError(error: Error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        showAlert(axiosError?.response?.data?.message ?? 'Lỗi', 'error');
+      },
     });
   };
 
@@ -350,6 +355,10 @@ export default function ProductDeleted() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
         showAlert('Khôi phục sản phẩm thành công', 'success');
       },
+      onError(error: Error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        showAlert(axiosError?.response?.data?.message ?? 'Lỗi', 'error');
+      },
     });
   };
 
@@ -358,6 +367,10 @@ export default function ProductDeleted() {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Product] });
         showAlert('Xoá vĩnh viễn sản phẩm thành công', 'success');
+      },
+      onError(error: Error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        showAlert(axiosError?.response?.data?.message ?? 'Lỗi', 'error');
       },
     });
   };

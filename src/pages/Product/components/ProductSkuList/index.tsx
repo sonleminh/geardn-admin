@@ -1,5 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import moment from 'moment';
+import { AxiosError } from 'axios';
+import { ErrorResponse } from '@/interfaces/IError';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -66,19 +68,24 @@ const ProductSkuList = () => {
   const { confirmModal, showConfirmModal } = useConfirmModal();
 
   const { data: productData } = useGetProductById(id ? +id : 0);
-  const { data: skusData } = useGetSkusByProductId(id ? +id : 0);
+  const { data: skusData } = useGetSkusByProductId({
+    id: id ? +id : 0,
+    state: 'all',
+  });
 
-  const { mutate: deteleteSkuMutate } = useDeleteSku();
-  const { mutate: deleteSkuMutate, isPending: isDeleting } = useDeleteSku();
-  const { mutate: restoreSkuMutate, isPending: isRestoring } = useRestoreSku();
-  const { mutate: deleteSkuPermanentMutate, isPending: isDeletingPermanent } =
-    useDeleteSkuPermanent();
+  const { mutate: deleteSkuMutate } = useDeleteSku();
+  const { mutate: restoreSkuMutate } = useRestoreSku();
+  const { mutate: deleteSkuPermanentMutate } = useDeleteSkuPermanent();
 
   const handleDelete = (id: number) => {
     deleteSkuMutate(id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
         showAlert('Xóa mã hàng thành công', 'success');
+      },
+      onError(error: Error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        showAlert(axiosError?.response?.data?.message ?? 'Lỗi', 'error');
       },
     });
   };
@@ -89,6 +96,10 @@ const ProductSkuList = () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
         showAlert('Khôi phục mã hàng thành công', 'success');
       },
+      onError(error: Error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        showAlert(axiosError?.response?.data?.message ?? 'Lỗi', 'error');
+      },
     });
   };
 
@@ -98,14 +109,9 @@ const ProductSkuList = () => {
         queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
         showAlert('Xoá vĩnh viễn mã hàng thành công', 'success');
       },
-    });
-  };
-
-  const handleDeleteSku = (id: number) => {
-    deteleteSkuMutate(id, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QueryKeys.Sku] });
-        showAlert('Xóa mã hàng thành công', 'success');
+      onError(error: Error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        showAlert(axiosError?.response?.data?.message ?? 'Lỗi', 'error');
       },
     });
   };

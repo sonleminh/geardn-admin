@@ -114,7 +114,6 @@ export const useMarkNotificationsRead = () => {
       queryClient.setQueryData(
         listKey,
         (old: IInfiniteQueryData | undefined) => {
-          console.log('old', old);
           if (!old?.pages) return old;
           const pages = old.pages.map((p) => {
             const items = p.data.items.map((it: Notification) => {
@@ -129,7 +128,6 @@ export const useMarkNotificationsRead = () => {
           return { ...old, pages };
         }
       );
-      console.log('prevList', prevList?.pages[0].data.items[0].isRead);
       return { prevList };
     },
   });

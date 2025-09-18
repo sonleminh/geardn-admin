@@ -94,7 +94,7 @@ const CreateInventoryImportPage = () => {
   const { data: productsData } = useGetProductList();
   const { data: skusData } = useGetSkusByProductId({
     id: productId,
-    state: 'ACTIVE',
+    state: 'active',
   });
 
   const { mutate: createImportLogMutate, isPending: isCreatePending } =
