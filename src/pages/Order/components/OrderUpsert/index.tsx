@@ -29,7 +29,7 @@ import {
 
 import { QueryKeys } from '@/constants/query-key';
 
-import { ICreateOrder, ICreateOrderItem, IOrder } from '@/interfaces/IOrder';
+import { ICheckoutItem, ICreateOrder, IOrder } from '@/interfaces/IOrder';
 
 import SuspenseLoader from '@/components/SuspenseLoader';
 import CustomerForm from './components/CustomerForm';
@@ -64,7 +64,7 @@ interface OrderFormValues {
 }
 
 const useOrderForm = (orderData: { data: IOrder } | undefined) => {
-  const [orderItems, setOrderItems] = useState<ICreateOrderItem[]>([]);
+  const [orderItems, setOrderItems] = useState<ICheckoutItem[]>([]);
   const [address, setAddress] = useState<AddressState>({
     city: '',
     district: '',
@@ -190,7 +190,10 @@ const OrderUpsert = () => {
       const payload = {
         ...processedValues,
         userId: +user.id,
-        orderItems,
+        orderItems: orderItems?.map((item) => ({
+          skuId: +item.skuId,
+          quantity: item.quantity,
+        })),
         shipment: {
           ...processedValues.shipment,
           address:

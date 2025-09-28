@@ -28,7 +28,7 @@ import {
 
 import { useAlertContext } from '@/contexts/AlertContext';
 
-import { ICreateOrderItem, IOrder, IOrderItem } from '@/interfaces/IOrder';
+import { ICheckoutItem, IOrder, IOrderItem } from '@/interfaces/IOrder';
 
 import { useGetProductByCateId, useGetProductById } from '@/services/product';
 
@@ -39,8 +39,8 @@ import { formatPrice } from '@/utils/format-price';
 
 interface ProductSelectorProps {
   orderData?: IOrder;
-  orderItems: ICreateOrderItem[];
-  setOrderItems: React.Dispatch<React.SetStateAction<ICreateOrderItem[]>>;
+  orderItems: ICheckoutItem[];
+  setOrderItems: React.Dispatch<React.SetStateAction<ICheckoutItem[]>>;
   isEdit: boolean;
 }
 
@@ -95,8 +95,8 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
         ? selectedSku?.imageUrl ?? ''
         : productData?.data?.images[0] ?? '',
       productName: productData?.data?.name ?? '',
-      productSlug: productData?.data?.slug ?? '',
-      skuCode: selectedSku?.sku ?? '',
+      // productSlug: productData?.data?.slug ?? '',
+      // skuCode: selectedSku?.sku ?? '',
       skuAttributes:
         selectedSku?.productSkuAttributes?.map((attribute) => ({
           attribute: attribute?.attributeValue?.attribute?.label,
@@ -110,7 +110,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
       setOrderItems(updatedOrderItems);
       setItemIndex(null);
     } else if (productData && selectedSku) {
-      setOrderItems((prev: ICreateOrderItem[]) => [...prev, newItem]);
+      setOrderItems((prev: ICheckoutItem[]) => [...prev, newItem]);
     }
 
     setCategoryId('');
@@ -120,10 +120,15 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
     setQuantity('');
   };
 
-  const handleEditOrderItem = (item: ICreateOrderItem, index: number) => {
+  console.log('slted:', selectedSku);
+  const handleEditOrderItem = (item: ICheckoutItem, index: number) => {
     setIsOrderItemEdit(true);
     setProductId(item?.productId.toString());
     setSelectedSkuId(item?.skuId.toString());
+    console.log(
+      '2',
+      productData?.data?.skus?.find((sku) => sku?.id === +selectedSkuId)
+    );
     setSelectedSku(
       productData?.data?.skus?.find((sku) => sku?.id === +selectedSkuId)
     );
@@ -170,7 +175,9 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
               variant='filled'
               margin='dense'
               fullWidth
-              disabled={orderData?.status !== 'PENDING' && isEdit}
+              disabled={
+                orderData?.status !== 'PENDING' && isEdit && isLoadingProducts
+              }
               sx={selectStyle}>
               <InputLabel>Danh mục</InputLabel>
               <LoadingSelect
@@ -196,7 +203,9 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
               variant='filled'
               margin='dense'
               fullWidth
-              disabled={orderData?.status !== 'PENDING' && isEdit}
+              disabled={
+                (orderData?.status !== 'PENDING' && isEdit) || isLoadingProducts
+              }
               sx={selectStyle}>
               <InputLabel>Sản phẩm</InputLabel>
               <LoadingSelect

@@ -52,16 +52,16 @@ export interface IOrder {
     updatedAt: Date;
 }
 
-export interface ICreateOrderItem {
+export interface ICheckoutItem {
     productId: number;
     skuId: number;
     quantity: number;
     sellingPrice: number;
-    unitCost?: number;
+    // unitCost?: number;
     imageUrl: string;
     productName: string;
-    productSlug: string;
-    skuCode: string;
+    // productSlug: string;
+    // skuCode: string;
     skuAttributes: ISkuAttribute[];
 }
 
@@ -80,7 +80,10 @@ export interface ICreateOrder extends Record<string, unknown>  {
         isOnlineOrder: boolean;
     };
     note: string | null;
-    orderItems: ICreateOrderItem[]
+    orderItems: {
+        skuId: number;
+        quantity: number;
+    }[]
 }
 export interface IUpdateOrder{
     id: number;
@@ -97,7 +100,10 @@ export interface IUpdateOrder{
         isOnlineOrder: boolean;
     };
     note: string | null;
-    orderItems: ICreateOrderItem[]
+    orderItems: {
+        skuId: number;
+        quantity: number;
+    }[]
 }
 
 export interface IUpdateOrderStatus{

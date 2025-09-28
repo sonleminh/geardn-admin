@@ -232,7 +232,9 @@ const ShipmentForm: React.FC<ShipmentFormProps> = ({
             onChange={(e) => setShopAddress(e?.target?.value)}
             value={shopAddress}>
             {warehouseData?.data?.map((item) => (
-              <MenuItem value={item?.address}>{item?.address}</MenuItem>
+              <MenuItem key={item?.id} value={item?.address}>
+                {item?.address}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
