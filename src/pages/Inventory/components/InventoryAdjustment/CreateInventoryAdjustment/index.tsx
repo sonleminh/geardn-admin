@@ -96,7 +96,10 @@ const CreateInventoryAdjustmentPage = () => {
     useGetEnumByContext('adjustment-reason');
 
   const { data: productsData } = useGetProductList();
-  const { data: skusData } = useGetSkusByProductId(productId);
+  const { data: skusData } = useGetSkusByProductId({
+    id: productId,
+    state: 'active',
+  });
 
   const { mutate: createAdjustmentLogMutate, isPending: isCreatePending } =
     useCreateAdjustmentLog();

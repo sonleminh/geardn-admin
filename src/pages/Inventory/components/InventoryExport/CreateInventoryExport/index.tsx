@@ -85,7 +85,10 @@ const CreateInventoryExportPage = () => {
   const { data: enumData } = useGetEnumByContext('export-type');
 
   const { data: productsData } = useGetProductList();
-  const { data: skusData } = useGetSkusByProductId(productId);
+  const { data: skusData } = useGetSkusByProductId({
+    id: productId,
+    state: 'active',
+  });
 
   const { mutate: createExportLogMutate, isPending: isCreatePending } =
     useCreateExportLog();
